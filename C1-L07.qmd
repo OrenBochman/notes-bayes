@@ -1,0 +1,275 @@
+# Bernoulli/binomial data
+
+## Bernoulli/Binomial likelihood with a uniform prior
+
+![Binomial likelihood with a Uniform prior](images/c1l07-ss-01-binomial-likelihood-uniform-prior.png){#fig-binomial-likelihood-uniform-prior .column-margin}
+
+When we use a uniform prior for a Bernoulli likelihood, we get a beta posterior.
+
+The Bernoulli likelihood of $\vec Y \mid \theta$ is
+
+$$
+{\color{green}f(\vec Y \mid \theta) = {\theta^{\sum{y_i}}(1-\theta)^{n - \sum{y_i}}}} \qquad \text{Bernoulli Likelihood}
+$$
+
+Our prior for $\theta$ is just a Uniform distribution
+
+$$
+{\color{red}f(\theta) = I_{\{0 \le \theta \le 1\}} }\qquad \text {Uniform prior}
+$$
+
+Thus our posterior for $\theta$ is
+$$
+\begin{aligned}
+f(\theta \mid y) & = \frac{f(y \mid \theta) f(\theta)}{\int f(y \mid \theta)f(\theta) \, d\theta} & \text{Bayes law} \\
+& = \frac{\theta^{\sum{y_i}} (1 - \theta)^{n - \sum{y_i}} \mathbb{I}_{\{0 \le \theta \le 1\}}}{\int_0^1 \theta^{\sum{y_i}}(1 - \theta)^{n - \sum{y_i}} \mathbb{I}_{\{0 \le \theta \le 1\}} \, d\theta} & \text{subst. Likelihood \& Prior} \\
+& = \frac{\theta^{\sum{y_i}} (1-\theta)^{n - \sum{y_i}} \mathbb{I}_{\{0 \le \theta \le 1\}}}{\frac{\Gamma(\sum{y_i} + 1)\Gamma(n - \sum{y_i} + 1)}{\Gamma(n + 2)} \cancel{\int_0^1 \frac{\Gamma(n + 2)}{\Gamma(\sum{y_i} + 1) \Gamma(n - \sum{y_i} + 1)} \theta^{\sum{y_i}} (1 - \theta)^{n - \sum{y_i}} \, d\theta}} & \text{Beta PDF integrates to 1} \\
+& = \frac{\Gamma(n + 2)}{\Gamma(\sum{y_i}+ 1) \Gamma(n - \sum{y_i}+ 1)} \theta^{\sum{y_i}}(1 - \theta)^{n - \sum{y_i}} \mathbb{I}_{\{0 \le \theta \le 1\}} & \text{simplifying} \\
+& = \text{Beta} \left (\sum{y_i} + 1, n - \sum{y_i} + 1 \right )
+\end{aligned}
+$$
+
+
+Where we used a trick of recognizing the denominator as a Beta distribution (@eq-beta-pdf) we then manipulate it to take the exact form of Beta. We can then cancel it since the beta density integrates to $1$, we can simplify this as From here we can see that the posterior follows a beta distribution
+
+$$ \theta | y \sim Beta(\sum{y_i} + 1, n - \sum{y_i} + 1)$$
+
+::: callout-tip
+## Historical Note on R.A. Fisher
+
+![R.A. Fisher](images/bio-rafisher.jpg){#fig-rafisher .column-margin} R.A. Fisher's objection to the Bayesian approach is that "The theory of inverse probability **is founded upon an error, and must be wholly rejected"** [@Fisher1925Statistical] was specifically referring to this example of a"Binomial with a Uniform prior". The gist of it is that the posterior depends on the parametrization of the prior.[@Aldrich2008Fisher]. R.A. Jeffry who corresponded with Fisher went on to develop his eponymous priors which were invariant to reparametrization. Which we will consider in [@sec-jeffreys-prior]
+:::
+
+## Conjugate Priors
+
+![Conjugate Priors](images/c1l07-ss-03-conjugate-priors.png){.column-margin}
+
+The uniform distribution is $Beta(1, 1)$
+
+Any beta distribution is conjugate for the Bernoulli distribution. Any beta prior will give a beta posterior.
+
+$$
+f(\theta) = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)}\theta^{\alpha - 1}(1-\theta)^{\beta -1}\mathbb{I}_{\{\theta \le \theta \le 1\}}
+$$
+
+$$
+f(\theta \mid y) \propto f(y \mid \theta)f(\theta) = \theta^{\sum{y_i}}(1-\theta)^{n - \sum{y_i}}\frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)}\theta^{\alpha - 1}(1 - \theta)^{\beta - 1}\mathbb{I}_{\{\theta \le \theta \le 1\}}$$
+
+$$
+f(y \mid\theta)f(\theta) \propto \theta^{\alpha + \sum{y_i}-1}(1-\theta)^{\beta + n - \sum{y_i} - 1}
+$$
+
+Thus we see that this is a beta distribution
+
+$$\theta \mid y \sim Beta(\alpha + \sum{y_i}, \beta + n - \sum{y_i})$$
+
+When $\alpha$ and $\beta$ are one like in the uniform distribution, then we get the same result as earlier.
+
+This whole process where we choose a particular form of prior that works with a likelihood is called using a conjugate family.
+
+A family of distributions is referred to as conjugate if when you use a member of that family as a prior, you get another member of that family as your posterior.
+
+The beta distribution is conjugate for the Bernoulli distribution. It's also conjugate for the binomial distribution. The only difference in the binomial likelihood is that there is a combinatoric term. Since that does not depend on $\theta$, we get the same posterior.
+
+We often use conjugate priors because they make life much simpler, sticking to conjugate families allows us to get closed-form solutions easily.
+
+If the family is flexible enough, then you can find a member of that family that closely represents your beliefs.
+
+-   the Uniform distribution can be written as the Beta(1,1) prior.
+-   Any Beta prior will give a Beta posterior.
+-   Beta is conjugate for Binomial and for Bernoulli
+
+## Posterior mean and effective sample size
+
+![Effective Sample Size](images/c1l07-ss-04-effective-sample-size.png){.column-margin}
+
+Returning to the beta posterior model it is clear how both the prior and the data contribute to the posterior.
+
+For a prior $Beta(\alpha,\beta)$ we can say that the **effective sample size** of the prior is 
+
+$$
+\alpha + \beta \qquad \text {(ESS)}
+$$ {#eq-beta-ess}
+
+Recall that the expected value or mean of a *Beta* distribution is $\frac{\alpha}{\alpha + \beta}$
+
+Therefore we can derive the posterior mean as
+
+$$
+\begin{aligned}
+   posterior_{mean} &= \frac{\alpha + \sum{y_i}}{\alpha + \sum{y_i}+\beta + n - \sum{y_i}}
+\\                  &= \frac{\alpha+\sum{y_i}}{\alpha + \beta + n}
+\\                  &= \frac{\alpha + \beta}{\alpha + \beta + n}\frac{\alpha}{\alpha + \beta} + \frac{n}{\alpha + \beta + n}\frac{\sum{y_i}}{n}
+\\ &= (\text{prior weight} \times \text{prior mean}) + (\text{data weight} \times \text{data mean})
+\end{aligned}
+$$ {#eq-beta-posterior-mean}
+
+i.e. The **posterior mean** is a weighted average of the **prior mean** and the **data mean**.
+
+This effective sample size gives you an idea of how much data you would need to make sure that your prior does not have much influence on your posterior.
+
+If $\alpha + \beta$ is small compared to $n$ then the posterior will largely just be driven by the data. If $\alpha + \beta$ is large relative to $n$ then the posterior will be largely driven by the prior.
+
+We can make a 95% credible interval using our posterior distribution for $\theta$ . We can find an interval that has $95 \%$ probability of containing $\theta$.
+
+Using Bayesian Statistics we can do sequential analysis by doing a sequential update every time we get new data. We can get a new posterior, and we just use our previous Posterior as a Prior for doing another update using Bayes' theorem.
+
+-   for a Beta prior, its effective sample size is a + b
+-   if $n >> \alpha+\beta$ the posterior will be predominantly determined by the prior
+-   if $n << \alpha+\beta$ the posterior will be predominantly determined by the data
+-   the idea of an effective sample size of the prior is a useful concept to work with.
+-   [@Wiesenfarth2020Quantification]
+    -   Effective Sample Size (ESS)
+
+    -   Effective Current Sample size (ECSS)
+
+    -   ![ESS algorithms](images/c1l07-ss-03-ess-paper.jpg)
+
+    -   with [@morita2008determining] on the left and ECSS on the right
+
+:::: {#exr-prior-elicitation}
+## Discussion on Prior elicitation
+
+Suppose we are interested in global temperatures, and that we have a summary measure that represents the average global temperature for each year. Now we could ask "What is the probability that next year will have a higher average global temperature than this year?" What would be your choice of prior and why? Be specific about the distribution and its parameters. You may use any other information that you want to bring into this problem.
+
+::: solution
+It is possible to get historical estimates using:
+
+- meteorological and satellites for the last 200 years. ![200 year meterological record](images/20200324_Global_average_temperature_-_NASA-GISS_HadCrut_NOAA_Japan_BerkeleyE.svg){.column-margin}
+
+- ice cores for the last 800,000 years ![800K year ice core record](images/EPICA_temperature_plot.svg){.column-margin}
+
+- deep sea sediment oxygen 18 isotope fractation for the last 5 million years. ![5M year deep see record](images/Five_Myr_Climate_Change.png){.column-margin} or yearly temperature data from 1850 till today based on meteorological readings. We can also consider Greenland ice core data covering 800,000 years.
+
+One simple way is to model the yearly temperature as a random walk
+
+i.e. Each year is a Bernoulli trial where success is the temperature getting warmer. We can then use the historical data since 1800 to estimate theta the probability that we get warmer.
+
+I suppose we can use a Binomial prior with parameters for alpha the count of years the temperature increased and N for the total number of years and p the probability the a given year is hotter than the previous.
+
+:::
+
+::::
+
+## Data Analysis Example in R
+
+Suppose we're giving two students a multiple-choice exam with 40 questions, where each question has four choices. We don't know how much the students have studied for this exam, but we think that they'll do better than just guessing randomly
+
+1.  What are the parameters of interest?
+
+The parameters of interests are $\theta_1 = true$ the probability that the first student will answer a question correctly, $\theta_2 = true$ the probability that the second student will answer a question correctly.
+
+2.  What is our likelihood?
+
+The likelihood is $Binomial(40, \theta)$ if we assume that each question is independent and that the probability a student gets each question right is the same for all questions for that student.
+
+3.  What prior should we use?
+
+The **Conjugate Prior** is a **Beta Distribution**. We can plot the density with `dbeta`
+
+```{R}
+theta = seq(from = 0, to = 1, by = 0.1)
+# Uniform
+plot(theta, dbeta(theta, 1, 1), type = 'l')
+# Prior mean 2/3
+plot(theta, dbeta(theta, 4, 2), type = 'l')
+# Prior mean 2/3 but higher effect size (more concentrated at mean)
+plot(theta, dbeta(theta, 8, 4), type = 'l')
+```
+
+4.  What are the prior probabilities $P(\theta > 0.25)$? $P(\theta > 0.5)$? $P(\theta > 0.8)$?
+
+```{R}
+1 - pbeta(0.25, 8, 4)
+#[1] 0.998117
+1 - pbeta(0.5, 8, 4)
+#[1] 0.8867188
+1 - pbeta(0.8, 8, 4)
+#[1] 0.16113392
+```
+
+5.  Suppose the first student gets 33 questions right. What is the posterior distribution for $\theta_1$ ? $P(\theta > 0.25)$ ? $P(\theta > 0.5)$ ? $P(\theta > 0.8)$ ? What is the 95% posterior credible interval for $\theta_1$? 
+
+$$
+\text{Posterior} \sim Beta(8 + 33, 4 + 40 - 33) = Beta(41, 11)
+$$ 
+    With a posterior mean of $\frac{41}{41+11} = \frac{41}{52}$
+
+We can plot the posterior distribution with the prior
+
+```{R}
+plot(theta, dbeta(theta, 41, 11), type = 'l')
+lines(theta, dbeta(theta, 8 ,4), lty = 2) #Dashed line for prior
+```
+
+Posterior probabilities
+
+```{R}
+1 - pbeta(0.25, 41, 11)
+#[1] 1
+1 - pbeta(0.5, 41, 11)
+#[1] 0.9999926
+1 - pbeta(0.8, 41, 11)
+#[1] 0.4444044
+```
+
+Equal-tailed 95% credible interval
+
+```{R}
+qbeta(0.025, 41, 11)
+#[1] 0.6688426
+qbeta(0.975, 41, 11)
+#[1] 0.8871094
+```
+
+95% confidence that $\theta_1$ is between 0.67 and 0.89
+
+6.  Suppose the second student gets 24 questions right. What is the posterior distribution for $\theta_2$? $P(\theta > 0.25)$? $P(\theta > 0.5)$? $P(\theta > 0.8)$? What is the 95% posterior credible interval for $\theta_2$
+
+$$
+\text{Posterior} \sim Beta(8 + 24, 4 + 40 - 24) = Beta(32, 20)
+$$
+
+With a posterior mean of $\frac{32}{32+20} = \frac{32}{52}$
+
+We can plot the posterior distribution with the prior
+
+```{R}
+plot(theta, dbeta(theta, 32, 20), type = 'l')
+lines(theta, dbeta(theta, 8 ,4), lty = 2) #Dashed line for prior
+```
+
+Posterior probabilities
+
+```{R}
+1 - pbeta(0.25, 32, 20)
+#[1] 1
+1 - pbeta(0.5, 32, 20)
+#[1] 0.9540427
+1 - pbeta(0.8, 32, 20)
+#[1] 0.00124819
+```
+
+Equal-tailed 95% credible interval
+
+```{R}
+qbeta(0.025, 32, 20)
+#[1] 0.4808022
+qbeta(0.975, 32, 20)
+#[1] 0.7415564
+```
+
+95% confidence that $\theta_1$ is between 0.48 and 0.74
+
+7.  What is the posterior probability that $\theta_1 > \theta_2$?
+
+i.e., that the first student has a better chance of getting a question right than the second student?
+
+Estimate by simulation: draw 1,000 samples from each and see how often we observe $\theta_1 > \theta_2$
+
+```{R}
+theta1 = rbeta(100000, 41, 11)
+theta2 = rbeta(100000, 32, 20)
+mean(theta1 > theta2)
+#[1] 0.975
+```

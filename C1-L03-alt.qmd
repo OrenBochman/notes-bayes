@@ -1,0 +1,248 @@
+
+
+```{r include=FALSE}
+# Necessary for using dvisvgm on macOS
+# See https://www.andrewheiss.com/blog/2021/08/27/tikz-knitr-html-svg-fun/
+Sys.setenv(LIBGS = "/usr/local/share/ghostscript/9.53.3/lib/libgs.dylib.9.53")
+font_opts <- list(dvisvgm.opts = "--font-format=woff")
+```
+
+```{tikz bernoulli-mindmap, engine.opts=font_opts}
+#| echo: false
+#| fig-cap: "Bernoulli mindmap"
+#| fig-align: center
+#| fig-ext: svg
+#| out-width: 100%
+\usetikzlibrary {mindmap,backgrounds,calc}
+\begin{tikzpicture}[
+  mindmap,
+  concept color=red!30, 
+     every node/.style = {concept}, 
+    grow cyclic,
+    level 1/.append style = {
+        level distance = 4.5cm,
+        sibling angle = 120
+    },
+    level 2/.append style = {
+        level distance = 3cm,
+        sibling angle = 45
+    },
+    every annotation/.append style = {
+        fill = yellow!20,
+        text width = 2cm
+    }
+      ]
+\node (Bernoulli){$X_i=$Bernoulli(p)} 
+    child{    
+      node (Binomial)[concept color = blue!30] {$Y_i$=Binomial(n,p)} 
+    };
+    
+\begin{pgfonlayer}{background}
+\end{pgfonlayer}
+    
+\node[annotation] at ($(Bernoulli.south east) + (0,0.2)$) { $Y_i=\sum X_i$};
+\node[annotation] at ($(Binomial.south west) + (0,0.1)$) { n=1};
+
+\end{tikzpicture}
+```
+
+$$ X \sim Bernoulli(p)
+$$ {#eq-bernoulli-rv}
+
+Where parameter p is the probability of getting heads.
+
+The probability for the two events is:
+
+$$ P(X=1) = p \qquad P(X=0)=1-p $$
+
+Notation:
+
+-   we use (Roman) p if its value is known.\
+-   we use (Greek) $\theta$ when its value is unknown.
+
+This is a probability mass function since it is discrete. But we call it a Probability Density Function (PDF) in the measure-theoretic sense.
+
+$$f(X=x\mid p) = p^x(1-p)^x \mathbb{I}_{[0,1]}(x)
+$$ {#eq-bernoulli-pmf}
+
+$$L(\theta) = \prod p^x(1-p)^x \mathbb{I}_{[0,1]}(x)
+$$ {#eq-bernoulli-likelihood}
+
+$$\log L(\theta) =log(p) \sum x + log(1-p)\sum (1-x)
+$$ {#eq-bernoulli-log-likelihood}
+
+$$\mathbb{E}(x)= p 
+$$ {#eq-bernoulli-expectation}
+
+$$\text{Var}(x)= p(1-p)
+$$ {#eq-bernoulli-variance}
+
+$$\text{Entropy}(x)= -q \ln(q)- p \ln(p)
+$$ {#eq-bernoulli-entropy}
+
+$$\text{Fisher Information}(x)\frac{1}{pq}
+$$ {#eq-bernoulli-information}
+
+
+```{tikz Binomial-reparams, engine.opts=font_opts}
+#| echo: false
+#| fig-cap: "Binomial reparams mindmap"
+#| fig-align: center
+#| fig-ext: svg
+#| out-width: 100%
+\usetikzlibrary {mindmap,backgrounds,calc}
+\begin{tikzpicture}[
+  mindmap,
+  concept color=red!30, 
+     every node/.style = {concept}, 
+    grow cyclic,
+    level 1/.append style = {
+        level distance = 4.5cm,
+        sibling angle = 45
+    },
+    level 2/.append style = {
+        level distance = 3cm,
+        sibling angle = 45
+    },
+    every annotation/.append style = {
+        fill = yellow!20,
+        text width = 2cm
+    }
+      ]
+      
+\node (Reparams)[concept color = blue!30]{Binomial} 
+    child{node (Binomial1)[concept] {Binomial(n,p)}}
+    child{node (Binomial2)[concept] {Binomial(n,$\alpha$)}};
+    
+\node[annotation] at ($(Binomial2.south) + (0,0.25)$) { $\alpha = \log({p/1-p})$};
+\node[annotation] at ($(Binomial2.north) - (0,0.25)$) { $Logit$};
+
+\end{tikzpicture}
+```
+
+$$ X \sim Bin[n,p]$$ {#eq-binomial-rv}
+
+the probability function
+
+$$f(X=x \mid \theta) = {n \choose x} \theta^x(1-\theta)^{n-x}$$ {#eq-binomial-pmf}
+
+$$L(\theta)=\prod_{i=1}^{n} {n\choose x_i}  \theta ^ {x_i} (1− \theta) ^ {(n−x_i)}$$ {#eq-binomial-likelihood}
+
+$$\begin{aligned}\ell( \theta) &= \log \mathcal{L}( \theta) \\&= \sum_{i=1}^n \left[\log {n\choose x_i} + x_i \log  \theta + (n-x_i)\log (1- \theta) \right].\end{aligned}$$ {#eq-binomial-log-likelihood}
+
+$$\mathbb{E}[X]= N \times  \theta $$ {#eq-binomial-expectation}
+
+$$\mathbb{V}ar[X]=N \cdot \theta \cdot (1-\theta)$$ {#eq-binomial-variance}
+
+$$\mathbb{H}(X) = \frac{1}{2}\log_2 \left (2\pi n \theta(1 - \theta)\right) + O(\frac{1}{n})$$ {#eq-binomial-entropy}
+
+$$\mathcal{I}(\theta)=\frac{n}{ \theta \cdot (1- \theta)}$$ {#eq-binomial-information}
+
+#### Relationships
+
+```{tikz Binomial-mindmap, engine.opts=font_opts}
+#| echo: false
+#| fig-cap: "Binomial mindmap"
+#| fig-align: center
+#| fig-ext: svg
+#| out-width: 100%
+\usetikzlibrary {mindmap,backgrounds,calc}
+\begin{tikzpicture}[
+  mindmap,
+  concept color=red!30, 
+     every node/.style = {concept}, 
+    grow cyclic,
+    level 1/.append style = {
+        level distance = 4.5cm,
+        sibling angle = 45
+    },
+    level 2/.append style = {
+        level distance = 3cm,
+        sibling angle = 45
+    },
+    every annotation/.append style = {
+        fill = yellow!20,
+        text width = 2cm
+    }
+      ]
+      
+\node (Binomial)[concept color = blue!30]{$Binomial(n,p)$} 
+    child{node (Bernoulli)[concept] {Bernoulli(p)}}
+    child{node (BetaBinomial)[concept] {Beta-Binomial}}
+    child{node (Normal)[concept] {Normal}}
+    child{node (NegativeBinomial)[concept] {Negative Binomial}}
+    child{node (Poisson)[concept] {Poisson}}
+    child{node (HyperGeometric)[concept] {Hyper Geometric}}
+    child{node (Geometric)[concept] {Geometric}}
+    child{node (Geometric)[concept] {Multinomial}};
+
+\node[annotation] at ($(Bernoulli.north east) + (0,0.1)$) { $Bin=\sum Bern$};
+\node[annotation] at ($(BetaBinomial.north west) + (0,0.2)$) { $X_i \sim Bin(n,\theta) \newline \theta \sim Beta(\alpha,\beta)$};
+\node[annotation] at ($(NegativeBinomial.south west) + (0,0.1)$) {$n=1$};
+\node[annotation] at ($(Geometric.south west) + (0,0.1)$) {$n=1$};
+\node[annotation] at ($(Poisson.south west) + (0,0.1)$) { $n \to \infty$};
+\node[annotation] at ($(Normal.north east) + (0,0.1)$) { $\mu=np \newline \sigma=np(1-p)$};
+\end{tikzpicture}
+```
+
+```{tikz Binomial-relations-chart, engine.opts=font_opts}
+#| echo: false
+#| fig-cap: "Binomial Relations"
+#| fig-align: center
+#| fig-ext: svg
+#| out-width: 100%
+\usetikzlibrary {mindmap,backgrounds,calc,arrows.meta}
+\begin{tikzpicture}[
+                    distribution/.style={
+                      draw=black, 
+                    minimum height=1cm, 
+                    text width=3cm,
+                    align=center,
+                    node distance=5cm}
+                    ]
+\draw [help lines] (-7,-3.5) grid [step=1mm] (8.5,3.5);
+\draw [help lines] (-7,-3.5) grid [step=10mm,draw=red] (8.5,3.5);
+
+\node[distribution] (Binomial) at (0,0) {Binomial(n,p)};
+\node[distribution,right of=Binomial,below=2cm] (Bernoulli) {Bernoulli(p)};
+\node[distribution,left of=Binomial] (Poisson) {Poisson($\mu$)};
+\node[distribution,left of=Binomial, below=2cm] (Normal) {Normal($\mu,\sigma^2$)};
+\node[distribution,right of=Binomial,text width=4cm] (HyperGeometric) {Hyper Geometric($n_1,n_2,n_3$)};
+\node[distribution,right of=Binomial, above=2cm,text width=6cm] (NegHyperGeometric) {Negative hypergeometric($n_1,n_2,n_3$)};
+\node[distribution,left of=Binomial, above=2cm] (BetaBinomial) {BetaBinomial($a, b, n$)};
+% Arrow
+\draw[blue, -{Stealth[red,length=5mm]}] (Binomial.west) to[right,right=0.20cm] node[pos=0.45]{$\mu=np$} node[pos=0.65]{$\sigma^2=np(1-p)$} node[pos=0.80]{$n \to \infty$} (Normal.east);
+
+\end{tikzpicture}
+```
+
+``` {python}
+from __future__ import print_function
+from ipywidgets import interact, interactive, fixed, interact_manual
+import ipywidgets as widgets
+import numpy as np
+import scipy
+from scipy.special import gamma, factorial, comb
+import plotly.express as px
+import plotly.offline as pyo
+import plotly.graph_objs as go
+#pyo.init_notebook_mode()
+INTERACT_FLAG=False
+def binomial_vector_over_y(theta, n):
+    total_events = n
+    y =  np.linspace(0, total_events , total_events + 1)
+    p_y = [comb(int(total_events), int(yelem)) * theta** yelem * (1 - theta)**(total_events - yelem) for yelem in y]
+
+    fig = px.line(x=y, y=p_y, color_discrete_sequence=["steelblue"], 
+                  height=600, width=800, title=" Binomial distribution for theta = %lf, n = %d" %(theta, n))
+    fig.data[0].line['width'] = 4
+    fig.layout.xaxis.title.text = "y"
+    fig.layout.yaxis.title.text = "P(y)"
+    fig.show()
+    
+if(INTERACT_FLAG):    
+    interact(binomial_vector_over_y, theta=0.5, n=15)
+else:
+    binomial_vector_over_y(theta=0.5, n=10)
+```
+

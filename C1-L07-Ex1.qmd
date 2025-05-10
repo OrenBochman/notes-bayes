@@ -1,0 +1,183 @@
+
+## Homework on Priors
+
+For Questions [@exr-priors-1]-[@exr-priors-5], consider the example of flipping a coin with unknown probability of heads ($θ$):
+
+Suppose we use a Bernoulli likelihood for each coin flip,
+
+i.e., $f(y_i \mid \theta) = \theta^{y_i} (1-\theta)^{1-y_i} I_{\{ 0 \le \theta \le 1 \}}$ for $y_i=0$ or $y_i=1$, and a uniform prior for $θ$.
+
+::: {#exr-priors-1}
+[**flipping a coin**]{.column-margin}
+
+What is the *posterior distribution* for $θ$ if we observe the following sequence: (T, T, T, T) where **H** denotes heads $(Y=1)$ and **T** denotes tails $(Y=0)$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] Beta(1,4)
+-   [ ] Beta(4,0)
+-   [ ] Beta(0, 4)
+-   [ ] Uniform(0,4)
+-   [x] Beta(1, 5)
+
+This is the PDF of a Beta(1,5).
+:::
+
+::: {#exr-priors-2}
+Which of the following graphs depicts the posterior PDF of $θ$ if we observe the sequence (T, T, T, T)? (You may want to use R to plot the posterior.)
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{R}
+theta = seq(from = 0, to = 1, by = 0.1)
+# Uniform
+plot(theta, dbeta(theta, 1, 5), type = 'l')
+```
+:::
+
+::: {#exr-priors-3}
+What is the maximum likelihood estimate (MLE) of θ if we observe the sequence (T, T, T, T)?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{R}
+4*0/4
+```
+
+The main issue here seems to be if we need to consider the prior in the sample size ?
+:::
+
+::: {#exr-priors-4}
+What is the posterior mean estimate of $\theta$ if we observe the sequence (T, T, T, T)?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{R}
+a=1
+b=5
+a/(a+b)
+```
+:::
+
+::: {#exr-priors-5}
+Use R or Excel to find the posterior probability that $θ<0.5$ if we observe the sequence (T,T,T,T).
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{R}
+a=1
+b=5
+pbeta(q=0.5, shape1=a, shape2=b)
+```
+:::
+
+For Questions [@exr-priors-6]-[@exr-priors-9], consider the following scenario:
+
+[Chemical refinement]{.column-margin} An engineer wants to assess the reliability of a new chemical refinement process by measuring $θ$, the proportion of samples that fail a battery of tests. These tests are expensive, and the budget only allows 20 tests on randomly selected samples. Assuming each test is independent, she assigns a binomial likelihood where X counts the samples which fail. Historically, new processes pass about half of the time, so she assigns a $\text{Beta}(2,2)$ prior for $θ$ (prior mean 0.5 and prior sample size 4). The outcome of the tests is 6 fails and 14 passes.
+
+::: {#exr-priors-6}
+[Chemical refinement]{.column-margin}
+
+What is the posterior distribution for θ? Beta(8,16)
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [x] Beta(8,16)
+-   [ ] Beta(14,6)
+-   [ ] Beta(6,14)
+-   [ ] Beta(6, 20)
+-   [ ] Beta(16,8)
+:::
+
+::: {#exr-priors-7}
+[Chemical refinement]{.column-margin}
+
+Use R to calculate the upper end of an equal-tailed 95% credible interval for θ. Round your answer to two decimal places.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{R}
+a=8
+b=16
+qbeta(p=0.975, shape1=a, shape2=b)
+```
+
+where probability=0.975, alpha=8, and beta=16.
+:::
+
+::: {#exr-priors-8}
+[Chemical refinement]{.column-margin}
+
+The engineer tells you that the process is considered promising and can proceed to another phase of testing if we are 90% sure that the failure rate is less than .35.
+
+Calculate the posterior probability $P(\theta < .35 \mid x)$. In your role as the statistician, would you say that this new chemical should pass?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{R}
+a=8
+b=16
+pbeta(q=0.35, shape1=a, shape2=b)
+```
+
+-   [ ] Yes, $P(θ<.35 \mid x_1,x_2)≥0.9$.
+-   [x] No, $P(θ<.35 \mid x_1,x_2)<0.9$.
+:::
+
+::: {#exr-priors-9}
+[Chemical refinement]{.column-margin}
+
+It is discovered that the budget will allow five more samples to be tested. These tests are conducted and none of them fail.
+
+Calculate the new posterior probability $P(\theta < .35 \mid x_1, x_2)$. In your role as the statistician, would you say that this new chemical should pass (with the same requirement as in the previous question)?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+Hint: You can use the posterior from the previous analysis as the prior for this analysis. Assuming independence of tests, this yields the same posterior as the analysis in which we begin with the Beta(2,2) prior and use all 25 tests as the data.
+
+```{R}
+a=8
+b=16
+a2=a+0
+b2=b+5
+pbeta(q=0.35, shape1=a2, shape2=b2)
+```
+
+where x=0.5, alpha=8, beta=21, and cumulative=TRUE.
+
+-   [ ] Yes, $P(θ<.35 \mid x)≥0.9$.
+-   [x] No, $P(θ<.35 \mid x)<0.9$.
+:::
+
+::: {#exr-priors-10}
+let $X \mid \theta \sim \text{Binomial}(9, \theta)$ and assume a $\text{Beta}(\alpha,\beta)$ prior for $\theta$. Suppose your prior guess (prior expectation) for $θ$ is 0.4 and you wish to use a prior effective sample size of 5, what values of $α$ and $β$ should you use?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] $α=4, β=6$
+-   [ ] $α=4, β=10$
+-   [ ] $α=2, β=5$
+-   [x] $α=2, β=3$
+
+Here $α+β=5$ and $\frac{\alpha}{\alpha+\beta}$ =0.4.
+:::

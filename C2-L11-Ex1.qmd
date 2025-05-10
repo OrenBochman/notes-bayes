@@ -1,0 +1,170 @@
+## Homework on Hierarchical Models
+
+```{r}
+#| label: 'Setup'
+#| lst-label: lst-Hierarchical-Model-0
+#| lst-cap: 'Setup'
+#| attr-source: "id=lst-Hierarchical-Model-0 lst-cap='setup'"
+#| echo: false
+#| output: false
+library("rjags")
+```
+
+::: {#exr-Hierarchical-Model-1}
+[**Hierarchical Model**]{.column-margin} Which of the following situations would call for a hierarchical model, due to the hierarchical structure of the data?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] You measure an individual's mood with a questionnaire for ten consecutive days.
+-   [ ] You survey a random sample of 100 individuals in your neighborhood who report their preferred produce market.
+-   [ ] You run an internet connection speed test on your computer each Monday morning for ten consecutive weeks.
+-   [x] You take blood pressure measurements from each of five individuals on ten consecutive days.
+
+The blood pressure measurements are grouped within (also called "nested" within) individuals. Hence, you would expect two measurements from person A to be more similar than a measurement from person A and another from person B.
+:::
+
+::: {#exr-Hierarchical-Model-2}
+[**Hierarchical Model**]{.column-margin} In hierarchical models, the observations are still conditionally independent, given their respective parameters. How then does such a model capture correlation among grouped observations?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] Observation pairs from different groups require an extra parameter which induces negative correlation among them.
+-   [x] Grouped observations share common parameters, which themselves share a common distribution across groups.
+-   [ ] Grouped observations require an extra parameter for each pair of observations which estimates the correlation among them.
+-   [ ] Grouped observations always exhibit correlation, even in an independent model.
+
+The grouped observations are conditionally independent, given their common group parameters. However, if we integrate (marginalize) out this layer of group-specific parameters, leaving the hyperparameters and the observations only, the observations become dependent.
+:::
+
+::: {#exr-Hierarchical-Model-3}
+[**Hierarchical Model**]{.column-margin} In previous lessons, we fit models to data representing percent growth in personnel for companies in two industries. Below are attached additional data from the original two industries (with 10 and six companies respectively), as well as three additional industries. Percent growth is reported for a total of 53 companies.
+
+As usual, you can read the data into R with
+
+```{r}
+dat = read.csv(file="data/pctgrowth.csv", header=TRUE)
+```
+
+Rather than fit five separate models, one for each industry, we can fit a hierarchical model. As before, we assume a normal likelihood and common variance across all observations. Each industry will have it's own mean growth, and each of these means will come from a common distribution, from which we will estimate the overall mean and variability across industries.
+
+Let $i$ index the individual companies, and $g_i$ indicate the industry (grp variable in `pctgrowth.csv`) for company $i$. Which of the following hierarchical models is the one described above?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [x] $y_i \mid \theta_{g_i}, \sigma^2 \overset{\text{ind}}{\sim} \text{N} ( \theta_{g_i}, \sigma^2)\, , \quad i=1,\ldots,53, \quad g_i \in \{ 1, \ldots, 5 \}, \\ \theta_g \mid \mu, \tau^2 \overset{\text{iid}}{\sim} \text{N}(\mu, \tau^2)\, , \quad g = 1, \ldots, 5, \\ \mu \sim \text{N}(0, 1\mathrm{e}{6})\, , \\ \tau^2 \sim \text{IG}(1/2,\, 1\cdot3/2) \, , \\ \sigma^2 \sim \text{IG}(2/2, \, 2\cdot1/2)$
+-   [ ] $y_i \mid \theta_{g_i}, \sigma^2 \overset{\text{ind}}{\sim} \text{N} ( \theta_{g_i}, \sigma^2)\, , \quad i=1,\ldots,53, \quad g_i \in \{ 1, \ldots, 5 \}, \\ \theta_g \mid \mu \overset{\text{iid}}{\sim} \text{N}(\mu, 1)\, , \quad g = 1, \ldots, 5, \\ \mu \sim \text{N}(0, 1\mathrm{e}{6})\, , \\ \sigma^2 \sim \text{IG}(2/2, \, 2\cdot1/2)$
+-   [ ] $y_i \mid \theta_{g_i}, \sigma^2 \overset{\text{ind}}{\sim} \text{N} ( \theta_{g_i}, \sigma^2)\, , \quad i=1,\ldots,53, \quad g_i \in \{ 1, \ldots, 5 \}, \\ \theta_g \overset{\text{iid}}{\sim} \text{N}(0, 1)\, , \quad g = 1, \ldots, 5, \\ \sigma^2 \sim \text{IG}(2/2, \, 2\cdot1/2)$
+-   [ ] $y_i \mid \theta_{g_i}, \sigma^2 \overset{\text{ind}}{\sim} \text{N} ( \theta_{g_i}, \sigma^2)\, , \quad i=1,\ldots,53, \quad g_i \in \{ 1, \ldots, 5 \}, \\ \theta_g \mid \tau^2 \overset{\text{iid}}{\sim} \text{N}(0, \tau^2)\, , \quad g = 1, \ldots, 5, \\ \tau^2 \sim \text{IG}(1/2,\, 1\cdot3/2) \, , \\ \sigma^2 \sim \text{IG}(2/2, \, 2\cdot1/2)$
+
+This model allows us to explore each of:
+
+1.  the mean growth for each industry $(\theta)$
+2.  the overall mean growth across industries $(\mu)$
+3.  the overall variability in mean growth across industries $(\tau^2)$
+4.  the variability of company growth between companies within industries $(\sigma^2)$.
+
+All of these objectives are accomplished with a single model.
+:::
+
+::: {#exr-Hierarchical-Model-4}
+[**Hierarchical Model**]{.column-margin} Fit the hierarchical model from Question 3 in JAGS and obtain posterior mean estimates for each industry's mean growth (posterior mean for each $\theta_g$).
+
+We are interested in comparing these estimates to those obtained from a model that assumes no hierarchy (the ANOVA cell means model). We can approximate the posterior estimates for the five industry means under a noninformative prior by simply calculating the sample mean growth for the five industries. You can do this in R with:
+
+```{r}
+means_anova = tapply(dat$y, INDEX=dat$grp, FUN=mean)
+## dat is the data read from pctgrowth.csv
+```
+
+How do these compare with the estimates from the hierarchical model?
+
+Hint: It might help to plot them with:
+
+```{r}
+plot(means_anova)
+#points(means_theta, col="red") ## where means_theta are the posterior point estimates for the industry means.
+```
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+#: title s4 - compute new DIC
+#(dic = dic.samples(mod, n.iter=1e3))
+```
+
+-   [ ] The estimates from the hierarchical model have less variability than those from the ANOVA model, tending toward larger magnitudes.
+-   [ ] The estimates from the hierarchical model have greater variability than those from the ANOVA model, tending toward smaller magnitudes.
+-   [x] The estimates from the hierarchical model have less variability than those from the ANOVA model, tending toward smaller magnitudes.
+-   [ ] The estimates from the hierarchical model have greater variability than those from the ANOVA model, tending toward larger magnitudes. Correct
+
+This is a typical feature of hierarchical models, where estimates tend to "shrink" toward their mean in the next step of the hierarchy (in this case $\mu$).
+:::
+
+::: {#exr-Hierarchical-Model-5}
+[**Hierarchical Model**]{.column-margin} In our hierarchical model for personnel growth, we assumed that the variability between companies within an industry was constant across industries ($\sigma^2$ was the same for all industries). Each of the following, except one, presents a reasonable approach to checking this model assumption. Which approach would be less informative than the others?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] Fit another model with separate $\sigma^2$ parameters for each industry, and compare the DIC values between the new and old models.
+-   [ ] Fit another model with separate $\sigma^2$ parameters for each industry, and calculate the posterior probability that they differ from each other by some specified amount.
+-   [ ] Calculate the sample variance of growth within the industry for each of the five industries. Check if these variances are similar to each other.
+-   [x] Calculate the posterior probability that ${\sigma^2\over\tau^2}>1$ in the original model. If this probability exceeds a pre-determined amount, use a model with separate variance parameters. Correct
+
+While it is true that wildly different variances across industries will inflate a common $\sigma^2$, it is perfectly possible that the industry means are close to each other (low $\tau^2$) while all industries exhibit similar variance among companies, each with large $\sigma^2$.
+:::
+
+::: {#exr-Hierarchical-Model-6}
+[**Hierarchical Model**]{.column-margin} Which of the following would yield the correct calculation of the observation level residual for Company i in the hierarchical model for personnel growth?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] $y_i−\mu$
+-   [ ] $y_i−(\theta_{g_i}−\mu)$
+-   [x] $y_i−\theta_{g_i}$
+-   [ ] $\theta_{g_i}−\mu$
+
+We could obtain a distribution of the residual by calculating performing this calculation for each iteration of MCMC, or we could just get a posterior mean residual by using the posterior mean estimate of $\theta_{g_i}$.
+
+We can get an industry level residual by calculating $\theta_{g_i}−\mu$.
+:::
+
+::: {#exr-Hierarchical-Model-7}
+[**Hierarchical Model**]{.column-margin} Suppose we are interested in making a prediction for the growth of an 11th (new) company from Industry 1 (grp=1). Which of the following steps should we follow to simulate from the posterior predictive distribution for this new company's growth? Call it $y^∗$.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+For each iteration of MCMC:
+
+-   [ ] Draw a sample $y^∗$ from a normal distribution with mean $\mu$ and variance $\tau2$ using the current iteration of these parameters.
+-   [ ] Draw a sample $\theta_1^∗$ from a normal distribution with mean $\mu$ and variance $\tau2$. Then sample $y^∗$ from a normal distribution with mean $\theta_1^∗$ and variance $\sigma^2$ using the current iteration of all parameters.
+-   [ ] Draw a sample $y^∗$ from a normal distribution with mean $\mu$ and variance $\tau^2+\sigma^2$ using the current iteration of these parameters.
+-   [x] Draw a sample $y^∗$ from a normal distribution with mean $\theta_1$ and variance $\sigma^2$ using the current iteration of these parameters.
+
+This would produce a sample from the posterior predictive distribution of growth for a new company in a new industry. Because we know that this company is in Industry 1, we can use the existing posterior samples of $\theta_1$.
+:::
+
+::: {#exr-Hierarchical-Model-8}
+[**Hierarchical Model**]{.column-margin} Suppose we are interested in making a prediction for the growth of a new company from a new industry which so far has not been observed. Which of the following steps should we follow to simulate from the posterior predictive distribution for this new company's growth? Call it $y^∗$.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+For each iteration of MCMC: - \[ \] Draw a sample $y^∗$ from a normal distribution with mean $\mu$ and variance $\tau^2$ using the current iteration of these parameters. - \[ \] Draw a sample $y^∗$ from a normal distribution with mean $\mu$ and variance $\sigma^2$ using the current iteration of these parameters. - \[ \] Draw a sample $y^∗$ from a normal distribution with mean $\theta_1$ and variance $\sigma^2$ using the current iteration of these parameters. - \[x\] Draw a sample $\theta^∗$ from a normal distribution with mean $\mu$ and variance $\tau^2$. Then sample $y^∗$ from a normal distribution with mean $\theta^∗$ and variance $\sigma^2$, using the current iteration of all parameters.
+
+This would produce a draw from the posterior predictive distribution of industry means. It could be used as a step in the sample we are trying to produce, but this description is incomplete.
+:::

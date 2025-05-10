@@ -1,0 +1,131 @@
+## Homework on Predictive distributions and mixture models
+
+::: {#exr-Mixture-Models-1}
+
+[**Mixture Models**]{.column-margin} Consider the Poisson process model we fit in the quiz for Lesson 10 which estimates calling rates of a retailer's customers. The data are attached below.
+
+Re-fit the model and use your posterior samples to simulate predictions of the number of calls by a new 29 year old customer from Group 2 whose account is active for 30 days. What is the probability that this new customer calls at least three times during this period? Round your answer to two decimal places.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+```{r}
+#| label: q1
+library("rjags")
+
+
+calls_dat = read.csv(file="data/callers.csv", header=TRUE)
+head(calls_dat)
+
+calls_mod_string = " model {
+	for (i in 1:length(calls)) {
+	  	calls[i] ~ dpois( days_active[i] * lam[i] )
+  		log(lam[i]) = b0 + b[1]*age[i] + b[2]*isgroup2[i]
+	}
+
+  b0 ~ dnorm(0.0, 10.0^2)
+  for(j in 1:2){
+    b[j] ~ dnorm(0.0, 10.0^2)
+  }
+} "
+set.seed(102)
+calls_data_jags = as.list(calls_dat)
+calls_params = c("b0",'b')
+calls_mod = jags.model(textConnection(calls_mod_string), data=calls_data_jags, n.chains=3)
+update(calls_mod, 1e3)
+calls_mod_sim = coda.samples(model=calls_mod, variable.names=calls_params,n.iter=5e3)
+calls_mod_csim = as.mcmc(do.call(rbind, calls_mod_sim))
+
+x1 = c(29,1) # days active,isgroup2,age
+
+head(calls_mod_csim)
+
+loglam1 = calls_mod_csim[,"b0"] + calls_mod_csim[,c(1,2)] %*% x1
+lam1 = exp(loglam1)
+(n_sim = length(lam1))
+
+y1 = rpois(n=n_sim, lambda=lam1*30) 
+sum(y1 >= 3)/length(y1)
+```
+
+0.03
+:::
+
+::: {#exr-Mixture-Models-2}
+[**Mixture Models**]{.column-margin} Suppose we fit a single component normal distribution to the data whose histogram is shown below.
+
+![](images/q4H_ex2_q.svg)
+
+If we use a noninformative prior for μ and $σ^2$ and plot the fit distribution evaluated at the posterior means (in blue), what would the fit look like? Is this model appropriate for these data?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [x] ![](images/q4H_ex2_a.svg) A single normal distribution does not allow bi-modality. Consequently, the fit places a lot of probability in a region with no data. It is not appropriate.
+-   [ ] ![](images/q4H_ex2_b.svg) The single normal fit nicely captures the features of the data. It is appropriate.
+-   [ ] ![](images/q4H_ex2_c.svg) The single normal fit accommodates the bi-modality in the dat, but fails to capture the imbalance in the two components. It is not appropriate.
+-   [ ] ![](images/q4H_ex2_d.svg) The single normal fit ignores the smaller component, fitting the cluster of points with most data. Consequently, the model places almost no probability in the region of the smaller component.
+
+Without covariates, we would need a more flexible model to capture the bi-modality of these data. A two component mixture of normals would be appropriate.
+:::
+
+::: {#exr-Mixture-Models-3}
+[**Mixture Models**]{.column-margin} Which of the following histograms shows data that might require a mixture model to fit?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] ![](images/q4H_ex3_a.svg)
+-   [X] ![](images/q4H_ex3_b.svg)
+-   [ ] ![](images/q4H_ex3_c.svg)
+-   [ ] ![](images/q4H_ex3_d.svg)
+
+These data were actually drawn from a two component mixture of normal distributions, one with high variance.
+:::
+
+::: {#exr-Mixture-Models-4}
+[**Mixture Models**]{.column-margin}
+
+The Dirichlet distribution with parameters $\alpha_1 = \alpha_2 = \ldots = \alpha_K = 1$ is uniform over its support, the values for which the random vector contains a valid set of probabilities. If $\theta$ contains five probabilities corresponding to five categories and has a $\text{Dirichlet}(1,1,1,1,1)$ prior, what is the effective sample size of this prior?
+
+**Hint**: If $\theta$ has a $\text{Dirichlet}(\alpha_1, \alpha_2, \ldots, \alpha_K)$ prior, and the counts of multinomial data in each category are $x_1, x_2, \ldots, x_K$, then the posterior of $\theta$ is $\text{Dirichlet}(\alpha_1 + x_1, \alpha_2 + x_2, \ldots, \alpha_K + x_K)$. The data sample size is clearly $\sum_{k=1}^K x_k$.
+
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+based on the hint, what remains is $\sum_{k=1}^K \alpha_k= 5$
+:::
+
+::: {#exr-Mixture-Models-5}
+[**Mixture Models**]{.column-margin} Recall that in the Bayesian formulation of a mixture model, it is often convenient to introduce latent variables $z_i$ which indicate "population" membership of $y_i$ (the "population" may or may not have meaning in the context of the data). One possible hierarchical formulation is given by:
+
+$$
+\begin{align}
+   y_i \mid z_i, \theta & \overset{\text{ind}}{\sim} f_{z_i}(y \mid \theta) &i = 1, \ldots, n 
+\\ \text{Pr}(z_i = j \mid \omega) &= \omega_j &j=1, \ldots, J 
+\\ \omega &\sim Dirichlet(\omega) 
+\\ \theta &\sim  p(\theta)
+\end{align}
+$$
+
+where $f_{j} (y \mid \theta)$ is a probability density for $y$ for mixture component $j$ and $w = (w_1, w_2, \ldots, w_J)$ is a vector of prior probabilities of membership.
+
+What is the full conditional distribution for $z_i$?
+
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [x] $\text{Pr}(z_i = j \mid \cdots ) = \frac{ f_{j} (y_i \mid \theta)\, w_j } { \sum_{\ell=1}^J f_{\ell} (y_i \mid \theta)\, w_\ell }\, , \quad j=1, \ldots, J$
+-   [ ] $\text{Pr}(z_i = j \mid \cdots ) = \frac{ w_j^{I_{(z_i=j))}} (1-w_j)^{1-I_{(z_i=j))}} } { \sum_{\ell=1}^J w_j^{I_{(z_i=j))}} (1-w_j)^{1-I_{(z_i=j))}} }\, , \quad j=1, \ldots, J$
+-   [ ] $\text{Pr}(z_i = j \mid \cdots ) = w_j \, , \quad j=1, \ldots, J$
+-   [ ] $\text{Pr}(z_i = j \mid \cdots ) = \frac{ f_{j} (y_i \mid \theta) } { \sum_{\ell=1}^J f_{\ell} (y_i \mid \theta) }\, , \quad j=1, \ldots, J$
+
+
+Notice the resemblance with this expression and the discrete version of Bayes' theorem. This expression is often used in classification problems, where we need to infer membership of $y_i$ to different candidate populations.
+:::

@@ -1,0 +1,351 @@
+## HW - Gibbs-Sampling algorithm
+
+::: {#exr-gs-1}
+[Gibbs]{.colum-margin} Which of the following descriptions matches the process of Gibbs sampling for multiple random variables?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [x] Cycle through the variables, drawing a sample from the full conditional distribution of each variable while substituting in the current values of all other variables. Repeat this cycle for many iterations.
+-   [ ] Draw candidates for all J variables simultaneously using a multivariate proposal distribution. For each variable, calculate the acceptance ratio αj using the joint (unnormalized) density. Accept each candidate with probability $min{1,\alpha_j} \ for \  j=1,\ldots,J$. Repeat this cycle for many iterations.
+-   [ ] Cycle through the variables, drawing from a proposal distribution for each variable and accepting the candidate with probability equal to the ratio of the candidate draw to the old value of the variable. Repeat this cycle for many iterations.
+-   [ ] Draw candidates for all variables simultaneously using a multivariate proposal distribution. Calculate the acceptance ratio α using the joint (unnormalized) density. Accept the candidates with probability $min{1,\alpha}$. Repeat this step for many iterations.
+Correct
+
+Gibbs sampling allows us to perform the updates one-at-a-time using full conditional distributions.
+
+:::
+
+::: {#exr-gs-2}
+[Gibbs]{.colum-margin} Suppose we have a joint probability distribution for four variables, $p(w,x,y,z)$ . Which of the following expresses the full conditional distribution for variable x?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] $p(x \mid y)$
+
+-   [ ] $p(x)$
+
+-   [ ] $p(w,y,z \mid x)$
+
+-   [X] $p(x \mid w,y,z)$
+
+
+It is the distribution of x, conditional on all other variables. It is proportional to p(w,x,y,z), where we consider w,y, and z as fixed constants.
+:::
+
+::: {#exr-gs-3}
+[Gibbs]{.colum-margin} Suppose we have the following joint distribution for x,y, and z:
+
+$$
+p(x,y,z) = 5e^{-5z} I_{z\ge0} \frac{\Gamma(z+3)}{\Gamma(z) \Gamma(3)} y^{z-1} (1-y)^{2} I_{0<y<1} { 10 \choose x} y^x (1-y)^{10-x} I_{x\in\{1,\ldots,10 \}}
+$$
+
+The density for the full conditional distribution of z is proportional to which of the following?
+:::
+
+::: {.callout-important}
+Hint: The full conditional for z is proportional to the full joint distribution p(x,y,z) where x and y are just constants.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] $p(z \mid x, y) \propto 5e^{-5z} I_{z\ge0}$
+-   [ ] $p(z \mid x, y) \propto y^{z-1} (1-y)^{2} y^x (1-y)^{10-x} I_{0<y<1}$
+-   [x] $p(z \mid x, y) \propto e^{-5z} \frac{\Gamma(z+3)}{\Gamma(z)} y^{z-1} I_{z\ge0}$
+-   [ ] $p(z \mid x, y) \propto { 10 \choose x} y^x (1-y)^{10-x} I_{x\in\{1,\ldots,10 \}}$
+
+This could also be written as $p(z \mid x, y) = C \cdot e^{-5z} \frac{\Gamma(z+3)}{\Gamma(z)} y^{z-1} I_{z\ge0}$ where C is some constant number not involving z.
+:::
+
+::: {#exr-gs-4}
+[Gibbs]{.colum-margin} The full conditional distribution in Question 3 is not a standard distribution that we can easily sample. Fortunately, it turns out that we can do a Metropolis-Hastings step inside our Gibbs sampler step for z.
+
+If we employ that strategy in a Gibbs sampler for y and z (always conditioning on x), then the algorithm would look like this:
+
+```         
+For iteration i in 1 to m, repeat:
+
+  1. 
+    a) Draw z* from a proposal distribution q.
+    b) Calculate the acceptance ratio (alpha) using the full
+        conditional distribution for z|x,y and the candidate distribution q, plugging in the previous iteration's value y_{i-1} for y.
+    c) Accept the candidate with probability min{1, alpha} and
+        set the value for z_i accordingly.
+
+  2. ___________________________.
+```
+
+What would go in step 2 to complete the Gibbs sampler?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] Draw $y_i$ from the marginal distribution p(y).
+-   [X] Draw $y_i$ from the full conditional $p(y \mid x,z)$, plugging in the value $z_i$ just drawn in step 1 for $z$.
+-   [ ] Draw $y_i$ from the full conditional $p(y \mid x,z)$, plugging in the previous iteration's value $z_{i−1}$ for $z$.
+-   [ ] Draw $y_i$ from the full conditional $p(y \mid x,z)$, plugging in the candidate $z^∗$ for $z$.
+:::
+
+::: {#exr-gs-5}
+[Gibbs]{.colum-margin} Suppose we have a joint probability distribution for three variables: $p(x,y,z)$ . Identify the algorithm to perform Gibbs sampling for all three variables. 1 point
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ]
+
+```
+For iteration i in 1 to m, repeat:
+
+  1. Draw candidates x*, y*, z* from a joint proposal
+      distribution q.
+
+  2. Calculate the acceptance ratio alpha using
+      $g(x,y,z) = p(x|y,z)p(y|x,z)p(z|x,y) and q.
+
+  3. Accept the candidates with probability min{1,alpha}
+      and set x_i, y_i, z_i accordingly.
+
+end.
+```
+
+-   [ ]
+
+```
+For iteration i in 1 to m, repeat:
+
+  1. Draw x_i from the full conditional distribution for
+      x|y,z, plugging in the previous iteration's values
+      y_{i-1}, z_{i-1} for y and z.
+
+  2. Draw y_i from the full conditional distribution for
+      y|x,z, plugging in the previous iteration's values
+      x_{i-1}, z_{i-1} for x and z.
+
+  3. Draw z_i from the full conditional distribution for
+      z|x,y, plugging in the previous iteration's values
+      x_{i-1}, y_{i-1} for x and y.
+
+end.
+```
+
+-   [ ]
+
+```
+For iteration i in 1 to m, repeat:
+
+  1. Draw candidates x*, y*, z* from a joint proposal
+      distribution q.
+
+  2. a) i) Calculate the acceptance ratio alpha_x using
+            the full conditional p(x|y,z) and q, plugging in the candidates y*, z* for y and z.
+
+        ii) Accept x* with probability min{1,alpha_x}
+            and set x_i accordingly.
+
+     b) i) Calculate the acceptance ratio alpha_y using
+            the full conditional p(y|x,z) and q, plugging in x_i, z* for x and z.
+
+        ii) Accept y* with probability min{1,alpha_y}
+            and set y_i accordingly.
+
+     c) i) Calculate the acceptance ratio alpha_z using
+            the full conditional p(z|x,y) and q, plugging in x_i, y_i for x and y.
+
+        ii) Accept z* with probability min{1,alpha_z}
+            and set z_i accordingly.
+end.
+```
+
+-   [x]
+
+```
+For iteration i in 1 to m, repeat:
+
+  1. Draw x_i from the full conditional distribution for
+      x|y,z, plugging in the previous iteration's values
+      y_{i-1}, z_{i-1} for y and z.
+
+  2. Draw y_i from the full conditional distribution for
+      y|x,z, plugging in the previous iteration's value
+      z_{i-1} for z and this iteration's value x_i for x.
+
+  3. Draw z_i from the full conditional distribution for
+      z|x,y, plugging in this iteration's values
+      x_i, y_i for x and y.
+
+end. 
+```
+
+
+This is an extension of Gibbs sampling to three variables. The algorithm can be expanded to accommodate as many variables as you need.
+:::
+
+For Questions 6 to 8, consider the example from the lesson where the data are percent change in total personnel since last year for n=10 companies.
+
+::: {#exr-gs-6}
+[Gibbs]{.colum-margin} In our model with normal likelihood and unknown mean $\mu$ and unknown variance $\sigma^2$ , we chose a normal prior for the mean and an inverse-gamma prior for the variance.
+
+What was the major advantage of selecting these particular priors?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] Because these priors are conjugate for their respective parameters, they guarantee the smallest possible Monte Carlo standard error for posterior mean estimates.
+-   [ ] Because these priors are conjugate for their respective parameters, they guarantee the most accurate posterior distribution possible for the given likelihood.
+-   [ ] These priors allowed us to bypass MCMC, providing a joint conjugate posterior for $\mu$ and $\sigma^2$ .
+-   [X] Each prior was conjugate in the case where the other parameter was known, causing the full conditional distributions to come from the same distribution families as the priors (and therefore easy to sample).
+
+In hierarchical models, selecting conjugate priors at any level will result in a simple Gibbs update for the parameter involved. The other claims are false or exaggerations.
+:::
+
+::: {#exr-gs-7}
+[Gibbs]{.colum-margin} Suppose we repeat the analysis for n=6 companies in another industry and the data are:
+
+Re-run the Gibbs sampler in R for these new data (5000 iterations using the same priors and initial values as in the Lesson) and report the posterior mean for $\mu$. Round your answer to two decimal places.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+#' update_mu
+#'
+#' @param n - sample size
+#' @param ybar - sample mean
+#' @param sig2 - current sigma squared
+#' @param mu_0 - mean hyper-parameter
+#' @param sig2_0 - variance  hyper-parameter
+#' 
+#' @output - updated  value for mu the mean
+update_mu = function(n, ybar, sig2, mu_0, sig2_0) {   # <1>
+  sig2_1 = 1.0 / (n / sig2 + 1.0 / sig2_0)            # <2>
+  mu_1 = sig2_1 * (n * ybar / sig2 + mu_0 / sig2_0)   # <3>
+  rnorm(n=1, mean=mu_1, sd=sqrt(sig2_1))              # <4>
+}
+
+#' update_sig2
+#'
+#' @param n - sample size
+#' @param y - the data
+#' @param nu_0 - nu hyper-parameter
+#' @param beta_0 - beta hyper-parameter
+#' 
+#' @output - updated  value for sigma2 the variance
+update_sig2 = function(n, y, mu, nu_0, beta_0) {   # <1>
+  nu_1 = nu_0 + n / 2.0                            # <2>
+  sumsq = sum( (y - mu)^2 )                        # <3>
+  beta_1 = beta_0 + sumsq / 2.0                    # <4>
+  out_gamma = rgamma(n=1, shape=nu_1, rate=beta_1) # <5> 
+  1.0 / out_gamma # <6> 
+}
+
+gibbs = function(y, n_iter, init, prior) {
+  ybar = mean(y)
+  n = length(y)
+  
+  ## initialize
+  mu_out = numeric(n_iter)
+  sig2_out = numeric(n_iter)
+  
+  mu_now = init$mu
+  
+  ## Gibbs sampler
+  for (i in 1:n_iter) {
+    sig2_now = update_sig2(n=n, y=y, mu=mu_now, nu_0=prior$nu_0, beta_0=prior$beta_0)
+    mu_now = update_mu(n=n, ybar=ybar, sig2=sig2_now, mu_0=prior$mu_0, sig2_0=prior$sig2_0)
+    
+    sig2_out[i] = sig2_now
+    mu_out[i] = mu_now
+  }
+  
+  cbind(mu=mu_out, sig2=sig2_out) # <1>
+}
+
+y = c(-0.2, -1.5, -5.3, 0.3, -0.8, -2.2)
+ybar = mean(y)
+n = length(y)
+
+## prior
+prior = list()
+prior$mu_0 = 0.0
+prior$sig2_0 = 1.0
+prior$n_0 = 2.0 # prior effective sample size for sig2
+prior$s2_0 = 1.0 # prior point estimate for sig2
+prior$nu_0 = prior$n_0 / 2.0 # prior parameter for inverse-gamma
+prior$beta_0 = prior$n_0 * prior$s2_0 / 2.0 # prior parameter for inverse-gamma
+
+hist(y, freq=FALSE, xlim=c(-1.0, 3.0)) # histogram of the data
+curve(dnorm(x=x, mean = prior$mu_0, sd=sqrt(prior$sig2_0)), lty=2, add=TRUE) # prior for mu
+points(y, rep(0,n), pch=1) # individual data points
+points(ybar, 0, pch=19) # sample mean
+
+set.seed(53)
+
+init = list()
+init$mu = 0.0
+
+post = gibbs(y=y, n_iter=5e3, init=init, prior=prior)
+```
+
+```{r}
+library("coda")
+summary(as.mcmc(post))
+```
+:::
+
+::: {#exr-gs-8}
+[Gibbs]{.colum-margin}
+
+An industry expert is surprised by your results from Question 7 and insists that growth in this sector should be positive on average. To accommodate this expert's prior beliefs, you adjust the prior for μ to be normal with a mean 1.0 and variance 1.0. This is a fairly informative and optimistic prior (the prior probability that $\mu >0$ is about 0.84).
+
+What happens to the posterior mean of μ? Re-run the analysis on the new data with this new prior. Again, use 5000 iterations and the same prior for σ2 and initial values as before).
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+y = c(-0.2, -1.5, -5.3, 0.3, -0.8, -2.2)
+ybar = mean(y)
+n = length(y)
+
+## prior
+prior = list()
+prior$mu_0 = 1.0
+prior$sig2_0 = 1.0
+prior$n_0 = 2.0 # prior effective sample size for sig2
+prior$s2_0 = 1.0 # prior point estimate for sig2
+prior$nu_0 = prior$n_0 / 2.0 # prior parameter for inverse-gamma
+prior$beta_0 = prior$n_0 * prior$s2_0 / 2.0 # prior parameter for inverse-gamma
+
+hist(y, freq=FALSE, xlim=c(-1.0, 3.0)) # histogram of the data
+curve(dnorm(x=x, mean = prior$mu_0, sd=sqrt(prior$sig2_0)), lty=2, add=TRUE) # prior for mu
+points(y, rep(0,n), pch=1) # individual data points
+points(ybar, 0, pch=19) # sample mean
+
+set.seed(53)
+
+init = list()
+init$mu = 0.0
+
+post = gibbs(y=y, n_iter=5e3, init=init, prior=prior)
+```
+
+```{r}
+library("coda")
+summary(as.mcmc(post))
+```
+
+-   [X] The posterior mean for μ is less than −0.25, suggesting that despite the optimistic prior, the data strongly favor estimating growth to be negative in this industry.
+-   [ ] The posterior mean for μ is between −0.25 and 0.25, suggesting that the data are not as optimistic about growth as the prior, but we are inconclusive about whether growth is positive or negative.
+-   [ ] The posterior mean for μ is between 0.25 and 1.0, suggesting that the data are not informative enough to contradict this expert's opinion.
+-   [ ] The posterior mean for μ is above 1.0, suggesting that the optimistic prior was actually not optimistic enough.
+:::

@@ -1,0 +1,152 @@
+
+## Homework On Regression
+
+For [@exr-regression-golf-1]--[@exr-regression-golf-6] consider the following:
+
+The data found at [pgalpga2008.dat](http://www.stat.ufl.edu/~winner/data/pgalpga2008.dat) consist of season statistics for individual golfers on the United States LPGA and PGA tours. The first column reports each player's average driving distance in yards. The second column reports the percentage of the player's drives that finish in the fairway, measuring their accuracy. The third and final column has a 1 to denote a female golfer (on the LPGA tour), and a 2 to denote a male golfer (on the PGA tour).
+
+Load these data into R or Excel. In Excel, once you paste the data into a new worksheet, you may need to separate the data into columns using the "Text to Columns" feature under the "Data" menu.
+
+If you wish to separate the LPGA and PGA data, one way in R is to use the subset function:
+
+where "dat" is the name of the original data set (replace "dat" with whatever you named this data set), "FM" is the name of the third column (replace "FM" with whatever you named this column), and select=1:2 means to include columns 1 and 2 in the new data set "datF".
+
+```{r}
+dat=read.table("data/pgalpga2008.dat.txt", header=T)
+# Note that attaching this masks T which is originally TRUE
+attach(dat)
+colnames(dat) <- c('distance','accuracy','gender')
+summary(dat)
+datM <- subset(dat, gender==2, select=1:2)
+datF <- subset(dat, gender==1, select=1:2)
+
+head(datM)
+summary(datM)
+
+head(datF)
+summary(datF)
+
+```
+
+::: {#exr-regression-golf-1}
+[**Golf**]{.column-margin} Create two scatter plots with average drive distance on the x-axis and percent accuracy on the y-axis, one for female golfers and one for male golfers. What do you observe about the relationship between these two variables?
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+plot(datM$distance, datM$accuracy, main="Scatterplot", xlab="distance (yards)", ylab="accuracy(pct)", pch=19)
+abline(lm(datM$accuracy~datM$distance), col="red") # regression line (y~x)
+lines(lowess(datM$accuracy,datM$distance), col="blue") # lowess line (x,y)
+
+
+plot(datF$distance, datF$accuracy, main="Scatterplot", xlab="distance (yards)", ylab="accuracy(pct)", pch=19)
+abline(lm(datF$accuracy~datF$distance), col="red") # regression line (y~x)
+lines(lowess(datF$accuracy,datF$distance), col="blue") # lowess line (x,y)
+
+```
+:::
+:::
+
+::: {#exr-regression-golf-2}
+[**Golf**]{.column-margin}
+
+Fit a linear regression model to the female golfer data only with drive distance as the explanatory variable $x$ and accuracy as the response variable $y$. Use the standard reference (non-informative) prior.
+
+Recall that in a linear regression, we are modeling $E(y)=b_0+b_1x$
+
+In this particular model, the intercept term is not interpretable, as we would not expect to see a 0-yard drive (but it is still necessary). Predictions should generally be made only within the range of the observed data.
+
+Report the posterior mean estimate of the slope parameter $b$ relating drive distance to accuracy.
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+mod1 <- lm(accuracy ~ distance, data=datF)
+summary(mod1)
+```
+:::
+:::
+
+::: {#exr-regression-golf-3}
+[**Golf**]{.column-margin}
+
+The posterior mean estimate of the slope from [@exr-regression-golf-2] is about five standard errors below 0. Hence, the posterior probability that this slope is negative is near 1.
+
+Suppose the estimate is $b$. How do we interpret this value?
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] If x is the driving distance, we expect the percentage accuracy to be $100bx$.
+
+-   [ ] If x is the driving distance, we expect the percentage accuracy to be $bx$.
+
+-   [x] For each additional yard of driving distance, we expect to see a decrease in percentage accuracy of $∣b∣$.
+
+-   [ ] For each additional yard of driving distance, we expect to see an increase in percentage accuracy of $∣b∣$.
+:::
+:::
+
+::: {#exr-regression-golf-4}
+[**Golf**]{.column-margin}
+
+Use the posterior mean estimates of the model coefficients to obtain a posterior predictive mean estimate of driving accuracy for a new female golfer whose average driving distance is x=260 yards. Round your answer to one decimal place.
+
+```{r}
+predict.lm(mod1,data.frame(distance=260))
+```
+:::
+
+::: {#exr-regression-golf-5}
+[**Golf**]{.column-margin}
+
+Which of the following gives a 95% posterior predictive interval for the driving accuracy of a new female golfer whose average driving distance is $x=260$ yards?
+
+Hint: Modify the code provided with this lesson under "prediction interval."
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+#64.21029  -  0.03631 * qt(.975,195-2)
+#64.21029  +  0.03631 * qt(.975,195-2)
+#predict.lm(mod1,data.frame(distance=260),interval="confidence", level=0.95)
+predict.lm(mod1,data.frame(distance=260),interval="prediction", level=0.95)
+```
+
+(53.7, 74.7)
+
+This is
+
+$$\hat{y}^* \pm t_{n-2}^{-1}(0.975) \cdot se_r \cdot \sqrt{1 + \frac{1}{n} + \frac{(260-\bar{x})^2}{(n-1)s_x^2}}$$ where:
+
+-   $\hat{y}^*$ is the prediction mean found in [@exr-regression-golf-4],
+-   $t_{n-2}^{-1}(0.975)$ is the 0.975 quantile of a standard t distribution with n−2 degrees of freedom,
+-   $n$ is the number of data points,
+-   $se_r$ is the residual standard error (estimate of $\sigma$)
+-   $\bar{x}$ is the sample mean of driving distance, and\
+-   $s_x^2$ is the sample variance of driving distance.
+:::
+:::
+
+::: {#exr-regression-golf-6}
+[**Golf**]{.column-margin}
+
+What is the interpretation of the interval found in [@exr-regression-golf-5]?
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] If we select a new female golfer who averages 260 yards per drive, we are 95% confident that the posterior mean for her accuracy would be in the interval.
+-   [ ] For all female golfers who average 260 yards per drive, our probability is $.95$ that the mean of their driving accuracy is in the interval.
+-   [x] If we select a new female golfer who averages 260 yards per drive, our probability that her driving accuracy will be in the interval is .95.
+-   [ ] For all female golfers who average 260 yards per drive, we are 95% confident that all their driving accuracies will be in the interval.
+
+Why is this the correct answer:
+
+1.  A Predictive interval does not predict a posterior mean.
+2.  It predicts a new observation.
+:::
+:::

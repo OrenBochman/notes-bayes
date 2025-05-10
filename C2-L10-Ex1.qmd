@@ -1,0 +1,343 @@
+
+## Homework on Poisson regression
+
+```{r}
+#| label: 'Setup'
+#| lst-label: lst-Poisson-Regression-0
+#| lst-cap: 'Setup'
+#| attr-source: "id=lst-Poisson-Regression-0 lst-cap='setup'"
+#| echo: false
+#| output: false
+library("rjags")
+library("COUNT")
+data("badhealth")
+dat=badhealth
+```
+
+::: {#exr-Poisson-Regression-1}
+[**Poisson Regression**]{.column-margin} With Poisson regression, we use the log link function so that $\log( \mathbb{E}[y]) = \log(\lambda) = \beta_0 + \beta_1 x_1 + \ldots + \beta_k x_k$
+
+Suppose we have two covariate values x1,i=0.8 and x2,i=1.2 and we know the values of the coefficients: $\beta_0 = 1.5, \beta_1 = -0.3 \text{and} \beta_2 = 1.0$
+
+Calculate $\mathbb{E}[y]$ in this case. Round your answer to one decimal place
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{python}
+import numpy as np
+
+def E(x1,x2,b0,b1,b2):
+  return np.exp(b0+b1*x1+b2*x2)
+
+E(0.8,1.2,1.5,-0.3,1.0)
+```
+
+This is just $\lambda_i=exp(\beta_0+\beta_1,x_{1,i}+\beta_2x_{2,i})$
+:::
+
+::: {#exr-Poisson-Regression-2}
+[**Poisson Regression**]{.column-margin} Re-run the JAGS model for the Poisson regression on doctor visits from the lesson. Calculate the DIC for the original model. Now remove the interaction term from the model and fit the simpler additive model. Again compute the DIC. If we use predictive performance as a criterion for selecting models, what do we conclude?
+
+```{r}
+#| label: 'lst-Poisson-Regression-2a'
+#| lst-label: 'lst-Poisson-Regression-2'
+mod_string = " model {
+    for (i in 1:length(numvisit)) {
+        numvisit[i] ~ dpois(lam[i])
+        log(lam[i]) = int + b_badh*badh[i] + b_age*age[i] + b_intx*age[i]*badh[i]
+    }
+    
+    int ~ dnorm(0.0, 1.0/1e6)
+    b_badh ~ dnorm(0.0, 1.0/1e4)
+    b_age ~ dnorm(0.0, 1.0/1e4)
+    b_intx ~ dnorm(0.0, 1.0/1e4)
+} "
+
+set.seed(102)
+
+data_jags = as.list(badhealth)
+
+params = c("int", "b_badh", "b_age", "b_intx")
+
+mod = jags.model(textConnection(mod_string), data=data_jags, n.chains=3)
+update(mod, 1e3)
+
+mod_sim = coda.samples(model=mod,
+                        variable.names=params,
+                        n.iter=5e3)
+mod_csim = as.mcmc(do.call(rbind, mod_sim))
+
+## convergence diagnostics
+par(mar = c(2.5, 1, 2.5, 1))
+plot(mod_sim)
+
+gelman.diag(mod_sim)
+autocorr.diag(mod_sim)
+autocorr.plot(mod_sim)
+effectiveSize(mod_sim)
+```
+
+```{r}
+#| label: 'lst-Poisson-Regression-2b'
+#| lst-label: 'lst-Poisson-Regression-2'
+
+
+mod1_string = " model {
+    for (i in 1:length(numvisit)) {
+        numvisit[i] ~ dpois(lam[i])
+        log(lam[i]) = int + b_badh*badh[i] + b_age*age[i] 
+    }
+    
+    int ~ dnorm(0.0, 1.0/1e6)
+    b_badh ~ dnorm(0.0, 1.0/1e4)
+    b_age ~ dnorm(0.0, 1.0/1e4)
+} "
+
+set.seed(102)
+
+data1_jags = as.list(badhealth)
+
+params1 = c("int", "b_badh", "b_age")
+
+mod1 = jags.model(textConnection(mod1_string), data=data1_jags, n.chains=3)
+update(mod1, 1e3)
+
+mod1_sim = coda.samples(model=mod1, variable.names=params1,  n.iter=5e3)
+mod1_csim = as.mcmc(do.call(rbind, mod1_sim))
+
+## convergence diagnostics
+par(mar = c(2.5, 1, 2.5, 1))
+plot(mod1_sim)
+
+gelman.diag(mod1_sim)
+autocorr.diag(mod1_sim)
+autocorr.plot(mod1_sim)
+effectiveSize(mod1_sim)
+
+```
+
+We are interested how these variables relate to the probability of successfully identifying the source of changes in sound. Of these four variables, which appears to have the weakest association with the probability of success?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+#| label: dic
+## compute DIC
+(dic = dic.samples(mod, n.iter=1e3))
+(dic1 = dic.samples(mod1, n.iter=1e3))
+```
+
+-   [ ] The original model with interaction has a lower value of DIC than the simpler model, so we retain the simpler model.
+-   [x] The original model with interaction has a lower value of DIC than the simpler model, so we retain the original model.
+-   [ ] The original model with interaction has a higher value of DIC than the simpler model, so we retain the original model.
+-   [ ] The original model with interaction has a higher value of DIC than the simpler model, so we retain the simpler model.
+
+Lower values of DIC indicate improved predictive performance.
+:::
+
+::: {#exr-Poisson-Regression-3}
+[**Poisson Regression**]{.column-margin} In the original model, the posterior mean estimate of the coefficient for badh (bad health) was 1.56. What is the correct interpretation of this coefficient if this were the true value?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] Being in bad health is associated with a 1.56 increase in the expected number of doctor visits.
+-   [ ] Being in bad health is associated with a 1.56 decrease in the log of the expected number of doctor visits.
+-   [x] Being in bad health is associated with a 1.56 increase in the log of the expected number of doctor visits.
+-   [ ] Being in bad health is associated with a 1.56 decrease in the log of the number of doctor visits.
+
+Since badh was an indicator (dummy) variable, the interpretation of the coefficient is simply the effect of this variable being "on."
+:::
+
+::: {#exr-Poisson-Regression-4}
+[**Poisson Regression**]{.column-margin} In the previous course, we briefly discussed Poisson processes. The mean of a Poisson distribution can be thought of as a rate at which the events we count are occurring. Hence, it is natural to imagine that if we are observing for twice as long, we would expect to count about twice as many events (assuming the rate is steady). If t is the amount of time that we observe, and $\lambda$ is the rate of events per unit of time, then the expected number of events is $t\lambda$ and the distribution of the number of events in this time interval is $Poisson(t\lambda)$
+
+Suppose that a retail store receives an average of 15 customer calls per hour, and that the calls approximately follow a Poisson process. If we monitor calls for two hours, what is the probability that there will be fewer than 22 calls in this time period?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+#| label: q4
+ppois(q=21,lambda = 2*15)
+
+```
+
+Let $X$ be the number of calls in this interval. If we assume a Poisson process, then $X \sim Pois(2 \cdot 15)$. The probability that $X \le 21$ can be calculated in R using the `ppois()` function.
+:::
+
+::: {#exr-Poisson-Regression-5}
+[**Raftery and Lewis diagnostic**]{.column-margin} On average, this retailer receives 0.01 calls per customer per day. They notice, however, that one particular group of customers tends to call more frequently.
+
+To test this, they select 90 days to monitor 224 customers, 24 of which belong to this group (call it group 2). Not all customers had accounts for the full 90 day period, but we do know how many of the 90 days each was active. We also have the age of the customer, the group to which the customer belongs, and how many calls the customer placed during the period they were active. The data are attached as `callers.csv`.
+
+Try plotting some of the variables to understand some of the relationships. If one of the variables is categorical, a box plot is a good choice.
+
+Which of the following plots would be most useful to the retailer to informally explore their hypothesis that customers from group 2 call at a higher rate than the other customers?
+
+```{r}
+#| label: q5
+calls_dat = read.csv(file="data/callers.csv", header=TRUE)
+head(calls_dat)
+
+boxplot(x=calls_dat$calls,y=calls_dat$isgroup2)
+
+boxplot(x=calls_dat$calls/calls_dat$days_active ,y=calls_dat$age)
+
+boxplot(x=calls_dat$calls/calls_dat$days_active ,y=calls_dat$isgroup2)
+
+boxplot(x=calls_dat$age,y=calls_dat$isgroup2)
+
+```
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] `calls` vs. `isgroup2`
+-   [ ] `calls`/`days_active` vs. `age`
+-   [x] `calls`/`days_active` vs. `isgroup2`
+-   [ ] `age` vs. `isgroup2`
+
+This is the best choice.
+
+The first variable is the observed call rate for the customer, which is better than using the total number of calls because that does not account for possible differences in how long the account was active.
+
+The `age` vs. `isgroup2` plot is also very important. If the customers in group 2 tend to be different in age than the other customers, then we will not be able to tell whether group membership or age (or another variable related to both) is driving the difference in call rates.
+:::
+
+::: {#exr-Poisson-Regression-6}
+[**Poisson Regression**]{.column-margin} Since we know how many days each customer was active and the data are counts, it seems reasonable to use a Poisson process model. We will assume that the customers' calls are independent, and that the calling rate per day active for person $i$, $λ_i$ is unique to each customer and does not change throughout the monitoring period.
+
+It makes sense to model $λ_i$ using our two covariates, `age` and `isgroup2`. How would the likelihood specification for this model look in JAGS?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [x]
+
+``` r
+    for (i in 1:length(calls)) {
+        calls[i] ~ dpois( days_active[i] * lam[i] )
+        log(lam[i]) = b0 + b[1]*age[i] + b[2]*isgroup2[i]
+    }
+```
+
+-   [ ]
+
+``` r
+    for (i in 1:length(calls)) {
+        calls[i] ~ dpois( days_active[i] * lam[i] )
+        log(lam[i]) = b0 + b[1]*age[i] + b[2]*isgroup2[i]
+    }
+```
+
+-   [ ]
+
+``` r
+    for (i in 1:length(calls)) {
+        calls[i] ~ dpois( days_active[i] * lam[i] )
+        lam[i] = b0 + b[1]*age[i] + b[2]*isgroup2[i]
+    }
+```
+
+-   [ ]
+
+``` r
+    for (i in 1:length(calls)) {
+        calls[i] ~ dpois( lam[i] )
+        lam[i] = b0 + b[1]*age[i] + b[2]*isgroup2[i]
+    }
+```
+
+This is an fascinating modification of the model we saw in the class.
+
+The Poisson process part comes in when we account for `days_active`, and the regression part comes in our model for $\lambda_i$.
+:::
+
+::: {#exr-Poisson-Regression-7}
+[**Poisson Regression**]{.column-margin} Complete fit the model in JAGS using $N(0,102)$ priors for the intercept and both coefficients. Be sure to check for MCMC convergence and look at the residuals (don't forget to multiply `lam_hat` by `days_active` to obtain the model's predicted mean number of calls).
+
+What is the posterior probability that $\beta_2$, the coefficient for the indicator $\text{isgroup2} > 0$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+#| label: q7
+calls_mod_string = " model {
+	for (i in 1:length(calls)) {
+	  	calls[i] ~ dpois( days_active[i] * lam[i] )
+  		log(lam[i]) = b0 + b[1]*age[i] + b[2]*isgroup2[i]
+	}
+
+  b0 ~ dnorm(0.0, 10.0^2)
+  for(j in 1:2){
+    b[j] ~ dnorm(0.0, 10.0^2)
+  }
+} "
+set.seed(102)
+calls_data_jags = as.list(calls_dat)
+calls_params = c("b0",'b')
+calls_mod = jags.model(textConnection(calls_mod_string), data=calls_data_jags, n.chains=3)
+update(calls_mod, 1e3)
+calls_mod_sim = coda.samples(model=calls_mod, variable.names=calls_params,n.iter=5e3)
+calls_mod_csim = as.mcmc(do.call(rbind, calls_mod_sim))
+
+## convergence diagnostics
+par(mar = c(2.5, 1, 2.5, 1))
+plot(calls_mod_sim)
+
+gelman.diag(calls_mod_sim)
+autocorr.diag(calls_mod_sim)
+autocorr.plot(calls_mod_sim)
+effectiveSize(calls_mod_sim)
+
+## compute DIC
+dic = dic.samples(calls_mod, n.iter=1e3)
+```
+
+```{r}
+#|llabel: q7s
+#calls_mod_csim
+#as.numeric(unlist(List))    
+dim(calls_mod_csim)
+calls_csim=as.matrix(calls_mod_csim)
+
+length(calls_csim[,c('b[2]')]>0)/length(calls_csim[,'b[2]'])
+
+
+```
+:::
+
+::: {#exr-Poisson-Regression-8}
+[**Poisson Regression**]{.column-margin} What formal conclusions should be made about the retailer's hypothesis?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+#| label: q9
+print(' E(Calls) ~ Pois(log(lam[i]) = b0 + b1*age[i] + b2*isgroup2[i])')
+summary(calls_mod_csim)
+```
+
+-   [ ] The data contain no evidence of association between call rates and group membership.
+
+-   [x] While accounting for time active and age, customer membership in group 2 is associated with higher call rates than for customers not in group 2.
+
+-   [ ] We are unable to conclude whether the calling rate discrepancy is due to group membership or age because members of group 2 are generally of different age than customers not in group 2.
+
+-   [ ] While accounting for time active and age, customer membership in group 2 is associated with lower call rates than for customers not in group 2.
+
+Age membership is not a concern here because a wide range of ages is represented in both groups. Otherwise, this would be a major issue.
+:::

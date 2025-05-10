@@ -1,0 +1,181 @@
+## Honnors Homework on M-H algorithm
+
+[M-H]{.colum-margin} For Questions @exr-mhh-1 through @exr-mhh-3, consider the following model for data that take on values between 0 and 1:
+
+$$
+x_i \mid \alpha, \beta \overset{\text{iid}}{\sim} \text{Beta}(\alpha, \beta) \, , \quad i = 1, \ldots, n\, , \\ \alpha \sim \text{Gamma}(a, b) \, , \\ \beta \sim \text{Gamma}(r, s)
+$$
+
+where $α$ and $β$ are independent a-priori.
+
+::: {#exr-mhh-1}
+[M-H]{.colum-margin} Which of the following gives the *full conditional density* for $α$ up to proportionality?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] $p( \alpha \mid \beta, x) \propto \frac{ \Gamma(\alpha + \beta)^n }{ \Gamma(\alpha)^n } \left[ \prod_{i=1}^n x_i \right]^{\alpha - 1} \alpha^{a-1} e^{-b\alpha} I_{(0 < \alpha < 1)}$
+
+-   [x] $p( \alpha \mid \beta, x) \propto \frac{ \Gamma(\alpha + \beta)^n }{ \Gamma(\alpha)^n } \left[ \prod_{i=1}^n x_i \right]^{\alpha - 1} \alpha^{a-1} e^{-b\alpha} I_{(\alpha > 0)}$
+
+-   [ ] $p( \alpha \mid \beta, x) \propto \frac{ \Gamma(\alpha + \beta)^n }{ \Gamma(\alpha)^n \Gamma(\beta)^n } \left[ \prod_{i=1}^n x_i \right]^{\alpha - 1} \left[ \prod_{i=1}^n (1-x_i) \right]^{\beta - 1} \alpha^{a-1} e^{-b\alpha} \beta^{r-1} e^{-s\beta} I_{(0 < \alpha < 1)} I_{(0 < \beta < 1)}$
+
+-   [ ] $p( \alpha \mid \beta, x) \propto \left[ \prod_{i=1}^n x_i \right]^{\alpha - 1} \alpha^{a-1} e^{-b\alpha} I_{(\alpha > 0)}$
+
+When we treat the data $x$ and $β$ as known constants, the full joint distribution of all quantities $x$, $α$, and $β$ is proportional to this expression when reinterpreted as a function of $α$.
+
+To solve this one I had a couple of challenges:
+
+-   First I needed to understand what the full conditional means (I worked that out in the previous homework)
+
+-   Next that all the answers look like a likelihood times a prior
+
+-   Next I needed to remember that this requires reinterpreting the likelihood $p(x\mid\alpha,\beta)$ as $p(\alpha\mid\beta,x)$.
+
+-   For the solution I multiplied the likelihood for $\text{Beta}(x|\alpha,\beta)^n$ with the prior $\text{Gamma}(\alpha|a,b)$ then canceled any term in the product that did not have $\alpha$. This was tricky since my reference for Gamma had $x$, $\alpha$ and $\beta$ and without substituting $x=\alpha$, $\alpha=a$ and $\beta=b$ which is counter intuitive I got wrong answers.
+
+-   Finally I had to decide on two options for the indicator. The question talks about restricting the data to values from 0 to 1 but the Likelihood and prior allow values from $\mathbb{R}^+$. I picked the latter since the restriction was for the data and not the parameters.
+:::
+
+::: {#exr-mhh-2}
+[M-H]{.colum-margin} Suppose we want posterior samples for α from the model in @exr-mhh-1. What is our best option?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [x] The full conditional for α is not proportional to any common probability distribution, and the marginal posterior for β is not any easier, so we will have to resort to a Metropolis-Hastings sampler.
+
+-   [ ] The joint posterior for α and β is a common probability distribution which we can sample directly. Thus we can draw Monte Carlo samples for both parameters and keep the samples for α.
+
+-   [ ] The full conditional for α is proportional to a common distribution which we can sample directly, so we can draw from that.
+
+-   [ ] The full conditional for α is not a proper distribution (it doesn't integrate to 1), so we cannot sample from it.
+
+Another option is to approximate the posterior distribution for α by considering a set of discrete values such as $0.1,0.2, \ldots, 0.9$ etc. You could use a discrete uniform prior, or discrete prior probabilities proportional to the beta prior evaluated at these specific values. Either way, the full conditional distribution for α looks like the discrete version of Bayes' theorem, which is easy to compute.
+:::
+
+::: {#exr-mhh-3}
+[M-H]{.colum-margin} If we elect to use a Metropolis-Hastings algorithm to draw posterior samples for $α$, the Metropolis-Hastings candidate acceptance ratio is computed using the full conditional for $α$ as
+
+$$
+\frac{ \Gamma(\alpha)^n \Gamma(\alpha^*+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*} {\alpha^*}^{a-1} e^{-b\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* > 0} } {  \Gamma(\alpha^*)^n \Gamma(\alpha+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha} {\alpha}^{a-1} e^{-b\alpha} q(\alpha | \alpha^*) I_{\alpha > 0} }
+$$
+
+where $α^∗$ is a candidate value drawn from proposal distribution $q(α^∗\midα)$. Suppose that instead of the full conditional for $α$, we use the full joint posterior distribution of $α$ and $β$ and simply plug in the current (or known) value of $β$. What is the Metropolis-Hastings ratio in this case?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] $\frac{{\alpha^*}^{a-1} e^{-b\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* > 0} } { {\alpha}^{a-1} e^{-b\alpha} q(\alpha | \alpha^*) I_{\alpha > 0} }$
+
+-   [x] $\frac{ \Gamma(\alpha)^n \Gamma(\alpha^*+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*} {\alpha^*}^{a-1} e^{-b\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* > 0} } { \Gamma(\alpha^*)^n \Gamma(\alpha+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha} {\alpha}^{a-1} e^{-b\alpha} q(\alpha | \alpha^*) I_{\alpha > 0} }$
+
+-   [ ] $\frac{ \Gamma(\alpha)^n \Gamma(\alpha^*+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* > 0} } { \Gamma(\alpha^*)^n \Gamma(\alpha+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha} q(\alpha | \alpha^*) I_{\alpha > 0} }$
+
+-   [ ] $\frac{ \Gamma(\alpha^* + \beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*- 1} \left[ \prod_{i=1}^n (1-x_i) \right]^{\beta - 1} {\alpha^*}^{a-1} e^{-b\alpha^*} \beta^{r-1} e^{-s\beta} q(\alpha | \alpha^*) I_{(0 < \alpha^*)} I_{(0 < \beta )} }{ \Gamma(\alpha^*)^n \Gamma(\beta)^n q(\alpha^* | \alpha) }$
+
+All of the terms involving only β are identical in the numerator and denominator, and thus cancel out. The acceptance ratio is the same whether we use the full joint posterior or the full conditional in a Gibbs sampler.
+:::
+
+For Questions 4 and 5, re-run the Metropolis-Hastings algorithm from Lesson 4 to draw posterior samples from the model for mean company personnel growth for six new companies: (-0.2, -1.5, -5.3, 0.3, -0.8, -2.2). Use the same prior as in the lesson.
+
+```{r}
+{library("rjags")}
+library("coda")
+
+lg = function(mu, n, ybar) {
+  mu2 = mu^2
+  n * (ybar * mu - mu2 / 2.0) - log(1 + mu2)
+}
+
+mh = function(n, ybar, n_iter, mu_init, cand_sd) {
+  ## Random-Walk Metropolis-Hastings algorithm
+  
+  ## step 1, initialize
+  mu_out = numeric(n_iter)
+  accpt = 0
+  mu_now = mu_init
+  lg_now = lg(mu=mu_now, n=n, ybar=ybar)
+  
+  ## step 2, iterate
+  for (i in 1:n_iter) {
+    ## step 2a
+    mu_cand = rnorm(n=1, mean=mu_now, sd=cand_sd) # draw a candidate
+    
+    ## step 2b
+    lg_cand = lg(mu=mu_cand, n=n, ybar=ybar) # evaluate log of g with the candidate
+    lalpha = lg_cand - lg_now # log of acceptance ratio
+    alpha = exp(lalpha)
+    
+    ## step 2c
+    u = runif(1) # draw a uniform variable which will be less than alpha with probability min(1, alpha)
+    if (u < alpha) { # then accept the candidate
+      mu_now = mu_cand
+      accpt = accpt + 1 # to keep track of acceptance
+      lg_now = lg_cand
+    }
+    
+    ## collect results
+    mu_out[i] = mu_now # save this iteration's value of mu
+  }
+  
+  ## return a list of output
+  list(mu=mu_out, accpt=accpt/n_iter)
+}
+
+y = c(1.2, 1.4, -0.5, 0.3, 0.9, 2.3, 1.0, 0.1, 1.3, 1.9)
+ybar = mean(y)
+n = length(y)
+#hist(y, freq=FALSE, xlim=c(-1.0, 3.0)) # histogram of the data
+#curve(dt(x=x, df=1), lty=2, add=TRUE) # prior for mu
+#points(y, rep(0,n), pch=1) # individual data points
+#points(ybar, 0, pch=19) # sample mean
+#set.seed(43) # set the random seed for reproducibility
+```
+
+```{r}
+sds = c(0.5,1.5,3.0,4.0)
+y = c(-0.2, -1.5, -5.3, 0.3, -0.8, -2.2)
+ybar = mean(y)
+n = length(y)
+
+for (sd in sds){
+  post = mh(n=n, ybar=ybar, n_iter=1e3, mu_init=0.0, cand_sd=sd)
+  #str(post)
+  #traceplot(as.mcmc(post$mu))
+  print(c(sd,":",post$accpt,'mu',":",mean(post$mu)))
+}
+```
+
+::: {#exr-mhh-4}
+[M-H]{.colum-margin} Below are four possible values for the standard deviation of the normal proposal distribution in the algorithm. Which one yields the best sampling results?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] 0.5
+
+-   [x] 1.5
+
+-   [ ] 3.0
+
+-   [ ] 4.0
+:::
+
+::: {#exr-mhh-5}
+[M-H]{.colum-margin} Report the posterior mean point estimate for μ, the mean growth, using these six data points. Round your answer to two decimal places.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+$$
+-1.46
+$$
+
+The sample mean of the six points is -1.62. Clearly the prior has some influence on this estimate.
+:::

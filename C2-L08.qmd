@@ -1,0 +1,478 @@
+---
+title: "C2-L08 ANOVA"
+created: 2023-05-30T15:16:10 (UTC +03:00)
+categories: [Notes]
+keywords: []
+---
+
+# Notes - ANOVA
+
+## Introduction to ANOVA
+
+![Introduction to ANOVA](images/c2l08-ss-01-ANOVA.png){.column-margin}
+
+## One way ANOVA model using JAGS
+
+### Data & EDA
+
+As an example of a one-way ANOVA, we'll look at the Plant Growth data in `R`.
+
+```{r}
+#| lst-label: lst-load-PlantGrowth
+#| lst-cap: Plant Growth Query
+#| attr-source: "id=lst-load-PlantGrowth lst-cap='Plant Growth Query'"
+data("PlantGrowth")
+#?PlantGrowth
+head(PlantGrowth)
+```
+
+We first load the dataset (@lst-load-PlantGrowth)
+
+Because the explanatory variable `group` is a factor and not continuous, we choose to visualize the data with box plots rather than scatter plots.
+
+```{r}
+#| label: fig-platgrowth-boxplot
+#| fig-cap: "PlantGrowth boxplot"
+
+boxplot(weight ~ group, data=PlantGrowth)
+```
+
+The box plots summarize the distribution of the data for each of the three groups. It appears that treatment 2 has the highest mean yield. It might be questionable whether each group has the same variance, but we'll assume that is the case.
+
+### Modeling
+
+Again, we can start with the reference analysis (with a noninformative prior) with a linear model in `R`.
+
+```{r}
+#| label: fit-linear-model
+lmod = lm(weight ~ group, data=PlantGrowth)
+summary(lmod)
+```
+
+```{r}
+#| label: anova-linear-model
+anova(lmod)
+```
+
+```{r}
+#| label: fig-residual-analysis
+#| fig-cap: "Graphical residual analysis"
+plot(lmod) # for graphical residual analysis
+```
+
+The default model structure in `R` is the linear model with dummy indicator variables. Hence, the "intercept" in this model is the mean yield for the control group. The two other parameters are the estimated effects of treatments 1 and 2. To recover the mean yield in treatment group 1, you would add the intercept term and the treatment 1 effect. To see how `R` sets the model up, use the `model.matrix(lmod)` function to extract the $X$ matrix.
+
+The `anova()` function in `R` compares variability of observations between the treatment groups to variability within the treatment groups to test whether all means are equal or whether at least one is different. The small p-value here suggests that the means are not all equal.
+
+Let's fit the **cell means** model in `JAGS`.
+
+```{r}
+#| label: load-rjags
+#| output: False
+library("rjags")
+```
+
+```{r}
+#| label: m1-jags-model-string
+mod_string = " model {
+    for (i in 1:length(y)) {
+        y[i] ~ dnorm(mu[grp[i]], prec)
+    }
+    
+    for (j in 1:3) {
+        mu[j] ~ dnorm(0.0, 1.0/1.0e6)
+    }
+    
+    prec ~ dgamma(5/2.0, 5*1.0/2.0)
+    sig = sqrt( 1.0 / prec )
+} "
+
+set.seed(82)
+str(PlantGrowth)
+data_jags = list(y=PlantGrowth$weight, 
+              grp=as.numeric(PlantGrowth$group))
+
+params = c("mu", "sig")
+
+inits = function() {
+    inits = list("mu"=rnorm(3,0.0,100.0), "prec"=rgamma(1,1.0,1.0))
+}
+
+mod = jags.model(textConnection(mod_string), data=data_jags, inits=inits, n.chains=3)
+update(mod, 1e3)
+
+mod_sim = coda.samples(model=mod,
+                        variable.names=params,
+                        n.iter=5e3)
+mod_csim = as.mcmc(do.call(rbind, mod_sim)) # combined chains
+```
+
+### Model checking
+
+As usual, we check for convergence of our MCMC.
+
+```{r}
+#| label: fig-mcmc-convergence
+#| fig-cap: "MCMC convergence diagnostics"
+#| fig-height: 8
+par(mar = c(2.5, 1, 2.5, 1))
+plot(mod_sim)
+
+gelman.diag(mod_sim)
+autocorr.diag(mod_sim)
+effectiveSize(mod_sim)
+```
+
+We can also look at the residuals to see if there are any obvious problems with our model choice.
+
+```{r}
+#| label: calculate-posterior-means
+(pm_params = colMeans(mod_csim))
+```
+
+```{r}
+#| label: fig-residuals-vs-index
+#| fig-cap: "Residuals vs Index"
+yhat = pm_params[1:3][data_jags$grp]
+resid = data_jags$y - yhat
+plot(resid)
+```
+
+```{r}
+#| label: fig-plantgrowth-residuals-vs-fitted
+#| fig-cap: "Residuals vs Fitted values for PlantGrowth model"
+plot(yhat, resid)
+```
+
+Again, it might be appropriate to have a separate variance for each group. We will have you do that as an exercise.
+
+### Results
+
+Let's look at the posterior summary of the parameters.
+
+```{r}
+#| label: summary-posterior
+summary(mod_sim)
+```
+
+```{r}
+#| label: hpd-interval
+HPDinterval(mod_csim)
+```
+
+The `HPDinterval()` function in the `coda` package calculates intervals of highest posterior density for each parameter.
+
+We are interested to know if one of the treatments increases mean yield. It is clear that treatment 1 does not. What about treatment 2?
+
+```{r}
+#| label: treatment2-greater-control
+mean(mod_csim[,3] > mod_csim[,1])
+```
+
+There is a high posterior probability that the mean yield for treatment 2 is greater than the mean yield for the control group.
+
+It may be the case that treatment 2 would be costly to put into production. Suppose that to be worthwhile, this treatment must increase mean yield by 10%. What is the posterior probability that the increase is at least that?
+
+```{r}
+#| label: treatment2-greater-10percent
+mean(mod_csim[,3] > 1.1*mod_csim[,1])
+```
+
+We have about 50/50 odds that adopting treatment 2 would increase mean yield by at least 10%.
+
+
+
+## Two Factor ANOVA
+
+### Data
+
+Let's explore an example with two factors. We'll use the `Warpbreaks` data set in `R`. Check the documentation for a description of the data by typing `?warpbreaks`.
+
+```{r}
+#| label: load-warpbreaks-data
+data("warpbreaks")
+#?warpbreaks
+head(warpbreaks)
+```
+
+```{r}
+#| label: tbl-warpbreaks-preview
+#| tbl-cap: "Preview of first few rows of warpbreaks data"
+# This chunk is for displaying the output that was previously static.
+# If the static output below is preferred, this chunk can be removed 
+# and the static output remains unlabelled as it's not a code cell.
+# For a labeled table, this chunk should generate it.
+# The original file had static output here:
+##   breaks wool tension
+## 1     26    A       L
+## 2     30    A       L
+## 3     54    A       L
+## 4     25    A       L
+## 5     70    A       L
+## 6     52    A       L
+# To make this a labeled table from code:
+head(warpbreaks)
+```
+
+```{r}
+#| label: tbl-wool-tension-contingency
+#| tbl-cap: "Contingency table of wool type vs tension level"
+table(warpbreaks$wool, warpbreaks$tension)
+```
+
+Again, we visualize the data with box plots.
+
+```{r}
+#| label: fig-warpbreaks-boxplot
+#| fig-cap: "Warpbreaks boxplot"
+boxplot(breaks ~ wool + tension, data=warpbreaks)
+```
+
+```{r}
+#| label: fig-warpbreaks-boxplot-log
+#| fig-cap: "Warpbreaks boxplot with log-transformed breaks"
+boxplot(log(breaks) ~ wool + tension, data=warpbreaks)
+```
+
+The different groups have more similar variance if we use the logarithm of breaks. From this visualization, it looks like both factors may play a role in the number of breaks. It appears that there is a general decrease in breaks as we move from low to medium to high tension. Let's start with a one-way model using tension only.
+
+### One-way model
+
+```{r}
+#| label: oneway-tension-model-definition
+mod1_string = " model {
+    for( i in 1:length(y)) {
+        y[i] ~ dnorm(mu[tensGrp[i]], prec)
+    }
+    
+    for (j in 1:3) {
+        mu[j] ~ dnorm(0.0, 1.0/1.0e6)
+    }
+    
+    prec ~ dgamma(5/2.0, 5*2.0/2.0)
+    sig = sqrt(1.0 / prec)
+} "
+
+set.seed(83)
+str(warpbreaks)
+
+data1_jags = list(y=log(warpbreaks$breaks), tensGrp=as.numeric(warpbreaks$tension))
+
+params1 = c("mu", "sig")
+
+mod1 = jags.model(textConnection(mod1_string), data=data1_jags, n.chains=3)
+update(mod1, 1e3)
+
+mod1_sim = coda.samples(model=mod1,
+                        variable.names=params1,
+                        n.iter=5e3)
+```
+
+```{r}
+#| label: fig-m1-mcmc-convergence
+#| fig-cap: "MCMC convergence diagnostics for one-way tension model"
+#| fig-height: 8
+## convergence diagnostics
+plot(mod1_sim)
+```
+
+```{r}
+#| label: m1-diag-mcmc-convergence
+gelman.diag(mod1_sim)
+autocorr.diag(mod1_sim)
+effectiveSize(mod1_sim)
+```
+
+The 95% posterior interval for the mean of group 2 (medium tension) overlaps with both the low and high groups, but the intervals for low and high group only slightly overlap. That is a pretty strong indication that the means for low and high tension are different. Let's collect the DIC for this model and move on to the two-way model.
+
+```{r}
+#| label: m1-dic
+dic1 = dic.samples(mod1, n.iter=1e3)
+```
+
+### Two-way additive model
+
+With two factors, one with two levels and the other with three, we have six treatment groups, which is the same situation we discussed when introducing multiple factor ANOVA. We will first fit the additive model which treats the two factors separately with no interaction. To get the $X$ matrix (or design matrix) for this model, we can create it in `R`.
+
+```{r}
+#| label: tbl-additive-design-matrix-head
+#| tbl-cap: "Head of the design matrix for the additive model"
+X = model.matrix( ~ wool + tension, data=warpbreaks)
+head(X)
+```
+
+```{r}
+#| label: tbl-additive-design-matrix-tail
+#| tbl-cap: "Tail of the design matrix for the additive model"
+tail(X)
+```
+
+By default, `R` has chosen the mean for wool A and low tension to be the intercept. Then, there is an effect for wool B, and effects for medium tension and high tension, each associated with dummy indicator variables.
+
+```{r}
+#| label: additive-model-definition-fit
+mod2_string = " model {
+    for( i in 1:length(y)) {
+        y[i] ~ dnorm(mu[i], prec)
+        mu[i] = int + alpha*isWoolB[i] + beta[1]*isTensionM[i] + beta[2]*isTensionH[i]
+    }
+    
+    int ~ dnorm(0.0, 1.0/1.0e6)
+    alpha ~ dnorm(0.0, 1.0/1.0e6)
+    for (j in 1:2) {
+        beta[j] ~ dnorm(0.0, 1.0/1.0e6)
+    }
+    
+    prec ~ dgamma(3/2.0, 3*1.0/2.0)
+    sig = sqrt(1.0 / prec)
+} "
+
+data2_jags = list(y=log(warpbreaks$breaks), isWoolB=X[,"woolB"], isTensionM=X[,"tensionM"], isTensionH=X[,"tensionH"])
+
+params2 = c("int", "alpha", "beta", "sig")
+
+mod2 = jags.model(textConnection(mod2_string), data=data2_jags, n.chains=3)
+update(mod2, 1e3)
+
+mod2_sim = coda.samples(model=mod2,
+                        variable.names=params2,
+                        n.iter=5e3)
+```
+
+```{r}
+#| label: fig-additive-model-convergence-diagnostics
+#| fig-cap: "Convergence and diagnostics for the additive two-way ANOVA model"
+#| fig-height: 5
+## convergence diagnostics
+plot(mod2_sim)
+
+gelman.diag(mod2_sim)    # Corrected from mod1_sim
+autocorr.diag(mod2_sim)  # Corrected from mod1_sim
+effectiveSize(mod2_sim) # Corrected from mod1_sim
+```
+
+Let's summarize the results, collect the DIC for this model, and compare it to the first one-way model.
+
+```{r}
+#| label: additive-model-summary
+summary(mod2_sim)
+```
+
+```{r}
+#| label: additive-model-dic-comparison
+(dic2 = dic.samples(mod2, n.iter=1e3))
+dic1
+```
+
+This suggests there is much to be gained adding the wool factor to the model. Before we settle on this model however, we should consider whether there is an interaction. Let's look again at the box plot with all six treatment groups.
+
+```{r}
+#| label: fig-interaction-check-boxplot
+#| fig-cap: "Re-examining boxplot of log(breaks) by wool and tension for interaction effects"
+boxplot(log(breaks) ~ wool + tension, data=warpbreaks)
+```
+
+Our two-way model has a single effect for wool B and the estimate is negative. If this is true, then we would expect wool B to be associated with fewer breaks than its wool A counterpart on average. This is true for low and high tension, but it appears that breaks are *higher* for wool B when there is medium tension. That is, the effect for wool B is not consistent across tension levels, so it may appropriate to add an interaction term. In `R`, this would look like:
+
+```{r}
+#| label: linear-model-with-interaction-fit
+lmod2 = lm(log(breaks) ~ .^2, data=warpbreaks)
+summary(lmod2)
+```
+
+Adding the interaction, we get an effect for being in wool B and medium tension, as well as for being in wool B and high tension. There are now six parameters for the mean, one for each treatment group, so this model is equivalent to the full cell means model. Let's use that.
+
+### Two-way cell means model
+
+In this new model, $\mu$ will be a matrix with six entries, each corresponding to a treatment group.
+
+```{r}
+#| label: cellmeans-model-setup
+mod3_string = " model {
+    for( i in 1:length(y)) {
+        y[i] ~ dnorm(mu[woolGrp[i], tensGrp[i]], prec)
+    }
+    
+    for (j in 1:max(woolGrp)) {
+        for (k in 1:max(tensGrp)) {
+            mu[j,k] ~ dnorm(0.0, 1.0/1.0e6)
+        }
+    }
+    
+    prec ~ dgamma(3/2.0, 3*1.0/2.0)
+    sig = sqrt(1.0 / prec)
+} "
+
+str(warpbreaks)
+
+data3_jags = list(y=log(warpbreaks$breaks), woolGrp=as.numeric(warpbreaks$wool), tensGrp=as.numeric(warpbreaks$tension))
+
+params3 = c("mu", "sig")
+
+mod3 = jags.model(textConnection(mod3_string), data=data3_jags, n.chains=3)
+update(mod3, 1e3)
+
+mod3_sim = coda.samples(model=mod3,
+                        variable.names=params3,
+                        n.iter=5e3)
+mod3_csim = as.mcmc(do.call(rbind, mod3_sim))
+```
+
+```{r}
+#| label: fig-cellmeans-traceplots
+#| fig-cap: "Traceplots for the cell means model"
+#| fig-height: 8
+plot(mod3_sim)
+```
+
+```{r}
+#| label: cellmeans-model-numerical-diagnostics
+## convergence diagnostics
+gelman.diag(mod3_sim)
+autocorr.diag(mod3_sim)
+effectiveSize(mod3_sim)
+raftery.diag(mod3_sim)
+```
+
+Let's compute the DIC and compare with our previous models.
+
+```{r}
+#| label: cellmeans-model-dic-comparison
+(dic3 = dic.samples(mod3, n.iter=1e3))
+dic2
+dic1
+```
+
+This suggests that the full model with interaction between wool and tension (which is equivalent to the cell means model) is the best for explaining/predicting warp breaks.
+
+### Results
+
+```{r}
+#| label: cellmeans-model-summary
+summary(mod3_sim)
+```
+
+```{r}
+#| label: cellmeans-model-hpd-intervals
+HPDinterval(mod3_csim)
+```
+
+```{r}
+#| label: fig-cellmeans-posterior-densities
+#| fig-cap: "Posterior densities for cell means"
+#| fig-height: 7
+par(mfrow=c(3,2)) # arrange frame for plots
+densplot(mod3_csim[,1:6], xlim=c(2.0, 4.5))
+```
+
+It might be tempting to look at comparisons between each combination of treatments, but we warn that this could yield spurious results. When we discussed the statistical modeling cycle, we said it is best not to search your results for interesting hypotheses, because if there are many hypotheses, some will appear to show "effects" or "associations" simply due to chance. Results are most reliable when we determine a relatively small number of hypotheses we are interested in beforehand, collect the data, and statistically evaluate the evidence for them.
+
+One question we might be interested in with these data is finding the treatment combination that produces the fewest breaks. To calculate this, we can go through our posterior samples and for each sample, find out which group has the smallest mean. These counts help us determine the posterior probability that each of the treatment groups has the smallest mean.
+
+```{r}
+#| label: tbl-min-mean-treatment-probabilities
+#| tbl-cap: "Posterior probabilities of each treatment group having the smallest mean break rate"
+prop.table( table( apply(mod3_csim[,1:6], 1, which.min) ) )
+```
+
+The evidence supports wool B with high tension as the treatment that produces the fewest breaks.

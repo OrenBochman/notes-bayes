@@ -1,0 +1,535 @@
+# Notes - Hierarchical modeling
+
+## Introduction to Hierarchical modeling
+
+![Introduction to Hierarchical modeling](images/c2l11-ss-01-Hierarchical-modeling.png){.column-margin}
+
+## Normal hierarchical model
+
+Handout: [Normal hierarchical model](handouts/c2l11-correlation-hierarhcical-normal-model.pdf)
+
+## Applications of hierarchical modeling
+
+Handout: [Common applications of Bayesian hierarchical models](handouts/c2l11-hierarchical-model-applications.pdf)
+
+## Prior predictive simulation
+
+### Data
+
+Let's fit our hierarchical model for counts of chocolate chips. The data can be found in `cookies.dat`.
+
+```{r}
+dat = read.table(file="data/cookies.dat", header=TRUE)
+head(dat)
+```
+
+```{r}
+table(dat$location)
+```
+
+We can also visualize the distribution of chips by location.
+
+```{r}
+hist(dat$chips)
+```
+
+```{r}
+boxplot(chips ~ location, data=dat)
+```
+
+### Prior predictive checks
+
+Before implementing the model, we need to select prior distributions for $\alpha$ and $\beta$, the hyperparameters governing the gamma distribution for the $\lambda$ parameters. First, think about what the $\lambda$'s represent. For location $j$, $\lambda_j$ is the expected number of chocolate chips per cookie. Hence, $\alpha$ and $\beta$ control the distribution of these means between locations. The mean of this gamma distribution will represent the overall mean of number of chips for all cookies. The variance of this gamma distribution controls the variability between locations. If this is high, the mean number of chips will vary widely from location to location. If it is small, the mean number of chips will be nearly the same from location to location.
+
+To see the effects of different priors on the distribution of $\lambda$'s, we can simulate. Suppose we try independent exponential priors for $\alpha$ and $\beta$.
+
+```{r}
+set.seed(112)
+n_sim = 500
+alpha_pri = rexp(n_sim, rate=1.0/2.0)
+beta_pri = rexp(n_sim, rate=5.0)
+mu_pri = alpha_pri/beta_pri
+sig_pri = sqrt(alpha_pri/beta_pri^2)
+
+summary(mu_pri)
+```
+
+```{r}
+summary(sig_pri)
+```
+
+After simulating from the priors for $\alpha$ and $\beta$, we can use those samples to simulate further down the hierarchy:
+
+```{r}
+lam_pri = rgamma(n=n_sim, shape=alpha_pri, rate=beta_pri)
+summary(lam_pri)
+```
+
+Or for a prior predictive reconstruction of the original data set:
+
+```{r}
+(lam_pri = rgamma(n=5, shape=alpha_pri[1:5], rate=beta_pri[1:5]))
+```
+
+```{r}
+(y_pri = rpois(n=150, lambda=rep(lam_pri, each=30)))
+```
+
+Because these priors have high variance and are somewhat noninformative, they produce unrealistic predictive distributions. Still, enough data would overwhelm the prior, resulting in useful posterior distributions. Alternatively, we could tweak and simulate from these prior distributions until they adequately represent our prior beliefs. Yet another approach would be to re-parameterize the gamma prior, which we'll demonstrate as we fit the model.
+
+## JAGS Model
+
+```{r}
+library("rjags")
+```
+
+```{r}
+mod_string = " model {
+for (i in 1:length(chips)) {
+  chips[i] ~ dpois(lam[location[i]])
+}
+
+for (j in 1:max(location)) {
+  lam[j] ~ dgamma(alpha, beta)
+}
+
+alpha = mu^2 / sig^2
+beta = mu / sig^2
+
+mu ~ dgamma(2.0, 1.0/5.0)
+sig ~ dexp(1.0)
+
+} "
+
+set.seed(113)
+
+data_jags = as.list(dat)
+
+params = c("lam", "mu", "sig")
+
+mod = jags.model(textConnection(mod_string), data=data_jags, n.chains=3)
+update(mod, 1e3)
+
+mod_sim = coda.samples(model=mod,
+                       variable.names=params,
+                       n.iter=5e3)
+mod_csim = as.mcmc(do.call(rbind, mod_sim))
+```
+
+```{r}
+## convergence diagnostics
+par(mar = c(2.5, 1, 2.5, 1))
+plot(mod_sim)
+```
+
+```{r}
+
+gelman.diag(mod_sim)
+autocorr.diag(mod_sim)
+```
+
+```{r}
+#| layout-ncol: 3
+par(mar = c(2.5, 1, 2.5, 1))
+autocorr.plot(mod_sim)
+```
+
+```{r}
+
+effectiveSize(mod_sim)
+
+## compute DIC
+dic = dic.samples(mod, n.iter=1e3)
+```
+
+### Model checking
+
+After assessing convergence, we can check the fit via residuals. With a hierarhcical model, there are now two levels of residuals: the observation level and the location mean level. To simplify, we'll look at the residuals associated with the posterior means of the parameters.
+
+First, we have observation residuals, based on the estimates of location means.
+
+```{r}
+## observation level residuals
+(pm_params = colMeans(mod_csim))
+```
+
+```{r}
+yhat = rep(pm_params[1:5], each=30)
+resid = dat$chips - yhat
+plot(resid)
+```
+
+```{r}
+plot(jitter(yhat), resid)
+```
+
+```{r}
+var(resid[yhat<7])
+```
+
+```{r}
+var(resid[yhat>11])
+```
+
+Also, we can look at how the location means differ from the overall mean $\mu$.
+
+```{r}
+## location level residuals
+lam_resid = pm_params[1:5] - pm_params["mu"]
+plot(lam_resid)
+abline(h=0, lty=2)
+```
+
+We don't see any obvious violations of our model assumptions.
+
+### Results
+
+```{r}
+summary(mod_sim)
+```
+
+## Posterior predictive simulation
+
+Just as we did with the prior distribution, we can use these posterior samples to get Monte Carlo estimates that interest us from the posterior predictive distribution.
+
+For example, we can use draws from the posterior distribution of $\mu$ and $\sigma$ to simulate the posterior predictive distribution of the mean for a new location.
+
+```{r}
+(n_sim = nrow(mod_csim))
+```
+
+```{r}
+lam_pred = rgamma(n=n_sim, shape=mod_csim[,"mu"]^2/mod_csim[,"sig"]^2, 
+                  rate=mod_csim[,"mu"]/mod_csim[,"sig"]^2)
+hist(lam_pred)
+```
+
+```{r}
+mean(lam_pred > 15)
+```
+
+Using these $\lambda$ draws, we can go to the observation level and simulate the number of chips per cookie, which takes into account the uncertainty in $\lambda$:
+
+```{r}
+y_pred = rpois(n=n_sim, lambda=lam_pred)
+hist(y_pred)
+```
+
+```{r}
+mean(y_pred > 15)
+```
+
+```{r}
+hist(dat$chips)
+```
+
+Finally, we could answer questions like: what is the posterior probability that the next cookie produced in Location 1 will have fewer than seven chips?
+
+```{r}
+y_pred1 = rpois(n=n_sim, lambda=mod_csim[,"lam[1]"])
+hist(y_pred1)
+```
+
+```{r}
+mean(y_pred1 < 7)
+```
+
+## Random intercept linear model
+
+We can extend the linear model for the Leinhardt data on infant mortality by incorporating the `region` variable. We'll do this with a hierarhcical model, where each region has its own intercept.
+
+```{r}
+library("car")
+data("Leinhardt")
+?Leinhardt
+str(Leinhardt)
+```
+
+```{r}
+pairs(Leinhardt)
+```
+
+```{r}
+head(Leinhardt)
+```
+
+Previously, we worked with infant mortality and income on the logarithmic scale. Recall also that we had to remove some missing data.
+
+```{r}
+dat = na.omit(Leinhardt)
+dat$logincome = log(dat$income)
+dat$loginfant = log(dat$infant)
+str(dat)
+```
+
+Now we can fit the proposed model:
+
+```{r}
+library("rjags")
+
+mod_string = " model {
+  for (i in 1:length(y)) {
+    y[i] ~ dnorm(mu[i], prec)
+    mu[i] = a[region[i]] + b[1]*log_income[i] + b[2]*is_oil[i]
+  }
+  
+  for (j in 1:max(region)) {
+    a[j] ~ dnorm(a0, prec_a)
+  }
+  
+  a0 ~ dnorm(0.0, 1.0/1.0e6)
+  prec_a ~ dgamma(1/2.0, 1*10.0/2.0)
+  tau = sqrt( 1.0 / prec_a )
+  
+  for (j in 1:2) {
+    b[j] ~ dnorm(0.0, 1.0/1.0e6)
+  }
+  
+  prec ~ dgamma(5/2.0, 5*10.0/2.0)
+  sig = sqrt( 1.0 / prec )
+} "
+
+set.seed(116)
+data_jags = list(y=dat$loginfant, log_income=dat$logincome,
+                  is_oil=as.numeric(dat$oil=="yes"), region=as.numeric(dat$region))
+data_jags$is_oil
+table(data_jags$is_oil, data_jags$region)
+
+params = c("a0", "a", "b", "sig", "tau")
+
+mod = jags.model(textConnection(mod_string), data=data_jags, n.chains=3)
+update(mod, 1e3) # burn-in
+
+mod_sim = coda.samples(model=mod,
+                       variable.names=params,
+                       n.iter=5e3)
+
+mod_csim = as.mcmc(do.call(rbind, mod_sim)) # combine multiple chains
+
+## convergence diagnostics
+par(mar = c(2.5, 1, 2.5, 1))
+plot(mod_sim)
+
+gelman.diag(mod_sim)
+autocorr.diag(mod_sim)
+autocorr.plot(mod_sim)
+effectiveSize(mod_sim)
+```
+
+### Results
+
+Convergence looks okay, so let's compare this with the old model from Lesson 7 using DIC:
+
+```{r}
+dic.samples(mod, n.iter=1e3)
+        
+### nonhierarchical model: 230.1
+```
+
+It appears that this model is an improvement over the non-hierarchical one we fit earlier. Notice that the penalty term, which can be interpreted as the "effective" number of parameters, is less than the actual number of parameters (nine). There are fewer "effective" parameters because they are "sharing" information or "borrowing strength" from each other in the hierarhical structure. If we had skipped the hierarchy and fit one intercept, there would have been four parameters. If we had fit separate, independent intercepts for each region, there would have been seven parameters (which is close to what we ended up with).
+
+Finally, let's look at the posterior summary.
+
+```{r}
+summary(mod_sim)
+```
+
+In this particular model, the intercepts do not have a real interpretation because they correspond to the mean response for a country that does not produce oil and has \$0 log-income per capita (which is \$1 income per capita). We can interpret $a_0$ as the overall mean intercept and $\tau$ as the standard deviation of intercepts across regions.
+
+### Other models
+
+We have not investigated adding interaction terms, which might be appropriate. We only considered adding hierarchy on the intercepts, but in reality nothing prevents us from doing the same for other terms in the model, such as the coefficients for income and oil. We could try any or all of these alternatives and see how the DIC changes for those models. This, together with other model checking techniques we have discussed could be used to identify your *best* model that you can use to make inferences and predictions.
+
+## Mixture models
+
+Histograms of data often reveal that they do not follow any standard probability distribution. Sometimes we have explanatory variables (or covariates) to account for the different values, and normally distributed errors are adequate, as in normal regression. However, if we only have the data values themselves and no covariates, we might have to fit a non-standard distribution to the data. One way to do this is by mixing standard distributions.
+
+Mixture distributions are just a weighted combination of probability distribtuions. For example, we could take an exponential distribution with mean 1 and normal distribution with mean 3 and variance 1 (although typically the two mixture components would have the same support; here the exponential component has to be non-negative and the normal component can be positive or negative). Suppose we give them weights: 0.4 for the exponential distribution and 0.6 for the normal distribution. We could write the PDF for this distribution as
+
+$$
+p(y) = 0.4 \cdot \exp(-y) \cdot \mathbb{I}_{(y \ge 0)} + 0.6 \cdot \frac{1}{\sqrt{2 \pi}} \exp\left(- \frac{1}{2} (y - 3)^2\right)
+$$
+
+The PDF of this mixture distribution would look like this:
+
+```{r}
+curve( 0.4*dexp(x, 1.0) + 0.6*dnorm(x, 3.0, 1.0), from=-2.0, to=7.0, ylab="density", xlab="y", main="40/60 mixture of exponential and normal distributions", lwd=2)
+```
+
+We could think of these two distributions as governing two distinct populations, one following the exponential distribution and the other following the normal distribution.
+
+Let's draw the weighted PDFs for each population.
+
+```{r}
+curve( 0.4*dexp(x, 1.0) + 0.6*dnorm(x, 3.0, 1.0), from=-2.0, to=7.0, ylab="density", xlab="y", main="40/60 mixture of exponential and normal distributions", lwd=2)
+curve( 0.4*dexp(x, 1.0), from=-2.0, to=7.0, col="red", lty=2, add=TRUE)
+curve( 0.6*dnorm(x, 3.0, 1.0), from=-2.0, to=7.0, col="blue", lty=2, add=TRUE)
+```
+
+The general form for a discrete mixture of distributions is as follows:
+
+$$
+p(y) = \sum_{j=1}^J \omega_j \cdot f_j (y)
+$$
+
+where the $\omega$'s are positive weights that add up to 1 (they are probabilities) and each of the $J$ $f_j(y)$ functions is a PDF for some distribution. In the example above, the weights were 0.4 and 0.6, $f_1$ was an exponential PDF and $f_2$ was a normal PDF.
+
+One way to simulate from a mixture distribution is with a hierarchical model. We first simulate an indicator for which "population" the next observation will come from using the weights $\omega$. Let's call this $z_i$. In the example above, $z_i$ would take the value 1 (indicating the exponential distribution) with probability 0.4 and 2 (indicating the normal distribution) with probability 0.6. Next, simulate the observation $y_i$ from the distribution corresponding to $z_i$.
+
+Let's simulate from our example mixture distribution.
+
+```{r}
+set.seed(117)
+n = 1000
+z = numeric(n)
+y = numeric(n)
+for (i in 1:n) {
+  z[i] = sample.int(2, 1, prob=c(0.4, 0.6)) # returns a 1 with probability 0.4, or a 2 with probability 0.6
+  if (z[i] == 1) {
+    y[i] = rexp(1, rate=1.0)
+  } else if (z[i] == 2) {
+    y[i] = rnorm(1, mean=3.0, sd=1.0)
+  }
+}
+hist(y, breaks=30)
+```
+
+If we keep only the $y$ values and throw away the $z$ values, we have a sample from the mixture model above. To see that they are equivalent, we can marginalize the joint distribution of $y$ and $z$:
+
+$$
+p(y) = \sum_{j=1}^2 p(y, z=j) = \sum_{j=1}^2 p(z=j) \cdot p(y \mid z=j) = \sum_{j=1}^2 \omega_j \cdot f_j(y)
+$$
+
+### Bayesian inference for mixture models
+
+When we fit a mixture model to data, we usually only have the $y$ values and do not know which "population" they belong to. Because the $z$ variables are unobserved, they are called *latent* variables. We can treat them as parameters in a hierarchical model and perform Bayesian inference for them. The hierarchial model might look like this:
+
+$$
+\begin{aligned}
+y_i \mid z_i, \theta & \overset{\text{ind}}{\sim} f_{z_i}(y \mid \theta) \, , \quad i = 1, \ldots, n \\
+\text{Pr}(z_i = j \mid \omega) &= \omega_j \, , \quad j=1, \ldots, J \\
+\omega &\sim p(\omega) \\
+\theta &\sim  p(\theta)
+\end{aligned}
+$$
+
+where we might use a Dirichlet prior (see the review of distributions in the supplementary material) for the weight vector $\omega$ and conjugate priors for the population-specific parameters in $\theta$. With this model, we could obtain posterior distributions for $z$ (population membership of the observations), $\omega$ (population weights), and $\theta$ (population-specific parameters in $f_j$). Next, we will look at how to fit a mixture of two normal distributions in `JAGS`.
+
+## Example with `JAGS`
+
+### Data
+
+For this example, we will use the data in the attached file $\texttt mixture.csv$.
+
+```{r}
+dat = read.csv("data/mixture.csv", header=FALSE)
+y = dat$V1
+(n = length(y))
+```
+
+Let's visualize these data.
+
+```{r}
+hist(y, breaks=20)
+```
+
+```{r}
+plot(density(y))
+```
+
+It appears that we have two populations, but we do not know which population each observation belongs to. We can learn this, along with the mixture weights and population-specific parameters with a Bayesian hierarchical model.
+
+We will use a mixture of two normal distributions with variance 1 and different (and unknown) means.
+
+### Model
+
+```{r}
+library("rjags")
+```
+
+```{r}
+mod_string = " model {
+    for (i in 1:length(y)) {
+        y[i] ~ dnorm(mu[z[i]], prec)
+      z[i] ~ dcat(omega)
+    }
+  
+  mu[1] ~ dnorm(-1.0, 1.0/100.0)
+    mu[2] ~ dnorm(1.0, 1.0/100.0) T(mu[1],) # ensures mu[1] < mu[2]
+
+    prec ~ dgamma(1.0/2.0, 1.0*1.0/2.0)
+  sig = sqrt(1.0/prec)
+    
+    omega ~ ddirich(c(1.0, 1.0))
+} "
+
+set.seed(11)
+
+data_jags = list(y=y)
+
+params = c("mu", "sig", "omega", "z[1]", "z[31]", "z[49]", "z[6]") # Select some z's to monitor
+
+mod = jags.model(textConnection(mod_string), data=data_jags, n.chains=3)
+update(mod, 1e3)
+
+mod_sim = coda.samples(model=mod,
+                        variable.names=params,
+                        n.iter=5e3)
+mod_csim = as.mcmc(do.call(rbind, mod_sim))
+```
+
+```{r}
+
+## convergence diagnostics
+par(mar = c(2.5, 1, 2.5, 1))
+plot(mod_sim, ask=TRUE)
+```
+
+```{r}
+
+autocorr.diag(mod_sim)
+effectiveSize(mod_sim)
+```
+
+### Results
+
+```{r}
+summary(mod_sim)
+```
+
+```{r}
+## for the population parameters and the mixing weights
+
+par(mar = c(2.5, 1, 2.5, 1))
+par(mfrow=c(3,2))
+densplot(mod_csim[,c("mu[1]", "mu[2]", "omega[1]", "omega[2]", "sig")])
+```
+
+```{r}
+## for the z's
+par(mfrow=c(2,2))
+par(mar = c(2.5, 1, 2.5, 1))
+densplot(mod_csim[,c("z[1]", "z[31]", "z[49]", "z[6]")])
+```
+
+```{r}
+table(mod_csim[,"z[1]"]) / nrow(mod_csim) ## posterior probabilities for z[1], the membership of y[1]
+```
+
+```{r}
+table(mod_csim[,"z[31]"]) / nrow(mod_csim) ## posterior probabilities for z[31], the membership of y[31]
+```
+
+```{r}
+table(mod_csim[,"z[49]"]) / nrow(mod_csim) ## posterior probabilities for z[49], the membership of y[49]
+```
+
+```{r}
+table(mod_csim[,"z[6]"]) / nrow(mod_csim) ## posterior probabilities for z[6], the membership of y[6]
+```
+
+```{r}
+y[c(1, 31, 49, 6)]
+```
+
+If we look back to the $y$ values associated with these $z$ variables we monitored, we see that $y_1$ is clearly in Population 1's territory, $y_{31}$ is ambiguous, $y_{49}$ is ambiguous but is closer to Population 2's territory, and $y_6$ is clearly in Population 2's territory. The posterior distributions for the $z$ variables closely reflect our assessment.

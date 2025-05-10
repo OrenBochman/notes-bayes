@@ -1,0 +1,103 @@
+# Exponential Data
+
+![Exponential likelihood with a Gamma prior](images/c1l09-ss-01-expoential-data.png){#fig-exponential-likelihood-gamma-prior .column-margin}
+
+::: {#exm-bus-times}
+## Time between buses - Exponential
+
+Suppose you're waiting for a bus that you think comes on average once every 10 minutes, but you're not sure exactly how often it comes.
+
+$$
+Y \sim Exp(\lambda)
+$$
+
+Your waiting time has a prior expectation of $\frac{1}{\lambda}$
+
+It turns out the gamma distribution is conjugate for an exponential likelihood. We need to specify a prior, or a particular gamma in this case. If we think that the buses come on average every ten minutes, that's a rate of one over ten.
+
+$$ 
+prior_{\mu} = \frac{1}{10} 
+$$
+
+Thus, we'll want to specify a gamma distribution so that the first parameter dived by the second parameter is $\frac{1}{10}$
+
+We can now think about our variability. Perhaps you specify
+
+$$
+\Gamma(100, 1000)
+$$
+
+This will indeed have a prior mean of $\frac{1}{10}$ and it'll have a standard deviation of $\frac{1}{100}$. If you want to have a rough estimate of our mean plus or minus two standard deviations then we have the following
+
+$$
+0.1 \pm 0.02
+$$
+
+Suppose that we wait for 12 minutes and a bus arrives. Now you want to update your posterior for $\lambda$ about how often this bus will arrive.
+
+$$
+f(\lambda \mid y) \propto f(y|\lambda)f(\lambda)
+$$
+
+$$
+f(\lambda \mid y) \propto \lambda e^{-\lambda y}\lambda^{\alpha - 1}e^{-\beta \lambda}
+$$
+
+$$
+f(\lambda \mid y)  \propto \lambda^{(\alpha + 1) - 1}e^{-(\beta + y)\lambda}
+$$
+
+$$
+\lambda \mid y \sim \Gamma(\alpha + 1, \beta + y)
+$$
+
+Plugging in our particular prior gives us a posterior for $\lambda$ which is
+
+$$
+\lambda \mid y \sim \Gamma(101, 1012)
+$$
+
+Thus our posterior mean is going to be $\frac{101}{1012} = 0.0998.$
+
+This one observation doesn't contain a lot of data under this likelihood. When the bus comes and it takes 12 minutes instead of 10, it barely shifts our posterior mean up.
+
+One data point doesn't have a big impact here.
+:::
+
+::: {#exr-gamma-exp-1}
+We can generalize the result from the lesson to more than one data point.
+
+Suppose 
+
+$$
+Y_1, \ldots, Y_n \stackrel{iid}\sim Exp(\lambda)=\lambda e^{-\lambda x}\mathbb{I}_{x\ge0}
+$$ 
+with mean 
+$$
+\mathbb{E}[Y]=\frac{1}{\lambda}
+$$ 
+
+and assume a 
+
+$$
+f(\lambda)=Gamma(\alpha, \beta) \qquad (\text{prior for }\lambda)
+$$
+
+The likelihood is then:
+
+$$
+f(y \mid \lambda) = \prod \lambda e^{-\lambda x}\mathbb{I}_{x\ge0} =  \lambda ^ n e^{− \lambda \sum y_i}\cdot1
+$$
+
+and we can follow the same steps from the lesson to obtain the posterior distribution (try to derive it yourself):
+
+$$
+\lambda \mid y ∼ Gamma(\alpha + n, \beta + \sum y_i)
+$$
+
+What is the prior effective sample size (ess) in this model?
+:::
+
+::: solution
+The data sample size $n$ is added to $\alpha$ to update the first parameter. Thus $\alpha$ can be interpreted as the sample size equivalent in the prior.
+:::

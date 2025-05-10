@@ -1,0 +1,223 @@
+## HW on ANOVA
+
+::: {#exr-ANOVA-1}
+[ANOVA]{.colum-margin} Which of the following variables qualifies as a "factor" variable?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] Weight of a patient reported in kilograms
+-   [ ] Pre-treatment temperature reported in degrees Celsius
+-   [ ] Patient age in years
+-   [x] Treatment with either an experimental drug or a control placebo
+
+This is a categorical predictor.
+:::
+
+::: {#exr-ANOVA-2}
+[ANOVA]{.colum-margin} In an ANOVA model for a single factor with four levels, there are multiple ways we can parameterize our model for E(y). These include the cell means model or a linear model with a baseline mean and adjustments for different levels. Regardless of the model chosen, what is the maximum number of parameters we use to relate this factor with E(y) in a linear model and still be able to uniquely identify the parameters?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+4
+
+If we use any more than four parameters to describe E(y), there will be infinitely many values of the parameters that produce a given E(y) for a given set of predictor values.
+:::
+
+Question 3
+
+For Questions [@exr-ANOVA-3 through @exr-ANOVA-8], refer to the plant growth analysis from the lesson.
+
+Re-fit the JAGS model on plant growth from the lesson with a separate variance for each of the three groups. To do so, modify the model code to index the precision in the normal likelihood by group, just as we did with the mean. Use the same priors as the original model (except in this case it will be three independent priors for the variances).
+
+::: {#exr-ANOVA-3}
+[ANOVA]{.colum-margin} Compare the estimates between the original lesson model and this model with the summary function. Notice that the posterior means for the three μ parameters are essentially unchanged. However, the posterior variability for these parameters has changed. The posterior for which group's mean was most affected by fitting separate group variances?
+
+```{r}
+#| output: False
+library("rjags")
+```
+
+```{r}
+#| label: plantgrowth-model1
+#| output: False
+data("PlantGrowth")  # load the data set
+#?PlantGrowth
+mod1_string = " model {
+    for (i in 1:length(y)) {
+        y[i] ~ dnorm(mu[grp[i]], prec)
+    }
+    
+    for (j in 1:3) {
+        mu[j] ~ dnorm(0.0, 1.0/1.0e6)
+    }
+    
+    prec ~ dgamma(5/2.0, 5*1.0/2.0)
+    sig = sqrt( 1.0 / prec )
+} "
+
+set.seed(82)
+#str(PlantGrowth)
+data1_jags = list(y=PlantGrowth$weight, grp=as.numeric(PlantGrowth$group))
+
+params = c("mu", "sig")
+
+inits1 = function() {
+    inits = list("mu"=rnorm(3,0.0,100.0), "prec"=rgamma(1,1.0,1.0))
+}
+
+mod1 = jags.model(textConnection(mod1_string), data=data1_jags, inits=inits1, n.chains=3)
+update(mod1, 1e3)
+
+mod1_sim = coda.samples(model=mod1, variable.names=params, n.iter=5e3)
+mod1_csim = as.mcmc(do.call(rbind, mod1_sim)) # combined chains
+```
+
+```{r}
+#| label: plantgrowth-model2
+#| output: False
+data("PlantGrowth")  # load the data set
+
+mod2_string = " model {
+    for (i in 1:length(y)) {
+        y[i] ~ dnorm(mu[grp[i]], prec[grp[i]])
+    }
+    for (j in 1:3) {
+        mu[j] ~ dnorm(0.0, 1.0/1.0e6)
+        prec[j] ~ dgamma(5/2.0, 5*1.0/2.0)
+        sig[j] = sqrt( 1.0 / prec[j] )
+    }
+} "
+
+set.seed(82)
+data2_jags = list(y=PlantGrowth$weight, grp=as.numeric(PlantGrowth$group))
+params = c("mu", "sig")
+inits2 = function() {
+    inits = list("mu"=rnorm(3,0.0,100.0), "prec"=rgamma(3,1.0,1.0))
+}
+
+mod2 = jags.model(textConnection(mod2_string), data=data2_jags, inits=inits2, n.chains=3)
+update(mod2, 1e3)
+
+mod2_sim = coda.samples(model=mod2, variable.names=params, n.iter=5e3)
+mod2_csim = as.mcmc(do.call(rbind, mod2_sim)) # combined chains
+```
+
+```{r}
+summary(mod1_csim)
+summary(mod2_csim)
+```
+
+Compare the estimates between the original lesson model and this model with the summary function. Notice that the posterior means for the three μ parameters are essentially unchanged. However, the posterior variability for these parameters has changed. The posterior for which group's mean was most affected by fitting separate group variances??
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] Group 1: control
+-   [x] Group 2: treatment 1.
+-   [ ] Group 3: treatment 2
+-   [ ] The effect on the marginal posterior was the same for all three groups.
+
+SD of group 2 mean increased from 0.23035 to 0.2988 that a 0.07 change
+
+Group 2 has the highest variation in plant weight, which results in less confidence in our posterior mean estimate. The posterior standard deviation of μ has increased the most for this group.
+:::
+
+::: {#exr-ANOVA-4}
+[ANOVA]{.colum-margin} Compute the deviance information criterion (DIC) for each of the two models and save the results as objects dic1 (for the original model) and dic2 (for the new model). Wha is the difference: DIC1 - DIC2?.
+
+Hint: You can compute this directly with the following code: dic1−dic2.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+(dic1 = dic.samples(mod1,1e5))
+(dic2 = dic.samples(mod2,1e5))
+dic1-dic2
+```
+
+-3.892918
+:::
+
+::: {#exr-ANOVA-5}
+[ANOVA]{.colum-margin} Based on the DIC calculations for these competing models, what should we conclude?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] The DIC is higher for the new model, indicating preference for the model with separate variances across groups.
+-   [x] The DIC is lower for the original model, indicating preference for the model with one common variance across groups.
+-   [ ] The DIC is higher for the original model, indicating preference for the model with one common variance across groups.
+-   [ ] The DIC is lower for the new model, indicating preference for the model with separate variances across groups.
+
+This suggests we should stay with the original model (if our objective is good prediction).
+:::
+
+::: {#exr-ANOVA-6}
+[ANOVA]{.colum-margin} Use the original model (single variance) to calculate a 95% interval of highest posterior density (HPD) for $\mu_3−\mu_1$. Which of the following is closest to this interval?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+q5 = as.mcmc( cbind(mod1_csim,mudif=mod1_csim[,3]-mod1_csim[,1]) )  #<1>
+summary((q5))                                                       #<2>
+```
+
+1.  add a parameter called `mudiff` by calculate $\mu_3-\mu_1$ for each sample
+2.  use the summary to get quantiles and read 2.5% and 97.5% for `mudiff`
+
+-   [ ] (-0.20, 1.19)
+-   [ ] (-1.01, 0.25)
+-   [ ] (0.22, 1.49)
+-   [x] (-0.14, 1.13)
+
+The interval contains 0, indicating that the data lack strong (at least at the 95% level) evidence for $\mu_3\ne\mu_1$. In the lesson, the posterior probability that $\mu_3>\mu_1$ was 0.94.
+:::
+
+::: {#exr-ANOVA-7}
+[ANOVA]{.colum-margin} What is the correct interpretation of $\mu_3−\mu_1$ in the context of the plant growth analysis?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] It is the effect (change) of treatment 2 with respect to the control in mean plant weight.
+-   [ ] It is the mean range of plant weight across the three treatment groups.
+-   [ ] It is the difference in plant weight between treatment 2 and control.
+-   [x] It is the effect (change) of treatment 2 with respect to the control in plant weight.
+
+MCMC algs are based on a process guaranteeing convergence to a stationary distribution.
+:::
+
+::: {#exr-ANOVA-8}
+[ANOVA]{.colum-margin} The linear model with a baseline mean and group effects is the default in R. However, we can also fit the cell means model in R using the following code:
+
+```{r}
+mod_cm = lm(weight ~ -1 + group, data=PlantGrowth)
+summary(mod_cm)
+```
+
+where the −1 in the model formula tells R to drop the intercept. Because we used fairly noninformative priors for the $μ$ parameters in the analysis with JAGS, the results are very similar.
+
+In addition to allowing different prior specifications, what is one advantage of posterior sampling with JAGS over fitting the reference model in R?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] We can obtain posterior mode estimates for each mean (or coefficient).
+-   [ ] We can obtain posterior standard deviations (standard errors) for each mean (or coefficient).
+-   [ ] We can estimate the proportion of the variation in plant weight attributable to the treatment group assignment.
+-   [x] We can use the posterior samples to obtain simulated posterior distributions of any function of the parameters that may interest us (e.g., $μ_3−μ_1$).
+
+The outer edges of the distribution are sampled less frequently and therefore susceptible to changes between simulations. The **Raftery and Lewis** diagnostic can help you decide how many iterations you need to reliably estimate outer quantiles of the target distribution..
+:::

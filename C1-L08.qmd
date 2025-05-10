@@ -1,0 +1,80 @@
+# Poisson Data {#sec-poisson-data}
+
+::: exp-chocolate-chip
+### Poisson - Chocolate Chip Cookie
+
+![Poisson likelihood with a Gamma prior](images/c1l08-ss-01-poisson-data.png){#fig-poisson-likelihood-gamma-prior .column-margin}
+
+In mass-produced chocolate chip cookies, they make a large amount of dough; mix in a large number of chips; then chunk out the individual cookies. In this process, the number of chips per cookie approximately follows a **Poisson distribution**.
+
+If we were to assume that chips have no volume, then this would be exactly a *Poisson process* and follow exactly a *Poisson distribution*. In practice, since chips aren't that small, so they follow approximately a Poisson distribution for the number of chips per cookie.
+:::
+
+$$
+Y_i \sim Poisson(\lambda)
+$$ {#eq-poisson}
+
+[**What is the likelihood of the data?**]{.column-margin} The likelihood of the data is given by the Poisson distribution.
+
+$$
+\begin{aligned}
+{\color{red}f(y|\lambda) = \frac{\lambda^{\sum{y_i}}e^{-n\lambda}}{\prod_{i = 1}^n{y_i!}}} \quad \forall (\lambda > 0) && \text{ Poisson Liklihood } 
+\end{aligned}
+$$
+
+[**What type of prior should we put on** $\lambda$ ?]{.column-margin} It would be convenient if we could put a *conjugate prior*. What distribution looks like $\lambda$ raised to a power and $e$ raised to a negative power?
+
+For this, we're going to use a Gamma prior.
+
+$$
+\begin{aligned} \lambda &\sim \Gamma(\alpha, \beta) && \text{Gamma Prior} \\ \color{green}{ f(\lambda)} &= \color{green}{\frac{\beta^\alpha}{\Gamma(\alpha)}\lambda^{\alpha - 1}e^{-\beta\lambda}} && \text{subst. Gamma PDF} \end{aligned}
+$$ {#eq-gamma-prior}
+
+[**What is the posterior?**]{.column-margin} We can use Bayes theorem to find the posterior.
+
+$$
+\begin{aligned} {\color{blue}f(\lambda \mid y)} &\propto \color{red}{ f(y \mid \lambda)} \color{green}{ f(\lambda)} && \text{Bayes without the denominator} \\ &\propto \color{red}{\lambda^{\sum{y_i}}e^{-n\lambda}}\color{green}{\lambda^{\alpha - 1}e^{-\beta \lambda} } && \text{subst. Likelihood and Prior} 
+\\ & \propto { \color{blue} \lambda^{\alpha + \sum{y_i} - 1}e^{-(\beta + n)\lambda} } && \text{collecting terms}
+\\ & \propto { \color{blue} Gamma(\alpha + \sum{y_i}, \beta + n)}
+\end{aligned} 
+$$ {#eq-posterior}
+
+[**What is the posterior distribution?**]{.column-margin} The posterior is a Gamma distribution with parameters $\alpha + \sum{y_i}$ and $\beta + n$.
+
+Thus we can see that the posterior is a Gamma Distribution
+
+$$
+\lambda \mid y \sim Gamma(\alpha + \sum{y_i}, \beta + n)
+$$ {#eq-posterior-gamma}
+
+[**What is the posterior mean?**]{.column-margin} The posterior mean of a Gamma distribution is given by
+
+[The mean of Gamma under this parameterization is:]{.mark} $\frac{\alpha}{\beta}$
+
+The posterior mean is going to be
+
+$$
+posterior_{\mu} = \frac{\alpha + \sum{y_i}}{\beta + n} = \frac{\beta}{\beta + n}\frac{\alpha}{\beta} + \frac{n}{\beta + n}\frac{\sum{y_i}}{n} \propto  \beta \cdot \mu_\text{prior} + n\cdot \mu_\text{data}
+$$ {#eq-posterior-mean}
+
+[**What is the posterior variance?**]{.column-margin} The posterior variance of a Gamma distribution is given by
+
+As you can see here the posterior mean of the Gamma distribution is also the weighted average of the prior mean and the data mean.
+
+Therefore, [the effective sample size (ESS) of the Gamma prior is]{.mark} $\beta$
+
+::: callout-tip
+### Prior Elicitation of Gamma Hyper-parameters {#sec-prior-elicitation-of-gamma-hyper-parameters}
+
+Here are two strategies for choose the *hyper-parameters* $\alpha$ and $\beta$
+
+1.  [An *informative prior* with a prior mean guess of]{.mark} $\mu=\frac{a}{b}$ e.g. what is the average number of chips per cookie?
+    -   Next we need another piece of knowledge to pinpoint both parameters.
+    -   [Can you estimate the error for the mean? I.e. what do you think the *standard deviation* is? Since for the Gamma prior]{.mark}
+    -   [What is the effective sample size]{.mark} $\text{ESS}=\beta$ ?
+    -   [How many units of information do you think we have in our prior v.s. our data points ?]{.mark} $\sigma = \frac{ \sqrt{\alpha} }{\beta}$
+2.  [A *vague prior* \index{vague prior} refers to one that's relatively flat across much of the space.]{.mark}
+    -   For a *Gamma prior* we can choose $\Gamma(\epsilon, \epsilon)$ where $\epsilon$ is small and strictly positive. This would create a distribution with a $\mu = 1$ and a huge $\sigma$ stretching across the whole space. And the *effective sample size* will also be $\epsilon$ Hence the posterior will be largely driven by the data and very little by the prior.
+:::
+
+The first strategy with a mean and an ESS will be used in numerous models going forward so it is best to remember these two strategies!

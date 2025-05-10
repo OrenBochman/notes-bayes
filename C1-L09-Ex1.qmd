@@ -1,0 +1,171 @@
+## Homework exponential data
+
+::: callout-tip
+#### Exponential data
+
+The following are useful for solving the problems
+
+$$\begin{aligned} Y  &\sim Exp(\lambda) && RV \\ f(y|\lambda)&= \color{red}{\lambda^n e^{- \lambda n \bar{y} }} && Likelihood \\ f(\lambda)&\sim Gamma(a,b) && Conj. Prior \\&=\color{blue}{\lambda^{a - 1}e^{-b \lambda}} && Prior \\ \therefore \mathbb{E}[f] &= a/b && Prior\ mean \\ \therefore \mathbb{V}ar[f] &= a/b^2 && Prior\ variance \\ \therefore ESS[f] &= a && Prior ESS \\f(\lambda \mid y) &\propto f(y|\lambda)f(\lambda) && Posterior \\  &\propto \color{red}{\lambda^n e^{-\lambda n \bar{y} }}\color{blue}{\lambda^{a - 1}e^{-b \lambda}} \\ &\sim \Gamma(\alpha =a + n, \beta=b + \lambda n \bar{y} ) \\ \therefore \mathbb{E}[f(y|\lambda)] &= \alpha / \beta && Post\ mean \\ \therefore \mathbb{V}ar[f(y|\lambda)] &= \alpha/\beta^2 && Post\ variance \\ \therefore ESS[f(y|\lambda)] &= a && Post\ Prior\ ESS \\ \therefore ESS[f(y|\lambda)] &= n && Post\ Data\ ESS \end{aligned}$$
+:::
+
+::: {#exr-exp-1}
+[See @exm-bus-times bus waiting time example]{.column-margin}
+
+Recall that we used the conjugate gamma prior for $\lambda$, the arrival rate in buses per minute. Suppose our prior belief about this rate is that it should have a mean $1/20$ arrivals per minute with a standard deviation $1/5$. Then the prior is $Gamma(a,b)$ with $a=1/16$.
+
+Find the value of $b$.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+**1.25**
+:::
+
+::: {#exr-exp-2}
+[See @exm-bus-times bus waiting time example]{.column-margin}
+
+Suppose that we wish to use a prior with the same mean (1/20), but with an effective sample size of one arrival. Then the prior for $\lambda$ is $Gamma(1,20)$.
+
+In addition to the original $Y_1 = 12$, we observe the waiting times for four additional buses: $Y_2 = 15, Y_3 = 8, Y_4 = 13.5, Y_5 = 25$
+
+Recall that with multiple (independent) observations, the posterior for $λ$ is $Gamma(\alpha,\beta)$ where $α=a+n$ and $\beta = b + \sum y_i$ What is the posterior mean for $λ$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+$=(1+5)/(20+12+15+8+13.5+25)=$
+
+```{R}
+(1+5)/(20+12+15+8+13.5+25)
+```
+:::
+
+::: {#exr-exp-3}
+[See @exm-bus-times bus waiting time example]{.column-margin}
+
+Bus waiting times:
+
+Continuing [@exr-exp-2], use R or Excel to find the posterior probability that $\lambda < 1/10$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+```{R}
+pgamma(q=1/10,shape=6,rate=93.5)
+```
+:::
+
+For Questions 4-10, consider the following earthquake data:
+
+::: {#exr-exp-4}
+[Earthquake data]{.column-margin} The United States Geological Survey maintains a list of significant earthquakes worldwide. We will model the rate of earthquakes of magnitude 4.0+ in the state of California during 2015. An IID Exponential model on the waiting time between significant earthquakes is appropriate if we assume:
+
+-   earthquake events are independent,
+-   the rate at which earthquakes occur does not change during the year, and
+-   the earthquake hazard rate does not change (i.e., the probability of an earthquake happening tomorrow is constant regardless of whether the previous earthquake was yesterday or 100 days ago).
+
+Let $Y_i$ denote the waiting time in days between the i^th^ earthquake and the following earthquake. Our model is $Y_i \stackrel{iid}\sim Exponential(\gamma)$ where the expected waiting time between earthquakes is $\mathbb{E}[Y]=1/\lambda$ days.
+
+Assume the conjugate prior $\lambda \sim Gamma(a,b)$. Suppose our prior expectation for $\mathbb{E}[\lambda]= 1/30$, and we wish to use a prior effective sample size of one interval between earthquakes.
+
+-   What is the value of $a$ ?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+a is the effective sample size of the prior which we were given as 1.
+
+$a=1$
+:::
+
+::: {#exr-exp-5}
+What is the value of b?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+The prior mean is $a/b = 1/30$, and since we know the effective sample size $a=1$, we have $b=30$.
+:::
+
+::: {#exr-exp-6}
+The significant earthquakes of magnitude 4.0+ in the state of California during 2015 occurred on the following dates (http://earthquake.usgs.gov/earthquakes/browse/significant.php?year=2015):
+
+January 4, January 20, January 28, May 22, July 21, July 25, August 17, September 16, December 30.
+
+Recall that we are modeling the waiting times between earthquakes in days. Which of the following is our data vector?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+-   [ ] y = (3, 16, 8, 114, 60, 4, 23, 30, 105, 1)
+-   [ ] y = (0, 0, 4, 2, 0, 1, 1, 3)
+-   [ ] y = (3, 16, 8, 114, 60, 4, 23, 30, 105)
+-   [x] y = (16, 8, 114, 60, 4, 23, 30, 105)
+
+Beginning the data vector with a wait period of three days implicitly assumes an event occurred on Jan. 1, which is not the case. This would bias our estimate of average wait times on the low side. So we should drop the first point.
+:::
+
+::: {#exr-exp-7}
+[Earthquake data]{.column-margin}
+
+The posterior distribution is for $\lambda ∼ Gamma(\alpha ,\beta)$. What is the value of $\alpha$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+$\alpha = a + n = 1+8=9$
+:::
+
+::: {#exr-exp-8}
+[Earthquake data]{.column-margin}
+
+The posterior distribution is for $\lambda \sim Gamma(\alpha,\beta)$. What is the value of $\beta$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+```{R}
+sum(16, 8, 114, 60, 4, 23, 30, 105, 30)
+```
+
+$\beta = b + \sum {y_i} = 30 + sum(16, 8, 114, 60, 4, 23, 30, 105,30)=420$
+:::
+
+::: {#exr-exp-9}
+[Earthquake data]{.column-margin}
+
+The posterior distribution is for $\lambda ∼ Gamma(\alpha,\beta)$. What is the value of $\beta$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+```{R}
+qgamma(p=0.975, shape=9, rate=390)
+```
+:::
+
+::: {#exr-exp-10}
+[Earthquake data]{.column-margin}
+
+The **posterior predictive density** for a new waiting time $y^∗$ in days is:
+
+$$\begin{aligned}f(y^∗ \mid y) &= \int f(y^∗ \mid \lambda) \cdot f(\lambda \mid y) d \lambda \\&= \frac{\beta^αΓ(\alpha+1) }{(\beta+y^*)^{\alpha+1}Γ(\alpha)} I_{(y^∗\ge 0)} \\&= \frac{ \beta ^ \alpha \alpha}{(\beta+y^*)^{\alpha+1}} I_{(y^∗\ge 0)}\end{aligned}$$
+
+where $f(\lambda \mid y)$ is the $Gamma(α,β)$ posterior found earlier.
+
+Use R or Excel to evaluate this posterior predictive PDF.
+
+Which of the following graphs shows the **posterior predictive** distribution for $y^∗$ ?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+```{R}
+post_pred = function(alpha, beta, y_star) {
+  return(beta^alpha / (beta+y_star)^(alpha+1))
+}
+y_star= seq(from = 0.01, to = 120, by =  .01)
+plot(y_star, post_pred(9, 390, y_star),xlab = 'y*', ylab ='f(y*|y)')
+```
+:::

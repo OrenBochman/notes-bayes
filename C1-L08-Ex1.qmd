@@ -1,0 +1,229 @@
+
+## Homework on Poisson Data
+
+For Questions [@exr-poisson-1]-[@exr-poisson-8], consider the chocolate chip cookie example from the lesson [**Cookies**]{.column-margin}
+
+As in the lesson, we used a **Poisson likelihood** to model the number of chips per cookie, and a conjugate gamma prior for $\lambda$, the expected number of chips per cookie.
+
+Suppose your prior expectation for $\lambda$ is 8.
+
+::: {#exr-poisson-1}
+[**Cookies**]{.column-margin}
+
+-   The conjugate prior with mean 8 and effective sample size of 2 is $Gamma(a,2)$. Find the value of $\alpha$.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+if $X \sim Gamma(a,b)$ the mean for $X$ is $\frac{a}{b}$
+
+$$ 8 = \frac{\alpha}{\beta}=\frac{\alpha}{2} \\ \implies a=16$$
+:::
+
+::: {#exr-poisson-2}
+[**Cookies**]{.column-margin}
+
+The conjugate prior with mean 8 and standard deviation 1 is
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+$$sd = \frac{\sqrt{\alpha}}{8}= \frac{\sqrt{64}}{8} so\\ a = 64$$
+:::
+
+::: {#exr-poisson-3}
+[**Cookies**]{.column-margin}
+
+Suppose you are not very confident in your prior guess of 8, so you want to use a prior effective sample size of 1/100 cookies. Then the conjugate prior is Gamma(a,0.01). Find the value of a
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+$$a=8$$
+
+$$ 8 = \frac{\alpha}{\beta}=\frac{\alpha}{0.01} \\ \implies a=0.08$$
+:::
+
+::: {#exr-poisson-4}
+[**Cookies**]{.column-margin}
+
+Suppose you decide on the prior $Gamma(8, 1)$, which has a prior mean of 8 and an effective sample size of 1 cookie.
+
+We collect data, by sampling five cookies and counting the chips in each. We find 9, 12, 10, 15, and 13 chips.
+
+What is the posterior distribution for $λ$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+$$\lambda|y \sim \Gamma(\alpha + \sum{y_i}, \beta + n) = Gamma(8 + (9+12+10+15+13),1+5)\\=Gamma(67,6)$$
+:::
+
+::: {#exr-poisson-5}
+[**Cookies**]{.column-margin}
+
+Continuing @exr-poisson-4, what of the following graphs shows the prior density (dotted line) and posterior density (solid line) of λ?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+# Generate x-values
+x <- seq(0, 20, length.out = 1000)
+
+# posterior parameters
+shape <- 67.
+scale <- 6.
+# Generate y-values for posterior using dgamma
+y_post <- dgamma(x, shape, scale)
+# prior parameters
+shape <- 16.
+scale <- 2
+# Generate y-values for prior using dgamma
+y_prior <- dgamma(x, shape, scale)
+
+# Plot the distribution
+
+plot(x, y_post, type = "l", xlab = expression(theta), ylab = expression(paste("f(",theta,"|", x,")")),  main = "Gamma Distribution", xlim = c(0, 20),lty=1,col='blue')
+lines(x, y_prior, lty=3,col='red')
+legend(1,20,legend=c("prior","posterior"), col=c("blue","red"), lty=c(1,3), ncol=1)
+```
+:::
+
+::: {#exr-poisson-6}
+[**Cookies**]{.column-margin}
+
+Continuing [@exr-poisson-4], what is the posterior mean for λ? Round your answer to one decimal place.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+$$
+posterior_{mean} = \frac{\alpha + \sum{y_i}}{\beta + n} 
+\\= \frac{8 + (9+12+10+15+13)}{1 + 5} = 67/6=11.1667=11.2
+$$
+:::
+
+::: {#exr-poisson-7}
+[**Cookies**]{.column-margin}
+
+Continuing [@exr-poisson-4], use R or Excel to find the lower end of a 90% equal-tailed credible interval for λ.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{R}
+# Set parameters
+shape <- 8+59
+rate <- 1+5
+
+
+# Calculate 90% equal-tailed credible interval
+lower <- qgamma(0.05, shape = shape, rate = rate)
+upper <- qgamma(0.95, shape = shape, rate = rate)
+
+# Print interval
+cat("90% equal-tailed credible interval: [", round(lower, 2), ", ", round(upper, 2), "]\n")
+
+```
+:::
+
+::: {#exr-poisson-8}
+[**Cookies**]{.column-margin}
+
+Continuing [@exr-poisson-4], suppose that in addition to the five cookies reported, we observe an additional ten cookies with 109 total chips. What is the new posterior distribution for λ, the expected number of chips per cookie?
+
+Hint: You can either use the posterior from the previous analysis as the prior here, or you can start with the original Gamma(8,1) prior and update with all fifteen cookies. The result will be the same.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+$$Gamma(176, 16)$$
+:::
+
+For Questions [@exr-poisson-9]-[@exr-poisson-10], consider the following scenario:
+
+A retailer notices that a certain type of customer tends to call their customer service hotline more often than other customers, so they begin keeping track. They decide a Poisson process model is appropriate for counting calls, with a calling rate of $θ$ calls per customer per day.
+
+The model for the total number of calls is then $Y \sim Poisson(n \cdot t \cdot \theta)$ where:
+
+-   n is the number of customers in the group and
+-   t is the number of days.
+
+That is, if we observe the calls from a group with 24 customers for 5 days, the expected number of calls would be $24\cdot 5\cdot \theta = 120\cdot \theta$
+
+The likelihood for Y is then $f(y \mid \theta) = \frac{(nt\theta)^y e^{-nt\theta}}{y!} \propto \theta^y e^{-nt\theta}$.
+
+This model also has a conjugate gamma prior θ∼Gamma(a,b) which has density (PDF) $f(\theta) = \frac{b^a}{\Gamma(a)} \theta^{a-1} e^{-b\theta} \propto \theta^{a-1} e^{-b\theta}.$
+
+::: {#exr-poisson-9}
+[**Poisson process**]{.column-margin}
+
+Following the same procedure outlined in the lesson, find the posterior distribution for $\theta$
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+The posterior density is proportional to the likelihood times the prior, which is
+
+$$\begin{aligned} f(\theta \mid y) & \propto \theta ^y e^{− n t \theta} \theta ^{a−1}e^{−b \theta}\\& = \theta ^{y + a - 1} e^{b+nt \theta}\\ &= Gamma(a + y,b + nt)\end{aligned}$$
+
+Combining the like-terms. What gamma distribution is this?
+
+-   [ ] Gamma(a+1,b+y)
+-   [ ] Gamma(a+y−1,b+1)
+-   [x] Gamma(a+y,b+nt)
+-   [ ] Gamma(y,nt)
+:::
+
+::: {#exr-poisson-10}
+[**Poisson process**]{.column-margin}
+
+On average, the retailer receives 0.01 calls per customer per day. To give this group the benefit of the doubt, they set the prior mean for $θ$ at $0.01$ with a standard deviation of $0.5$. This yields a $Gamma( 1/2500,1/25)$ prior for $θ$.
+
+Suppose there are n=24 customers in this particular group of interest, and the retailer monitors calls from these customers for $t=5$ days. They observe a total of $y=6$ calls from this group.
+
+The following graph shows the resulting $Gamma(6.0004,120.04)$ posterior for $θ$, the calling rate for this group. The vertical dashed line shows the average calling rate of $0.01$.
+
+```{R}
+
+# Set parameters
+shape <- 6.0004
+scale <- 120.04
+
+# Generate x-values
+x <- seq(0, 0.15, length.out = 1000)
+
+# Generate y-values using dgamma
+y <- dgamma(x, shape, scale)
+# Plot the distribution
+
+plot(x, y, type = "l", xlab = expression(theta), ylab = expression(paste("f(",theta,"|", x,")")),  main = "Gamma Distribution", xlim = c(0, 0.15))
+
+# Add a vertical dashed line for the average calling rate
+abline(v = 0.01, lty = 2, col = "red", lwd = 2)
+```
+
+Does this posterior inference for $θ$ suggest that the group has a higher calling rate than the average of $0.01$ calls per customer per day?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+Yes, most of the posterior mass (probability) is concentrated on values of θ greater than 0.01. The posterior probability that $θ > 0.01$ is 0.998.
+:::
+
+::: callout-tip
+## Latex Label
+
+To get **latex** labels into the graph in `R` I used `xlab = expression(theta)` and `ylab = expression(paste("f(",theta,"|", x,")")),`
+:::

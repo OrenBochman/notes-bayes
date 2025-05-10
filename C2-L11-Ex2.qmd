@@ -1,0 +1,206 @@
+## Homework on Non-Normal Hierarchical Models
+
+```{r}
+#| label: 'Setup'
+#| lst-label: lst-Non-Normal-Hierarchical-Model-0
+#| lst-cap: 'Setup'
+#| attr-source: "id=lst-Non-Normal-Hierarchical-Model-0 lst-cap='setup'"
+#| echo: false
+#| output: false
+library("rjags")
+library("COUNT")
+data("badhealth")
+dat=badhealth
+```
+
+::: {#exr-Non-Normal-Hierarchical-Model-1}
+[**Hierarchical Model**]{.column-margin} We have seen an example of extending a normal linear model to a hierarchical model. We will now explore extending a non-normal linear model. Consider again the OME data in the MASS package in R, which we explored in the quiz from Lesson 9. The data consist of experimental results from tests of auditory perception in children. Under varying conditions and for multiple trials under each condition, children either correctly or incorrectly identified the source of changing signals.
+
+One variable we did not use in the model was the child ID number. It turns out that there are multiple (ranging from eight to 20) observations for each child. For example, the first 20 rows of the data are all results from Child 1. Why is it reasonable to consider fitting a hierarchical model in this scenario?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] Observations are independent, within and between different children. Separate tests were conducted, so there's no reason to believe the data are correlated.
+-   [ ] Some of the children in the study may be siblings, and their results may be more correlated than for unrelated children.
+-   [x] Observations from a single child are likely correlated. For example, two results from one child are more likely to be similar than two results from two different children.
+-   [ ] The children may be grouped in a hierarchical fashion, for example, classes in a school.
+:::
+
+::: {#exr-Non-Normal-Hierarchical-Model-2}
+[**Hierarchical Model**]{.column-margin} Recall that the original model looked like this:
+
+$$
+\begin{aligned}
+y_i \mid \phi_i  & \overset{\text{ind}}{\sim} \text{Binomial}(n_i, \phi_i) \, , \quad i = 1,\ldots,712 \, , 
+\\ \text{logit}(\phi_i) &= \beta_0 + \beta_1 {\texttt Age}_i + \beta_2 I_{({\texttt OME}_i = {\texttt low})} + \beta_3 {\texttt Loud}_i + \beta_4 I_{({\texttt Noise}_i = {\texttt incoherent})} 
+\\ \beta_0   & \sim \text{N}(0, 5^2) 
+\\  \beta_k  & \overset{\text{iid}}{\sim} \text{N}(0, 4^2) \, , \quad k = 1,2,3
+\end{aligned}
+$$
+
+As with other models, we will extend the intercept (and rename it) so that the linear part of the model looks like this:
+
+$$
+\text{logit}(\phi_i) = \alpha_{{\texttt ID}_i} + \beta_1 {\texttt Age}_i + \beta_2 I_{({\texttt OME}_i = {\texttt low})} + \beta_3 {\texttt Loud}_i + \beta_4 I_{({\texttt Noise}_i = {\texttt incoherent})}
+$$
+
+where ${\texttt ID}_i$ is an index identifying the child for observation $i.$ The hierarchical prior for the intercepts would then look like this:
+
+$$
+\alpha_j \overset{\text{iid}}{\sim} \text{N}(\mu, \tau^2) \, , \quad j = 1,\ldots, 63
+$$ 
+
+followed by priors for $\mu$ and $\tau^2$:
+
+$$
+\mu \sim \text{N}(0, 10^2) \\ \tau^2 \sim \text{IG}(1/2, 1/2)
+$$
+
+What does $\tau^2$ indicate in the context of this model?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [ ] The variability in proportion of correct responses across tests for one child.
+-   [ ] The variability in the number of correct responses across tests for one child.
+-   [ ] The variability of the intercept across all observations in the data.
+-   [x] The variability of the intercept between children.
+:::
+
+::: {#exr-Non-Normal-Hierarchical-Model-3}
+[**Hierarchical Model**]{.column-margin} Fit the hierarchical model proposed in Question 2 with JAGS by adjusting the code given in the quiz from Lesson 9 (below). The following R code will be necessary to reproduce the results.
+
+```{r}
+#| label: q3
+#| 
+library("MASS")
+data("OME")
+
+dat = subset(OME, OME != "N/A")
+dat$OME = factor(dat$OME) # relabel OME
+dat$ID = as.numeric(factor(dat$ID)) # relabel ID so there are no gaps in numbers (they now go from 1 to 63)
+
+## Original reference model and covariate matrix
+mod_glm = glm(Correct/Trials ~ Age + OME + Loud + Noise, data=dat, weights=Trials, family="binomial")
+X = model.matrix(mod_glm)[,-1]
+
+## Original model (that needs to be extended)
+mod_string = " model {
+	for (i in 1:length(y)) {
+		y[i] ~ dbin(phi[i], n[i])
+		#logit(phi[i]) = b0 + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]
+    logit(phi[i]) = a[ID[i]] + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]
+	}
+	
+  for (k in 1:max(ID) ) {
+    a[k] ~ dnorm(a0, prec_a)
+	}
+	#a ~ dnorm(0.0, 1.0/5.0^2)
+  
+  a0 ~ dnorm(0,1.0/10.0^2)
+  prec_a ~ dgamma(0.5,0.5)
+  tau = sqrt(1/prec_a)
+
+	for (j in 1:4) {
+		b[j] ~ dnorm(0.0, 1.0/4.0^2)
+	}
+	
+} "
+
+data_jags = as.list(as.data.frame(X))
+data_jags$y = dat$Correct
+data_jags$n = dat$Trials
+data_jags$ID = dat$ID
+
+
+set.seed(113)
+params = c("b","a","a0","tau")
+par(mar = c(2.5, 1, 2.5, 1))
+mod = jags.model(textConnection(mod_string), data=data_jags, n.chains=3)
+update(mod, 1e3)
+par(mar = c(2.5, 1, 2.5, 1))
+mod_sim = coda.samples(model=mod, variable.names=params, n.iter=1e3)
+mod_csim = as.mcmc(do.call(rbind, mod_sim))
+```
+
+How do the convergence diagnostics look?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+#| label: s3 - numbers
+gelman.diag(mod_sim)
+autocorr.diag(mod_sim)
+effectiveSize(mod_sim)
+```
+
+```{r}
+#| label: s3- marginal plots
+## convergence diagnostics
+par(mar = c(2.5, 1, 2.5, 1))
+plot(mod_sim)
+```
+
+```{r}
+#| label: s3- correlation plots
+par(mar = c(2.5, 1, 2.5, 1))
+autocorr.plot(mod_csim)
+```
+
+-   [ ] The chains suddenly jump from exploring one space to exploring another, as though the parameters are switching labels. The parameters do not appear to be uniquely identified by the data.
+-   [x] Autocorrelation is quite strong in the chains. This model would require a large number of MCMC iterations before we would use the results to make solid conclusions.
+-   [ ] Different chains from different initial values fail to explore the same space. Advanced MCMC techniques will be required to explore this multi-modal (many-peaked) posterior.
+-   [ ] Convergence diagnostics look great. There are no concerns
+:::
+
+::: {#exr-Non-Normal-Hierarchical-Model-4}
+[**Hierarchical Model**]{.column-margin} The DIC value for the original model fit in the quiz for logistic regression is about 1264. Calculate a DIC value for this new hierarchical model. What do you conclude?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+```{r}
+## s4 - compute new DIC
+(dic = dic.samples(mod, n.iter=1e3))
+```
+
+-   [ ] The DIC value for this new model is higher, indicating a preference for the new model.
+-   [x] The DIC value for this new model is higher, indicating a preference for the original model.
+-   [ ] The DIC value for this new model is lower, indicating a preference for the new model.
+-   [ ] The DIC value for this new model is lower, indicating a preference for the original model.
+
+It turns out that in this case, the hierarchical model accounting for correlated tests with the same child does not help the model in terms of predictive accuracy. Theoretically, the hierarchical model is probably more justified because of the hierarchical structure of the data. However, the data appear to be essentially uncorrelated in practice
+:::
+
+::: {#exr-Non-Normal-Hierarchical-Model-5}
+[**Hierarchical Model**]{.column-margin} The actual number of parameters in this hierarchical model is 69 (63 random intercepts, four regression coefficients, and two hyperparameters). What is the effective number of parameters? Round your answer to one decimal place.
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+27.51
+
+This number is so much smaller than the actual number of parameters partially because the intercept parameters are very similar for many of the children.
+:::
+
+::: {#exr-Non-Normal-Hierarchical-Model-6}
+[**Hierarchical Model**]{.column-margin}In the hierarchical model with random intercepts, we assumed that the common distribution for the intercepts is normal. What could we examine to assess whether this is a reasonable assumption?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+-   [x] We could look at the second-level residuals calculated from $\alpha_j − \mu$ and evaluate how they are distributed.
+-   [ ] We could look at the posterior distribution of $\mu$.
+-   [ ] We could look at the data-level residuals calculated from $(y_i−\phi_i)$ and evaluate how they are distributed.
+-   [ ] We could look at the data-level residuals calculated from $({y_i \over n_i}−\phi_i)$ and evaluate how they are distributed.
+
+We could perform the equivalent of a linear model residual analysis for this level of the model, using the estimates of the intercepts as the data.
+:::

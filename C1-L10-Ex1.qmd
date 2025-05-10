@@ -1,0 +1,340 @@
+
+## Homework Normal data {#sec-homework-normal-data}
+
+::: {#exr-normal-1}
+[See @exm-themometer-calibration thermometer calibration problem]{.column-margin}
+
+Suppose you are trying to calibrate a thermometer by testing the temperature it reads when water begins to boil. Because of natural variation, you take $n$ independent measurements (experiments) to estimate $\theta$, the mean temperature [$\theta :=$ **boiling point**]{.column-margin} reading for this thermometer at the boiling point. Assume a normal **likelihood** for these data, with mean $\theta$ and known variance $\sigma^2=0.25$ (which corresponds to a standard deviation of $0.5^\circ$ Celsius). [$\mathcal{L}(\theta\mid Y)=N(\theta,0.25)$]{.column-margin}
+
+Suppose your **prior** for $\theta$ is (conveniently) the conjugate normal. You know that at sea level, water should boil at $100^\circ$ Celsius, so you set the prior mean at $m_0 =100$. [$f(\theta)=N(100,s_0^2$)]{.column-margin}
+
+If you specify a prior variance $s^2_0$ for $\theta$, which of the following accurately describes the model for your measurements $Y_i\qquad \forall i\in\{1,…,n\}$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+we are told Y is IID with normal likelihood with $\mu=\theta$ and $\sigma^2=0.25$ so
+
+$$Y_i \mid\theta \stackrel{iid}\sim N(\theta,0.25) \qquad (\text{likelihood})$$ we are also told the prior is a conjugate normal with $\mu=100$ and $\sigma^2=s^2_0$
+
+$$f(\theta) \sim N(100,s^2_0) \qquad (\text{prior})$$
+
+$$Y_i\mid θ \stackrel{iid}\sim N(θ,0.25) ; \theta ∼N(100,s_0^2)$$
+:::
+
+::: {#exr-normal-2}
+[See @exm-themometer-calibration thermometer calibration problem]{.column-margin}
+
+You decide you want the prior to be equivalent (in effective sample size) to one measurement.
+
+What value should you select for $s^2_0$ the prior variance of θ?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+by @eq-normal-posterior-mean-ess
+
+$$1 = \frac{\sigma_0^2}{s_0^2} =  \frac{0.25 }{0.25 } \therefore s_0^2=0.25$$
+:::
+
+::: {#exr-normal-3}
+[See @exm-themometer-calibration thermometer calibration problem]{.column-margin}
+
+You collect the following $n=5$ measurements: (94.6, 95.4, 96.2, 94.9, 95.9).
+
+What is the posterior distribution for $\theta$?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+so the key point is to realize is that there prior mean is also a a point. n=5
+
+$$\bar{y}=94.6$$
+
+Plugging all relevant quantities (including $\bar{y} =95.4$) into the update formula in Lesson 10.1, the posterior mean is $\frac{2308}{24}$ and the posterior variance is $\frac{1}{24}$ $$s_0=0.25$$ $$\sigma_0=0.445$$
+
+```{R}
+library(testit)
+y <- c(94.6, 95.4, 96.2, 94.9, 95.9)
+sample_mean = mean(y)
+n=5.0
+assert('sample_mean',sample_mean==95.4)
+sample_var = sum( (y-sample_mean)^2)/(length(y)-1)
+sample_var= var(y)
+pop_var=0.25
+print(paste('sample_var=',sample_var))
+assert('sample_var',round(sample_var,1)==0.4)
+
+prior_var=0.25
+prior_mean=100.0
+post_mean= (n * sample_mean/pop_var + prior_mean/prior_var ) / ( n / pop_var + 1./prior_var)
+print(paste('post_mean',round(post_mean,2),'expected result',round(2308/24,2),digits = 7))
+assert('post_mu',round(post_mean,2) == round(2308/24,2))
+post_variance = round(1/(n/pop_var + 1/prior_var),3)
+print(paste('post_variance',post_variance,'expected result',round(1/24,3),digits = 7))
+assert('post_variance', post_variance == round(1/24,3))
+print(paste('n(',post_mean,',',post_variance,')'))
+```
+
+resulting in N(96.17,0.0417)
+:::
+
+::: {#exr-normal-4}
+[See @exm-themometer-calibration thermometer calibration problem]{.column-margin}
+
+Use R or Excel to find the upper end of a 95% equal-tailed credible interval for $θ$
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+```{R}
+a=96.17
+b=0.042
+qnorm(p=0.975, mean=a, sd=sqrt(b))
+```
+
+This is the 0.975 quantile of the posterior distribution.
+:::
+
+::: {#exr-normal-5}
+After collecting these data, is it reasonable to conclude that the thermometer is biased toward low values?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+```{R}
+a=96.17
+b=0.042
+pnorm(q=100, mean=a, sd=sqrt(b))
+```
+
+Yes, we have $P(\theta <100 \mid y) > 0.9999$.
+:::
+
+::: {#exr-normal-6}
+What is the posterior predictive distribution of a single future observation $Y^*$
+
+This is the posterior distribution for θ. Use the expression given at the end of Lesson 10.1, using the posterior parameters in place of $m_0$ and $s_0^2$
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+we have
+
+-   likelihood $Y \mid \theta,\sigma^2\sim N(\mu=\theta,\sigma^2=0.25)$
+-   prior $\theta \sim N(m_0=100,s^2_0=0.25)$
+-   posterior $N(96.17,0,0.42)$
+
+we need to 'plug' this into $N(m_0,s_0^2)$
+
+This is the posterior distribution for θ. Use the expression given at the end of Lesson 10.1, using the posterior parameters in place of m0 and s02.
+
+$N(96.17,0.042+0.25)$ N(96.17,0.292)
+:::
+
+::: {#exr-normal-7}
+[**Restaurants**]{.column-margin}
+
+For Questions 7-10, consider the following scenario:
+
+Your friend moves from City A to City B and is delighted to find her favorite restaurant chain at her new location. After several meals, however, she suspects that the restaurant in City B is less generous. She decides to investigate.
+
+She orders the main dish on 30 randomly selected days throughout the year and records each meal's weight in grams. You still live in city A, so you assist by performing the same experiment at your restaurant. Assume that the dishes are served on identical plates (measurements subtract the plate's weight) and that your scale and your friend's scale are consistent.
+
+The following histogram shows the 30 measurements from Restaurant B taken by your friend
+
+Is it reasonable to assume that these data are normally distributed?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+**No, there appear to be a few extreme observations (outliers).**
+
+The three points above 700 are about five (sample) standard deviations above the (sample) mean.
+:::
+
+::: {#exr-normal-8}
+[**Restaurants**]{.column-margin}
+
+Your friend investigates the three observations above 700 grams and discovers that she had ordered the incorrect meal on those dates. She removes these observations from the data set and proceeds with the analysis using $n=27$.
+
+She assumes a normal likelihood for the data with unknown mean $μ$ and unknown variance $σ^2$. She uses the model presented in @sec-normal-likelihood-with-expectation-and-variance-unknown where, conditional on $σ^2$, the prior for $\mu$ is normal with mean $m$ and variance $\sigma^2/w$. Next, the marginal prior for $\sigma^2$ is $\text{Inverse-Gamma}(a,b)$.
+
+Your friend's prior guess on the mean dish weight is 500 grams, so we set $m=500$. She is not very confident with this guess, so we set the prior effective sample size $w=0.1$. Finally, she sets $a=3$ and $b=200$.
+
+We can learn more about this inverse-gamma prior by simulating draws from it. If a random variable $X$ follows a $\text{Gamma}(a,b)$ distribution, then $1/X$ follows an $\text{Inverse-Gamma}(a,b)$ distribution. Hence, we can simulate draws from a gamma distribution and take their reciprocals, which will be draws from an inverse-gamma.
+
+To simulate 1000 draws in R (replace a and b with their actual values):
+
+Simulate a large number of draws (at least 300) from the prior for $σ^2$ and report your approximate prior mean from these draws. It does not need to be exact.
+
+where
+
+$$a' = a + \frac{n}{2} = 3 + \frac{27}{2} = 16.5$$
+
+$$b' = b + \frac{n-1}{2} s^2 + \frac{wn}{2(w+n)}(\bar{y}-m)^2 = 200 + \frac{27-1}{2} 401.8 + \frac{0.1\cdot 27}{2(0.1+27)}(609.7-500)^2 = 6022.9$$
+
+$$m' = \frac{n\bar{y} + wm}{w + n} =  \frac{27\cdot 609.7 + 0.1\cdot 500}{0.1 + 27} = 609.3$$
+
+$$w=0.1$$
+
+$$w+n=27.1$$
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+```{R}
+#liklihood N(mu,sigma_sq)=N(m,sigma_sq/w)
+m=500 # mean dish wight
+w=0.1 # effective sample size
+#with sigma_sq prior IG(a,b)
+a=3
+b=200
+z <- rgamma(n=1000, shape=a, rate=b) #prior for variance square
+x <- 1/z
+mean(x)
+```
+
+-   The actual prior mean for $\sigma^2=b/a-1 = 200/2=100$
+-   The prior variance for $\sigma^2=b^2/((a-1)^2(a-2))=10000$
+:::
+
+::: {#exr-normal-9}
+[**Restaurants**]{.column-margin}
+
+With the $n=27$ data points, your friend calculates the sample mean $\bar{y} = 609.7$ and sample variance $s^2 = 1\frac{1}{n-1} \sim (y_i-\hat{y})^2 = 401.8$
+
+Using the update formulas from Lesson 10.2, she calculates the following posterior distributions: $$\sigma \mid y \sim \text{Inverse-Gamma}(a',b')$$
+
+$$y \mid \sigma^2,y \sim N(m', \frac{\sigma^2}{w+n})$$
+
+To simulate draws from this posterior, begin by drawing values for $\sigma^2$ from its posterior using the method from the preceding question. Then, plug these values for $\sigma^2$ into the posterior for $μ$ and draw from that normal distribution.
+
+To simulate 1000 draws in R:
+
+```{R}
+z <- rgamma(1000, shape=16.5, rate=6022.9)
+sig2 <- 1/z
+mu <- rnorm(1000, mean=609.3, sd=sqrt(sig2/27.1))
+```
+
+We can use these simulated draws to help us approximate inferences for $μ$ and $σ^2$.
+
+**For example, we can obtain a 95% equal-tailed credible for** $μ$ by calculating the quantiles/percentiles of the simulated values.
+
+```{R}
+quantile(x=mu, probs=c(0.025, 0.975))
+```
+
+Perform the posterior simulation described above and compute your approximate 95% equal-tailed credible interval for $μ$. Based on your simulation, which of the following appears to be the actual interval?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+I got this part wrong many times so I figured out how to add assertions to verify the numbers were what I expected. Since R was rounding off some numbers and not others.
+
+```{R}
+library(testit)    # <1>
+n <- 27.0          # <2>
+y_hat <- 609.7     # <3>
+s_sq <- 401.8      # <4>
+a <- 3.0           # <5>
+b <- 200.0         # <6>
+w <- 0.1           # <7>
+a_tag<- a + n / 2. # <8> 
+assert("a_tag", a_tag == 16.5) # <8> 
+m=500.0             # <9> 
+b_tag = round(b + (n-1)*s_sq *0.5 + (w*n)/2/(w + n)*(y_hat-m)^2,1)  
+print( b_tag,digits = 7)
+assert("b_tag", b_tag == 6022.9)
+m_tag = round(((n * y_hat) + (w*m)) / (w+n),1)
+print(m_tag,digits = 7)
+assert("m_tag",m_tag == 609.3)
+```
+
+1.  support for assertions
+2.  `n` is $n$ is the sample size after removing the outliers.
+3.  `y_hat` is $\bar{y}$, the sample mean
+4.  $s^2$ or `s_sq` is the sample variance
+5.  `a` is the initial a.
+6.  `b` is the initial b.
+7.  `w` is the confidence level used in the denominator of the prior variance.
+8.  `a_tag` is $a'$, the updated value of $a$. We are given a value of 16.5
+9.  `m` is the prior dish weight from @exr-normal-8
+
+```{R}
+z <- rgamma(1000, shape=16.5, rate=6022.9)
+sig2 <- 1/z
+mu <- rnorm(1000, mean=609.3, sd=sqrt(sig2/27.1))
+quantile(x=mu, probs=c(0.025, 0.975))
+```
+
+**(602,617)**
+
+This is the actual interval, calculated from the exact marginal posterior (t distribution) for $\mu$
+:::
+
+::: {#exr-normal-10}
+[**Restaurants**]{.column-margin}
+
+You complete your experiment at Restaurant A with $m=30$ data points, which appear to be normally distributed. You calculate the sample mean $\hat{y} = 622.8$ and *sample variance* $s^2=\frac{1}{n-1}\sum{(y_i-\bar{y})^2}=403.1$
+
+Repeat the analysis from Question 9 using the **same priors** and draw samples from the posterior distribution of $\sigma^2_A$ and $\mu_A$ (where the A denotes that these parameters are for Restaurant A).
+
+Treating the data from Restaurant A as independent from Restaurant B, we can now attempt to answer your friend's original question: is restaurant A more generous? To do so, we can compute posterior probabilities of hypotheses like $\mu_A> \mu_B$. This is a simple task if we have simulated draws for $\mu_A$ and $\mu_B$. For i=1,...,N (the number of simulations drawn for each parameter), make the comparison $\mu_A> \mu_B$ using the ith draw for $\mu_A$ and $\mu_B$. Then count how many of these return a TRUE value and divide by N, the total number of simulations.
+
+In R (using 1000 simulated values):
+
+```{R}
+# sum( muA > muB ) / 1000
+```
+
+Would you conclude that the main dish from restaurant A weighs more than the main dish from restaurant B on average?
+:::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+I first wanted to replicate the derivation of the numbers given as they seemed rather arbitrary. I thought I would need this in the simulation but then I understood that we need to use the same priors and all that changes in the simulation is the mean $\mu$ for each restaurant.
+
+This R code for the actual simulation is as follows:
+
+```{r}
+z <- rgamma(1000, shape=18, rate=6796.4) # <1>
+sig2 <- 1/z # <2>
+muA <- rnorm(1000, mean=622.4, sd=sqrt(sig2/30.1))  # <3>
+z <- rgamma(1000, shape=16.5, rate=6022.9) # <1>
+sig2 <- 1/z # <2>
+muB <- rnorm(1000, mean=609.3, sd=sqrt(sig2/27.1))  # <4>
+sum( muA > muB ) / 1000                             # <5>
+```
+
+1.  sample from $\sigma^2$ from gamma prior
+2.  invert since we need inverse-gamma
+3.  sample form $\mu_A$
+4.  sample form $\mu_B$
+5.  sum the comparison $\mu_A > \mu_B$
+
+**Yes, the posterior probability that** $\mu_A > \mu_B$ is at least 0.95.
+
+This is fairly strong evidence that the mean weight of the dish from Restaurant A is greater than the mean weight of the dish from Restaurant B.
+:::
