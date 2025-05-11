@@ -1,0 +1,73 @@
+---
+title: "Mixture of two Gaussian distributions"
+categories: ['sample code','sim']
+---
+
+- Generate n observations from a mixture of two Gaussian distributions
+
+```{r}
+#| label: simulation
+n     = 50           # Size of the sample to be generated
+w     = c(0.6, 0.4)  # Weights
+mu    = c(0, 5)      # Means
+sigma = c(1, 2)      # Standard deviations
+cc    = sample(1:2, n, replace=T, prob=w)
+x     = rnorm(n, mu[cc], sigma[cc])
+```
+
+```{r}
+#| label: fig-plot-sample
+# Plot f(x) along with the observations 
+# just sampled
+xx = seq(-5, 12, length=200)
+yy = w[1]*dnorm(xx, mu[1], sigma[1]) + 
+     w[2]*dnorm(xx, mu[2], sigma[2])
+par(mar=c(4,4,1,1)+0.1)
+plot(xx, yy, type="l", ylab="Density", xlab="x", las=1, lwd=2)
+points(x, y=rep(0,n), pch=1)  
+```
+
+So this is pretty ugly code even for R.
+The variable names are great at confusing the reader - particularly as they are drawn from complex mathematical formulations ommitted from the samples.
+
+
+Also there is a number of Gaussian mixture models in this module, it may be worth whole to convert these snippets into functions.
+
+
+```{r}
+#| label: helpers
+
+
+# Generate sample from a Gaussian mixture
+gen_mixture <- function(components_n=2, samples_n=200, w, mu, sigma) {
+  stopifnot(length(w) == components_n, 
+            length(mu) == components_n, 
+            length(sigma) == components_n)
+  
+  component_ids <- sample(1:components_n, samples_n, replace=TRUE, prob=w)
+  rnorm(samples_n, mean=mu[component_ids], sd=sigma[component_ids])
+}
+
+# Plot the mixture density and sample
+plot_mixture <- function(x, w, mu, sigma, n_grid=200) {
+  xx <- seq(min(x) - 3, max(x) + 3, length.out = n_grid)
+  yy <- rowSums(sapply(1:length(w), function(k) w[k] * dnorm(xx, mu[k], sigma[k])))
+  
+  par(mar=c(4,4,1,1)+0.1)
+  plot(xx, yy, type="l", ylab="Density", xlab="x", las=1, lwd=2)
+  points(x, y=rep(0, length(x)), pch=1)
+}
+
+
+```
+
+```{r}
+
+sim1 <- gen_mixture(components_n=2,samples_n=200, w=w, mu=mu, sigma=sigma)
+#sim1
+abc=plot_mixture(x=sim1,w=w,mu=mu,sigma=sigma)
+
+
+
+```
+

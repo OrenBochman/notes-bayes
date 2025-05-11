@@ -29,21 +29,21 @@ All of these calculations involve integration, which except for the simplest dis
 Suppose we have a random variable $\theta$ that follows a  [$\Gamma$ distribution](A03.qmd#sec-the-gamma-distribution)
 
 $$
- \theta \sim Gamma(a,b)
-$$ {#eq-gamma-distribution}
+ \theta \sim Gamma(a,b) \qquad
+$$ {#eq-gamma-distribution-full}
 
 Let's say $a=2$ and $b=\frac{1}{3}$ , where $a$ is the *shape parameter* and $b$ is the *rate parameter*.
 
 $$
-  a=2 \qquad b=1/3
-$$
+  a=2 \qquad b=1/3 \qquad
+$$ {#eq-gamma-params}
 
 To calculate the mean of this distribution, we would need to compute the following integral. 
-It is possible to compute this integral, and the answer is $\frac{a}{b} (6 in this case).
+It is possible to compute this integral, and the answer is $\frac{a}{b}$ (6 in this case).
 
 $$ 
-\mathbb{E}[\theta] = \int_0^\infty \theta f(\theta) d\theta = \int_0^\infty \theta \frac{b^a}{\Gamma(a)}\theta^{a-1}e^{-b\theta} d\theta = \frac{a}{b}
-$$ {#eq-gamma-mean}
+\mathbb{E}[\theta] = \int_0^\infty \theta f(\theta) d\theta = \int_0^\infty \theta \frac{b^a}{\Gamma(a)}\theta^{a-1}e^{-b\theta} d\theta = \frac{a}{b} \qquad
+$$ {#eq-gamma-mean-full}
 
 However, we could verify this answer through Monte Carlo estimation.
 
@@ -58,14 +58,14 @@ Furthermore, by the **[Central Limit Theorem](A08.qmd)** (CLT), this sample mean
 The theoretical variance of $\theta$ is the following integral:
 
 $$ 
-\text{Var}[\theta] = \int_0^\infty (\theta-\mathbb{E}(\theta))^2 f(\theta) d\theta
-$$ {#eq-gamma-variance}
+\text{Var}[\theta] = \int_0^\infty (\theta-\mathbb{E}(\theta))^2 f(\theta) d\theta \qquad
+$$ {#eq-gamma-variance-full}
 
 Just like we did with the mean, we could approximate this variance with the sample variance 
 
 $$
-\text{Var}[\theta^*] = \frac{1}{m}\sum_{i=1}^m (\theta_i^* - \bar{\theta}^*)^2
-$$ {#eq-gamma-sample-variance}
+\text{Var}[\theta^*] = \frac{1}{m}\sum_{i=1}^m (\theta_i^* - \bar{\theta}^*)^2 \qquad
+$$ {#eq-gamma-sample-variance-full}
 
 ## Calculating probabilities
 
@@ -73,8 +73,8 @@ This method can be used to calculate many different integrals.
 Say $h(\theta)$ is any function and we want to calculate
 
 $$
-\int h(\theta) p(\theta) d\theta = \mathbb{E}(h(\theta)) \approx \frac{1}{m}\sum_{i=1}^m h(\theta_i^*)
-$$ {#eq-monte-carlo-integration}
+\int h(\theta) p(\theta) d\theta = \mathbb{E}(h(\theta)) \approx \frac{1}{m}\sum_{i=1}^m h(\theta_i^*) \qquad
+$$ {#eq-monte-carlo-integration-full}
 
 where $p(\theta)$ is the probability density function of $\theta$ and $h(\theta)$ is any function of $\theta$.
 
@@ -94,11 +94,11 @@ This is the integral:
 
 $$
 \begin{align*}
-\mathbb{E}[h(\theta)] &= \int_0^\infty \mathbb{I}_{[\theta<5]}(\theta) p(\theta) d\theta
-\\ &= \int_0^5 1 \cdot p(\theta) d\theta + \int_5^\infty 0 \cdot p(\theta) d\theta 
-\\ &= P(\theta < 5)
+\mathbb{E}[h(\theta)] &= \int_0^\infty \mathbb{I}_{[\theta<5]}(\theta) p(\theta) d\theta \\
+&= \int_0^5 1 \cdot p(\theta) d\theta + \int_5^\infty 0 \cdot p(\theta) d\theta \\
+&= P(\theta < 5) \qquad
 \end{align*}
-$$ {#eq-gamma-prob}
+$$ {#eq-gamma-prob-full}
 
 So what does this mean? 
 
@@ -118,7 +118,7 @@ If we are looking for the value z such that $P(\theta < z) = 0.9$ , we simply ar
 
 Again we can turn to the CLT, which tells us that the variance of our estimate is controlled in part by $m$. For a better estimate, we want larger $m$.
 
-For example, if we seek $\mathbb{E}[\theta[$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}[\theta]$ and variance $Var[\theta]/m$ . 
+For example, if we seek $\mathbb{E}[\theta]$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}[\theta]$ and variance $Var[\theta]/m$ . 
 
 The variance tells us how far our estimate might be from the true value. 
 
@@ -162,7 +162,7 @@ Let's start with the example from the previous segment, where $\theta \sim Gamma
 This could represent the posterior distribution of $\theta$ if our data came from a Poisson distribution with mean $\theta$ and we had used a conjugate gamma prior. 
 Let's start with $m=100$ .
 
-```{R}
+```{r}
 #| label: lst-init-mc-simulation
 set.seed(32) # Initializes the random number generator so we can replicate these results. To get different random numbers, change the seed. 
 m = 100 
@@ -172,14 +172,14 @@ b = 1.0 / 3.0
 
 To simulate $m$ independent samples, use the `rgamma` function.
 
-```{R}
+```{r}
 #| label: lst-simulate-gamma
 theta <- rgamma(n=m, shape = a, rate=b) 
 ```
 
 We can plot a histogram of the generated data, and compare that to the true density.
 
-```{R}
+```{r}
 #| label: fig-plot-gamma
 #| fig-cap: Histogram of simulated gamma samples with true density
 hist(theta, freq=FALSE) 
@@ -188,24 +188,24 @@ curve(dgamma(x=x, shape=a, rate=b), col="blue", add=TRUE)
 
 To find our Monte Carlo approximation to $\mathbb{E}(\theta)$ , let's take the average of our sample (and compare it with the truth).
 
-```{R}
+```{r}
 #| label: lst-mc-mean-calculation
 sum(theta) / m # sample mean 
 ```
 
-```{R}
+```{r}
 #| label: lst-true-mean-function
 mean(theta) # sample mean 
 ```
 
-```{R}
+```{r}
 #| label: lst-true-mean
 a / b # true expected value
 ```
 
 Not bad, but we can do better if we increase $m$ to say, 10,000.
 
-```{R}
+```{r}
 #| label: lst-init-mc-simulation-big-sample
 m = 1e4 
 theta = rgamma(n=m, shape=a, rate=b) 
@@ -214,37 +214,37 @@ mean(theta)
 
 How about the variance of $\theta$ ?
 
-```{R}
+```{r}
 #| label: lst-mc-variance-calculation-big-sample
 var(theta) # sample variance
 ```
 
-```{R}
+```{r}
 #| label: lst-true-variance-function-big-sample
 a / b^2 # true variance of Gamma(a,b) 
 ```
 
 We can also approximate the probability that $\theta < 5$ .
 
-```{R}
+```{r}
 #| label: lst-mc-probability-calculation
 ind = theta < 5.0 # set of indicators, TRUE if theta_i < 5 
 mean(ind)         # automatically converts FALSE/TRUE to 0/1 
 ```
 
-```{R}
+```{r}
 #| label: lst-true-probability-function
 pgamma(q=5.0, shape=a, rate=b) # true value of Pr( theta < 5 )
 ```
 
 What is the 0.9 quantile (90th percentile) of $\theta$ ? We can use the `quantile` function which will order the samples for us and find the appropriate sample quantile.
 
-```{R}
+```{r}
 #| label: lst-mc-simulated-quantile-calculation
 quantile(x=theta, probs=0.9) 
 ```
 
-```{R}
+```{r}
 #| label: lst-true-quantile-function
 qgamma(p=0.9, shape=a, rate=b) # true value of 0.9 quantile
 ```
@@ -253,14 +253,16 @@ qgamma(p=0.9, shape=a, rate=b) # true value of 0.9 quantile
 
 We can use the [CLT](A08.qmd) to approximate how accurate our Monte Carlo estimates are. For example, if we seek $E(\theta)$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}(\theta)$ and variance $Var(\theta)/m$ . We will use the sample standard deviation divided by the square root of m to approximate the Monte Carlo standard deviation.
 
-```{R}
+```{r}
+#| label: lst-mc-se-estimate
 se = sd(theta) / sqrt(m) 
 2.0 * se # we are reasonably confident that the Monte Carlo estimate is no more than this far from the truth
 ```
 
 These numbers give us a reasonable range for the quantity we are estimating with Monte Carlo. The same applies for other Monte Carlo estimates, like the probability that $\theta < 5$.
 
-```{R}
+```{r}
+#| label: lst-mc-se-probability
 ind = theta < 5.0 
 se = sd(ind) / sqrt(m)
 2.0 * se # we are reasonably confident that the Monte Carlo estimate is no more than this far from the truth 
@@ -274,7 +276,8 @@ $y \mid \phi \overset{\text{iid}}{\sim}\text{Binomial}(10,\phi)$, and $\phi \sim
 1.  Simulate $\phi_i$ from its $Beta(2,2)$ distribution.
 2.  Given the drawn $\phi_i$ , simulate $y_i$ from $Bin(10,\phi_i)$ .
 
-```{R}
+```{r}
+#| label: lst-mc-hierarchical-loop
 m = 10e4
 
 y = numeric(m) # create the vectors we will fill in with simulations 
@@ -291,11 +294,13 @@ y = rbinom(n=m, size=10, prob=phi)
 
 If we are interested only in the marginal distribution of $y$ , we can just ignore the draws for $\phi$ and treat the draws of $y$ as a sample from its marginal distribution.
 
-```{R}
+```{r}
+#| label: lst-mc-hierarchical-mean
 mean(y) 
 ```
 
-```{R}
+```{r}
+#| label: fig-mc-hierarchical-marginal
 plot(prop.table(table(y)), ylab="P(y)", main="Marginal distribution of y")
 ```
 
@@ -306,20 +311,20 @@ plot(prop.table(table(y)), ylab="P(y)", main="Marginal distribution of y")
 If we have a sequence of random variables $X_1,X_2,\dots X_n$ where the indices $1,2,\dots,n$ represent successive points in time, we can use the chain rule of probability to calculate the probability of the entire sequence:
 
 $$
-p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2, X_1) \cdot \ldots \cdot p(X_n \mid X_{n-1}, X_{n-2}, \ldots, X_2, X_1)
-$$
+p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2, X_1) \cdot \ldots \cdot p(X_n \mid X_{n-1}, X_{n-2}, \ldots, X_2, X_1) \qquad
+$$ {#eq-chain-rule-full}
 
 Markov chains simplify this expression by using the Markov assumption. The assumption is that given the entire past history, the probability distribution for the random variable at the next time step only depends on the current variable. Mathematically, the assumption is written like this:
 
 $$
-p(X_{t+1} \mid X_t, X_{t-1}, \ldots, X_2, X_1 ) = p(X_{t+1} \mid X_t)
-$$
+p(X_{t+1} \mid X_t, X_{t-1}, \ldots, X_2, X_1 ) = p(X_{t+1} \mid X_t) \qquad
+$$ {#eq-markov-assumption-full}
 
 for all $t=2,\dots,n$. Under this assumption, we can write the first expression as
 
 $$
-p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2) \cdot p(X_4 \mid X_3) \cdot \ldots \cdot p(X_n \mid X_{n-1})
-$$ 
+p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2) \cdot p(X_4 \mid X_3) \cdot \ldots \cdot p(X_n \mid X_{n-1}) \qquad
+$$ {#eq-markov-chain-factorization-full}
 
 which is much simpler than the original. It consists of an initial distribution for the first variable, p(X1), and n−1 transition probabilities. We usually make one more assumption: that the transition probabilities do not change with time. Hence, the transition from time t to time t+1 depends only on the value of Xt.
 
@@ -346,14 +351,15 @@ This is an example of a discrete Markov chain, where the possible values of the 
 Now let's look at a continuous example of a Markov chain. Say $X_t=0$ and we have the following transition model:
 
 $$
-p(X_t+1\mid X_t=x_t)=N(x_t,1)
-$$
+p(X_{t+1}\mid X_t=x_t)=N(x_t,1) \qquad
+$$ {#eq-random-walk-transition-full}
 
 That is, the probability distribution for the next state is Normal with variance 1 and mean equal to the current state. This is often referred to as a "random walk." Clearly, it is a Markov chain because the transition to the next state Xt+1 only depends on the current state Xt.
 
 This example is straightforward to code in R:
 
 ```{r}
+#| label: lst-random-walk
 set.seed(34)
 
 n = 100
@@ -378,8 +384,8 @@ Q =
 0 & .5 & 0 & .5 & 0 \\
 0 & 0 & .5 & 0 & .5 \\
 .5 & 0 & 0 & .5 & 0 \\
-\end{pmatrix}
-$$
+\end{pmatrix} \qquad
+$$ {#eq-transition-matrix-full}
 
 where the transitions from State 1 are in the first row, the transitions from State 2 are in the second row, etc. For example, the probability p(Xt+1=5∣Xt=4) can be found in the fourth row, fifth column.
 
@@ -388,6 +394,7 @@ The transition matrix is especially useful if we want to find the probabilities 
 We can perform this matrix multiplication easily in R:
 
 ```{r}
+#| label: lst-mc-transition-matrix
 Q = matrix(c(0.0, 0.5, 0.0, 0.0, 0.5,
              0.5, 0.0, 0.5, 0.0, 0.0,
              0.0, 0.5, 0.0, 0.5, 0.0,
@@ -400,6 +407,7 @@ Q %*% Q # Matrix multiplication in R. This is Q^2.
 ```
 
 ```{r}
+#| label: lst-mc-transition-matrix-2-steps
 (Q %*% Q)[1,3]
 
 ```
@@ -411,16 +419,19 @@ Therefore, if your secret number is currently 1, the probability that the number
 Suppose we want to know the probability distribution of the your secret number in the distant future, say $p(X_{t+h} \mid X_t)$ where h is a large number. Let's calculate this for a few different values of h.
 
 ```{r}
+#| label: lst-mc-transition-matrix-5-steps
 Q5 = Q %*% Q %*% Q %*% Q %*% Q # h=5 steps in the future
 round(Q5, 3)
 ```
 
 ```{r}
+#| label: lst-mc-transition-matrix-10-steps
 Q10 = Q %*% Q %*% Q %*% Q %*% Q %*% Q %*% Q %*% Q %*% Q %*% Q # h=10 steps in the future
 round(Q10, 3)
 ```
 
 ```{r}
+#| label: lst-mc-transition-matrix-30-steps
 Q30 = Q
 for (i in 2:30) {
   Q30 = Q30 %*% Q
@@ -433,6 +444,7 @@ Notice that as the future horizon gets more distant, the transition distribution
 The stationary distribution of a chain is the initial state distribution for which performing a transition will not change the probability of ending up in any given state. That is,
 
 ```{r}
+#| label: lst-mc-stationary-distribution-initial
 c(0.2, 0.2, 0.2, 0.2, 0.2) %*% Q
 
 ```
@@ -442,6 +454,7 @@ One consequence of this property is that once a chain reaches its stationary dis
 We can also demonstrate the stationary distribution by simulating a long chain from this example.
 
 ```{r}
+#| label: lst-mc-stationary-distribution-simulation
 n = 5000
 x = numeric(n)
 x[1] = 1 # fix the state as 1 for time 1
@@ -453,6 +466,7 @@ for (i in 2:n) {
 Now that we have simulated the chain, let's look at the distribution of visits to the five states.
 
 ```{r}
+#| label: tbl-mc-stationary-distribution
 table(x) / n
 ```
 
@@ -466,11 +480,13 @@ It is important to note that the stationary distribution doesn't always exist fo
 
 The continuous random walk example we gave earlier does not have a stationary distribution. However, we can modify it so that it does have a stationary distribution.
 
-Let the transition distribution be $p(X_{t + 1}\mid X_t = x_t)=N(\phi x_t,1)$ where $c − 1 < \phi < 1$. That is, the probability distribution for the next state is Normal with variance $1$ and mean equal to $ϕ$ times the current state. As long as $\phi$ is between −1 and 1, then the stationary distribution will exist for this model.
+Let the transition distribution be $p(X_{t + 1}\mid X_t = x_t)=N(\phi x_t,1)$ where $-1 < \phi < 1$. That is, the probability distribution for the next state is Normal with variance $1$ and mean equal to $ϕ$ times the current state. As long as $\phi$ is between −1 and 1, then the stationary distribution will exist for this model.
 
 Let's simulate this chain for $\phi=−0.6$.
 
 ```{r}
+#| label: fig-mc-ar1
+#| fig-cap: Simulated AR(1) process with phi=-0.6
 set.seed(38)
 
 n = 1500
@@ -484,9 +500,15 @@ for (i in 2:n) {
 plot.ts(x)
 ```
 
-The theoretical stationary distribution for this chain is normal with mean $0$ and variance $1/(1−ϕ2)$, which in our example approximately equals $1.562$. Let's look at a histogram of our chain and compare that with the theoretical stationary distribution.
+The theoretical stationary distribution for this chain is normal with mean $0$ and variance $1/(1−\phi^2)$, which in our example approximately equals $1.562$. Let's look at a histogram of our chain and compare that with the theoretical stationary distribution.
+
+$$
+\text{Var}_{\text{stationary}} = \frac{1}{1-\phi^2} \qquad
+$$ {#eq-ar1-stationary-variance-full}
 
 ```{r}
+#| label: fig-mc-stationary-distribution
+#| fig-cap: Histogram of simulated AR(1) process with theoretical stationary distribution
 hist(x, freq=FALSE)
 curve(dnorm(x, mean=0.0, sd=sqrt(1.0/(1.0-phi^2))), col="red", add=TRUE)
 legend("topright", legend="theoretical stationary\ndistribution", col="red", lty=1, bty="n")

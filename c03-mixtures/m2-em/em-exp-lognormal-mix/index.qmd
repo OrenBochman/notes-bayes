@@ -1,0 +1,181 @@
+---
+title : "EM algorithm for fitting a mixture of Exponential and LogNormal components"
+cache: false
+---
+
+$$
+f(x)= w \lambda \exp\{− \lambda x\}+(1 − w) \cdot \frac{1}{\sqrt{2 \pi }\tau x} \exp \{-\frac{1}{2 \tau ^2}(\log(x) − μ)^2 \} \qquad \text{for } x>0
+$$
+
+where $w$ is the weight of the exponential component, $\lambda$ is the rate of the exponential distribution, and $\mu$ and $\tau$ are the mean and standard deviation of the log-normal distribution.
+
+Load the data and required libraries
+
+```{r}
+#| label: setup
+rm(list=ls())
+library(mvtnorm)    # Multivariate normals are not default in R
+library(ellipse)    # Required for plotting
+
+#set.seed(63252)     # For reproducibility
+```
+```{r}
+#x <- read.csv('./posts/mixtures/mx4-fuses/fuses.csv', header = FALSE)
+df = read.csv('fuses.csv', header = FALSE)
+head(df,5)
+x =  as.numeric(df[[1]])
+n = length(x)         # Correct way to get the number of observations
+mean(x)
+sd(x)
+KK = 2
+```
+
+## Run the actual EM algorithm
+
+Now we will use the EM algorithm to estimate the parameters of the mixture from the data we generated above.
+
+The algorithm is implemented in the following steps:
+
+1. **Initialization**: We initialize the parameters of the model (weights, means, and standard deviations) randomly.
+2. **E-step**: We compute the expected value of the log-likelihood function, given the current parameters and the data.
+3. **M-step**: We maximize the expected log-likelihood function with respect to the parameters.
+$$
+\begin{align*}
+&Q\left(w, \lambda, \mu, \tau \mid \hat{w}^{(t)}, \hat{\lambda}^{(t)}, \hat{\mu}^{(t)} , \hat{\tau}^{(t)}\right) \\&= \sum_{i=1}^{n} v_{i,1} \left[ \log w + \log \lambda - \lambda x_i \right]
+\\ &+ v_{i,2}\left[ \log(1-w) - \frac{1}{2} \log(2 \pi) - \log \tau - \log x_i - \frac{1}{2\tau^2} \left( \log x_i - \mu \right) \right]
+\end{align*}
+$$ {#eq-complete}
+
+where $(v_{i,1})$ and $(v_{i,2})$ are the *responsibilities* of the two components for the $i$-th observation.
+
+Computing the derivatives and setting them to zero yields
+
+$$
+\hat{w}^{(t+1)} = \frac{1}{n} \sum_{i=1}^{n} v_{i,1}
+$$
+
+$$
+\hat{\lambda}^{(t+1)} = \frac{\sum_{i=1}^{n} v_{i,1}}{\sum_{i=1}^{n} v_{i,1} x_i}
+$$
+
+$$
+\hat{\mu}^{(t+1)}  = \frac{\sum_{i=1}^{n} v_{i,2} \log x_i}{\sum_{i=1}^{n} v_{i,2}}
+$$
+
+$$
+\hat{\tau}^{(t+1)} =\sqrt{ \frac{\sum_{i=1}^{n} v_{i,2} \left( \log x_i - \hat{\mu}^{(t+1)} \right)^2}{\sum_{i=1}^{n} v_{i,2}}}
+$$
+
+
+4. **Convergence check**: We check if the algorithm has converged by comparing the current and previous values of the log-likelihood function.
+
+
+
+```{r}
+#| label: em_algorithm_loop
+KK = 2                             # Number of components
+w     = 0.05                        # Assign equal weight to each component to start with
+#mu = rnorm(1,mean(log(x)), sd(log(x)))
+mu = mean(log(x))
+tau = sd(log(x))
+lambda = 20 / mean(x)
+
+s  = 0              # s_tep counter
+sw = FALSE          # sw_itch to stop the algorithm
+QQ = -Inf           # the Q function (log-likelihood function)
+QQ.out = NULL       # the Q function values
+epsilon = 10^(-5)   # the stopping criterion for the algorithm
+
+trace <- data.frame(iter=0, w=w, lambda=lambda, mu=mu, tau=tau)
+
+while(!sw){ ##Checking convergence
+
+  ## E step
+  v = array(0, dim=c(n,KK))
+  for(i in 1:n){
+    v[i,1] = log(w)   + dexp(x[i], rate=lambda, log=TRUE)
+    v[i,2] = log(1-w) + dlnorm(x[i], mu, tau, log=TRUE)    
+    v[i,]  = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,]))) 
+  }
+
+  ## M step  
+  w      = mean(v[,1])  # Weights
+  lambda = sum(v[,1]) / sum(v[,1] * x)  # Lambda (rate)
+  mu     = sum(v[,2] * log(x)) / sum(v[,2]) # Mean
+  tau    = sqrt(sum(v[,2] * (log(x) - mu)^2) / sum(v[,2])) # Tau (standard deviation)
+  
+  # collect trace of parameters 
+  trace  =  rbind(trace, data.frame(iter=s, w=w, lambda=lambda, mu=mu, tau=tau))
+
+  ## Check convergence
+  QQn = 0
+  #vectorized version
+  log_lik_mat = v[,1]*(log(w)   + dexp(x, lambda, log=TRUE)) +
+                v[,2]*(log(1-w) + dlnorm(x, mu, tau, log=TRUE))
+  QQn = sum(log_lik_mat)
+  if(abs(QQn-QQ)/abs(QQn)<epsilon){
+    sw=TRUE
+  }
+  QQ = QQn
+  QQ.out = c(QQ.out, QQ)
+  s = s + 1
+  print(paste(s, QQn))
+}
+```
+
+```{r}
+#| label: plot_final_estimate
+#Plot final estimate over data
+xx  = seq(0,7,length=150)
+nxx = length(xx)
+density.EM = rep(0, nxx)
+for(s in 1:nxx){
+  #density.EM[s] = density.EM[s] + w*dexp(xx[s], lambda[1]) + 
+  density.EM[s] = w*dexp(xx[s], rate=lambda) + (1-w)*dlnorm(xx[s],meanlog=mu, sdlog=tau)
+}
+```
+
+```{r}
+#| label: fig-density-plot
+
+plot(xx, density.EM, col="red", lwd=2, type="l", xlab="x")
+points(x,rep(0,n))
+title(main="Mixture of Exponential and LogNormal")
+```
+
+```{r}
+#| label: fig-parameter-trace
+par(mfrow=c(2,2))
+plot(trace$iter, trace$w, type="b", col="purple", main="Weight w", ylab="w", xlab="Iter")
+plot(trace$iter, trace$lambda, type="b", col="red", main="Exponential rate λ", ylab="λ", xlab="Iter")
+plot(trace$iter, trace$mu, type="b", col="blue", main="Normal mean μ", ylab="μ", xlab="Iter")
+plot(trace$iter, trace$tau, type="b", col="darkgreen", main="Normal std.dev τ", ylab="τ", xlab="Iter")
+```
+
+```{r}
+#| label: print_parameters
+cat("w =", round(w, 2), "lambda =", round(lambda, 2), "mu =", round(mu, 2),"tau =", round(tau, 2))
+```
+
+
+```{r}
+#| label: fig-responsibility-plot
+
+# Compute final responsibilities one last time
+v = matrix(0, nrow=n, ncol=2)
+
+#vectorised version
+v[,1] = log(w)   + dexp(x, rate=lambda, log=TRUE)
+v[,2] = log(1-w) + dlnorm(x, mean=mu, sd=tau, log=TRUE)
+for(i in 1:n){
+  v[i,] = exp(v[i,] - max(v[i,])) / sum(exp(v[i,] - max(v[i,])))
+}
+
+# Assign component with higher responsibility
+z_hat = apply(v, 1, which.max)
+
+# Plot data colored by most likely component
+plot(x, rep(0, n), col=ifelse(z_hat==1, "red", "blue"), pch=19,
+     ylab="", yaxt="n", xlab="x", main="Point-wise Component Assignment")
+legend("topright", legend=c("Exponential", "LogNormal"), col=c("red", "blue"), pch=19)
+```

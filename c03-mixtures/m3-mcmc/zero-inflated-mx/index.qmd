@@ -1,0 +1,161 @@
+---
+title: "Zero-Inflated Poisson Mixture Models"
+---
+
+::: {.callout-note collapse="true"}
+
+## Grading Criteria 
+
+The code you generate should follow the same structure as "Sample code for MCMC example 1".   In particular, focus on a Gibss sampler that alternates between the full conditionals for $w$, $λ$ and the latent component indicators $c_1 \ldots c_n$. Peer reviewers will be asked to check whether the different pieces of code have been adequately modified to reflect the fact that 
+
+(1) parameters have been initialized in a reasonable way,
+(2) each of the two full conditional distributions associated with the sampler are correct, and 
+(3) the numerical values that you obtain are correct.  
+
+- To simplify the peer-review process, assume that component 1 corresponds to the point mass at zero, while component 2 corresponds to the Poisson distribution.
+
+## Are the parameters initialized in a reasonable way?
+
+```r
+n        = length(x)
+cc       = rep(0, n)
+cc[x==0] = sample(1:2, sum(x==0), replace=T, prob=c(1/2, 1/2))
+cc[x!=0] = 2
+lambda   = mean(x)
+w        = 0.2
+```
+
+Is the full conditional for the indicators c_i correct?
+
+Hence, the code to sample the indicators might look something like this:
+
+
+```r
+  # Full conditional for cc
+  for(i in 1:n){
+    v = rep(0,2)
+    if(x[i]==0){
+      v[1] = log(w)
+      v[2] = log(1-w) + dpois(x[i], lambda, log=TRUE)
+      v    = exp(v - max(v))/sum(exp(v - max(v)))
+    }else{
+      v[1] = 0
+      v[2] = 1
+    }
+    cc[i] = sample(1:2, 1, replace=TRUE, prob=v)
+  }
+```
+
+## Is the full conditional for the weight 
+
+```r
+ # Full conditional for w
+  w = rbeta(1, 1+sum(cc==1), 1+n-sum(cc==1))
+```
+or, alternatively,
+
+```r
+  # Full conditional for w
+  w = rbeta(1, 1+sum(cc==1), 1+sum(cc==2))
+```
+
+Is the full conditional for the rate lambda correct?
+
+```r
+lambda = rgamma(1, sum(x[cc==2]) + 1, sum(cc==2) + 1)
+```
+
+:::
+
+$$
+f(x)=w\delta_0(x)+(1-w) \frac{\lambda^x}{x!} e^{-\lambda}
+$$ {#eq-zero-inflated-mixture}
+
+where $w$ is the weight of the zero-inflated component, $\delta_0(x)$ is the Dirac delta function at 0, and $(1-w) \frac{x!}{\lambda^x} e^{-\lambda}$ is the Poisson distribution with parameter $\lambda$.
+
+
+In carrying out this assignment assume the following priors for your unknown parameters:  
+
+$$
+\begin{align*}
+w &\sim \text{Uniform}(0,1) \\
+\lambda &\sim \text{Exponential}(1) \\
+\end{align*}
+$$
+where
+
+- Example of an MCMC algorithm for fitting a location mixture of 2 Gaussian components
+- The algorithm is tested using simulated data
+
+## MCMC
+```{r}
+#| label: mcmc
+
+rm(list=ls())
+library(MCMCpack)
+set.seed(81196)  # So that results are reproducible
+
+
+# Data loading
+x <- read.csv("nestsize.csv")[[1]]
+n <- length(x)
+
+# The actual MCMC algorithm starts here
+
+## MCMC iterations of the sampler
+burn <- 1000
+iterations <- 6000
+
+## Initialize the parameters
+cc         = rep(2, n)
+cc[x == 0] = sample(1:2, sum(x == 0), replace = TRUE, prob = c(0.5, 0.5))
+
+## Priors
+aa = c(1, 1)  # Uniform prior on w
+w     = 0.2 # fewer zeros
+lambda = mean(x[x > 0])  # Initial lambda from nonzero data
+
+
+# Storing the samples
+w.out      = rep(0, iterations)
+lambda.out = rep(0, iterations)
+logpost    = rep(0, iterations)
+cc.out     = array(0, dim=c(iterations, n))
+
+# MCMC iterations
+for (s in 1:iterations) {
+  # Sample indicators c_i
+  cc = numeric(n)
+  # Full conditional for cc
+  for(i in 1:n){
+    v = rep(0,2)
+    if(x[i]==0){
+      v[1] = log(w)
+      v[2] = log(1-w) + dpois(x[i], lambda, log=TRUE)
+      v    = exp(v - max(v))/sum(exp(v - max(v)))
+    }else{
+      v[1] = 0
+      v[2] = 1
+    }
+    cc[i] = sample(1:2, 1, replace=TRUE, prob=v)
+  }
+  
+  # Sample the weights
+  w = rbeta(1, aa[1] + sum(cc==1), aa[2] + sum(cc==2))
+
+  lambda = rgamma(1, shape = 1 + sum(x[cc == 2]), rate = 1 + sum(cc == 2))
+  # Store samples
+  w.out[s] <- w
+  lambda.out[s] <- lambda
+  cc.out[s,] <- cc
+
+}
+
+# Posterior summaries
+w.post <- w.out[-(1:burn)]
+lambda.post <- lambda.out[-(1:burn)]
+
+cat("Posterior mean of lambda:", mean(lambda.post), "\n")
+cat("Posterior mean of w:", mean(w.post), "\n")
+
+```
