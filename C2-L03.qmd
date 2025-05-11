@@ -1,49 +1,71 @@
-# Notes - Monte Carlo Estimation
+---
+title: "Monte Carlo estimation"
+subtitle: "Bayesian Statistics: Techniques and Models"
+categories:
+  - Monte Carlo Estimation
+keywords:
+  - Statistical Modeling
+  - MCMC
+  - Notes
+  - Mean estimation
+  - Variance estimation
+  - Monte Carlo integration
+  - Quantile estimation
+  - Probability estimation
+---
 
-## Monte Carlo Integration
+# Notes - Monte Carlo Estimation {#sec-monte-carlo-estimation}
+
+## Monte Carlo Integration {#sec-monte-carlo-integration}
 
 ![Monte Carlo Integration](images/c2l03-ss-01-Monte-Carlo-integration.png){.column-margin}
 
-Before we learn how to simulate from complicated posterior distributions, let's review some of the basics of Monte Carlo estimation. 
-Monte Carlo estimation refers to simulating hypothetical draws from a probability distribution in order to calculate important quantities. 
-These quantities might include the *mean*, the *variance*, the probability of some event, or *quantiles* of the distribution. 
-All of these calculations involve integration, which except for the simplest distributions, can be very difficult or impossible.
+Before we learn how to simulate from complicated posterior distributions, let's review some of the basics of Monte Carlo estimation.
 
-Suppose we have a random variable $\theta$ that follows a $\Gamma(a,b)$ distribution.
+Monte Carlo estimation refers to simulating hypothetical draws from a probability distribution in order to calculate important quantities. By "important quantities," we mean things like the *mean*, the *variance*, or the *probability* of some event or distributional property.
+
+All of these calculations involve integration, which except for the simplest distributions, may range from very difficult to impossible :-) .
+
+Suppose we have a random variable $\theta$ that follows a  [$\Gamma$ distribution](A03.qmd#sec-the-gamma-distribution)
 
 $$
  \theta \sim Gamma(a,b)
-$$
+$$ {#eq-gamma-distribution}
 
-Let's say $a=2$ and $b=1/3$ , where $a$ is the `shape paramerter` and $b$ is the `rate parameter`.
+Let's say $a=2$ and $b=\frac{1}{3}$ , where $a$ is the *shape parameter* and $b$ is the *rate parameter*.
 
 $$
   a=2 \qquad b=1/3
 $$
 
 To calculate the mean of this distribution, we would need to compute the following integral. 
-It is possible to compute this integral, and the answer is $a/b$ (6 in this case).
+It is possible to compute this integral, and the answer is $\frac{a}{b} (6 in this case).
 
 $$ 
-\mathbb{E}(\theta) = \int_0^\infty \theta f(\theta) d\theta = \int_0^\infty \theta \frac{b^a}{\Gamma(a)}\theta^{a-1}e^{-b\theta} d\theta = \frac{a}{b}
-$$
+\mathbb{E}[\theta] = \int_0^\infty \theta f(\theta) d\theta = \int_0^\infty \theta \frac{b^a}{\Gamma(a)}\theta^{a-1}e^{-b\theta} d\theta = \frac{a}{b}
+$$ {#eq-gamma-mean}
 
 However, we could verify this answer through Monte Carlo estimation.
 
-To do so, we would simulate a large number of draws (call them $\theta^∗_i$ for $i=1,...,m$ ) from this gamma distribution and calculate their sample mean.
+To do so, we would simulate a large number of draws (call them $\theta^∗_i \quad (i=1,\ldots ,m)$ ) from this gamma distribution and calculate their sample mean.
 
 Why can we do this?
 
-Recall from the previous course that if we have a random sample from a distribution, the average of those samples converges in probability to the true mean of that distribution by the **Law of Large Numbers.** 
-Furthermore, by the **Central Limit Theorem (CLT)**, this sample mean $\bar{\theta}^* = \frac{1}{m}\sum_{i=1}^m \theta_i^*$ approximately follows a normal distribution with mean $\mathbb{E}(\theta)$ and variance $Var(\theta)/m$ .
+Recall from the previous course that if we have a random sample from a distribution, the average of those samples converges in probability to the true mean of that distribution by the **[Law of Large Numbers](A07.qmd)**.
+
+Furthermore, by the **[Central Limit Theorem](A08.qmd)** (CLT), this sample mean $\bar{\theta}^* = \frac{1}{m}\sum_{i=1}^m \theta_i^*$ approximately follows a normal distribution with mean $\mathbb{E}[\theta]$ and variance $\mathbb{V}ar[\theta]/m$ .
 
 The theoretical variance of $\theta$ is the following integral:
 
 $$ 
-\text{Var}(\theta) = \int_0^\infty (\theta-\mathbb{E}(\theta))^2 f(\theta) d\theta
-$$
+\text{Var}[\theta] = \int_0^\infty (\theta-\mathbb{E}(\theta))^2 f(\theta) d\theta
+$$ {#eq-gamma-variance}
 
-Just like we did with the mean, we could approximate this variance with the sample variance $\frac{1}{m}\sum_{i=1}^m (\theta_i^* - \bar{\theta}^*)^2$.
+Just like we did with the mean, we could approximate this variance with the sample variance 
+
+$$
+\text{Var}[\theta^*] = \frac{1}{m}\sum_{i=1}^m (\theta_i^* - \bar{\theta}^*)^2
+$$ {#eq-gamma-sample-variance}
 
 ## Calculating probabilities
 
@@ -52,9 +74,11 @@ Say $h(\theta)$ is any function and we want to calculate
 
 $$
 \int h(\theta) p(\theta) d\theta = \mathbb{E}(h(\theta)) \approx \frac{1}{m}\sum_{i=1}^m h(\theta_i^*)
-$$
+$$ {#eq-monte-carlo-integration}
 
-**This integral is precisely what is meant by** $\mathbb{E}(h(\theta))$ , so we can conveniently approximate it by taking the sample mean of $h(\theta_i^*)$. 
+where $p(\theta)$ is the probability density function of $\theta$ and $h(\theta)$ is any function of $\theta$.
+
+**This integral is precisely what is meant by** $\mathbb{E}[h(\theta)]$ , so we can conveniently approximate it by taking the sample mean of $h(\theta_i^*)$. 
 That is, we apply the function h to each simulated sample from the distribution, and take the average of all the results.
 
 
@@ -69,10 +93,16 @@ What is $\mathbb{E}(h(\theta))$?
 This is the integral: 
 
 $$
-\mathbb{E}(h(\theta)) = \int_0^\infty \mathbb{I}_{[\theta<5]}(\theta) p(\theta) d\theta = \int_0^5 1 \cdot p(\theta) d\theta + \int_5^\infty 0 \cdot p(\theta) d\theta = P(\theta < 5)
-$$ 
+\begin{align*}
+\mathbb{E}[h(\theta)] &= \int_0^\infty \mathbb{I}_{[\theta<5]}(\theta) p(\theta) d\theta
+\\ &= \int_0^5 1 \cdot p(\theta) d\theta + \int_5^\infty 0 \cdot p(\theta) d\theta 
+\\ &= P(\theta < 5)
+\end{align*}
+$$ {#eq-gamma-prob}
 
-So what does this mean? It means we can approximate the probability that $\theta < 5$ by drawing many samples $\theta^∗_i$ , and approximating this integral with $\frac{1}{m} \sum_{i=1}^m I_{\theta^* < 5} (\theta_i^*)$. 
+So what does this mean? 
+
+It means we can approximate the probability that $\theta < 5$ by drawing many samples $\theta^∗_i$ , and approximating this integral with $\frac{1}{m} \sum_{i=1}^m I_{\theta^* < 5} (\theta_i^*)$. 
 This expression is simply counting how many of those samples come out to be less than 5 , and dividing by the total number of simulated samples. 
 
 That's convenient!
@@ -89,28 +119,39 @@ If we are looking for the value z such that $P(\theta < z) = 0.9$ , we simply ar
 Again we can turn to the CLT, which tells us that the variance of our estimate is controlled in part by $m$. For a better estimate, we want larger $m$.
 
 For example, if we seek $\mathbb{E}[\theta[$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}[\theta]$ and variance $Var[\theta]/m$ . 
+
 The variance tells us how far our estimate might be from the true value. 
+
 One way to approximate $Var[\theta]$ is to replace it with the sample variance. 
+
 The standard deviation of our Monte Carlo estimate is the square root of that, or the sample standard deviation divided by $\sqrt{m}$ . 
+
 If $m$ is large, it is reasonable to assume that the true value will likely be within about two standard deviations of your Monte Carlo estimate.
 
 ## Marginalization
 
 We can also obtain Monte Carlo samples from hierarchical models. 
-As a simple example, let's consider a binomial random variable where $y\mid\phi\sim Bin(10,\phi)$ and further suppose $phi$ is random (as if it had a prior) and is distributed beta $\phi \sim Beta(2,2)$ . 
-Given any hierarchical model, we can always write the joint distribution of y and $\phi$ as $p(y,\phi) = p(y\mid\phi)p(\phi)$ using the chain rule of probability. 
+
+As a simple example, let's consider a binomial random variable where $y\mid\phi\sim Bin(10,\phi)$ and further suppose $\phi$ is random (as if it had a prior) and is distributed beta $\phi \sim Beta(2,2)$ . 
+
+Given any hierarchical model, we can always write the joint distribution of y and $\phi$ as $p(y,\phi) = p(y \mid \phi)p(\phi)$ using the chain rule of probability. 
+
 To simulate from this joint distribution, repeat these steps for a large number $m$ :
 
 1.  Simulate $\phi^∗_i$ from its Beta(2,2) distribution.
 2.  Given the drawn $\phi^∗_i$ , simulate $y^∗_i$ from $Bin(10,\phi^*_i)$ .
 
 This will produce m independent pairs of $(y^∗,\phi^∗)_i$ drawn from their joint distribution. 
+
 One major advantage of Monte Carlo simulation is that marginalizing is easy. Calculating the marginal distribution of $y$ , $p(y)=\int^1_0 p(y,\phi)d\phi$, might be challenging. 
 But if we have draws from the joint distribution, we can just discard the $\phi^∗_i$ draws and use the $y^∗_i$ as samples from their marginal distribution. 
+
 This is also called the prior predictive distribution introduced in the previous course.
 
 In the next segment, we will demonstrate some of these principles. 
+
 Remember, we do not yet know how to sample from the complicated posterior distributions introduced in the previous lesson. 
+
 But once we learn that, we will be able to use the principles from this lesson to make approximate inferences from those posterior distributions.
 
 ## Computing Examples
@@ -122,6 +163,7 @@ This could represent the posterior distribution of $\theta$ if our data came fro
 Let's start with $m=100$ .
 
 ```{R}
+#| label: lst-init-mc-simulation
 set.seed(32) # Initializes the random number generator so we can replicate these results. To get different random numbers, change the seed. 
 m = 100 
 a = 2.0 
@@ -131,12 +173,15 @@ b = 1.0 / 3.0
 To simulate $m$ independent samples, use the `rgamma` function.
 
 ```{R}
+#| label: lst-simulate-gamma
 theta <- rgamma(n=m, shape = a, rate=b) 
 ```
 
 We can plot a histogram of the generated data, and compare that to the true density.
 
 ```{R}
+#| label: fig-plot-gamma
+#| fig-cap: Histogram of simulated gamma samples with true density
 hist(theta, freq=FALSE) 
 curve(dgamma(x=x, shape=a, rate=b), col="blue", add=TRUE)
 ```
@@ -144,20 +189,24 @@ curve(dgamma(x=x, shape=a, rate=b), col="blue", add=TRUE)
 To find our Monte Carlo approximation to $\mathbb{E}(\theta)$ , let's take the average of our sample (and compare it with the truth).
 
 ```{R}
+#| label: lst-mc-mean-calculation
 sum(theta) / m # sample mean 
 ```
 
 ```{R}
+#| label: lst-true-mean-function
 mean(theta) # sample mean 
 ```
 
 ```{R}
+#| label: lst-true-mean
 a / b # true expected value
 ```
 
 Not bad, but we can do better if we increase $m$ to say, 10,000.
 
 ```{R}
+#| label: lst-init-mc-simulation-big-sample
 m = 1e4 
 theta = rgamma(n=m, shape=a, rate=b) 
 mean(theta)
@@ -166,37 +215,43 @@ mean(theta)
 How about the variance of $\theta$ ?
 
 ```{R}
+#| label: lst-mc-variance-calculation-big-sample
 var(theta) # sample variance
 ```
 
 ```{R}
+#| label: lst-true-variance-function-big-sample
 a / b^2 # true variance of Gamma(a,b) 
 ```
 
 We can also approximate the probability that $\theta < 5$ .
 
 ```{R}
+#| label: lst-mc-probability-calculation
 ind = theta < 5.0 # set of indicators, TRUE if theta_i < 5 
 mean(ind)         # automatically converts FALSE/TRUE to 0/1 
 ```
 
 ```{R}
+#| label: lst-true-probability-function
 pgamma(q=5.0, shape=a, rate=b) # true value of Pr( theta < 5 )
 ```
 
 What is the 0.9 quantile (90th percentile) of $\theta$ ? We can use the `quantile` function which will order the samples for us and find the appropriate sample quantile.
 
 ```{R}
+#| label: lst-mc-simulated-quantile-calculation
 quantile(x=theta, probs=0.9) 
 ```
 
 ```{R}
+#| label: lst-true-quantile-function
 qgamma(p=0.9, shape=a, rate=b) # true value of 0.9 quantile
 ```
 
 ## Monte Carlo error
 
-We can use the CLT to approximate how accurate our Monte Carlo estimates are. For example, if we seek $E(\theta)$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}(\theta)$ and variance $Var(\theta)/m$. We will use the sample standard deviation divided by the square root of m to approximate the Monte Carlo standard deviation.
+We can use the [CLT](A08.qmd) to approximate how accurate our Monte Carlo estimates are. For example, if we seek $E(\theta)$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}(\theta)$ and variance $Var(\theta)/m$ . We will use the sample standard deviation divided by the square root of m to approximate the Monte Carlo standard deviation.
 
 ```{R}
 se = sd(theta) / sqrt(m) 
