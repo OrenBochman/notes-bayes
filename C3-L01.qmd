@@ -5,6 +5,7 @@ categories:
   - Bayesian Statistics
 keywords:
   - Mixture Models
+  - notes
 ---
 
 # Basic Definitions
@@ -109,7 +110,7 @@ $$ {#eq-exponential-mixture-density}
     -   Unimodal distributions @fig-Mixture-Gaussians-heavy-tail
     -   Bi-modal distribution c.f. @fig-Mixture-Gaussians-bimodal-R
     -   Multi-modal distributions.  
-    -   Heavy tailed distributions @fig-Mixture-Gaussians-heavy-tail
+    -   Heavy tailed distributions @fig-normal-heavy-tail-mixture-R
     -   Asymmetric distributions @fig-Mixture-Gaussians-skewed
     -   Zero inflated distribution @fig-Zero-inflated-log-Gaussian-R  @fig-Zero-inflated-negative-binomial-R
 
@@ -138,30 +139,33 @@ $$
 f(x) = \sum_k \omega_k {1\over \sqrt{2 \pi \sigma_k}}e^{-{1\over 2 \sigma_k}(x-\mu_k)^2} \qquad
 $$ {#eq-location-scale-mixture-normals-pdf}
 
-
 :::
 
-![Zero inflated distribution](images/c3l01-ss-03-mixtures.png){.column-margin}
+![Zero inflated Mixture distribution](images/c3l01-ss-03-mixtures.png){.column-margin}
 
-![](images/c3l01-ss-04-mixtures.png){.column-margin}
+![parametrization of the model](images/c3l01-ss-04-mixtures.png){.column-margin}
 
 The expectation of a mixture is straightforward to compute, as it is a weighted sum of the expectations of the components.
 
 ![expectation of a mixture](images/c3l01-ss-05-mixtures-expection.png){.column-margin}
+
+
+the  moment generating function of a mixture is also straightforward to compute, as it is a weighted sum of the moment generating functions of the components.
 
 ![mgf of a mixture](images/c3l01-ss-06-mixtures-mgf.png){.column-margin}
 
 The variance of a mixture is not as straightforward to compute, as it involves the second moment of the components and the square of the expectation. However there is a degenerate case where the variance of the mixture is equal to the weighted sum of the variances of the components.
 
 
-
 ![variance of a mixture](images/c3l01-ss-07-mixtures-variance.png){.column-margin}
 
-## Mixtures of Gaussians
+## Mixtures of Gaussians {#sec-mixture-gaussians}
+
+Here we will look at a few examples of mixtures of Gaussians which display different properties not available in a single Gaussian distribution.
 
 ### Example of a Bimodal mixture of Gaussians
 
-::: {.panel-tabset}
+::: {#exm-bimodal-mixture .panel-tabset}
 ## R
 
 ```{r}
@@ -171,6 +175,8 @@ The variance of a mixture is not as straightforward to compute, as it involves t
 # Mixture of univariate Gaussians, bimodal
 x = seq(-5, 12, length=100)
 y = 0.6*dnorm(x, 0, 1) + 0.4*dnorm(x, 5, 2)
+
+
 par(mar=c(4,4,1,1)+0.1)
 plot(x, y, type="l", ylab="Density", las=1, lwd=2)
 # set the title
@@ -211,22 +217,21 @@ plt.close()
 ```
 :::
 
-### Example of a Unimodal and skewed mixture of Gaussians
-
+### Example of a Uni-modal and skewed mixture of Gaussians
 
 $$
-f(x) = 0.55 \times N(0, 2) + 0.45 \times N(3, 4) \qquad
-$$ {#eq-unimodal-skewed-gaussian-mixture-pdf}
+f(x) = 0.55 \times \mathcal{N}(0, 2) + 0.45 \times \mathcal{N}(3, 4) \qquad
+$$ {#eq-uni-modal-skewed-gaussian-mixture-pdf}
 
 
-::: {.panel-tabset}
+::: {#exm-uni-modal-skewed-mixture .panel-tabset}
+
 ## R
 
 ```{r}
 #| label: fig-Mixture-Gaussians-skewed
-#| fig-cap: "Unimodal Skewed Mixture of Gaussians"
+#| fig-cap: "Uni-modal Skewed Mixture of Gaussians"
 
-# title: Mixture of univariate Gaussians, unimodal skewed
 x = seq(-5, 12, length=100)
 y = 0.55*dnorm(x, 0, sqrt(2)) + 0.45*dnorm(x, 3, 4)
 par(mar=c(4,4,1,1)+0.1)
@@ -237,7 +242,7 @@ plot(x, y, type="l", ylab="Density", las=1, lwd=2)
 
 ```{python}
 #| label: fig-Mixture-Gaussians-skewed-python
-#| fig-cap: "Unimodal Skewed Mixture of Gaussians"
+#| fig-cap: "Uni-modal Skewed Mixture of Gaussians"
 
 # Values to sample
 x = np.linspace(-5, 12.0, num = 100)
@@ -262,34 +267,36 @@ plt.title('Mixture of two Gaussians Skewed')
 plt.show()
 plt.close()
 ```
+
 :::
 
-### Example of a Unimodal, symmetric and heavy tailed mixture of Gaussians
+### Example of a Uni-modal, symmetric and heavy tailed mixture of Gaussians
 
 
 $$
-f(x) = 0.40 \times N(0, 2) + 0.40 \times N(0, 4) + 0.20 \times N(0, 5) \qquad
+f(x) = 0.40 \times \mathcal{N}(0, 2) + 0.40 \times \mathcal{N}(0, 4) + 0.20 \times \mathcal{N}(0, 5) \qquad
 $$ {#eq-unimodal-heavy-tailed-gaussian-mixture-pdf}
 
 
-::: {.panel-tabset}
+::: {#exm-heavy-tailed-mixture .panel-tabset}
+
 ## R
 
 ```{r}
-#| label: gen-Mixture-Gaussians-heavy-tail
+#| label: lst-gen-Mixture-Gaussians-heavy-tail
 
-# Mixture of univariate Gaussians, unimodal heavy tail
+# simulate Mixture of univariate Gaussians, unimodal heavy tail
 
 x = seq(-12, 12, length=100)
-y = 0.40*dnorm(x, 0, sqrt(2)) + 
-    0.40*dnorm(x, 0, sqrt(16)) + 
-    0.20*dnorm(x, 0, sqrt(20))
-z = dnorm(x, 0, sqrt(0.4*2+0.4*16+0.2*20))
+y = 0.40 * dnorm(x, 0, sqrt(2)) + 
+    0.40 * dnorm(x, 0, sqrt(16)) + 
+    0.20 * dnorm(x, 0, sqrt(20))
+z = dnorm(x, 0, sqrt(0.4*2 + 0.4*16 + 0.2*20))
 ```
 
 
 ```{r}
-#| label: fig-Mixture-Gaussians-heavy-tail
+#| label: fig-normal-heavy-tail-mixture-R
 #| fig-cap: "Unimodal Heavy Tailed Mixture of Gaussians"
 par(mar=c(4,4,1,1)+0.1)
 plot(x, y, type="l", ylab="Density", las=1, lwd=2)
@@ -300,7 +307,7 @@ legend(2, 0.16, c("Mixture","Gaussian"), lty=c(1,2), bty="n", cex=0.77, lwd=c(2,
 ## python
 
 ```{python}
-#| label: gen-Mixture-Gaussians-heavy-tail-python
+#| label: lst-sim-normal-heavy-tail-mix-python
 
 # Values to sample
 x = np.linspace(-12.0, 12.0, num = 100)
@@ -324,7 +331,7 @@ z = norm.pdf(loc = 0, scale = np.sqrt(0.4 * 2 + 0.4 * 16 + 0.2 * 20), x = x)
 ```
 
 ```{python}
-#| label: fig-Mixture-Gaussians-heavy-tail-python
+#| label: fig-normal-heavy-tail-mixture-python
 #| fig-cap: "Unimodal Heavy Tailed Mixture of Gaussians"
 
 # Plotting the mixture models
