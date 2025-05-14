@@ -10,19 +10,39 @@ keywords:
 
 ## HW - Simulation of Poisson mixture model
 
+
+::: {.callout-note}
+### Instructions
+
+- Modify the code above to sample 200 random numbers from a mixture of 3 Poisson distributions with means 1, 2 and 6 and weights 0.7, 0.2 and 0.1, respectively, 
+- generate a barplot with the empirical frequencies of all the integers included in the sample.
+:::
+
 ```{r}
 #| label: fig-poisson-mix
 # Generate n observations from a mixture of three poisson distributions
 set.seed(452)
 
-n = 200 # sample size
-w = c(0.7,0.2,0.1) # weights
-lambda = c(1,2,6) # lambda params (mean,variation)
-ac = sample(1:length(w),n, replace=T, prob=w) # smaple the active component
-x = rpois(n,lambda=lambda[ac]) # simulate an ac mixture component n time 
 
-#par(mar=c(4,4,1,1) + 0.1)
+# n     = 50
+n = 200                # sample size
+# w     = c(0.6, 0.4)  # Weights
+w = c(0.7,0.2,0.1)     # weights
+# mu    = c(0, 5)      # Means
+# sigma = c(1, 2)      # Standard deviations
+lambda = c(1,2,6)      # lambda params (mean,variation)
 
+
+
+#cc    = sample(1:2, n, replace=T, prob=w)
+ac     = sample(1:length(w),n, replace=T, prob=w) # sample the active component
+#x     = rnorm(n, mu[cc], sigma[cc])
+x      = rpois(n,lambda=lambda[ac])                # simulate an ac mixture component n time
+
+
+#First converting the vector x into a factor while ensuring that any integer between 0 and the maximum in the sample are valid factors avoids the issue of ignoring zero counts or x=0.
+
+#empfreq = table(factor(x, levels=seq(0, max(x))))/n
 empirical_feqs = table(factor(x, levels=seq(0, max(x)))) # tabulate samples into a counts
 empirical_dist = empirical_feqs /n # convert frequencies to probabilities
 ```
@@ -33,6 +53,7 @@ Plot the empirical distribution
 #| label: fig-poisson-mix-1
 #| fig-cap: "Empirical distribution for Poisson mixture"
 par(mar=c(4,4,1,1) + 0.1)
+#barplot(empfreq)
 barplot(empirical_dist,xlab="counts",ylab="probability",main="Empirical distribution for Poisson mixture")
 
 ```
