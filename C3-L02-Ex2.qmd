@@ -1,5 +1,5 @@
 ---
-title : 'Basic Concepts of Mixture Models'
+title : 'The EM algorithm for Mixture Models'
 subtitle : 'Bayesian Statistics: Mixture Models'
 categories:
   - Bayesian Statistics
@@ -8,30 +8,91 @@ keywords:
   - Homework Honors
 ---
 
-## HW+ - Sim mixture of exponential distributions
+## Infer parameter of mixture of exponential and long normal for lifetime of fuses
 
 
 ::: {.callout-note}
 ### Instructions
+
+Data on the lifetime (in years) of fuses produced by the ACME Corporation is available in the file fuses.csv:
+
+In order to characterize the distribution of the lifetimes, it seems reasonable to fit to the data a two-component mixture of the form:
+
+
+
 
 - Modify code to Generate n observations from a mixture of two Gaussian # distributions into code to sample 100 random numbers from a mixture of 4 exponential distributions with means 1, 4, 7 and 10 and weights 0.3, 0.25, 0.25 and 0.2, respectively. 
 - Use these sample to approximate the mean and variance of the mixture.
 
 :::
 
+
+
 ```{r}
-set.seed(238)                            # reproducibility
-n <- 100                                  # the sample size
-w <- c(0.3, 0.25, 0.25,  0.2)        # weights
-lambda <- c(1, 4, 7 , 10)                 # means
-rates <- 1 / lambda                       # inverses of the means
-ac <- sample (1:length(w), n, replace=T, prob =w) # smaple the active component
-x <- rexp(n,rate = rates[ac])            # sample from the exponential distribution
+#| label: lbl-load-data
+# Load the data
+fuses <- read.csv("data/fuses.csv",header=FALSE)
+x <- fuses$V1
+n <- length(x) # Number of observations
 ```
 
-next we use the samples to estimate the mean and variance of the mixture
+```{r}
+#| label: em_algorithm_loop
+KK = 2                             # Number of components
+w     = 0.05                        # Assign equal weight to each component to start with
+#mu = rnorm(1,mean(log(x)), sd(log(x)))
+mu = mean(log(x))
+tau = sd(log(x))
+lambda = 20 / mean(x)
+
+s  = 0              # s_tep counter
+sw = FALSE          # sw_itch to stop the algorithm
+QQ = -Inf           # the Q function (log-likelihood function)
+QQ.out = NULL       # the Q function values
+epsilon = 10^(-5)   # the stopping criterion for the algorithm
+
+trace <- data.frame(iter=0, w=w, lambda=lambda, mu=mu, tau=tau)
+
+while(!sw){ ##Checking convergence
+
+  ## E step
+  v = array(0, dim=c(n,KK))
+  for(i in 1:n){
+    v[i,1] = log(w)   + dexp(x[i], rate=lambda, log=TRUE)
+    v[i,2] = log(1-w) + dlnorm(x[i], mu, tau, log=TRUE)    
+    v[i,]  = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,]))) 
+  }
+
+  ## M step  
+  w      = mean(v[,1])  # Weights
+  lambda = sum(v[,1]) / sum(v[,1] * x)  # Lambda (rate)
+  mu     = sum(v[,2] * log(x)) / sum(v[,2]) # Mean
+  tau    = sqrt(sum(v[,2] * (log(x) - mu)^2) / sum(v[,2])) # Tau (standard deviation)
+  
+  # collect trace of parameters 
+  trace  =  rbind(trace, data.frame(iter=s, w=w, lambda=lambda, mu=mu, tau=tau))
+
+  ## Check convergence
+  QQn = 0
+  #vectorized version
+  log_lik_mat = v[,1]*(log(w)   + dexp(x, lambda, log=TRUE)) +
+                v[,2]*(log(1-w) + dlnorm(x, mu, tau, log=TRUE))
+  QQn = sum(log_lik_mat)
+  if(abs(QQn-QQ)/abs(QQn)<epsilon){
+    sw=TRUE
+  }
+  QQ = QQn
+  QQ.out = c(QQ.out, QQ)
+  s = s + 1
+  print(paste(s, QQn))
+}
+
+```
+
+next report the MLE parameters of the model.
 
 ```{r}
-(sample_mean=mean(x))
-(sample_variance=var(x))
+#| label: lbl-mle-estimates
+# Report the MLE parameters
+cat("w =", round(w, 2), "lambda =", round(lambda, 2), "mu =", round(mu, 2),"tau =", round(tau, 2))
 ```
