@@ -15,12 +15,12 @@ In the lessons we mentioned that Zero-Inflated Poisson (ZIP) models arises natur
 ::: {.callout-note}
 ### Instructions
 
-- A biologist is interest in characterizing the number of eggs laid by a particular bird species.  To do this, they sample  
-n=300n, nests on a site in Southern California.  The observations are contained in the attached file data/nestsize.csv:
+- A biologist is interest in characterizing the number of eggs laid by a particular bird species. To do this, they sample  
+n=300n, nests on a site in Southern California.  The observations are contained in the attached file `data/nestsize.csv`
 
-- generate a barplot with the empirical frequencies of all the integers included in the sample.
+- Generate a barplot with the empirical frequencies of all the integers included in the sample.
 
-As you can see, the Poisson distribution underestimates the number of empty nests in the data, and overestimates the number of nests with either 1 or 2 eggs.  To address this, you are asked to modify the implementation of the EM algorithm contained in the Reading "Sample code for EM example 1" so that you can fit a mixture between a point mass at zero and a Poisson distribution (we call this a "zero-inflated Poisson" distribution):
+As you can see, the Poisson distribution underestimates the number of empty nests in the data, and overestimates the number of nests with either 1 or 2 eggs. To address this, you are asked to modify the implementation of the EM algorithm contained in the Reading "Sample code for EM example 1" so that you can fit a mixture between a point mass at zero and a Poisson distribution (we call this a "Zero-Inflated Poisson" distribution)
 
 $$
 f(x) = w \delta_0(x) + (1-w) \frac{e^{-\lambda} \lambda^x}{x!}, \quad x \in \{0, 1, 2, \ldots\}
@@ -40,7 +40,7 @@ The code you generate should follow the same structure as "Sample code for EM ex
 
 1. you provided a reasonable initial point for you algorithm,
 2. the observation-specific weights $v_i,k$ are computed correctly (E step),
-3. the formulas for the maximum of the Q functions are correct (M step),
+3. the formulas for the maximum of the $Q$ functions are correct (M step),
 4. the converge check is correct, and
 5. the numerical values that you obtain are correct.  
 
@@ -82,12 +82,9 @@ hist(x, breaks=seq(0, max(x), by=1), freq=FALSE, xlab="Number of eggs", ylab="De
 
 ```{r}
 #| label: lbl-zip-mix-1
-#| warnings: true
-#| errors: false
 
 # MCMC algorithm for fitting a ZIP
 # The actual MCMC algorithm starts here
-
 
 ## MCMC iterations of the sampler
 
@@ -101,13 +98,17 @@ cc[x != 0] = 2
 
 ## Priors
 aa     = c(1, 1)        # Uniform prior on w
+alpha = 1
+beta = 1
 lambda = mean(x[x > 0]) # Initial lambda from nonzero data
-w      = 0.2            # fewer zeros
+#lambda = mean(x) # Initial lambda from all data
+w      = 0.5            # fewer zeros
 
 # Storing the samples
-w.out      = rep(0, iterations)
+w.out      = numeric(iterations)
 cc.out     = array(0, dim=c(iterations, n))
-lambda.out = array(0, dim=c(iterations, n))
+lambda.out = numeric(iterations)
+
 
 #logpost    = rep(0, iterations)
 
@@ -133,7 +134,9 @@ for (s in 1:iterations) {
   # Sample the weights
   # Full conditional for w
   w = rbeta(1, 1+sum(cc==1), 1+n-sum(cc==1))  
-  lambda = rgamma(1, sum(x[cc==2]) + 1, sum(cc==2) + 1)
+  lambda = rgamma(1, shape= sum(x[cc==2]) + 1, rate= sum(cc==2) + 1)
+  #lambda = rgamma(1, shape = 1 + sum(x[cc == 2]), rate = 1 + sum(cc == 2))
+
   # Store samples
   w.out[s] =  w
   lambda.out[s]  = lambda
@@ -143,17 +146,14 @@ for (s in 1:iterations) {
 
 
 ```{r}
-#| label: lbl-mle-estimates
+#| label: lbl-posterior-means
 
-# w
-# lambda
 
 # Posterior summaries
-
 w.post = w.out[-(1:burn)]
 lambda.post = lambda.out[-(1:burn)]
-cc.post = cc.out[-(1:burn),]
 
-cat("Posterior mean of w:", mean(w.post), "\n")
-cat("Posterior mean of lambda:", mean(lambda.post), "\n")
+cat("Posterior mean of w:", round(mean(w.post),2), "\n")
+cat("Posterior mean of lambda:", round(mean(lambda.post),2),"\n")
+
 ```

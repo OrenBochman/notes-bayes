@@ -148,6 +148,9 @@ for(s in 1:rrr){
   w.out[s]     = w
   mu.out[s,]   = mu
   sigma.out[s] = sigma
+
+
+  # Compute the log posterior
   for(i in 1:n){
     if(cc[i]==1){
       logpost[s] = logpost[s] + log(w) + dnorm(x[i], mu[1], sigma, log=TRUE)
@@ -155,11 +158,15 @@ for(s in 1:rrr){
       logpost[s] = logpost[s] + log(1-w) + dnorm(x[i], mu[2], sigma, log=TRUE)
     }
   }
+
   logpost[s] = logpost[s] + dbeta(w, aa[1], aa[2],log = T)
   for(k in 1:KK){
     logpost[s] = logpost[s] + dnorm(mu[k], eta, tau, log = T)
   }
+
   logpost[s] = logpost[s] + log(dinvgamma(sigma^2, dd, 1/qq))
+  
+  # print s every 500 iterations
   if(s/500==floor(s/500)){
     print(paste("s =",s))
   }
@@ -176,9 +183,13 @@ for(s in 1:(rrr-burn)){
   density.posterior[s,] = density.posterior[s,] + w.out[s+burn]*dnorm(xx,mu.out[s+burn,1],sigma.out[s+burn]) +
                                                   (1-w.out[s+burn])*dnorm(xx,mu.out[s+burn,2],sigma.out[s+burn])
 }
+
+## report the posterior mean and 95% credible interval
 density.posterior.m = apply(density.posterior , 2, mean)
 density.posterior.lq = apply(density.posterior, 2, quantile, 0.025)
 density.posterior.uq = apply(density.posterior, 2, quantile, 0.975)
+
+## Plot the posterior density estimate
 par(mfrow=c(1,1))
 par(mar=c(4,4,1,1)+0.1)
 plot(xx, density.posterior.m, type="n",ylim=c(0,max(density.posterior.uq)), xlab="x", ylab="Density")
