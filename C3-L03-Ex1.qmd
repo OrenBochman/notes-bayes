@@ -1,5 +1,5 @@
 ---
-title : 'The EM algorithm for Zero-Inflated Mixtures'
+title : 'The MCMC algorithm for Zero-Inflated Mixtures'
 subtitle : 'Bayesian Statistics: Mixture Models'
 categories:
   - Bayesian Statistics
@@ -61,6 +61,7 @@ keep these two circumstances in mind when working on your answer.
 # Load the nest size data
 
 rm(list=ls())
+library(MCMCpack)
 set.seed(81196)    # So that results are reproducible (same simulated data every time)
 
 nestsize <- read.csv("data/nestsize.csv",header=FALSE)
@@ -84,65 +85,59 @@ hist(x, breaks=seq(0, max(x), by=1), freq=FALSE, xlab="Number of eggs", ylab="De
 #| warnings: true
 #| errors: false
 
-# EM algorithm for fitting a ZIP
+# MCMC algorithm for fitting a ZIP
+# The actual MCMC algorithm starts here
 
-## Run the actual EM algorithm
+
+## MCMC iterations of the sampler
+
+iterations <- 6000
+burn       <- 1000
+
 ## Initialize the parameters
-KK         = 2                     # Number of components
-w     = 1/2                        # equal weights                     #Initial standard deviation
+cc         = rep(2, n)
+cc[x == 0] = sample(1:2, sum(x == 0), replace = TRUE, prob = c(0.5, 0.5))
+cc[x != 0] = 2
 
-lambda = mean(x) # initial guess for the mean
+## Priors
+aa     = c(1, 1)        # Uniform prior on w
+lambda = mean(x[x > 0]) # Initial lambda from nonzero data
+w      = 0.2            # fewer zeros
 
-s  = 0
-sw = FALSE
-QQ = -Inf
-QQ.out = NULL
-epsilon = 10^(-5)
+# Storing the samples
+w.out      = rep(0, iterations)
+cc.out     = array(0, dim=c(iterations, n))
+lambda.out = array(0, dim=c(iterations, n))
 
-while(!sw){ ## run until convergence switch becomes TRUE
-  ## E step
-  v = array(0, dim=c(n,KK))
+#logpost    = rep(0, iterations)
+
+# MCMC iterations
+
+for (s in 1:iterations) {
+  # Sample latent indicators c_i
+  cc = numeric(n)
+  # Full conditional for cc
   for(i in 1:n){
-    if (x[i] == 0){
-      # if the observation is zero it may be due to either component so we assign each a value based on the weights * pdf
-      v[i,1] = w * 1 # delta is 1 at zero
-      v[i,2] = (1-w) * dpois(x[i], lambda) # the weight for the second component
-      v[i,] = v[i,]/sum(v[i,]) # normalize 
-    } else {
-      v[i,1] = 0
-      v[i,2] = 1
-      # normalized
-    }
-  }
-  
-  ## M step
-  # Weights
-  w = mean(v[,1]) 
-  # parameters
-  lambda = sum(x)/sum(v[,2]) # normalize
-  
-  ##Check convergence
-  ## QQn is the new value of the Q function
-  ## QQ is the old value of the Q function
-  QQn = 0
-  for(i in 1:n){
-    if(x[i] == 0){
-      # log is used to avoid numerical underflow
-      QQn = QQn + v[i,1]*log(w) + v[i,2]*(log(1-w) + dpois(x[i], lambda, log=TRUE))
+    v = rep(0,2)
+    if(x[i]==0){
+      v[1] = log(w)
+      v[2] = log(1-w) + dpois(x[i], lambda, log=TRUE)
+      v    = exp(v - max(v))/sum(exp(v - max(v)))
     }else{
-      QQn = QQn + v[i,2]*(log(1-w) + dpois(x[i], lambda, log=TRUE))
+      v[1] = 0
+      v[2] = 1
     }
+    cc[i] = sample(1:2, 1, replace=TRUE, prob=v)
   }
-  if(abs(QQn-QQ)/abs(QQn)<epsilon){
-    sw=TRUE
-  }
-  QQ = QQn
-
-  QQ.out = c(QQ.out, QQ)
-  s = s + 1
-  print(paste(s, QQn))
-  
-
+ 
+  # Sample the weights
+  # Full conditional for w
+  w = rbeta(1, 1+sum(cc==1), 1+n-sum(cc==1))  
+  lambda = rgamma(1, sum(x[cc==2]) + 1, sum(cc==2) + 1)
+  # Store samples
+  w.out[s] =  w
+  lambda.out[s]  = lambda
+  cc.out[s,] = cc
 }
 ```
 
@@ -153,6 +148,12 @@ while(!sw){ ## run until convergence switch becomes TRUE
 # w
 # lambda
 
-cat("w = ", round(w, 2), "\n")
-cat("lambda = ", round(lambda, 2), "\n")
+# Posterior summaries
+
+w.post = w.out[-(1:burn)]
+lambda.post = lambda.out[-(1:burn)]
+cc.post = cc.out[-(1:burn),]
+
+cat("Posterior mean of w:", mean(w.post), "\n")
+cat("Posterior mean of lambda:", mean(lambda.post), "\n")
 ```

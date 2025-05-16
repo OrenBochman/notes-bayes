@@ -9,6 +9,12 @@ keywords:
   - notes
 ---
 
+::: .callout-note
+### TODO
+- [ ] In the EM algorithm generate animation from the outputs of the algorithm steps + prior & posterior
+- [ ] Add example for carb data
+
+
 # The EM algorithm for Mixture Models
 
 Maximum likelihood estimation is the most common approach to estimate the parameters of statistical models. However, attempting to obtain maximum likelihood estimates (MLEs) $\hat{\omega}$ and $\hat{\theta}$ by directly maximizing the observed-data likelihood
@@ -26,15 +32,15 @@ It worthwhile mentioning that MLE is more of a frequentist approach, as it provi
 
 ## EM algorithms for Mixture Models
 
-![](images/c3l2-ss-01-em-for-general-mixtures.png){.column-margin}
+![EM - Challenge](images/c3l2-ss-01-em-for-general-mixtures.png){.column-margin}
 
-![](images/c3l2-ss-02-em-for-general-mixtures.png){.column-margin}
+![EM - Steps](images/c3l2-ss-02-em-for-general-mixtures.png){.column-margin}
 
-![](images/c3l2-ss-03-em-for-general-mixtures.png){.column-margin}
+![EM - Deep Dive](images/c3l2-ss-03-em-for-general-mixtures.png){.column-margin}
 
 EM algorithm comes up a lot in NLP and other fields so it is worthwhile to understand it the way we will do so in the course.
 
-It also important that the EM algorithm we use for mixture models is from the 1970s and is not the same as the general EM algorithm.
+It also important that the EM algorithm we use for mixture models is from the 1970s and is not the same as the general EM algorithm. c.f. [@dempster1977maximum]
 
 The EM algorithm is iterative and consists of two steps: the E-step and the M-step. The E-step computes the expected value of the complete-data log-likelihood given the observed data and the current parameter estimates, while the M-step maximizes this expected log-likelihood with respect to the parameters. However before we start these steps we need to set initial values for the parameters.
 
@@ -80,29 +86,51 @@ where the value of $v_{ik}$ is interpreted as the probability that the $i$-th ob
 
 ![the derivative of Q wrt to sigma](images/c3l2-ss-07-em-for-location-mixtures-of-gaussians.png){.column-margin}
 
-## EM example 1
+## EM example 1 {#sec-em-example-1}
+
+This video covers the code sample given in @lst-em-example-1 below. It is a simple implementation of the EM algorithm for fitting a 2-component Gaussian location mixture model to simulated data.
+
+- This code sample is both cool and awkward. 
+  - It is cool because it provides a step-by-step implementation of the EM algorithm, which is a fundamental concept in statistics and machine learning.
+  - It is not broken in to functions lacks useful variables naming which would reduce the amounts of comments and cognitive load.  
+  - However it does provide nice visualizations of the EM algorithm in action - particularly if run inside of RStudio IDE (as shown in the video).
+  - would be interesting to make the number of components be drawn from a distribution rather than fixed at 2, then run the EM algorithm for multiple draws and pick the one with the best fit.
+  - Later on we learn about using BIC to select the number of components in a mixture model, which is a more principled approach than simply fixing the number of components at 2. However it stills seems that the number of components might be a RV even if it's prior would be centred at the BIC estimate.
+
+## Sample code for EM example 1 {#sec-em-code-example-1}
+
 
 ```{r}
 #| label: lst-em-example-1
 
-#### Example of an EM algorithm for fitting a location mixture of 2 Gaussian components
+#### The EM alg for fitting a 2 component Gaussian location mixture
+
 #### The algorithm is tested using simulated data
 
 ## Clear the environment and load required libraries
 rm(list=ls())
 set.seed(81196)    # So that results are reproducible (same simulated data every time)
 
-## Generate data from a mixture with 2 components
-KK         = 2
-w.true     = 0.6  # True weights associated with the components
-mu.true    = rep(0, KK)
-mu.true[1] = 0   # True mean for the first component
-mu.true[2] = 5   # True mean for the second component
-sigma.true = 1   # True standard deviation of all components
-n  = 120         # Number of observations to be generated
+
+## Step 0 - Generate data from a mixture with 2 components:
+
+## Ground Truth parameters initialization
+KK         = 2          # Number of components of the mixture
+w.true     = 0.6        # GT True weights associated with the components
+mu.true    = rep(0, KK) # initialize the true means list
+mu.true[1] = 0   # GT mean for the first component
+mu.true[2] = 5   # GT mean for the second component
+sigma.true = 1   # GT standard deviation of all components
+
+n  = 120         # Number of synthetic samples to generate
+
+# simulate the latent variables for the component indicator function
 cc = sample(1:KK, n, replace=T, prob=c(w.true,1-w.true))
-x  = rep(0, n)
-for(i in 1:n){
+x  = rep(0, n)   # initialize the data vector x (or load data)
+
+for(i in 1:n){ # for each observation
+  # sample from a distribution with mean selected by component indicator
+  # the SD is the same for all components as this is a location mixture
   x[i] = rnorm(1, mu.true[cc[i]], sigma.true)
 }
 
@@ -205,13 +233,15 @@ points(x, rep(0,n), col=cc)
 legend(6,0.22,c("Truth","Estimate"),col=c("black","red"), lty=c(1,2), bty="n")
 ```
 
-## Sample code for EM example 1
-
 
 ## EM example 2
 
 
 ## Sample code for EM example 2
+
+
+
+This variant differs from the code sample above in that it uses the `mvtnorm` package to generate **multivariate normal distributions**. It also uses the `ellipse` package to plot the ellipses around the means of the components.
 
 ```{r}
 #| label: lst-em-example-2
