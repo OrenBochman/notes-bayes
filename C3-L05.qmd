@@ -335,14 +335,40 @@ QQn
 
 ## Determining the number of components
 
-### Bayesian Information Criteria (BIC)
+So far we considered the number of components in the mixture model as a known and fixed parameter. However, in practice, the number of components is often unknown and needs to be estimated from the data. We will cover two approaches to estimate the number of components in a mixture model:
 
+1. **Bayesian Information Criteria (BIC)**: A model selection criterion that penalizes the likelihood of the model based on the number of parameters.
+2. **Bayesian approach**: A probabilistic approach that estimates the number of components based on the posterior distribution of the model parameters.
+
+### Bayesian Information Criteria (BIC)
 
 ![BIC](images/c3l5-ss-03-BIC.png){.column-margin}
 
 ![BIC](images/c3l5-ss-04-BIC.png){.column-margin}
 
-### HW Bayesian Information Criteria (BIC) 
+We can consider the choice of the number of components in a mixture model as a model selection problem. In this context, we have a collection of J models, each with a different number of components. The goal is to select the model that best fits with the evidence/data while avoiding overfitting.
+
+A common approach to model selection that is useful for mixture models is the Bayesian Information Criteria (BIC). Given a collection of J models to be compared, the BIC for model j is given by the formula:
+$$
+BIC_k = - 2\log L_j(\hat{\eta}) - r_k \log (n) \qquad
+$$ {#eq-bayesian-information-criteria}
+
+where $L_j$ is the likelihood of the model, $\hat{\eta}$ is the maximum likelihood estimate of the parameters, $r_j$ is the number of effective (independent) parameters in model j, and n is the number of observations. The model with the lowest BIC value is considered the best model.
+
+We can interpret the first term in [@eq-bayesian-information-criteria] as a measure of the goodness of fit of the model, while the second term penalizes the model for its complexity. The BIC is a trade-off between the goodness of fit and the complexity of the model.
+
+In the case of mixture models, j corresponds to the number of components K in the model. and $\eta_k$ corresponds to the parameters of the model, which include the weights and parameters of the of the component distributions i.e. $\eta_k = (w_1,\ldots,w_k, \theta_1, \ldots \theta_K)$ . The number of effective parameters in a mixture model with K components is given by:
+$$
+L_k(\hat{w}_1,...\hat{w}_K, \hat{\theta}_1,...,\hat{\theta_K}) = \prod_{i=1}^n \sum_{k=1}^K \hat{w}_k g(x_i|\hat{\theta}_k)
+$$
+
+furthermore, the number of effective parameters is given by:
+
+$$
+r_k = K - 1 + \sum_{k=1}^K \dim(\theta_k)
+$$
+
+### HW Bayesian Information Criteria (BIC)
 
 ### Bayesian Information Criteria Example
 
@@ -427,7 +453,9 @@ for(KK in 2:KKmax){
     KL = KLn
     KL.out = c(KL.out, KL)
     s = s + 1
-    print(paste(s, KLn))
+    if(s/20==floor(s/20)){      
+      print(paste(s, KLn))
+    }
   }
   
   w.sum[[KK-1]]  = w
@@ -504,21 +532,133 @@ abline(v=6, lty=3)
 
 ### Estimating the number of components in Bayesian settings
 
+The BIC has the term Bayesian in its name, but it is not a Bayesian method. It is a frequentist method that uses the likelihood of the model and the number of parameters to estimate the number of components. In contrast, Bayesian methods use the posterior distribution of the model parameters to estimate the number of components.
 
+So what we want is to have a posterior estimate of the number of components. We can do this by using a Dirichlet process prior on the weights of the mixture model. The Dirichlet process is a nonparametric prior that allows for an infinite number of components, but only a finite number of them will be used in the posterior distribution.
+
+
+### Bayesian Information Criteria (BIC) for Mixture Models
 ![Estimating the number of components](images/c3l5-ss-05-estimating-number-of-components.png){.column-margin}
 
 ![Estimating the number of components](images/c3l5-ss-06-estimating-number-of-components.png){.column-margin}
 
+- K= maximum number of components
+- K* = number of components that really generated the model
 
-### Bayesian Information Criteria (BIC) for Mixture Models
+$$
+K<<K*$
+$$
+
+so far we used 
+
+$$
+\tilde{w} \sim Dir(1, \ldots ,1) = U(0,1)
+$$ {#eq-dirichlet-prior-uniform}
+
+but this won't work because the number of weights in the prior increases with K and has increasing influence on the posterior.  We need to use a prior that reduces the influence on the posterior as K increase like:
+$$
+\tilde{w} \sim Dir(\alpha/K, \ldots, \alpha/K)
+$$  {#eq-dirichlet-prior-diminishing-influence}
+
+where $\alpha$ is a hyperparameter that controls the strength of the prior. The larger the value of $\alpha$, the more influence the prior has on the posterior distribution.
+
+if $(w_1,…,w_K)∼Dir(α/K,…,α/K)$, then the expected number of occupied components is given by:
+
+$$
+\begin{align*}
+\lim_{K \to \infty} \mathbb{E}[K^*] &= \sum_{i=0}^n \frac{\alpha}{\alpha+i-1}
+\\ & \approx \int_0^1 \frac{\alpha}{\alpha +x-1} dx \qquad \text{(Riemann sum approximation)}
+\\ & = \alpha \log\left(\frac{n+\alpha-1}{\alpha}\right) 
+\end{align*} \qquad
+$$ {#eq-expected-number-of-occupied-components-derivation}
+
+$$
+\mathbb{E}[K^*] \approx \alpha \log\left(\frac{n+\alpha-1}{\alpha}\right)
+$$ {#eq-approx-expected-number-of-occupied-components}
+
+leaving us with just a single parameter $\alpha$ to tune.  This is a very useful result because it allows us to estimate the number of components in a mixture model without having to specify the number of components in advance.
+
 
 ### HW - Estimating the number of components in Bayesian settings
 
-### Estimating the full partition structure in Bayesian settings
+::: {#exr-1}
+Let $K^*$ be the prior expected number of occupied components in a mixture model with $K$ components where the weights are given a Dirichlet prior $(w_1,…,w_K)∼Dir(2/K,…,2/K)$.  If you have $n=400$ observations, what is the expected number of occupied components, $E(K^*)$ according to the **exact** formula we discussed in the lecture?  Round your answer to one decimal place.
+:::
 
-### DP - Simplifying Binder's expected loss function
+::: {#exr-1-sol}
+To compute the expected number of occupied components, we can use the formula:
 
-### Example: Bayesian inference for the partition structure
+$$
+E(K^*) = \sum_{i=0}^n \frac{\alpha}{\alpha+i-1}
+$$
+Thus, the expected number of occupied components is given by:
+
+
+```{r}
+#| label: exr-1-sol
+
+E.Kstar = 0
+for (i in 1:400){
+  E.Kstar = E.Kstar +  2/(2+i-1)
+}
+round(E.Kstar,1)
+
+```
+:::
+
+
+::: {#exr-2}
+
+Consider the same setup as the previous question, what is the expected number of occupied components, $E(K^*)$ according to the exact formula we discussed in the lecture if $n=100$ instead?  Round your answer to one decimal place.
+
+:::
+
+::: {#exr-2-sol}
+
+```{r}
+#| label: exr-2-sol
+
+E.Kstar = 0
+for (i in 1:100){
+  E.Kstar = E.Kstar +  2/(2+i-1)
+}
+round(E.Kstar,1)
+
+```
+:::
+
+::: {#exr-3}
+What would be the answer to the previous question if you used the approximate formula instead of the exact formula? Remember to round your answer to one decimal place.
+
+:::
+
+::: {#exr-3-sol}
+```{r}
+#| label: exr-3-sol
+
+alpha = 2
+n = 100
+Kstar = alpha*log((n+alpha-1)/alpha)
+round( Kstar,1)
+```
+
+:::
+
+::: {#exr-4}
+
+If you have $n=200$ observations and a priori expect the mixture will have about 2 occupied components (i.e., $E(K^*) \approx 2$), what value of $\alpha$ should you use for the prior $(w_1,…,w_K)∼Dir(\alpha/K,…,\alpha/K)$?  Use the approximation $E(K^*) \approx \alpha \log\left(\frac{n+\alpha-1}{\alpha}\right)$ to provide an answer, which should be rounded to two decimal places.
+:::
+
+:::: {#exr-4-sol}
+
+```{r}
+ff = function(alpha)  alpha*log((200+alpha-1)/alpha) - 2
+alph = uniroot(ff, c(0.01, 20))
+round(alph$root, 2)  # 0.31
+
+```
+
+:::
 
 ### Sample code for estimating the number of components and the partition structure in Bayesian models
 
