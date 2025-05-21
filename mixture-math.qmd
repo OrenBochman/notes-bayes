@@ -1,0 +1,393 @@
+---
+title : "Mixture Models"
+---
+
+
+## 1. Basic Concepts:
+
+## 1.1 Definition of a finite mixture model
+
+1. Mixture Model (CDF):
+
+$$
+F(x) = \sum_{k=1}^K \omega_k G_k(x)
+$$ {#eq-mixture-cdf}
+
+where $G_k(x)$ is the CDF of the $k$-th component distribution and $\omega_k$ is the weight for the $k$-th component.
+
+2. Mixture Model (PDF/PMF):
+
+$$
+f(x) = \sum_{k=1}^K \omega_k g_k(x)
+$$ {#eq-mixture-pdf}
+
+where $g_k(x)$ is the PDF/PMF of the $k$-th component distribution and $\omega_k$ is the weight for the $k$-th component.
+
+3. Example: Exponential Mixture CDF:
+
+$$
+F(x) = \omega_1 \left(1 - \exp\left\{\frac{x}{\theta_1}\right\}\right)
+     + \omega_2 \left(1 - \exp\left\{\frac{x}{\theta_2}\right\}\right)
+     + \omega_3 \left(1 - \exp\left\{\frac{x}{\theta_3}\right\}\right)
+$$ {#eq-exponential-mixture-cdf}
+
+4. Example: Exponential Mixture PDF:
+
+$$
+f(x) = \frac{\omega_1}{\theta_1} \exp\left\{\frac{x}{\theta_1}\right\}
+    + \frac{\omega_2}{\theta_2} \exp\left\{\frac{x}{\theta_2}\right\}
+    + \frac{\omega_3}{\theta_3} \exp\left\{\frac{x}{\theta_3}\right\}
+$$ {#eq-exponential-mixture-pdf}
+
+5. Gamma Mixture PDF:
+
+$$
+f(x) =
+\begin{cases}
+    \omega \frac{x^{\nu_1-1}}{\Gamma(\nu_1)\lambda_1^{\nu_1}}\ \exp \left\{\frac{x}{\lambda_1}\right\}
+    + (1-\omega) \frac{x^{\nu_2-1}}{\Gamma(\nu_2)\lambda_2^{\nu_2}}\ \exp \left\{\frac{x}{\lambda_2}\right\} & x > 0 \\
+    0 & \text{otherwise}
+\end{cases}
+$$ {#eq-gamma-mixture-pdf}
+
+6. Mean and Variance of a Mixture:
+
+$$
+\mathbb{E}_F(X) = \sum_{k=1}^K \omega_k \mathbb{E}_{G_k}[X]
+$$ {#eq-mixture-mean}
+
+$$
+\begin{align*}
+\operatorname{Var}_F(X) & = \mathbb{E}_F(X^2) - \{\mathbb{E}_F(X)\}^2 \\
+& = \sum_{k=1}^K \omega_k \left\{ \mathbb{E}_{G_k}(X^2) \right\} - \left\{ \sum_{k=1}^K \omega_k \mathbb{E}_{G_k}(X) \right\}^2 \\
+& = \sum_{k=1}^K \omega_k \left\{ \operatorname{Var}_{G_k}(X) + [\mathbb{E}_{G_k}(X)]^2 \right\} - \left\{ \sum_{k=1}^K \omega_k \mathbb{E}_{G_k}(X) \right\}^2
+\end{align*}
+$$ {#eq-mixture-variance}
+
+7. Special Case (Component means zero):
+
+
+$$
+\operatorname{Var}_F(X) = \sum_{k=1}^K \omega_k \operatorname{Var}_{G_k}(X)
+$$ {#eq-mixture-variance-zero-mean}
+
+### Why finite mixture models?
+
+Finite mixtures of distributions within a single family provide a lot of flexibility. For example, a mixture of Gaussian distributions can have a bimodal density.
+
+8. Example: Bimodal Mixture:
+
+$$
+f(x) = 0.6 \frac{1}{\sqrt{2\pi}} \exp\left\{ -\frac{1}{2}x^2 \right\} 
+     + 0.4 \frac{1}{\sqrt{2\pi}\sqrt{2}} \exp\left\{ -\frac{1}{2}\frac{(x-5)^2}{4} \right\}
+$$ {#eq-bimodal-mixture}
+
+9. Example: Skewed Unimodal Mixture:
+
+$$
+f(x) = 0.55 \frac{1}{\sqrt{2\pi}\sqrt{2}} \exp\left\{ -\frac{1}{2} \frac{x^2}{2} \right\}
+    + 0.45 \frac{1}{\sqrt{2\pi} 2} \exp\left\{ -\frac{1}{2}\left(\frac{x-3}{2}\right)^2 \right\}
+$$ {#eq-skewed-unimodal-mixture}
+
+10. Example: Symmetric Heavy-tailed Mixture:
+
+$$
+f(x) = 0.4 \frac{1}{\sqrt{2\pi}\sqrt{2}} \exp\left\{ -\frac{1}{2} \frac{x^2}{2} \right\}
+    + 0.4 \frac{1}{\sqrt{2\pi} 4} \exp\left\{ -\frac{1}{2} \frac{x^2}{16} \right\}
+    + 0.2 \frac{1}{\sqrt{2\pi} \sqrt{20}} \exp\left\{ -\frac{1}{2} \frac{x^2}{20} \right\}
+$$ {#eq-symmetric-heavy-tailed-mixture}
+
+11. Zero-inflated Negative Binomial PMF:
+
+$$
+p(x) = 
+\begin{cases}
+    \omega_1 + (1-\omega_1)\theta^r & x=0 \\
+    (1-\omega_1) \binom{x+r-1}{x} \theta^r (1-\theta)^x & x>1
+\end{cases}
+$$ {#eq-zero-inflated-negative-binomial-pmf}
+
+12. Regular Negative Binomial PMF:
+
+$$
+p^*(x) = \binom{x+r-1}{x} \theta^r (1-\theta)^x
+$$ {#eq-regular-negative-binomial-pmf}
+
+13. Zero-inflated Log-Gaussian PDF:
+
+$$
+f(x) = 
+\begin{cases}
+    \omega_1 \delta_0(x) + (1-\omega_1)\frac{1}{\sqrt{2\pi}\sigma x}\exp\left\{ -\frac{(\ln x - \mu)^2}{2\sigma^2} \right\} & x > 0 \\
+    0 & \text{otherwise}
+\end{cases}
+$$ {#eq-zero-inflated-log-gaussian-pdf}
+
+where $\delta_0(x)$ is the Dirac delta function at $x=0$.
+
+### hierarchical representation of finite mixtures
+
+14. Mixture Model (Hierarchical):
+
+$$
+X \mid c \sim G_c, \quad P(c = k) = \omega_k
+$$ {#eq-hierarchical-mixture}
+
+where $G_c$ is the distribution of the $k$-th component and $\omega_k$ is the weight for the $k$-th component.
+
+### The likelihood function for mixture models
+
+15. Observed-data Likelihood for a mixture Model
+
+$$
+L_O(\theta, \omega; x) \propto p(x \mid \theta, \omega) = \prod_{i=1}^n \sum_{k=1}^K \omega_k g_k(x_i \mid \theta_k)
+$$ {#eq-observed-data-likelihood}
+
+where $g_k(x_i \mid \theta_k)$ is the PDF/PMF of the $k$-th component distribution evaluated at $x_i$ with parameter $\theta_k$.
+
+16. Mixture Model (Likelihood, complete-data):
+
+$$
+L(\theta, \omega; x, c) = p(x, c \mid \theta, \omega) = \prod_{i=1}^n \prod_{k=1}^K [\omega_k g_k(x_i \mid \theta_k)]^{1(c_i = k)}
+$$ {#eq-complete-data-likelihood}
+
+where $1(c_i = k)$ is an indicator function that is 1 if $c_i = k$ and 0 otherwise.
+
+17. Alternative complete-data likelihood decomposition:
+
+$$
+p(x, c \mid \theta, \omega) = p(x \mid c, \theta) p(c \mid \omega)
+$$ {#eq-complete-data-likelihood-decomposition}
+
+with
+
+$$
+p(x \mid c, \theta) = \prod_{i=1}^n g_{c_i}(x_i \mid \theta_{c_i})
+$$ {#eq-complete-data-likelihood-x}
+
+$$
+p(c \mid \omega) = \prod_{k=1}^K \omega_k^{\sum_{i=1}^n 1(c_i = k)}
+$$ {#eq-complete-data-likelihood-c}
+
+where $1(c_i = k)$ is an indicator function that is 1 if $c_i = k$ and 0 otherwise.
+
+
+### parameter identifiability
+
+Label switching
+
+TODO : missing formula
+
+$$
+f(x) = ...
+$$ {#eq-parameter-identifiability-mix1}
+
+TODO : missing formula
+
+$$
+f(x) = ...
+$$ {#eq-parameter-identifiability-mix2}
+
+Number of components
+
+$$
+f(x) = ...
+$$ {#eq-parameter-identifiability-mix3}
+
+
+## Maximum Likelihood Estimation For Mixture Models:
+
+18. Maximum Likelihood Estimator (MLE) for Mixture:
+
+
+$$
+(\hat{\omega}, \hat{\theta}) = \arg\max_{\omega, \theta} \prod_{i=1}^n \sum_{k=1}^K \omega_k g_k(x_i \mid \theta_k)
+$$ {#eq-max-observed-data-likelihood}
+
+where $\hat{\omega}$ and $\hat{\theta}$ are the MLEs for the weights and parameters of the mixture components, respectively.
+
+### EM Algorithm for Mixture Models:
+
+19. EM algorithm Q-function for Gaussian Mixture:
+
+E step:
+
+$$
+Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x) = \mathbb{E}_{c \mid \omega^{(t)}, \theta^{(t)}, x} [\log p(x, c \mid \omega, \theta)]
+$$ {#eq-em-q-function}
+
+
+where $Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x)$ is the expected complete-data log-likelihood given the current estimates of the parameters $\omega^{(t)}$ and $\theta^{(t)}$ and the observed data $x$.
+
+M step:
+
+$$
+(\hat{\omega}^{(t+1)}, \hat{\theta}^{(t+1)}) = \arg\max_{\omega, \theta} Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, y)   
+$$ {#eq-em-m-step}
+
+where $(\hat{\omega}^{(t+1)}, \hat{\theta}^{(t+1)})$ are the updated estimates of the parameters after the M step.
+
+
+<!-- missing em stuff here -->
+
+
+
+## 3. Bayesian Inference for Finite Mixtures (Pages 22–30)
+
+20. Dirichlet prior for the weights
+
+$$
+p(\omega) \;=\;
+\frac{\Gamma\bigl(\sum_{k=1}^K a_k\bigr)}{\prod_{k=1}^K \Gamma(a_k)}
+\prod_{k=1}^K \omega_k^{\,a_k-1},
+\quad
+\sum_{k=1}^K \omega_k = 1
+$$ {#eq-dirichlet-prior}
+
+
+$$
+p(x, c \mid \theta, \omega) = p(x \mid c, \theta)\ p(c \mid \omega)
+$$ {#eq-pxc-given-theta-omega}
+
+where 
+
+$$
+p(x \mid c, \theta) = \prod_{i=1}^n g_{c_i}(x_i \mid \theta_{c_i})
+$$ {#eq-px-given-c-theta}
+
+and
+
+$$
+p(c \mid \omega) = \prod_{i=1}^n \prod_{k=1}^K 
+\omega_k ^{\mathbb{1}(c_i = k)} =
+\prod_{k=1}^K \omega_k^{\sum_{i=1}^n \mathbb{1}(c_i = k)} 
+$$ {#eq-pc-given-omega}
+
+where $1(c_i = k)$ is an indicator function that is 1 if $c_i = k$ and 0 otherwise.
+
+21. Joint posterior (with latent labels)
+
+$$
+p(c,\theta,\omega \mid x)
+\;\propto\;
+\Bigl(\prod_{i=1}^n g_{c_i}(x_i\mid \theta_{c_i})\Bigr)
+\Bigl(\prod_{k=1}^K \omega_k^{\sum_{i=1}^n1(c_i=k)}\Bigr)
+\,p(\omega)\,p(\theta)
+$$ {#eq-joint-posterior}
+
+Each of the full conditional distributions can be derived from this joint posterior by retaining the terms that involve the parameter of interest, and recognizing the product of the selected terms as the kernel of a known
+family of distributions.
+
+22. Full conditional for $\omega$
+
+$$
+p(\omega \mid c,\theta,x)
+\;\propto\;
+p(c \mid \omega) p(\omega)
+\;\propto\;
+\prod_{k=1}^K
+\omega_k^{\,a_k + \sum_{i=1}^n1(c_i=k)\;-\;1}
+$$ {#eq-full-cond-omega}
+
+23. Full conditional for each label $c\_i$
+
+$$
+p(c_i = k \mid c_{-i},\theta,\omega,x)
+\;=\;
+\frac{\omega_k\,g_k(x_i\mid \theta_k)}
+     {\sum_{l=1}^K \omega_l\,g_l(x_i\mid \theta_l)}
+$$ {#eq-fullcond-ci}
+
+24. Full conditional for component parameters $\theta\_k$
+
+$$
+p(\theta_k \mid c,\theta_{-k},\omega,x)
+\;\propto\;
+p(\theta_k)\;\prod_{i: c_i=k}g_k(x_i\mid \theta_k)
+$$ {#eq-fullcond-thetak}
+
+25. Gaussian prior for means $\mu\_k$
+
+$$
+p(\mu_k)
+=\frac{1}{\sqrt{2\pi\tau^2}}
+\exp\!\Bigl\{-\tfrac{(\mu_k-\eta)^2}{2\tau^2}\Bigr\}
+$$ {#eq-prior-muk}
+
+26. Inverse-Gamma prior for variance $\sigma^2$:
+
+$$
+p(\sigma^2)
+=\frac{1}{b^a\Gamma(a)}
+(\sigma^2)^{-\,d-1}
+\exp\!\Bigl\{-\tfrac{q}{\sigma^2}\Bigr\}
+$$ {#eq-prior-sigma2}
+
+27. Posterior for $\mu\_k$
+
+$$
+\mu_k \;\sim\; N\bigl(\eta_k^*,\,(\tau_k^*)^2\bigr),
+\quad
+\eta_k^*
+=\frac{\sum_{i:c_i=k}x_i/\sigma^2 + \eta/\tau^2}
+     {\,m_k/\sigma^2 + 1/\tau^2\,},
+\quad
+\tau_k^*=\Bigl(m_k/\sigma^2 + 1/\tau^2\Bigr)^{-1/2}
+$$ {#eq-post-muk}
+
+28. Posterior for $\sigma^2$
+
+$$
+\sigma^2 \;\sim\;\mathrm{InvGamma}\bigl(d^*,\,q^*\bigr),
+\quad
+d^*=\tfrac{n}{2}+d,
+\quad
+q^*=\tfrac12\sum_{i=1}^n(x_i-\mu_{c_i})^2 + q
+$$ {#eq-post-sigma2}
+
+29. General $q$-variate Gaussian mixture
+
+$$
+f(x)
+=\sum_{k=1}^K
+\omega_k\,
+\frac{1}{(2\pi)^{q/2}\,\lvert\Sigma_k\rvert^{1/2}}\,
+\exp\!\Bigl\{-\tfrac12(x-\mu_k)^\top\Sigma_k^{-1}(x-\mu_k)\Bigr\}
+$$ {#eq-multivariate-mixture}
+
+30. Posterior for multivariate $\mu\_k$
+
+$$
+\mu_k \;\sim\; N\bigl(b_k^*,\,B_k^*\bigr),
+\quad
+B_k^*=\bigl(B^{-1}+m_k\,\Sigma_k^{-1}\bigr)^{-1},
+\quad
+b_k^*=B_k^*\bigl(B^{-1}b + \Sigma_k^{-1}\sum_{i:c_i=k}x_i\bigr)
+$$ {#eq-post-multivariate-mu}
+
+31. Posterior for multivariate $\Sigma\_k$
+
+$$
+\Sigma_k \;\sim\;\mathrm{InvWishart}\bigl(\nu^*,\,S^*\bigr),
+\quad
+\nu^*=\nu + m_k,
+\quad
+S^*=S + \sum_{i:c_i=k}(x_i-\mu_k)(x_i-\mu_k)^\top
+$$ {#eq-post-multivariate-sigma}
+
+32. Kernel density estimator (general form)
+
+$$
+\tilde f(x)
+=\frac{1}{n}\sum_{i=1}^n\frac{1}{h}\,
+g\!\Bigl(\tfrac{x-x_i}{h}\Bigr)
+$$ {#eq-kde-general}
+
+33. Gaussian kernel density estimator
+
+$$
+\tilde f(x)
+=\sum_{i=1}^n\frac{1}{n}\,
+\frac{1}{\sqrt{2\pi\,h^2}}\,
+\exp\!\Bigl\{-\tfrac{(x-x_i)^2}{2\,h^2}\Bigr\}
+$$ {#eq-kde-gaussian}
