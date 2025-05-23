@@ -5,7 +5,7 @@ title : "Mixture Models"
 
 ## 1. Basic Concepts:
 
-## 1.1 Definition of a finite mixture model
+### 1.1 Definition of a finite mixture model
 
 1. Mixture Model (CDF):
 
@@ -71,7 +71,7 @@ $$
 \operatorname{Var}_F(X) = \sum_{k=1}^K \omega_k \operatorname{Var}_{G_k}(X)
 $$ {#eq-mixture-variance-zero-mean}
 
-### Why finite mixture models?
+### 1.2 Why finite mixture models?
 
 Finite mixtures of distributions within a single family provide a lot of flexibility. For example, a mixture of Gaussian distributions can have a bimodal density.
 
@@ -125,7 +125,7 @@ $$ {#eq-zero-inflated-log-gaussian-pdf}
 
 where $\delta_0(x)$ is the Dirac delta function at $x=0$.
 
-### hierarchical representation of finite mixtures
+### 1.3 hierarchical representation of finite mixtures
 
 14. Mixture Model (Hierarchical):
 
@@ -135,7 +135,7 @@ $$ {#eq-hierarchical-mixture}
 
 where $G_c$ is the distribution of the $k$-th component and $\omega_k$ is the weight for the $k$-th component.
 
-### The likelihood function for mixture models
+### 1.4 The likelihood function for mixture models
 
 15. Observed-data Likelihood for a mixture Model
 
@@ -172,7 +172,7 @@ $$ {#eq-complete-data-likelihood-c}
 where $1(c_i = k)$ is an indicator function that is 1 if $c_i = k$ and 0 otherwise.
 
 
-### parameter identifiability
+### 1.5 parameter identifiability
 
 Label switching
 
@@ -195,7 +195,7 @@ f(x) = ...
 $$ {#eq-parameter-identifiability-mix3}
 
 
-## Maximum Likelihood Estimation For Mixture Models:
+## 2. Maximum Likelihood Estimation For Mixture Models:
 
 18. Maximum Likelihood Estimator (MLE) for Mixture:
 
@@ -206,44 +206,222 @@ $$ {#eq-max-observed-data-likelihood}
 
 where $\hat{\omega}$ and $\hat{\theta}$ are the MLEs for the weights and parameters of the mixture components, respectively.
 
-### EM Algorithm for Mixture Models:
+### 2.1 EM Algorithm for Mixture Models:
 
-19. EM algorithm Q-function for Gaussian Mixture:
+19. EM algorithm Set Q-function in E step:
 
 E step:
 
 $$
 Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x) = \mathbb{E}_{c \mid \omega^{(t)}, \theta^{(t)}, x} [\log p(x, c \mid \omega, \theta)]
-$$ {#eq-em-q-function}
+$$ {#eq-em-Q-function}
 
 
 where $Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x)$ is the expected complete-data log-likelihood given the current estimates of the parameters $\omega^{(t)}$ and $\theta^{(t)}$ and the observed data $x$.
 
-M step:
+19. EM algorithm Set parameters in M step:
 
 $$
-(\hat{\omega}^{(t+1)}, \hat{\theta}^{(t+1)}) = \arg\max_{\omega, \theta} Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, y)   
+(\hat{\omega}^{(t+1)}, \hat{\theta}^{(t+1)}) = \arg\max_{\omega, \theta} Q(\omega, \theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)}, y)   
 $$ {#eq-em-m-step}
 
 where $(\hat{\omega}^{(t+1)}, \hat{\theta}^{(t+1)})$ are the updated estimates of the parameters after the M step.
 
+<!-- missing em stuff here -->
+$$
+p(c_i = k \mid \omega, \theta, x) = \frac{\omega_k g_k(x_i \mid \theta_k)}{\sum_{l=1}^K \omega_l g_l(x_i \mid \theta_l)} = v_{i,k}(\omega, \theta)
+$$ {#eq-conditional-independence-of-components}
+
+where $v_{i,k}(\omega, \theta)$ is the posterior probability of the $k$-th component given the observed data $x_i$ and the current estimates of the parameters $\omega$ and $\theta$.
+
+and $(\hat{\omega}^{(t+1)}, \hat{\theta}^{(t+1)})$ are the updated estimates of the parameters after the M step.
+
+Also, remember that:
+
+$$
+p(x, c | \theta, \omega) =
+\prod_{i=1}^n
+\prod_{k=1}^K
+[\omega_k g_k(x_i | \theta_k)]^{\mathbb{1}(c_i=k)}
+$$ {#eq-em-m-step}
+
+The value of $v_{i,k}(\omega, \theta)$ can be interpreted as the probability that observation $i$ was generated from component $k$ if we assume that the true parameters of
+the mixture model are $\omega$ and $\theta$.
+
 
 <!-- missing em stuff here -->
+$$
+p(c_i = k \mid \omega, \theta, x) = \frac{\omega_k g_k(x_i \mid \theta_k)}{\sum_{l=1}^K \omega_l g_l(x_i \mid \theta_l)} = v_{i,k}(\omega, \theta)
+$$ {#eq-conditional-independence-of-components}
+
+where $v_{i,k}(\omega, \theta)$ is the posterior probability of the $k$-th component given the observed data $x_i$ and the current estimates of the parameters $\omega$ and $\theta$.
+
+which implies that 
+
+$$
+\log p(x_i,c \mid \theta, \omega) = \sum_{n=1}^N \sum_{k=1}^K \mathbb{1}(c_i=k) [\log(\omega_k) + \log(g_k(x_i \mid \theta_k))]
+$$ {#eq-log-likelihood}
+
+where $\mathbb{1}(c_i=k)$ is an indicator function that is 1 if $c_i = k$ and 0 otherwise.
 
 
+Hence 
 
-## 3. Bayesian Inference for Finite Mixtures (Pages 22–30)
+$$
+Q(\omega, \theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)}, x) = \sum_{i=1}^n \sum_{k=1}^K v_{i,k} \mathbb{E}_{c \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)}, x} \left [\mathbb{1}_{(c_i=k)} \log(\omega_k) + \log(g_k(x_i \mid \theta_k))\right]
+$$ {#eq-em-Q-function}
 
-20. Dirichlet prior for the weights
+where $v_{i,k}(\omega^{(t)}, \theta^{(t)})$ is the posterior probability of the $k$-th component given the observed data $x_i$ and the current estimates of the parameters $\omega^{(t)}$ and $\theta^{(t)}$.
+
+and therefore
+$$
+Q(\omega, \theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)}, x) = \sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)}\left(\hat{\omega}^{(t)}, \hat{\theta}^{(t)}\right) [\log(\omega_k) + \log(g_k(x_i \mid \theta_k))]
+$$ {#eq-em-Q-function}
+
+where $v_{i,k}(\hat{\omega}^{(t)}, \hat{\theta}^{(t)})$ is the posterior probability of the $k$-th component given the observed data $x_i$ and the current estimates of the parameters $\hat{\omega}^{(t)}$ and $\hat{\theta}^{(t)}$.
+
+(Remember that the term that is constant with respect to c can come out of the expectation, and that the expected value of an indicator function is just the probability of the event inside the indicator). 
+
+Hence, roughly speaking, we can see that the Q function is in this case equivalent to a weighted average of the log likelihoods associated with each of the components in the mixture.
+
+## 2.2 The EM algorithm for a Location Mixture of Two Gaussians
+
+$$
+f(x\mid \omega, \mu_1,\mu_2, \sigma) = \omega \frac{1}{\sqrt{2\pi}\sigma^2} \exp\left\{ -\frac{(x - \mu_1)^2}{2\sigma^2} \right\} + (1-\omega) \frac{1}{\sqrt{2\pi}\sigma^2} \exp\left\{ -\frac{(x - \mu_2)^2}{2\sigma^2} \right\}
+$$ {#eq-gaussian-location-mixture}
+
+where $\omega_1$ and $\omega_2$ are the weights of the two components, $\mu_1$ and $\mu_2$ are the means of the two components, and $\sigma^2$ is the common variance.
+
+The expected weights are:
+
+$$
+v^{(t+1)}_{i,1} =v^{(t+1)}_{i,1} \left (\hat{\omega}^{(t)},\hat{\mu}^{(t)},\hat{\sigma}^{(t)}\right)=\frac{\hat{\omega}^{(t)}_1 \frac{1}{\sqrt{2\pi}\hat{\sigma}^{(t)}} \exp\left\{ -\frac{(x_i - \hat{\mu}^{(t)}_1)^2}{2\hat{\sigma}^{(t)}} \right\}}{\sum_{k=1}^K \hat{\omega}^{(t)}_k \frac{1}{\sqrt{2\pi}\hat{\sigma}^{(t)}} \exp\left\{ -\frac{(x_i - \hat{\mu}^{(t)}_k)^2}{2\hat{\sigma}^{(t)}} \right\}}
+$$ {#eq-location-mixture-weights}
+
+and
+
+$$
+v^{(t+1)}_{i,2} = 1 - v^{(t+1)}_{i,1}
+$$
+
+Therefore, the Q function is
+
+$$
+\begin{align*}
+Q(\omega, \mu_1, \mu_2, \sigma \mid \hat{\omega}^{(t)}, \hat{\mu}^{(t)}_1,\hat{\mu}^{(t)}_2, \hat{\sigma}^{(t)}, x) = \sum_{i=1}^n & v_{i,1}^{(t+1)} \left [\log(\omega) - \frac{1}{2} \log(2\pi) - \log(\sigma) - \frac{(x_i - \mu_1)^2}{2\sigma^2}\right ] \\
++ & v_{i,2}^{(t+1)} \left [\log(1-\omega) - \frac{1}{2} \log(2\pi) - \log(\sigma) - \frac{(x_i - \mu_2)^2}{2\sigma^2}\right] 
+\end{align*}
+$$ {#eq-Q-function}
+
+where $v_{i,1}^{(t+1)}$ and $v_{i,2}^{(t+1)}$ are the posterior probabilities of the first and second components given the observed data $x_i$ and the current estimates of the parameters $\hat{\omega}^{(t)}$, $\hat{\mu}^{(t)}_1$, $\hat{\mu}^{(t)}_2$, and $\hat{\sigma}^{(t)}$.
+
+The Q function is a function of the parameters $\omega$, $\mu_1$, $\mu_2$, and $\sigma$ and is used to update the estimates of these parameters in the M step of the EM algorithm.
+
+to maximize Q we compute its partial derivatives with respect to $\omega$, $\mu_k$, and $\sigma$ and set them equal to zero.
+The partial derivative with respect to $\omega$ is:
+
+
+$$
+\frac{\partial Q}{\partial \omega} = \sum_{i=1}^n \left [\frac{v_{i,1}^{(t+1)}}{\omega} - \frac{v_{i,2}^{(t+1)}}{1-\omega} \right ] = 0
+$$ {#eq-partial-derivative-of-Q-wrt-omega}
+
+$$
+\frac{\partial Q}{\partial \mu_k} = \sum_{i=1}^n v_{i,k}^{(t+1)} \frac{1}{\sigma^2} (x_i - \mu_k) = 0
+$$ {#eq-partial-derivative-of-Q-wrt-mu}
+
+
+$$
+\frac{\partial Q}{\partial \sigma} = \sum_{i=1}^n \left [\frac{v_{i,1}^{(t+1)}}{\sigma} - \frac{(x_i - \mu_1)^2}{\sigma^3} + \frac{v_{i,2}^{(t+1)}}{\sigma} - \frac{(x_i - \mu_2)^2}{\sigma^3} \right ] = 0
+$$ {#eq-partial-derivative-of-Q-wrt-sigma}
+
+
+By setting (@eq-partial-derivative-of-Q-wrt-omega) equal to zero we get:
+
+$$ 
+\begin{align*}
+&\left \{ \sum_{i=1}^n v_{i,2}^{(t+1)} \right \}  \omega^{(t+1)} & = &
+\left \{ \sum_{i=1}^n v_{i,1}^{(t+1)} \right \} \left (1 - \omega^{(t+1)}\right) 
+\\ \implies & \left \{ \sum_{i=1}^n v_{i,1}^{(t+1)} \right \} & = &
+\left \{ \sum_{i=1}^n v_{i,1}^{(t+1)} + \sum_{i=1}^n v_{i,2}^{(t+1)} \right \} \omega^{(t+1)}
+\\ \implies & \omega^{(t+1)} & = & \frac{\sum_{i=1}^n v_{i,1}^{(t+1)}}{\sum_{i=1}^n v_{i,1}^{(t+1)} + v_{i,2}^{(t+1)}} 
+\\ &  &= & \frac{1}{n} \sum_{i=1}^n v_{i,1}^{(t+1)}
+\end{align*}
+$$ {#eq-omega-update}
+
+where $\omega^{(t+1)}$ is the updated estimate of the weight for the first component after the M step.
+
+where we used the fact that $\sum_{i=1}^n v_{i,1}^{(t+1)} + \sum_{i=1}^n v_{i,2}^{(t+1)} = n$.
+
+This means that the new estimate of $\omega$ is the average of the posterior probabilities of the first component over all observations.
+
+by setting (@eq-partial-derivative-of-Q-wrt-mu) equal to zero we get:
+
+$$\begin{align*}
+            && 0 && = & \sum_{i=1}^n v_{i,k}^{(t+1)} (x_i - \mu_k) 
+\\ \implies && \sum_{i=1}^n v_{i,k}^{(t+1)} x_i && = & \sum_{i=1}^n v_{i,k}^{(t+1)} \mu_k
+\\ \implies && \mu_k^{(t+1)} && = & \frac{\sum_{i=1}^n v_{i,k}^{(t+1)} x_i}{\sum_{i=1}^n v_{i,k}^{(t+1)}}
+\end{align*}
+$$ {#eq-em-solving-for-mu}
+
+where we used the fact that $\sum_{i=1}^n v_{i,k}^{(t+1)} = n$.
+
+Note that the partial estimator for μk is a weighted average of the xis, with the weight associated with observation i being proportional to the probability that such observation was generated by component k. Again, if the components are well separated and values of vi,k are all close to either 0 or 1, this weighted average is roughly the average of the observations coming from component k
+
+Finally, making the same argument for the partial derivative with respect to σ, we get:
+
+$$
+\begin{align*}
+& 
+    \sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)} &=& \left ( \frac {1}{\sigma^{(t+1)}} \right ) ^ 2  \sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)} (x_i - \mu_k^{(t+1)})^2
+\\ \implies &
+ \sigma^{(t+1)} &=& \sqrt{\frac{\sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)} (x_i - \mu_k^{(t+1)})^2}{\sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)}}}
+\end{align*}
+$$ {#eq-em-solving-for-sigma}
+
+### 2.3 general location and scale mixtures of p-variate gaussian distributions
+
+$$
+f(x) =
+\sum_{k=1}^K
+\omega_k
+\left( \frac{1}{(2\pi)} \right) ^\frac{q}{2}
+|\Sigma_k|-\frac{1}{2} \exp
+\left\{
+(x - \theta_k)^T \Sigma_k^{-1}(x - \theta_k)
+\right\}
+$$ {#eq-general-location-scale-mixture}
+
+where $\theta_k$ is the mean of the $k$-th component, $\Sigma_k$ is the covariance matrix of the $k$-th component, and $\omega_k$ is the weight for the $k$-th component.
+$$
+\begin{align*}
+v_{i,k}^{(t+1)} &= \frac{\omega_k^{(t)} |\Sigma_k^{(t)}|^{-1/2} \exp\left\{-\frac{1}{2}(x_i - \mu_k^{(t)})^T [\Sigma_k^{(t)}]^{-1}(x_i - \mu_k^{(t)})\right\}}{\sum_{l=1}^K \omega_l^{(t)} |\Sigma_l^{(t)}|^{-1/2} \exp\left\{-\frac{1}{2}(x_i - \mu_l^{(t)})^T [\Sigma_l^{(t)}]^{-1}(x_i - \mu_l^{(t)})\right\}} \\
+\omega_k^{(t+1)} &= \frac{\sum_{i=1}^n v_{i,k}^{(t+1)}}{\sum_{i=1}^n \sum_{l=1}^K v_{i,l}^{(t+1)}} \\
+\mu_k^{(t+1)} &= \frac{\sum_{i=1}^n v_{i,k}^{(t+1)} x_i}{\sum_{i=1}^n v_{i,k}^{(t+1)}} \\
+\Sigma_k^{(t+1)} &= \frac{\sum_{i=1}^n v_{i,k}^{(t+1)} (x_i - \mu_k^{(t+1)}) (x_i - \mu_k^{(t+1)})^T}{\sum_{i=1}^n v_{i,k}^{(t+1)}}
+\end{align*}
+$$ {#eq-em-p-variate-mixture-parameters}
+
+where $v_{i,k}^{(t+1)}$ is the posterior probability of the $k$-th component given the observed data $x_i$ and the current estimates of the parameters $\omega^{(t)}$, $\mu^{(t)}$, and $\Sigma^{(t)}$.
+
+
+## 3. MCMC
+
+$$
+f(x) = \sum_{k=1}^K \omega_k g_k(x | \theta_k)
+$$ {#eq-mcmc-mixture}
+
+where $g_k(x \mid \theta_k)$ is the PDF/PMF of the $k$-th component distribution evaluated at $x$ with parameter $\theta_k$.
 
 $$
 p(\omega) \;=\;
-\frac{\Gamma\bigl(\sum_{k=1}^K a_k\bigr)}{\prod_{k=1}^K \Gamma(a_k)}
+\frac{\Gamma \bigl ( \sum_{k=1}^K a_k \bigr ) }{\prod_{k=1}^K \Gamma(a_k)}
 \prod_{k=1}^K \omega_k^{\,a_k-1},
 \quad
 \sum_{k=1}^K \omega_k = 1
 $$ {#eq-dirichlet-prior}
 
+### 3.1 Markov chain monte carlo algorithms for mixture mod-
+els
 
 $$
 p(x, c \mid \theta, \omega) = p(x \mid c, \theta)\ p(c \mid \omega)
@@ -284,27 +462,61 @@ $$
 p(\omega \mid c,\theta,x)
 \;\propto\;
 p(c \mid \omega) p(\omega)
-\;\propto\;
+\;=\;
 \prod_{k=1}^K
 \omega_k^{\,a_k + \sum_{i=1}^n1(c_i=k)\;-\;1}
 $$ {#eq-full-cond-omega}
 
-23. Full conditional for each label $c\_i$
+This clearly corresponds to the kernel of another Dirichlet distribution
+with updated parameters
+$$
+a_k^* = a_k + m_k, \qquad k = 1, \ldots, K,
+$$
+
+where $m_k = \sum_{i=1}^n 1(c_i = k)$ is the number of observations in component $k$.
+
+Full conditional for each component $c_i$
 
 $$
-p(c_i = k \mid c_{-i},\theta,\omega,x)
+p(c_i \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x) \propto p(x_i \mid c_i,\theta_k) p(c_i \mid \omega)
+$$ {#eq-fullcond-ci-1}
+
+hence
+
+$$
+p(c_i = k \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x)
 \;=\;
 \frac{\omega_k\,g_k(x_i\mid \theta_k)}
      {\sum_{l=1}^K \omega_l\,g_l(x_i\mid \theta_l)}
-$$ {#eq-fullcond-ci}
+$$ {#eq-fullcond-ci-2}
 
-24. Full conditional for component parameters $\theta\_k$
+Note the similarity with the formula for the expected weights $v_{i,k}$ in the
+EM algorithm.) 
+
+Full conditional for component parameters $\theta_k$
 
 $$
-p(\theta_k \mid c,\theta_{-k},\omega,x)
+p(\theta_k \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x)
 \;\propto\;
-p(\theta_k)\;\prod_{i: c_i=k}g_k(x_i\mid \theta_k)
-$$ {#eq-fullcond-thetak}
+p(\theta_k \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x)
+\prod_{i:c_i=k} p(x_i\mid \theta_k)
+$$ {#eq-fullcond-theta_k}
+
+In the most common case in which the priors for $\theta_k$ are independent this is simply:
+
+$$
+p(\theta_k \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x) 
+\;\propto\;
+p(\theta_k) \prod_{i:c_i=k} p(x_i\mid \theta_k)
+$$ {#eq-fullcond-theta_k-indep}
+
+
+
+### 3.2 The MCMC algorithm for a location mixture of two gaussian distributions
+
+$$
+f(x \mid \omega, \mu_1, \mu_2, \sigma) = \omega \frac{1}{\sqrt{2\pi}\sigma^2} \exp\left\{ -\frac{(x - \mu_1)^2}{2\sigma^2} \right\} + (1-\omega) \frac{1}{\sqrt{2\pi}\sigma^2} \exp\left\{ -\frac{(x - \mu_2)^2}{2\sigma^2} \right\}
+$$ {#eq-mcmc-location-mixture}
 
 25. Gaussian prior for means $\mu\_k$
 
@@ -316,6 +528,8 @@ $$ {#eq-prior-muk}
 
 26. Inverse-Gamma prior for variance $\sigma^2$:
 
+with shape parameter $a$ and scale parameter $b$ for $\sigma$
+
 $$
 p(\sigma^2)
 =\frac{1}{b^a\Gamma(a)}
@@ -323,19 +537,79 @@ p(\sigma^2)
 \exp\!\Bigl\{-\tfrac{q}{\sigma^2}\Bigr\}
 $$ {#eq-prior-sigma2}
 
-27. Posterior for $\mu\_k$
+
 
 $$
-\mu_k \;\sim\; N\bigl(\eta_k^*,\,(\tau_k^*)^2\bigr),
-\quad
-\eta_k^*
-=\frac{\sum_{i:c_i=k}x_i/\sigma^2 + \eta/\tau^2}
-     {\,m_k/\sigma^2 + 1/\tau^2\,},
-\quad
-\tau_k^*=\Bigl(m_k/\sigma^2 + 1/\tau^2\Bigr)^{-1/2}
+\begin{align*}
+p(\mu_k \mid c, \mu_1, \ldots, \mu_{k-1}, \mu_{k+1}, \ldots, \mu_K, \omega, x) 
+& \;\propto\;
+\exp\Biggl\{
+-\frac{(\mu_k - \eta)^2}{2\tau^2}
+\Biggr\} \prod_{i:c_i=k}
+\exp\Biggl\{
+-\frac{(x_i - \mu_k)^2}{2\sigma^2}
+\Biggr\}
+\\ & \;\propto\;
+\exp\Biggl\{
+-\frac{1}{2}
+\Biggl[ m_k \frac{1}{\sigma^2} - 2 \frac{\mu_k \sum_{i:c_i=k} x_i}{\sigma^2} + \frac{\mu_k}{\tau^2} - 2 \frac{\mu_k\eta}{\tau^2} \Biggr] \Biggr\}
+\\ & \;\propto\;
+\exp\Biggl\{
+-\frac{1}{2}
+\Biggl[ \frac{m_k}{\sigma^2} + \frac{1}{\tau^2} \Biggr] \Biggl[ \mu_k - \frac{\sigma^2 \sum_{i:c_i=k} x_i + \frac{\eta}{\tau^2} }{\mu_k + \frac{m_k}{\sigma^2}+ \frac{1}{\tau^2}} \Biggr] \Biggr\}
+
+\end{align*}
+$$ {#eq-fullcond-mu_k}
+
+which is just the kernel of a normal distribution with updated mean
+
+$$
+\eta_k^* = \frac{\frac{1}{\sigma^2}\sum_{i:c_i=k} x_i + \frac{\eta}{\tau^2}}{ \frac{m_k}{\sigma^2}+ \frac{1}{\tau^2}u^2}
+$$ {#eq-eta-k-star}
+
+and updated standard deviation
+
+$$
+\tau_k^*=\Bigl[ \frac{m_k}{\sigma^2}+ \frac{1}{\tau^2} \Bigr]^{-1/2}
 $$ {#eq-post-muk}
 
-28. Posterior for $\sigma^2$
+finaly 
+
+$$
+\begin{align*}
+p(\sigma^2 | c, \mu, \omega, x) 
+&\propto 
+\Biggl(\frac{1}{\sigma^2}\Biggr)^{d+1}
+\exp\Biggl\{
+− q
+\sigma^2
+\Biggr\}
+\Biggl(\frac{1}{\sigma^2}\Biggr)^{n/2}
+\exp\Biggl\{
+− \frac{1}{2\sigma^2}
+\sum_{i=1}^{n}(x_i − \mu_{c_i})^2
+\Biggr\}
+\\&=
+\Biggl(\frac{1}{\sigma^2}\Biggr)^{n/2+d+1}
+\exp\Biggl\{
+− \frac{1}{\sigma^2}
+\Biggl[ \frac{1}{2} \sum_{i=1}^{n}(x_i − \mu_{c_i})^2
++ q
+\Biggr]
+\Biggr\}
+\end{align*}
+$$
+
+which is the kernel of another inverse Gamma distribution with shape d∗ =n/2 + d and rate parameter
+
+$$
+q^*=\tfrac12\sum_{i=1}^n(x_i-\mu_{c_i})^2 + q
+$$ {#eq-post-sigma2}
+
+### 3.3 general location and scale mixtures of p-variate gaus-
+sian distributions
+
+29. General $q$-variate Gaussian mixture
 
 $$
 \sigma^2 \;\sim\;\mathrm{InvGamma}\bigl(d^*,\,q^*\bigr),
@@ -344,8 +618,6 @@ d^*=\tfrac{n}{2}+d,
 \quad
 q^*=\tfrac12\sum_{i=1}^n(x_i-\mu_{c_i})^2 + q
 $$ {#eq-post-sigma2}
-
-29. General $q$-variate Gaussian mixture
 
 $$
 f(x)
@@ -375,12 +647,20 @@ $$
 S^*=S + \sum_{i:c_i=k}(x_i-\mu_k)(x_i-\mu_k)^\top
 $$ {#eq-post-multivariate-sigma}
 
+
+
+## 4. Applications of Mixture Models
+
+
+### 4.1 density estimation
+
+
 32. Kernel density estimator (general form)
 
 $$
 \tilde f(x)
 =\frac{1}{n}\sum_{i=1}^n\frac{1}{h}\,
-g\!\Bigl(\tfrac{x-x_i}{h}\Bigr)
+g \Bigl(\tfrac{\|x-x_i \| }{h}\Bigr)
 $$ {#eq-kde-general}
 
 33. Gaussian kernel density estimator
@@ -388,6 +668,179 @@ $$ {#eq-kde-general}
 $$
 \tilde f(x)
 =\sum_{i=1}^n\frac{1}{n}\,
-\frac{1}{\sqrt{2\pi\,h^2}}\,
-\exp\!\Bigl\{-\tfrac{(x-x_i)^2}{2\,h^2}\Bigr\}
+\tfrac{1}{\sqrt{2\pi\,}h}\,
+\exp\!\Bigl\{-\tfrac{1}{2}\left(\dfrac{x-x_i}{h}\right)^2\Bigr\}
 $$ {#eq-kde-gaussian}
+
+
+In order to understand the relationship between kernel density estimation
+and mixture models it is useful to contrast (8) with the density estimate
+$$
+\hat f(x) = \sum_{k=1}^K \hat{\omega}_k \frac{1}{\sqrt{2\pi} \hat{\sigma}} \exp\Biggl\{-\frac{1}{2\hat{\sigma}^2}(x - \hat{\mu}_k)^2\Biggr\}
+$$
+
+obtained by plugging-in the maximum likelihood estimates of the parameters, $\hat{\omega}_1, . . . , \hat{\omega}_K, \hat{\mu}_1, . . . , \hat{\mu}_K$ and $\hat{\sigma}$ of a location mixture of K univariate Gaussian distributions.
+
+### 4.2 clustering (unsupervised classification
+
+$$
+f(x) = \sum_{k=1}^K \frac{1}{K} \left(\frac{1}{\sqrt{2\pi\sigma}} \right)^p \exp\left\{-\frac{1}{2\sigma^2} (x − \mu_k)^T (x − \mu_k)\right\}
+$$ {#eq-clustering}
+
+
+
+
+### 4.3 (supervised) classification
+
+## 5. Practical Considerations
+
+
+
+### 5.1 Ensuring numerical stability when computing class probabilities
+
+
+$$
+\begin{align*}
+\frac{z_k}{\sum_{l=1}^K z_l} &= \frac{\exp\{ \log z_k \}}{\sum_{l=1}^K \exp\left\{ \log z_l \right\}} &&  \text{(exp and log are inverse
+functions)}\\
+&= \frac{\exp\{ -b \}\exp\{ \log z_k \}}{\exp\{ -b \}\sum_{l=1}^K \exp\left\{ \log z_l \right\}} && \text{(multiply and divide by
+the same quantity)} \ e^{-b} \\
+&= \frac{\exp\left\{ \log z_k - b \right\}}{\sum_{l=1}^K \exp\left\{ \log z_l - b \right\}} \\
+\end{align*}
+$$ {#eq-zk-sum}
+
+Although (11) is valid for any b, it should be clear that some values will
+work better than others for the purpose of avoiding a 0/0 calculation. In
+particular, we are interested in choosing a value b that makes at least one of
+the terms in the denominator different from zero after exponentiation. One
+such choice is $b=\max_{l=1,\ldots,K} \log z_l$, which gives us
+
+$$
+\sum_{l=1}^K \exp\left\{ \log z_l - \max_{l=1,\ldots,K} \log z_l \right\} = 1 + \sum_{l:l \neq l^*} \exp\left\{ \log z_l - \max_{l=1,\ldots,K} \log z_l \right\}
+$$
+
+One key advantage of this choice is that all the terms in the sum are less or equal than one, which ensures that we do not overflow
+when computing  $\exp\left\{ \log z_l - \max_{l=1,\ldots,K} \log z_l \right\}$.
+
+### 5.2 numerical consequences of multimodality
+
+no math in this section
+
+### 5.3 selecting the number components
+
+
+$$
+\text{BIC} = -2 \ell(\hat{\theta}) + p \log(n)
+$$
+
+where $\ell(\hat{\theta})$ is the maximized log-likelihood, $p$ is number of free parameters, $n$ is sample size.
+
+### 5.4 fully Bayesian inference on the number of components
+$$
+f(x) = \sum_{k=1}^K \omega_k g_k(x | \theta_k) + \sum_{k=K+1}^K 0g_k(x | \theta_k)
+$$
+
+
+$$
+(\omega_1, \ldots, \omega_K) \sim Dirichlet( \frac{1}{K}, \ldots , \frac{1}{K} )
+$$
+
+where K is the number of components in the mixture model.
+
+$$
+\mathbb{E}(K^*)=\sum_{i=1}^m \frac{\alpha}{\alpha + i - 1} \approx \frac{\alpha \log(n + \alpha -1) }{\alpha}
+$$ {#eq-expected-K}
+
+where $\alpha$ is the concentration parameter of the Dirichlet process prior, $n$ is the number of observations, and $K^*$ is the number of components in the mixture model.
+
+### 5.5 fully Bayesian inference on the partition structure
+
+
+
+Extracting formulas from **Section 4.2 ("Clustering (unsupervised classification)") to the end** of *mixturemodels (2).pdf*:
+
+---
+
+## Section 4.2: Clustering (Unsupervised Classification) — Formulas
+
+### 1. Hard assignment (mode assignment for EM):
+
+$$
+\hat{c}_i = \arg\max_k \hat{v}_{i,k}
+$$
+
+where $\hat{v}_{i,k}$ are the final iteration weights.
+
+---
+
+### 2. Posterior Probability of Cluster Assignment (Bayesian approach):
+
+$$
+P(c_i = k \mid x, \text{rest}) = v_{i,k}
+$$
+
+where $v_{i,k}$ is as defined in the EM/MCMC steps (probability that observation $i$ comes from component $k$).
+
+---
+
+## Section 4.3: (Supervised) Classification
+
+### 3. Posterior probability of class membership (LDA/QDA/Mixture discriminant analysis):
+
+$$
+P(Y = k \mid X = x) = \frac{\pi_k f_k(x)}{\sum_{l=1}^K \pi_l f_l(x)}
+$$
+
+where $\pi_k$ is prior class probability, $f_k(x)$ is the class-conditional density for class $k$.
+
+---
+
+### 4. For a mixture model:
+
+$$
+f_k(x) = \sum_{j=1}^{M_k} w_{k,j} g_{k,j}(x)
+$$
+
+where each class-conditional density can itself be a mixture (with weights $w_{k,j}$ and kernels $g_{k,j}(x)$).
+
+---
+
+### 5. Posterior probability for classification under mixture model:
+
+$$
+P(Y = k \mid X = x) = \frac{\pi_k \sum_{j=1}^{M_k} w_{k,j} g_{k,j}(x)}{\sum_{l=1}^K \pi_l \sum_{j=1}^{M_l} w_{l,j} g_{l,j}(x)}
+$$
+
+---
+
+## Section 5: Practical Considerations
+
+### 6. Log-sum-exp trick (for numerical stability):
+
+$$
+\log \left( \sum_{k=1}^K e^{a_k} \right) = a_{k^*} + \log \left( \sum_{k=1}^K e^{a_k - a_{k^*}} \right)
+$$
+
+where $a_{k^*} = \max\{a_1, \ldots, a_K\}$.
+
+---
+
+### 7. Bayesian Information Criterion (BIC):
+
+$$
+\text{BIC} = -2 \ell(\hat{\theta}) + p \log(n)
+$$
+
+where $\ell(\hat{\theta})$ is the maximized log-likelihood, $p$ is number of free parameters, $n$ is sample size.
+
+---
+
+### 8. Dirichlet process partition probability:
+
+$$
+P(c_1, \ldots, c_n) = \frac{\alpha^K \prod_{k=1}^K (n_k - 1)!}{\prod_{j=1}^n (\alpha + j - 1)}
+$$
+
+where $K$ is number of clusters, $n_k$ is number of points in cluster $k$, $\alpha$ is the concentration parameter.
+
+
