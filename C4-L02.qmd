@@ -28,7 +28,7 @@ keywords:
 author: Oren Bochman
 image: course-banner.png
 fig-caption: Notes about ... Bayesian Statistics
-title-block-banner: banner_deep.jpg
+title-block-banner: images/banner_deep.jpg
 #bibliography: bibliography.bib
 format: 
     html: 
@@ -40,17 +40,22 @@ lightbox:
   loop: true
 ---
 
+
+::: {.callout-note}
+
 ## Learning Objectives
 
--   Define the [autoregressive process of order p]{.mark} or AR(p) and use R to obtain samples from such process
--   Define ARIMA (autoregressive moving average) models (honors)
--   Perform posterior inference for the AR(p) under the conditional likelihood and the reference prior
--   Perform a full data analysis in R using an AR(p) including
-  - likelihood estimation and 
-  - Bayesian inference, 
-  - model order selection, and 
-  - forecasting
--   Explain the relationship between the AR characteristic polynomial, the ACF, the forecast function and the spectral density in the case of an AR(p)
+- [x]  Define an **AR(p)**, or [autoregressive process of order p]{.mark} and use **R** to obtain samples from such process
+- [x] Define ARIMA (autoregressive moving average) models (honors)
+- [x]  Perform posterior inference for the AR(p) under the conditional likelihood and the reference prior
+- [x]   Perform a full data analysis in R using an AR(p) including
+   - likelihood estimation,
+   - Bayesian inference,
+   - model order selection,
+   - forecasting.
+- [x]  Explain the relationship between the *AR characteristic polynomial*, *the forecast function*, *the ACF* and *the spectral density* in the case of an AR(p)
+
+:::
 
 # The general AR(p) process (video)
 
@@ -59,7 +64,7 @@ lightbox:
 ![AR(p) process, characteristic polynomial, stability, stationarity and MA representation ](images/m2_0001.png){.column-margin width="250px" group="slides"}
 
 
-[**AR(P)** is shorthand for *autoregressive process of order p* which generalizes the **AR(1)** process]{.mark} that we studied in the previous module. It is essentially a mapping that allows us to specify the current value of the time series in terms its past p-values and some noise. The number of parameter $p$, required is the **order** [**order**]{.column-margin} of the autoregressive process. It tells us how many *lags* we will be considering. 
+[**AR(P)**, shorthand for *autoregressive process of order p* which generalizes the **AR(1)** process by defining the current time step in terms of the previous p time steps]{.mark}. Thus the number of parameter $p$, required is the **order** [**order**]{.column-margin} of the autoregressive process. It tells us how many *lags* we will be considering. On the other hand, the **AR(1)** process is a special case of the **AR(p)** process with $p=1$.
 
 [**AR(P)**]{.column-margin}
 
@@ -113,14 +118,16 @@ where:
 
 > Why are we interested in this autoregresive lag polynomial? 
 
-- [This polynomial and its roots informs us a lot about the process and its properties.]{.mark}
+- [This polynomial and its roots tells us a lot about the process and its properties.]{.mark}
 - One of the main characteristics is it allows us to think about things like **quasi-periodic behavior**, whether it's present or not in a particular **AR(p)** process.
 - It allows us to think about whether a process is **stationary or not**, depending on some properties related to this polynomial. 
 - In particular, we are going to say that the process is **stable** if all the roots of the characteristic polynomial have a modulus greater than one. [stability condition]{.column-margin}
 $$
 \Phi(z) = 0 \iff |z| > 1  \qquad \text{(stability condition)}
 $$ {#eq-ar(p)-stability}
+
 - For any of the roots, it has to be the case that the modulus of that root, they have to be all outside the unit circle.
+
 - If a process is stable, it will also be stationary.
 
 We can show this as follows:
@@ -150,16 +157,18 @@ Here, U is any complex valued number.
 
 >The AR characteristic polynomial can also be written in terms of the reciprocal roots of the polynomial. So instead of considering the roots, we can consider the reciprocal roots. In that case, let's say the \$phi$ of u
 >for Alpha 1, Alpha 2, and so on. The reciprocal roots.
+
 >[Why do we care about all these roots? Why do we care about this structure? Again, we will be able to understand some properties of the process based on these roots]{.mark} as we will see. 
 
 ![A state space representation of Ar(p)](images/m2_0002.png){.column-margin width="250px" group="slides"}
 
 
 [We will now discuss another important representation of the AR(P) process, one that is based on a state-space representation of the process.]{.mark} Again, we care about this type of representations because they allow us to study some important properties of the process. In this case, our state-space or dynamic linear model representation, we will make some connections with these representations later when we talk about dynamic linear models, is given as follows for an AR(P). I have my y_t. I can write it as F transpose and then another vector x_t here. Then we're going to have x_t is going to be a function of x_t minus 1. That vector there is going to be an F and a G. I will describe what those are in a second. Then I'm going to have another vector here with some distribution. In our case, we are going to have a normal distribution also for that one. In the case of the AR(P), we're going to have x_t to be y_t, y_t minus 1.
+
 >It's a vector that has all these values of the y_t process. Then F is going to be a vector. It has to match the dimension of this vector. The first entry is going to be a one, and then I'm going to have zeros everywhere else. The w here is going to be a vector as well.
 >
 >The first component is going to be the Epsilon t. That we defined for the ARP process. Then every other entry is going to be a zero here. Again, the dimensions are going to match so that I get the right equations here. Then finally, my G matrix in this representation is going to be a very important matrix, the first row is going to contain the AR parameters, the AR coefficients.
->We have p of those. That's my first row. In this block, I'm going to have an identity matrix. It's going to have ones in the diagonal and zeros everywhere else. I'm going to have a one here, and then I want to have zeros everywhere else. In this portion, I'm going to have column vector here of zeros. This is my G matrix. Why is this G matrix important? This G matrix is going to be related to the characteristic polynomial, in particular, is going to be related to the reciprocal roots of the characteristic polynomial that we discussed before. The eigenvalues of this matrix correspond precisely to the reciprocal roots of the characteristic polynomial. We will think about that and write down another representation related to this process. But before we go there, I just want you to look at this equation and see that if you do the matrix operations that are described these two equations, you get back the form of your autoregressive process. The other thing is, again, this is called a state-space representation because you have two equations here. One, you can call it the observational level equation where you are relating your observed y's with some other model information here. Then there is another equation that has a Markovian structure here, where x_t is a function of x_t minus 1. This is why this is a state-space representation. One of the nice things about working with this representation is we can use some definitions that apply to dynamic linear models or state-space models, and one of those definitions is the so-called forecast function. The forecast function, we can define it in terms of, I'm going to use here the notation f_t h to denote that is a function f that depends on the time t that you're considering, and then you're looking at forecasting h steps ahead in your time series. If you have observations up to today and you want to look at what is the forecast function five days later, you will have h equals 5 there. It's just the expected value. We are going to think of this as the expected value of y_t plus h. Conditional on all the observations or all the information you have received up to time t. I'm going to write it just like this. Using the state-space representation, you can see that if I use the first equation and I think about the expected value of y_t plus h is going to be F transpose, and then I have the expected value of the vector x_t plus h in that case. I can think of just applying this, then I would have expected value of x_t plus h given y_1 up to t. But now when I look at the structure of x_t plus h, if I go to my second equation here, I can see that x_t plus h is going to be dependent on x_t plus h minus 1, and there is a G matrix here. I can write this in terms of the expected value of x_t plus h, which is just G, expected value of x_t plus h minus 1, and then I also have plus expected value of the w_t's. But because of the structure of the AR process that we defined, we said that all the Epsilon T's are independent normally distributed random variables center at zero. In this case, those are going to be all zero. I can write down this as F transpose G, and then I have the expected value of x_t plus h minus 1 given y_1 up to t. If I continue with this process all the way until I get to time t, I'm going to get a product of all these G matrices here, and because we are starting with this lag h, I'm going to have the product of that G matrix h times. I can write this down as F transpose G to the power of h, and then I'm going to have the expected value of, finally, I get up to here.
+> We have p of those. That's my first row. In this block, I'm going to have an identity matrix. It's going to have ones in the diagonal and zeros everywhere else. I'm going to have a one here, and then I want to have zeros everywhere else. In this portion, I'm going to have column vector here of zeros. This is my G matrix. Why is this G matrix important? This G matrix is going to be related to the characteristic polynomial, in particular, is going to be related to the reciprocal roots of the characteristic polynomial that we discussed before. The eigenvalues of this matrix correspond precisely to the reciprocal roots of the characteristic polynomial. We will think about that and write down another representation related to this process. But before we go there, I just want you to look at this equation and see that if you do the matrix operations that are described these two equations, you get back the form of your autoregressive process. The other thing is, again, this is called a state-space representation because you have two equations here. One, you can call it the observational level equation where you are relating your observed y's with some other model information here. Then there is another equation that has a Markovian structure here, where x_t is a function of x_t minus 1. This is why this is a state-space representation. One of the nice things about working with this representation is we can use some definitions that apply to dynamic linear models or state-space models, and one of those definitions is the so-called forecast function. The forecast function, we can define it in terms of, I'm going to use here the notation f_t h to denote that is a function f that depends on the time t that you're considering, and then you're looking at forecasting h steps ahead in your time series. If you have observations up to today and you want to look at what is the forecast function five days later, you will have h equals 5 there. It's just the expected value. We are going to think of this as the expected value of y_t plus h. Conditional on all the observations or all the information you have received up to time t. I'm going to write it just like this. Using the state-space representation, you can see that if I use the first equation and I think about the expected value of y_t plus h is going to be F transpose, and then I have the expected value of the vector x_t plus h in that case. I can think of just applying this, then I would have expected value of x_t plus h given y_1 up to t. But now when I look at the structure of x_t plus h, if I go to my second equation here, I can see that x_t plus h is going to be dependent on x_t plus h minus 1, and there is a G matrix here. I can write this in terms of the expected value of x_t plus h, which is just G, expected value of x_t plus h minus 1, and then I also have plus expected value of the w_t's. But because of the structure of the AR process that we defined, we said that all the Epsilon T's are independent normally distributed random variables center at zero. In this case, those are going to be all zero. I can write down this as F transpose G, and then I have the expected value of x_t plus h minus 1 given y_1 up to t. If I continue with this process all the way until I get to time t, I'm going to get a product of all these G matrices here, and because we are starting with this lag h, I'm going to have the product of that G matrix h times. I can write this down as F transpose G to the power of h, and then I'm going to have the expected value of, finally, I get up to here.
 >
 >This is simply is going to be just my x_t vector. I can write this down as F transpose G^h, and then I have just my x_t. Again, why do we care? Now we are going to make that connection with this matrix and the eigenstructure of this matrix. I said before, one of the features of this matrix is that the eigenstructure is related to the reciprocal roots of the characteristic polynomial. In particular, the eigenvalues of this matrix correspond to the reciprocal roots of the characteristic polynomial. If we are working with the case in which we have exactly p different roots. We have as many different roots as the order of the AR process. Let's say, p distinct.
 >We can write down then G in terms of its eigendecomposition. I can write this down as E, a matrix Lambda here, E inverse. 
@@ -297,7 +306,7 @@ pacf(yt, lag.max = 50, main = "sample PACF")
 
 ### AR(p): Definition, stability, and stationarity
 
-::: callout-info
+::: {.callout-info}
 
 ### AR(p)
 
@@ -373,7 +382,7 @@ $$
 
 for any $t \ge p$. The eigenvalues of the matrix $G$ are the reciprocal roots of the characteristic polynomial.
 
-::: callout-note
+::: {.callout-note}
 ##### Eigenvalues
 
 -   The eigenvalues can be real-valued or complex-valued.
@@ -704,7 +713,7 @@ spec=matrix(0,nrow=n_sample,ncol=length(freq))
 
 for (i in 1:n_sample){
 result=arma.spec(ar=phi_sample[i,], var.noise = v_sample[i],# log='yes',
-                 main = '')
+                 main = '',plot=FALSE)
 spec[i,]=result$spec
 }
 
@@ -741,6 +750,8 @@ You will use an AR(8) to model this dataset and obtain maximum likelihood estima
 Modify the code below to use the function polyroot and obtain the moduli and periods of the reciprocal roots of the AR polynomial evaluated at the posterior mean $\hat\phi$.
 
 ```{r}
+#| label: ar-simulation
+
 set.seed(2021)
 r=0.95
 lambda=12 
@@ -821,7 +832,7 @@ with $\epsilon_t \sim N(0, v)$.
 
 Next we will define the notions of stability and invertibility of an ARMA process.
 
-::: callout-info
+::: {.callout-info}
 
 #### Stability Definition
 
@@ -840,7 +851,7 @@ This condition implies stationarity.
 :::
 
 
-::: callout-info
+::: {.callout-info}
 
 #### Invertible ARMA Definition
 
@@ -848,7 +859,7 @@ An ARMA process is **invertible** if the roots of the MA **characteristic polyno
 
 $$
 \Theta(u) = 1 + \theta_1 u + \ldots + \theta_q u^q,
-$$
+$$ {#eq-arma-ma-poly}
 
 lie outside the unit circle.
 
@@ -860,14 +871,17 @@ Note that $\Phi(B) y_t = \Theta(B) \epsilon_t$.
 
 - When an ARMA process is **invertible**, it can be written as an infinite order autoregressive process.
 
-::: callout-info
+::: {.callout-info}
 
 #### ARIMA Processes
+
 An autoregressive integrated moving average process with orders $p$, $d$, and $q$ is a process that can be written as
 
 $$
 (1 - B)^d y_t = \sum_{i=1}^{p} \phi_i y_{t-i} + \sum_{j=1}^{q} \theta_j \epsilon_{t-j} + \epsilon_t,
-$$
+$$ {#eq-arima-definition}
+
+where $B$ is the backshift operator, $d$ is the order of integration, and $\epsilon_t \sim N(0, v)$.
 
 in other words, $y_t$ follows an ARIMA(p, d, q) if the $d$ difference of $y_t$ follows an ARMA(p, q).
 
@@ -881,7 +895,7 @@ For a given AR(p) process with AR coefficients $\phi_1, \dots, \phi_p$ and varia
 
 $$
 f(\omega) = \frac{v}{2\pi |\Phi(e^{-i\omega})|^2} = \frac{v}{2\pi |1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-ip\omega}|^2},
-$$
+$$ {#eq-ar-spectral-density}
 
 with $\omega$ a frequency in $(0, \pi)$.
 
@@ -893,6 +907,6 @@ Similarly, we can obtain the spectral density of an ARMA process with AR charact
 
 $$
 f(\omega) = \frac{v}{2\pi} \frac{|\Theta(e^{-i\omega})|^2}{|\Phi(e^{-i\omega})|^2}.
-$$
+$$ {#eq-arma-spectral-density}
 
 Note that if we have posterior estimates or posterior samples of the AR/ARMA coefficients and the variance $v$, we can obtain samples from the spectral density of AR/ARMA processes using the equations above.

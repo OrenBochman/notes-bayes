@@ -14,44 +14,46 @@ keywords:
   - stationarity
   - strong stationarity
   - weak stationarity
+  - lag
   - autocorrelation function (ACF)
   - partial autocorrelation function (PACF)
   - smoothing
   - trend
   - seasonality
-  - Durbin-Levinson recursion
-  - Yule-Walker equations
   - differencing operator
   - back shift operator
   - moving average
   - AR(1) process
+  - Yule-Walker equations
+  - Durbin-Levinson recursion
   - R code
-author: Oren Bochman
 image: course-banner.png
 fig-caption: Notes about ... Bayesian Statistics
-title-block-banner: banner_deep.jpg
+title-block-banner: images/banner_deep.jpg
 #bibliography: bibliography.bib
 format: 
     html: 
         code-fold: true
         css: styles.css
-
 ---
-
 
 
 # Week 1: Introduction to Time Series and the AR(1) process
 
+
+::: {.callout-note collapse="true"}
 ## Learning Objectives
 
--   [x] List the goals of the course
+-   [x] ~~List the goals of the course~~
 -   [x] identify the basics of the R environment.
--   [x] Explain stationary time series processes
--   [ ] Define auto-correlation function (ACF) and partial auto-correlation function (PACF) and use R to plot the sample ACF and sample PACF of a time series
+-   [x] Explain **stationary** time series processes
+-   [ ] Define **auto-correlation function** (ACF) and **partial auto-correlation function** (PACF) and use R to plot the sample ACF and sample PACF of a time series
 -   [x] Explain the concepts of differencing and smoothing via moving averages to remove/highlight trends and seasonal components in a time series
 -   [ ] Define the zero-mean autoregressive process of order one or AR(1) and use R to obtain samples from this type of process
 -   [ ] Perform maximum likelihood estimation for the full and conditional likelihood in an AR(1)
 -   [ ] Perform Bayesian inference for the AR(1) under the conditional likelihood and the reference prior
+
+:::
 
 ## Introduction
 
@@ -79,22 +81,23 @@ Before diving into the material here is a brief overview of the notations for ti
 - and the use of $\sim$ to denote a distribution.
 - under tildes $\utilde{y}$ are used to denote estimates of the true values $y$.
 - E matrix of eigenvalues
-- $\Lambda = diagonal(\alpha_1, \alpha_2, \ldots , \alpha_p)$ is a diagonal matrix with the eigenvalues of Σ on the diagonal.
-- $J_p(1)$ = a p by p Jordan form matrix with 1 on the superdiagonal
+- $\Lambda = diagonal(\alpha_1, \alpha_2, \ldots , \alpha_p)$ is a diagonal matrix with the eigenvalues of $\Sigma$ on the diagonal.
+- $J_p(1)$ = a p by p [Jordan form](https://en.wikipedia.org/wiki/Jordan_normal_form) matrix with 1 on the super-diagonal
 
 
 also see [@prado2023time pp. 2-3]
+
 :::
 
 ### Stationarity (video)
 
-![~~slide 1~~](images/m1_0001.png){.column-margin width="250px" group="slides"}
+![~~strong and weak stationarity~~](images/m1_0001.png){.column-margin width="250px" group="slides"}
 
-Stationarity see [@prado2023time §1.2] is a fundamental concept in time series analysis. 
+Stationarity c.f. [@prado2023time §1.2] is a fundamental concept in time series analysis. 
 
-::: callout-important
+::: {.callout-important}
 
-## TL;DR
+## TL;DR -- Stationarity
 
 Stationarity
 :   [Stationarity]{.column-margin}
@@ -106,101 +109,119 @@ Stationarity
 
 [Stationarity is a key concept in time series analysis. A time series is said to be stationary if its statistical properties such as mean, variance, and auto-correlation do not change over time.]{.mark}
 
-Let $y_t$ be a time series. We say that $y_t$ is stationary if the following conditions hold:
 
-Strong Stationarity
+::: {#def-strong-stationarity}
 
-:   [Strong Stationarity]{.column-margin}
+## Strong Stationarity
 
-:   Let $\{y_t\} \quad \forall n>0$ be a time series and $h > 0$ be a lag. If for any subsequence the distribution of $y_t, y_{t+1}, \ldots, y_{t+n}$ is the same as the distribution of $y_{t+h}, y_{t+h+1}, \ldots, y_{t+h+n}$ we call the series strongly stationary.
+[Strong Stationarity]{.column-margin} Let $y_t$ be a time series. We say that $y_t$ is *stationary* if the following conditions hold:
 
-Since it is difficult to verify strong stationarity in practice, we will often use the following weaker notion of stationarity.
+Let $\{y_t\} \quad \forall n>0$ be a time series and $h > 0$ be a lag. If for any subsequence the distribution of $y_t, y_{t+1}, \ldots, y_{t+n}$ is the same as the distribution of $y_{t+h}, y_{t+h+1}, \ldots, y_{t+h+n}$ we call the series strongly stationary.
 
-Weak Stationarity AKA Second-order Stationarity
+:::
 
-:   [Weak Stationarity]{.column-margin}
+As it's difficult to verify strong stationarity in practice, we will often use the following weaker notion of stationarity.
 
-:   the mean, variance, and auto-covariance are constant over time.
+::: {#def-weak-stationarity}
 
--  $E(y_t) = \mu \quad \forall t$
--  $Var(y_t) = \nu =\sigma^2 \quad \forall t$
--  $Cov(y_t , y_s ) = γ(t − s)$
+## Weak Stationarity
 
+[Weak Stationarity]{.column-margin} [Second-order Stationarity]{.column-margin} The mean, variance, and auto-covariance are constant over time.
+
+$$
+\begin{align*}
+\mathbb{E}[y_t] &= \mu \quad \forall t \\
+\mathbb{V}ar[y_t] &= \nu =\sigma^2 \quad \forall t \\
+\mathbb{C}ov[y_t , y_s ] &= γ(t − s)
+\end{align*}
+$$ {#eq-weak-stationarity}
+
+:::
 
 -   Strong stationarity $\implies$ Weak stationarity, but
 -   The converse is not true.
 -   In this course when we deal with a Gaussian process, our typical use case, they are equivalent!
 
-::: callout-caution
+::: {.callout-caution}
 
 ## Check your understanding
 
-Q. Can you explain with an example when a time series is weakly stationary but not strongly stationarity.
+Q. Can you explain with an example when a time series is weakly stationary but not strongly stationary?
 
 :::
 
 
-### The auto-correlation function ACF (video)
+### The auto-correlation function ACF (video) {#sec-acf}
 
 
-![slide 1](images/m1_0011.png){.column-margin width="250px" group="slides"}
+![The auto-correlation function ACF](images/m1_0011.png){.column-margin width="250px" group="slides"}
 
-The autocorrelation is simply how correlated a time series is with itself at different lags. Correlation in general is defined in terms of covariance of two variables. The covariance is a measure of the joint variability of two random variables. 
+[The autocorrelation is simply how correlated a time series is with itself at different lags]{.mark}.
+
+- Correlation in general is defined in terms of covariance of two variables.
+- The covariance is a measure of the joint variability of two random variables. 
 
 
 ::: callout-important
 
-Recall that the covariance between two random variables $y_t$ and $y_s$ is defined as:
+Recall that the Covariance between two random variables $y_t$ and $y_s$ is defined as:
 
 $$
 \begin{aligned}
-Cov(y_t, y_s) &= \mathbb{E}[(y_t-\mathbb{E}[y_t])(y_s-\mathbb{E}[y_s])] \\
+\mathbb{C}ov[y_t, y_s] &= \mathbb{E}[(y_t-\mathbb{E}[y_t])(y_s-\mathbb{E}[y_s])] \\
               &= \mathbb{E}[(y_t-\mu_t)(y_s-\mu_s)] \\
               &= E[y_t y_s] - \mu_t \times \mu_s
 \end{aligned} \qquad
 $$ {#eq-covariance}
 
-we get the second line by substituting $\mu_t = \mathbb{E}(y_t)$ and $\mu_s = \mathbb{E}(y_s)$ using the definition of the mean of a RV.
+We get the second line by substituting $\mu_t = \mathbb{E}(y_t)$ and $\mu_s = \mathbb{E}(y_s)$ using the definition of the mean of a RV.
 the third line is by multiplying out and using the linearity of the expectation operator.
+:::
 
+::: {#tip-acf .callout-tip }
+
+## AFC notation
 
 We will frequently use the notation $\gamma(h)$ to denote the **autocovariance** for a lag $h$ i.e. between $y_t$ and $y_{t+h}$
 
 $$
-\gamma(h) = Cov(y_t, y_s) \qquad
+\gamma(h) = \mathbb{C}ov[y_t, y_{t+h}] \qquad
 $$ {#eq-autocovariance}
 
 :::
 
 
-If the time series is stationary, then the covariance only depends on the lag $h = |t-s|$ and we can write the covariance as $\gamma(h)$.
+When the time series is stationary, then the covariance only depends on the lag $h = |t-s|$ and we can write the covariance as $\gamma(h)$.
 
 
 Let $\{y_t\}$ be a time series. Recall that the covariance between two random variables $y_t$ and $y_s$ is defined as:
 
 $$
-\gamma(t,s)=Cov(y_t, y_s) = \mathbb{E}[(y_t-\mu_t)(y_s-\mu_s)] \qquad
+\gamma(t,s)=\mathbb{C}ov[y_t, y_s] = \mathbb{E}[(y_t-\mu_t)(y_s-\mu_s)] \qquad
 $$ {#eq-covariance}
 
 where $\mu_t = \mathbb{E}(y_t)$ and $\mu_s = \mathbb{E}(y_s)$ are the means of $y_t$ and $y_s$ respectively.
 
 $$
 \mu_t = \mathbb{E}(y_t) \qquad \mu_s = \mathbb{E}(y_s)
+$$ {#eq-mean}
+
+$$
+\text{Stationarity} \implies \mathbb{E}[y_t] = \mu \quad \forall t \qquad \therefore \quad \gamma(t,s)=\gamma(|t-s|)
 $$
 
-Stationarity $\implies \mathbb{E}[y_t] = \mu \quad \forall t \qquad \gamma(t,s)=\gamma(|t-s|)$
-
-If $h>0 \qquad \gamma(h)=Cov(y_t,y_{t-h})$
+If $h>0 \qquad \gamma(h)=\mathbb{C}ov[y_t,y_{t-h}]$
 
 ::: callout-important
 
 ###  Autocorrelation Function (AFC)
+
 [auto-correlation AFC]{.column-margin}
 
 
 $$
 \rho(t,s) = \frac{\gamma(t,s)}{\sqrt{\gamma(t,t)\gamma(s,s)}}
-$$
+$$ {#eq-autocorrelation}
 
 :::
 
@@ -212,7 +233,7 @@ $$
 
 $$
 y_{1:T}
-$$
+$$ {#eq-sub-sequence}
 
 ::: callout-important
 
@@ -220,102 +241,115 @@ $$
 
 $$
 \hat\gamma(h)= \frac{1}{T} \sum_{t=1}^{T-h}(y_{t+h}-\bar y )(y_t-\hat y)
-$$
+$$ {#eq-sample-auto-covariance-function}
+
+where $\bar y$ is the sample mean of the time series $y_{1:T}$, and $\hat y$ is the sample mean of the time series $y_{1:T-h}$.
 
 :::
 
 $$
 \bar y = \frac{1}{T} \sum_{t=1}^{T}y_t
-$$
+$$ {#eq-sample-mean}
 
 $$
 \hat \rho = \frac{\hat\gamma(h)}{\hat\gamma(o)}
-$$
+$$ {#eq-sample-auto-correlation-function}
 
 ### The partial auto-correlation function PACF (Reading)
 
-Let ${y_t}$ be a zero-mean stationary process.
 
-Let
+::: {#def-pafc }
+
+## Partial Auto-correlation Function (PAFC)
+
+Let ${y_t}$ be a zero-mean stationary process, and let
 
 $$
 \hat{y}_t^{h-1} = \beta_1 y_{t-1} + \beta_2 y_{t-2} + \ldots + \beta_{h-1} y_{t-(h-1)}
-$$
+$$ {#eq-best-linear-predictor}
 
 be the best linear predictor of $y_t$ based on the previous $h − 1$ values $\{y_{t−1}, \ldots , y_{t−h+1}\}$. The best linear predictor of $y_t$ based on the previous $h − 1$ values of the process is the linear predictor that minimizes
 
 $$
 E[(y_t − \hat{y}_y^{h-1})^2]
-$$
+$$ {#eq-best-linear-predictor-minimization}
+
 
 The partial autocorrelation of this process at lag h, denoted by $\phi(h, h)$ is defined as: [partial auto-correlation PAFC]{.column-margin}
 
 $$
 \phi(h, h) = Corr(y_{t+h} − \hat{y}_{t+h}^{h-1}, y_t − \hat{y}_t^{h-1})
-$$
+$$ {#eq-partial-auto-correlation}
+
 
 for $h \ge 2$ and $\phi(1, 1) = Corr(y_{t+1}, y_{t}) = \rho(1)$.
+
+:::
 
 The partial autocorrelation function can also be computed via the Durbin-Levinson recursion for stationary processes as $\phi(0, 0) = 0$,
 
 $$
 \phi(n, n) = \frac{\rho(n) − \sum_{h=1}^{n-1} \phi(n − 1, h)\rho(n − h)}{1- \sum_{h=1}^{n-1}\phi(n − 1, h)\rho(h)}
-$$
+$$ {#eq-durbin-levinson}
 
 for $n \ge 1$, and
 
 $$
 \phi(n, h) = \phi(n − 1, h) − \phi(n, n)\phi(n − 1, n − h),
-$$
+$$ {#eq-durbin-levinson-2}
 
 for $n \ge 2$, and $h = 1, \ldots , (n − 1)$.
 
 Note that the sample PACF can be obtained by substituting the sample autocorrelations and the sample auto-covariances in the Durbin-Levinson recursion.
 
-
 ### Differencing and smoothing (Reading)
 
-Differencing and smoothing are covered in the [@prado2023time §1.4] and are techniques used to remove trends and seasonality in time series data.
+Differencing and smoothing are techniques used to remove trends and seasonality in time series data. They are covered in the [@prado2023time §1.4].
 
-Many time series models are built under the assumption of stationarity. However, time series data often present non-stationary features such as trends or seasonality. Practitioners may consider techniques for detrending, deseasonalizing and smoothing that can be applied to the observed data to obtain a new time series that is consistent with the stationarity assumption.
+Many synthetic time series models are built under the assumption of stationarity. However, in the real world time series data often present non-stationary features such as **trends** or **seasonality**. These features render such a time series non-stationary, and therefore, not suitable for analysis using the tools and methods we have discussed so far. However practitioners can use techniques for detrending, deseasonalizing and smoothing that when applied to such observed data transforms it into a new time series that is consistent with the stationarity assumption.
 
 We briefly discuss two methods that are commonly used in practice for detrending and smoothing.
 
 #### Differencing
 
-The first method is differencing, which is generally used to remove trends in time series data. The first difference of a time series is defined in terms of the so called difference operator denoted as $D$, that produces the transformation [differencing operator]{.column-margin}
+[Differencing, is a method which removes the trend from a time series data]{.mark}. The first difference of a time series is defined in terms of the  difference operator, denoted as $D$, that produces the transformation [differencing operator $D$]{.column-margin}
 
 $$
-Dy_t = y_t - y_{t-1}.
-$$
+Dy_t \doteqdot y_t - y_{t-1}.
+$$ {#eq-first-difference-operator-definition}
 
 Higher order differences are obtained by successively applying the operator $D$. For example,
 
 $$
 D^2y_t = D(Dy_t) = D(y_t - y_{t-1}) = y_t - 2y_{t-1} + y_{t-2}.
-$$
+$$ {#eq-higher-order-difference-operator-definition}
 
-Differencing can also be written in terms of the so called backshift operator $B$, with [backshift operator]{.column-margin}
+
+Differencing can also be written in terms of the so called back-shift operator $B$, with [back-shift operator $B$]{.column-margin}
 
 $$
-By_t = y_{t-1},
-$$
+By_t \doteqdot y_{t-1},
+$$ {#eq-backshift-operator-definition}
 
 so that 
 
 $$
-Dy_t = (1 - B) y_t
-$$
+Dy_t \doteqdot (1 - B) y_t
+$$ {#eq-first-difference-operator-via-back-shift-definition}
 
 and
 
 $$
-D^dy_t = (1 - B) d y_t.
-$$
+D^dy_t \doteqdot (1 - B)^d y_t.
+$$ {#eq-higher-order-difference-operator-definition}
+
+this notation lets us write the differences in by referencing items backwards in time, which is often more intuitive and also useful, for example, when we will want to write the differencing operator in terms of a polynomial.
 
 #### Smoothing
 
-The second method we discuss is [moving averages, which is commonly used to "smooth" a time series by removing certain features]{.mark} (e.g., seasonality) [to highlight other features]{.mark} (e.g., trends). [A moving average is a weighted average of the time series around a particular time]{.mark} $t$. In general, if we have data $y1:T$ , we could obtain a new time series such that [moving average]{.column-margin}
+[Moving averages, which is commonly used to "smooth" a time series by removing certain features (e.g., seasonality) to highlight other features]{.mark} (e.g., trends). 
+
+[A moving average is a weighted average of the time series around a particular time]{.mark} $t$. In general, if we have data $y_{1:T}$, we could obtain a new time series such that [moving average]{.column-margin}
 
 $$
 z_t = \sum_{j=-q}^{p} w_j y_{t+j} \qquad
@@ -340,24 +374,30 @@ Assume we have periodic data with period $d$. Then, symmetric and centered movin
 -   If $d = 2q$ :
 
 $$
-z_t = \frac{1}{2} (y_{t−q} + y_{t−q+1} + \ldots + y_{t+q−1} + y_{t+q}) 
-$$
+z_t =  \frac{1}{d} \left(\frac{1}{2} y_{t−q} + y_{t−q+1} + \ldots + y_{t+q−1} + \frac{1}{2} y_{t+q}\right ) 
+$$ {#eq-even-seasonal-moving-average}
 
 -   if $d = 2q + 1$ :
 
 $$
-z_t = \frac{1}{d} (y_{t−q} + y_{t−q+1} + \ldots + y_{t+q−1} + y_{t+q})
-$$
+z_t = \frac{1}{d} \left( y_{t−q} + y_{t−q+1} + \ldots + y_{t+q−1} + y_{t+q}\right ) 
+$$ {#eq-odd-seasonal-moving-average}
 
-Example: To remove seasonality in monthly data (i.e., seasonality with a period of d = 12 months), one can use a moving average with $p = q = 6$, $a_6 = a_{−6} = 1/24$, and $a_j = a_{−j} = 1/12$ for $j = 0, \ldots , 5$ , resulting in:
+::: {#exm-seasonal-moving-average}
+
+## Seasonal Moving Average
+
+To remove seasonality in monthly data (i.e., seasonality with a period of d = 12 months), we use a moving average with $p = q = 6$, $a_6 = a_{−6} = 1/24$, and $a_j = a_{−j} = 1/12$ for $j = 0, \ldots , 5$ , resulting in:
 
 $$
-z_t = \frac{1}{12} (y_{t−6} + y_{t−5} + \ldots + y_{t+5} + y_{t+6})
-$$
+z_t = \frac{1}{24} y_{t−6} + \frac{1}{12}y_{t−5} + \ldots + \frac{1}{12}y_{t+5} + \frac{1}{24}y_{t+6}
+$$ {#eq-seasonal-moving-average}
+
+:::
 
 ### ACF PACF Differencing and Smoothing Examples (Video)
 
-This video walks through the two code snippets bellow and provides examples of how to compute the ACF and PACF of a time series, how to use differencing to remove trends, and how to use moving averages to remove seasonality. 
+This video walks us through the code snippets in @lst-moving-averages-and-differencing and @lst-white-noise-simulation below and provides examples of how to compute the ACF and PACF of a time series, how to use differencing to remove trends, and how to use moving averages to remove seasonality. 
 
 
 - Outline:
@@ -389,7 +429,9 @@ The r-code for the examples is provided below.
 ### R code for Differencing and filtering via moving averages (reading) {#sec-differencing-and-smoothing}
 
 ```{r}
-#| label: "moving-averages-and-differencing"
+#| label: lst-moving-averages-and-differencing
+#| lst-label: lst-moving-averages-and-differencing
+#| lst-cap: "R code: for Differencing and filtering via moving averages"
 
 # Load the CO2 dataset in R
 data(co2) 
@@ -409,7 +451,9 @@ plot(co2_ma) # plot the filtered series via moving averages (removes the seasona
 ### R Code: Simulate data from a white noise process (reading) {#sec-white-noise-simulation}
 
 ```{r}
-#| label: "white noise simulation"
+#| label: lst-white-noise-simulation
+#| lst-label: lst-white-noise-simulation
+#| lst-cap: "R Code: Simulate data from a white noise process"
 
 #
 # Simulate data with no temporal structure (white noise)
@@ -824,6 +868,10 @@ Modify the code above to sample 800 observations from an AR(1) with AR coefficie
 2.  Consider the R code below: AR(1) Bayesian inference, conditional likelihood
 
 ```{r}
+#| label: lst-ar-1-inference
+#| lst-label: lst-ar-1-inference
+#| lst-cap: "R Code: AR(1) Bayesian inference, conditional likelihood example"
+
 #######################################################
 ######     Posterior inference, AR(1)               ###
 ######     Conditional Likelihood + Reference Prior ###
