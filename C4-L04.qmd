@@ -323,6 +323,50 @@ This is omitted due to the Coursera honor code.
 
 ## Filtering, Smoothing and Forecasting: Unknown observational variance (Video)
 
+In this video we cover the following material aslo provided as a handout:
+
+Inference in the NDLM with unknown but constant observational variance:
+
+Let $v_t = v$ for all $t$, with $v$ unknown and consider a DLM with the following
+structure:
+$$
+\begin{aligned}
+y_t &= \mathbf{F}_t' \mathbf{\theta}_t + \nu_t, &\nu_t &\sim N (0, v)\\
+\mathbf{\theta}_t &= \mathbf{G}_t \mathbf{\theta}_{t-1} + \mathbf{\omega}_t, & \mathbf{\omega}_t &\sim N (0, v \mathbf{W}^*_t)
+\end{aligned}
+$$ {#eq-NDLM-unknown-variance}
+
+with conjugate prior distributions:
+$$
+(\mathbf{\theta}_0 \mid D_0, v) \sim N (\mathbf{m}_0, v\mathbf{C}^*_0), \qquad (v \mid D_0) \sim IG(\frac{n_0}{2}, \frac{d_0}{2}),
+$$ {#eq-NDLM-unknown-variance-priors}
+and $d_0 = n_0s_0$
+
+### Filtering
+
+Assuming $(\theta_{t-1} \mid D_{t-1}, v) \sim N (m_{t-1}, vC^*_{t-1})$, we have the following results:
+
+- $(\theta_t \mid D_{t-1}, v) \sim N (a_t, vR^*_t)$ with $a_t = G_t m_{t-1}$ and $R^*_t = G_t C^*_{t-1} G'_t + W^*_t$, and unconditional on $v$, $(\theta_t \mid D_{t-1}) \sim T_{n_{t-1}} (a_t, R_t)$, with $R_t = s_{t-1} R^*_t$. The expression for $s_t$ for all $t$ is given below.
+- $(y_t \mid D_{t-1}, v) \sim N (f_t, vq^*_t)$, with $f_t = F'_t a_t$, and $q^*_t = (1 + F'_t R^*_t F_t)$ and unconditional on $v$ we have $(y_t \mid D_{t-1}) \sim T_{n_{t-1}} (f_t, q_t)$, with $q_t = s_{t-1} q^*_t$.
+- $(v \mid D_t) \sim IG(n_t/2, s_t/2)$, with $n_t = n_{t-1} + 1$ and
+  $$ 
+  s_t = s_{t-1} + \frac{s_{t-1}}{n_t} \left ( \frac{e^2_t}{q^*_t} - 1 \right ), 
+  $$ {#eq-NDLM-unknown-variance-filtering}
+
+  where $e_t = y_t - f_t$
+
+- θt|Dt, v) ∼ N (mt, vC∗
+t ), with mt = at + Atet, and C∗
+t = R∗
+t − AtA′
+tq∗
+t .
+Similarly, unconditional on v we have
+(θt|Dt) ∼ Tnt (mt, Ct),
+with Ct = stC∗
+t
+
+
 ## Summary of Filtering, Smoothing and Forecasting Distributions, NDLM unknown observational variance (Reading)
 
 ## Specifying the system covariance matrix via discount factors (Video)
@@ -1032,6 +1076,8 @@ get_credible_interval_unknown_v <- function(ft, Qt, nt,
 
 ```{r}
 #| label: code-discount-factor-selection
+
+
 ##################################################
 ##### using discount factor ##########
 ##################################################

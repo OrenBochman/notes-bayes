@@ -21,13 +21,11 @@ keywords:
 image: course-banner.png
 fig-caption: Notes about ... Bayesian Statistics
 title-block-banner: images/banner_deep.jpg
-
 ---
 
 [Normal Dynamic Linear Models (NDLMs) are defined and illustrated in this module using several examples Model building based on the forecast function via the superposition principle is explained. Methods for Bayesian filtering, smoothing and forecasting for NDLMs in the case of known observational variances and known system covariance matrices are discussed and illustrated.]{.mark}.
 
-The Normal Dynamic Linear Model (DLM)  covered  [@prado2023time pp. 117-144]
-
+The Normal Dynamic Linear Model (DLM) is covered  [@prado2023time pp. 117-144]
 
 :::{.callout-note}
 
@@ -43,11 +41,32 @@ The Normal Dynamic Linear Model (DLM)  covered  [@prado2023time pp. 117-144]
 
 # The Normal Dynamic Linear Model: Definition, Model classes &  The Superposition Principle
 
+DLMs are pretty advanced - there isn't that material much on these models online. The text books are also hard to follow and somewhat inconsistent in terms of notation. 
+
+Given all that though, DLM are not all that different from a linear regression model.
+But where a regression model is indexed by some i and independent in the DLM the model is indexed by t and we have the additional structures we discussed before. 
+The reason these models don't seem to be linear regression models is primerily because they are written with at least two levels as hierarchial models. 
+
+This is shown in the first part of the following video using a random walk model.
+
+The only aspect of that random walk model is that there are two levels of variances rather than the usual one. In the second part the instructors then walks us though all the bits and pieces of the notation.
+
+However the DLM framework is quite flexible and once you understand it it can ve adapted to support features like seasonality using the superposition principle. NLDMs don't need to be non-stationary time series.
+
+As far as I cen tell NDLMs are just DLM with their errors distributed normally at the different levels.
+
 ## NDLM Definition (Video)
+
+![NLDM Motivation](images/m3_0001.png){.column-margin width="250px" group="slides"}
+
+![NLDM general form](images/m3_0002.png){.column-margin width="250px" group="slides"}
+
+![the forecast function](images/m3_0003.png){.column-margin width="250px" group="slides"}
+
 
 ::: {.callout-caution collapse="true"}
 
-### Hard to follow :weary: :angry:
+### Hard to follow :weary:
 
 - I found this video hard to follow. I watched it carefully a number of times and reworked the math and video's transcript. But in the end this and the next two video are more like a summary of the material rather than a motivated development of the models. 
 
@@ -66,23 +85,21 @@ In @prado2023time we quickly get a large number of mathematically concise format
 
 - I hope that with the rest of this and the next lesson we can get a better understanding of the NLDM.
 
-- I ended up skimming through large portions of @west2013bayesian which goes into much greater detail on the NLDM. The first and second polynomial models developed, explained and motivation is clearer. The state space representation is not explained but the model is developed in a more coherent way and this is a good starting point for developing a more intuitive understanding of the NLDMs. The notation in this book is also easier to follow.
+- I ended up skimming through large portions of [@west2013bayesian] which goes into much greater detail on the NLDM. The first and second polynomial models developed, explained and motivation is clearer. The state space representation is not explained but the model is developed in a more coherent way and this is a good starting point for developing a more intuitive understanding of the NLDMs. The notation in this book is also easier to follow.
 
   - We use $\theta_t$ for the parameters of the vector and \theta_{t,1} and \theta_{t,2} for the first two components of the parameter vector. This continues the convention of greek characters for parameters from the previous courses and many texts. However if the parameters have a clear meaning it much easier to follow math where we use a more descriptive notation and avoid the second subscripts.
 - The state space representation here is omitted. The $F$ vector or matrix is not really motivates as a latent state space representation.
 
 :::
 
-![NLDM Motivation](images/m3_0001.png){.column-margin width="250px" group="slides"}
-
 In this module, [we will motivate and develop a class of models suitable for for analyzing and forecasting **non-stationary time series** called  **normal dynamic linear models** . We will talk about Bayesian inference and forecasting within this class of models and describe model building as well]{.mark}. 
 
 ### White Noise - A motivating example
 
-Let's begin with a very simple model that has no temporal structure, just a model that is: 
+Let's begin with a very simple model that has no temporal structure, just a mean value with some variation that is: 
 
 $$
-y_t = \mu + v_t \qquad v_t \overset{\text{iid}}{\sim} N(0, \nu) \qquad 
+y_t = \mu + v_t \qquad v_t \overset{\text{iid}}{\sim} N(0, \nu) \qquad  \text{(white noise model)}
 $$ {#eq-white-noise-model}
 
 where:
@@ -94,6 +111,7 @@ where:
 If we plot this model we might see the following graph:
 
 ```{r}
+#| label: fig-nldm-white-noise
 set.seed(123)
 n <- 100
 V <- 1
@@ -102,38 +120,42 @@ y <- mu + rnorm(n, 0, V)
 plot(y, type = "l", col = "blue", lwd = 2, xlab = "Time", ylab = "y", main = "Model with no temporal structure")
 ```
 
-
 For this model the mean of the time series is $\mu$ will be the the expected value of $y_t$, which is $\mu$. And the variance of $y_t$ is $\nu$.
 
 $$
-E[y_t] = \mu \qquad \text{and} \qquad Var[y_t] = \nu \qquad
+\mathbb{E}[y_t] = \mu \qquad \text{and} \qquad \mathbb{V}ar[y_t] = \nu \qquad
 $$ {#eq-nldm-mean-variance}
 
 
-### A model with changing means
+### A model with changing means (Random walk)
 
-[Next let's incorporate some temporal structure, in particular, let us allow the expected value of the time series, to change over time. To can achieve this, by update the model definition with a $\mu_t$ where the index indicates that it can change at every time step. And let us keep the noise unchanged. i.e. we set it to $\mu_t \in N(0,\nu)$.]{.mark}  
+[Next we incorporate some temporal structure, we allow the expected value of the time series, to change over time. To can achieve this, by update the model definition with a $\mu_t$ where the index indicates that it can change at every time step. And let us keep the noise unchanged. i.e. we set it to $\mu_t \in N(0,\nu)$.]{.mark}  
 
 We get the following model:
 
 $$
-y_t = \mu_t + \nu_t \quad \nu_t \overset{\text{iid}}{\sim} N(0, V) \qquad \text{(Observation eq)}
-$$ {#eq-nldm-model-observation-cm}
+y_t = \mu_t + \nu_t \quad \nu_t \overset{\text{iid}}{\sim} N(0, V) \qquad \text{(radom walk model)}
+$$ {#eq-nldm-model-random-walk}
 
 To complete this we need to also decide how to incorporate the the changes over time in the parameter $\mu_t$. We might consider different options but we should pick the simplest possible to start with. One option is to assume that the expected value of $\mu_t$ is just the expected value of $\mu_{t-1}$ plus some noise. 
-$$
-\mu_t = \mu_{t-1} + \omega_t \quad \omega_t \overset{\text{iid}}{\sim} N(0, W) \quad \text{(Sys. evolution eq)}
-$$ {#eq-nldm-model-system-evolution-cm}
 
 We now have that random walk type of structure where $\mu_t$ can be written in terms of $\mu(t-1)$. The expected value of $\mu_t$, we can think of it as $\mu_{t-1} + \text{some noise}$. This error is once again, assumed to be normally distributed random variable centered at zero and with variance $W$. 
-
 [Another assumption that we have made here is that the $\nu_t$ and $\omega_t$, are also independent of each other]{.mark}. 
 
-With this model, what we are assuming is that the mean level of the series is changing over time.
+putting this together we get:
 
-This is an example of a **Gaussina or Normal dynamic linear model**, 
+$$
+\begin{aligned}
+y_t &= \mu_t + \nu_t  &\nu_t &\overset{\text{iid}}{\sim} N(0, V)  & \text{(Observation eq.)} \\
+\mu_t &= \mu_{t-1} + \omega_t  &\omega_t &\overset{\text{iid}}{\sim} N(0, W) & \text{(System/evolution eq.)}
+\end{aligned}
+$$ {#eq-randomwalk-model-hierchial}
 
-NLDMs are a two level hierarchial models where : 
+
+With this model, what we are assuming is that the mean level of the series is changing over time. 
+Note that this is an example of a **Gaussian or Normal dynamic linear model**. 
+
+NLDMs are a two level hierarchial models where :
 
 1. At the top is an **observation level equation** relating observations y at time t to some time dependent, (hidden) state parameters and some observation level iid distributed error.
 2. The **system evolution level equation** describes the dynamics of parameters over time and incorporates some system iid distributed error.
@@ -145,9 +167,6 @@ This is our first example. Next we will be discuss the general class of models. 
 
 ### General form of the NDLM
 
-![NLDM inputs and outputs](images/m3_0002.png){.column-margin width="250px" group="slides"}
-
-
 The general class of dynamic linear models can be written as follows:
 
 We are going to have two equations. One is the so-called observation equation that relates the observations to the parameters in the model, and the notation we are going to use is as follows.
@@ -156,7 +175,7 @@ $$\begin{aligned}
 y_t &= \vec{F}_t' \vec{\theta}_t   + \nu_t && \nu_t \overset{\text{iid}}{\sim} N(0, V_t) && \text{(obs)} \\
 \vec{\theta}_t &= G_t \vec{\theta}_{t-1} + \vec{\omega}_t && \vec{\omega}_t \overset{\text{iid}}{\sim} N(0, W_t) && \text{(system)}
 \end{aligned}
-$$
+$$ {#eq-nldm-general-form}
 
 Where:
 
@@ -200,7 +219,7 @@ In terms of the inference, there are a few different kinds of densities and quan
 
 $$
 \mathcal{D}_t= \{\mathcal{D}_0, y_{1:T}\} 
-$$
+$$ {#eq-nldm-filtering-distribution}
 
 We will denote information as $\mathcal{D}_t$. Usually, it is all the information we have at time zero (i.e. our prior), coupled with all the data points I have up to time $t$. 
 
@@ -208,7 +227,7 @@ Here we conditioning on all the observed quantities and the prior information up
 
 $$
 p(\theta_t \mid \mathcal{D}_t) \qquad \text{filtering distribution}
-$$
+$$ {#eq-nldm-filtering}
 
 
 [forecasting distribution]{.column-margin}  
@@ -219,7 +238,7 @@ We want to do a predictions here
 
 $$
 p(y_{t+h} \mid \mathcal{D}_t) \qquad \text{forecasting distribution}
-$$
+$$ {#eq-nldm-forecasting-distribution}
 
 [Smoothing Distribution]{.column-margin} Another important quantity or an important set of distributions is what we call the smoothing distribution. Usually, you have a time series, when you get your data, you observe, I don't know, 300 data points. As you go with the filtering, you are going to start from zero all the way to 300 and you're going to update these filtering distributions as you go and move forward. [We may want instead to revisit the parameter at time 10, for example, given that you now have observed all these 300 observations. In that case, you're interested in densities that are of the form. Let's say that you observe capital T in your process and now you are going to revisit that density for $\theta_t$. This is now in the past. Here we assume that $t<T$. This is called **smoothing**.]{.mark}
 
@@ -228,11 +247,10 @@ So you have more observation once you have seen the data. We will talk about how
 
 $$
 p(\theta_t \mid D_T)  \qquad t < T \qquad \text{smoothing distribution}
-$$
+$$ {#eq-nldm-smoothing-distribution}
 
 ### The forecast function for the NDLM
 
-![slide 3](images/m3_0003.png){.column-margin width="250px" group="slides"}
 
 In addition to all the structure that we described before and all the densities that we are interested in finding, we also have as usual, the so-called *forecast function*, which instead of being the density is just $\mathbb{E}[y(t+h)\mid \mathcal(D_t)]$ i.e. expected value of y at time t given all the information we have before time t. 
 
@@ -260,18 +278,77 @@ $$
 \{F_t, G_t, v_t, W_t\} 
 $$ {#eq-nldm-model-shothand-notation}
 
-## Polynomial Trend NDLM (Video)
+::: {.callout-note collapse="true"}
+## Video Transcript
 
-Now lets looks at the polynomial trend models. [These are models that are useful to describe linear trends or polynomial trends in your time series. So if you have a data set, where you have an increasing trend, or a decreasing trend, you would use one of those components in your model.]{.mark} 
+In this part of the course, I will discuss the class of normal dynamic linear models for analyzing and forecasting non-stationary time series. We will talk about Bayesian inference and forecasting within this class of models and describe model building as well. 
+
+### Motivating example
+
+I want to begin first with a motivating example.  Suppose you have a model that is very simple and has no temporal structure here, just a model that looks like this. 
+
+You have your time series yt. Then you're interested in just thinking about what is the mean level of that time series. That mean level, I'm going
+to call it mu and then I have some noise and the noise is normally distributed. They are all independent, identically distributed normal random variables 0 v. Again, I can think of my time series. Suppose that I have my time series here, and then I'm plotting yt. Then I have something that looks like this. In this model that mu is going to try to get the mean of that time series, this expected value of yt, which is mu. The variance here of yt is v under this model. What may happen in practice again, this model has no temporal structure, I may want to incorporate some temporal structure that says, well, I think that the level of this, the expected value of this time series, should be changing over time. If you were to do that, you will write down a model where the mu changes over time, so it's indexed in time. Then you have still
+your same noise here. Let's again assume normal 0 v. I have now to make a decision on how I'm going to incorporate temporal structure by modeling the changes
+over time in this parameter mu t. You could consider different options. 
+
+The simplest possible, probably that you can consider is something that looks like this. You have that random walk type of structure where mu t is now going to be written as mu (t-1). The expected value of mu t, you'll think of it as mu(t-1) plus some noise. That error here is going to be again, assume normally distributed random variable centered at zero and with variance w. There is another assumption that we can make here and is that the nu t and omega t here, are also independent of each other. When I have this model, what am assuming here is that the mean level of the series is changing over time. 
+
+These type of models have a few characteristics. This is an example of a normal dynamic linear model, as we will see later. In this models, we usually have a few things.
+
+The first thing is we have two equations. One is the so-called observation equation that is relating your yt, your observed process to some parameters in the model
+that are changing over time. The next equation is the so-called system level equation or evolution equation that tells me how that time varying parameter is going to be
+changing over time. The other thing you may notice is that we have a linear structure both in the observational level and in the system level. The linear structure, in the sense of the expected value of yt is just a linear function of that mu t. It happens to be mu t in this particular case. In the second level, I can think of the
+expected value of mu t as a linear function given mu(t-1), so it's a function that is linear on mu(t-1). There is that linear structure. The other thing that we have
+here is at both levels, we have the assumption of normality for the noise terms in those equations. This is an example of a Gaussian or normal dynamic. These are time-varying parameters linear model. We will be discussing the general class of models. This is just an example. We will also discuss how to build different structures
+into the model, as well as how to perform Bayesian inference and forecasting.
+
+### General form of the model
+
+The general class of dynamic linear models can be written as follows. Again, we are going to
+have two equations. One is the so-called observation equation that relates the observations to the parameters in the model, and the notation we are going to use is as follows. Here, my observations are univariate. We are discussing models for univariate time series. I have that related to a vector of parameters, Theta_t plus some noise
+here. This is the noise. The noise are assumed to be independent, identically distributed normal random variables, 0, V_t. Then I have another equation which is a system equation that has this form. There is a general G_t matrix. This is going to be depending on Theta_(t-1). This is a vector, and then I have again, these are iid multivariate normal now 0, W_t. This is the observation equation. This is the system equation or evolution equation. This defines a normal dynamic linear model. Here, we are going to say that F_t is a vector. The dimension of the vector is going to be the same as the number of parameters in the model. Let's say we have k. This is a vector of known values. For each t, we are going to assume that we know what that vector is. Then we have the vector of parameters here is also of dimension k of parameters. The G is the next thing we need to define is a known matrix. That one is also assumed to be known, and then I have V_t is variance at the observational level. The W_t we are going to assume at the beginning that these two quantities are also known for all the values t. This is the variance-covariance matrix at the system level. Again, if we think about these two equations, we have the model defined in this way. 
+
+There is a next piece that we need to consider if we are going to perform based in inference for the model parameters. The next piece that we need to consider to just fully specify the model is what is the prior distribution. In a normal dynamic linear model, the prior distribution is assumed to be conjugate here. In the case again in which V_t and W_t are known, we are going to be assuming that, say that zero, the parameter vector before observing any data is going to be normally distributed Multivariate normal with M_0 and C_0. The mean is a vector, again of the same dimension as Theta 0. Then I have k by k covariance matrix there as well. These are assumed to be also given to move forward with the model. In terms of the inference, there are different kinds of densities and quantities that we are interested in. One of the distributions that we are interested in finding is the so-called filtering distribution. We may be interested here in finding what is the density of Theta t given all the observations that we have up to time t. I'm going to call and all the information that I have up to time t. I'm going to call that D_t. It can also be, in some cases, I will just write down. So D_t, you can view with all the info up to time t. Usually, it is all the information I have at time zero. Then coupled, if there is no additional information that's going to be coupled with all the data points I have up to that time. Here I'm conditioning on all the observed quantities and the prior information
+up to time t, and I may be interested in just finding what is the distribution for Theta t. This is called filtering. Another quantity that is very important in time series analysis is forecasting. 
+
+I may be interested in just what is the density, the distribution of yt plus h? Again, the number of steps ahead here, here I'm thinking of h, given that I have all this information up to time t. I'm interested in predictions here. We will be talking about forecasting. Then another important quantity or an important set of distributions is what we call the smoothing distribution. Usually, you have a time series, when you get your data, you observe, I don't know, 300 data points. As you go with the filtering, you are going to start from zero all the way to 300 and you're going to update these filtering distributions as you go and move forward. But then you may want to revisit your parameter at time 10, for example, given that you now have observed all these 300 observations. In that case, you're interested in densities that are of the form. Let's say that you observe capital T in your process and now you are going to revisit that density for Theta t. 
+
+This is now in the past. Here we assume that t is smaller than capital T. This is called smoothing. So you have more observation once you have seen the data. We will talk about how to perform Bayesian inference to obtain all these distributions under this model setting. 
+
+### The forcast function {.unumbered}
+In addition to all the structure that we described before and all the densities that we are interested in finding, we also have as usual, the so-called forecast function, which is just instead of being the density is just expected value of y(t+h) given all the information I have up to time t. In the case of a general normal dynamic linear model, we have the structure for these
+just using the equations, the observation and the system of equations. 
+
+We're going to have here G_(t+h_. We multiply all these all the way to G_(t+1), and then we have the expected value of Theta_t given Dt. 
+This is the form of the forecast function. There are particular cases and particular models that we will be discussing in which the Ft is equal to F, so is constant for all t and G_t is also constant for all t. In those cases, the forecast function can be simplified and written as F transpose G to the power of h expected value. One thing that we will learn is that the eigenstructure of this matrix is very important to define the form of the forecast function, and it's very important for model building and for adding components into your model. 
+
+### Shortform notation
+
+Finally, just in terms of short notation, we can always write down when we're working with normal dynamic linear models, we may be referring to the model instead of
+writing the two equations, the system and the observation equation. I can just write all the components that define my model. This fully specifies the model in terms of the two equations. If I know what Ft is, what Gt is, what Vt is, and the covariance at the system level. I sometimes will be
+just talking about just a short notation like this for defining the model.
+
+:::
+
+## Polynomial Trend Models (Video)
 
 ![polynomial models 1](images/m3_0011.png){.column-margin width="250px" group="slides"}
 
+While we haven't talked about the supperposition priciple yet we start at looking at adding different components to the DLM. 
+
+We looked :
+
+  - setting a mean + variance
+  - adding a random walk + its variance
+
+Next we want to look at trends and seasonality. We now look at the polynomial trend models. [These are models that are useful to model linear trends or polynomial trends in your time series. So if you have a data set, where you have an increasing trend, or a decreasing trend, you would use one of those **components** in your model.]{.mark} 
 
 ### First order polynomial model
 
 In [@west2013bayesian §2.1] this is used in the introduction to the DLM and a very large proportion of the book is dedicated to in depth analysis and Bayesian development of this specific model and different distribution of interests as well as including comparison to other models and a look at the signal to noise ratio in the model.
 
-. A first order polynomial is of the form "Ax+B" where A is the slope and B is the intercept. This is also the same model we saw in motivating the NLDM above. 
+A first order polynomial is of the form $Ax+B$ where A is the slope and B is the intercept. ~~This is also the same model we saw in motivating the NLDM above.~~
 
 
 $$
@@ -318,17 +395,16 @@ Which depending on the data that you have is you're just going to have something
 
 Now we want to create a model in which captures things that has a linear trend either increasing or decreasing. To do thus we need to have two components in our parameter vector of the state vector.
 
-
 $$\begin{aligned}
   y_t &= \theta_{t,1} + \nu_t \quad &\nu_t &\overset{\text{iid}}{\sim} N(0, v_t) \\
   \theta_{t,1} &= \theta_{t-1,1} + \theta_{t-1,2} + \omega_{t,1} \qquad &\omega_{t,1} &\overset{\text{iid}}{\sim} N(0, w_{t,11}) \\
   \theta_{t,2} &= \theta_{t-1,2} + \omega_{t,2} \qquad &\omega_{t,2} &\overset{\text{iid}}{\sim} N(0, w_{t,22})
 \end{aligned}
-$$
+$$ {#eq-nldm-second-order-polynomial-model}
 
 For this we will need two components in our parameter vector of the **state vector**^[the state makes it's appearance]. 
 
-So we have again something that looks like in my observation equation. I'm going to have, I'm going to call it say $\theta_{t,1}$ Normal vt, and then I'm going to have say theta_{t,1} is going to be of the form to theta_{t-1,1} and there is another component here. 
+So we have again something that looks like in my observation equation. I'm going to have, I'm going to call it say $\theta_{t,1} \sim Normal(v_t)$, and then I'm going to have say $\theta_{t,1}$ is going to be of the form to $\theta_{t-1,1}$ and there is another component here. 
 
 The other component enters this equation plus let's call this
 
@@ -365,7 +441,6 @@ $$
 \begin{aligned}
 f_t(h) &= F' G^h \mathbb{E}[\theta_t \mid \mathcal{D}_t] \\ &= (K_{t,0} + h K_{t,1})
 \end{aligned}
-
 $$
 
 $$
@@ -387,13 +462,128 @@ The first order polynomial model is a model that is useful to describe linear tr
 
 So the all those can be incorporated using the general p-order polynomial model, so I will just describe the form of this model.
 
-And in this type of model, the forecast function is going to have order p -1. So your parameter vector is going to have dimension p. So you're going to have theta_t theta t1 to tp.
+And in this type of model, the forecast function is going to have order $p -1$. So your parameter vector is going to have dimension $p$. So you're going to have $theta_t theta t1 to tp.
 
 Your F matrix is going to be constant if I write it as a row vector. F transpose is going to be a p dimensional vector with the one in the first entry and zeros everywhere else.
 
 My G matrix is going to have this form and there is different parameterizations of this model and I will talk a little bit about this. But one way to parameterize the model is something that looks like this. So you have ones in the diagonal of the matrix, the matrix is going to be a p by p has to be the dimension of the p compatible with the dimension of the state vector. And then you have zeros's below the diagonal above that set of ones that are also ones above the diagonal. So this matrix G is what we call a Jordan block of dimension p of 1. So here 1 is the number that appears in the diagonal. And then I have a p Ip matrix, I have ones in the upper diagonal part. So this is the form of the model, so once again I have the F the G, and the wt. I have my model. The forecast function in this case again can be written as F transposed G to the power of h. And when you simplify times expected value of theta_t, given Dt. Once you simplify those functions you get something that is a polynomial of order p-1 in h. So I just can write this down as kt constant.
 
 Plus kt1 h + kt p- 1, h to the p -1, so that's my forecast function. There is an alternative parameterization of this model that has the same F and the same algebraic form of the forecast function, the same form of the forecast function. But instead of having this G matrix, it has a matrix that has ones in the diagonal and ones everywhere above the diagonal. So it's an upper triangular matrix with ones in the diagonal and above the diagonal. That's a different parameterization of the same model is going to have the same general form of the forecast function is a different parameterization. So again, you can consider the way you think about these models is you think what kind of forecast function I want to have for my future? What is the type of predictions that I expect to have in my model? And if they look like a linear trend, I use a second order polynomial. If it looks like a quadratic trend in the forecast then I would use 3rd order polynomial model representation.
+
+::: {.callout-note collapse="true"}
+## Video Transcript
+
+[MUSIC]
+I will begin describing the structure of a particular class of models now,
+the polynomial trend models. These are models that are useful
+to describe linear trends or polynomial trends in your time series. So if you have a data set,
+where you have an increasing trend, or a decreasing trend, you would use one
+of those components in your model. So in general,
+I'm going to begin with the first order polynomial model,
+which we have already described. It's the one that has yt
+is a single parameter, I'm going to call it just theta_t + nu_t. And then a random walk evolution for
+that single parameters, so that's the mean level of the series. And then we assume that it changes As a random walk, so
+this is the first order polynomial model. In this model if I want to write
+it down in short form I would have a quadruple that looks like this. So the F here that goes F transposed
+times the parameter vector in this case we have a scalar vector,
+scalar parameter. It's going to be 1 my G that goes next to
+the state of t -1 is going to also be 1. And then I have vt and Wt here. So this fully defines my model if I
+think about the forecast function of this model using
+the representation we had before. Again, we're going to have
+something of the form F transposed G to the power of h and then the expected
+value of that theta_t given Dt. F is 1, G is 1,
+therefore I'm going to end up having just expected value of theta_t given Dt. Which depending on the data that
+you have is you're just going to have something that is a value that
+depends on t and it doesn't depend on h. What this model is telling you
+is that the forecast function, how you expect to see future values
+of the series h steps ahead is something that looks like the level
+that you estimated at time t. So that's the forecast function, you is
+a first order is a zero order polynomial is a constant on h and it's called
+the first order polynomial model. In the case of a second order polynomial We are going to now think about
+about a model in which we want to capture things that are not
+a constant over time but may have an increasing or
+decreasing linear trend. In this case we're going to
+need two components in your parameter vector in the state vector. So we have again something that looks
+like in my observation equation. I'm going to have, I'm going to call it say theta{t,1} Normal vt, and then I'm going to have say theta_{t,1} is going to be
+of the form to theta_{t-1,1} and there is another component here. The other component enters this
+equation plus let's call this And then I have finally also
+I need an evolution for the second component of the process which is going to be again having
+a random walk type of behavior. So there is different ways in which you
+can interpret this two parameters but essentially one of them is
+related to the baseline level of the series the other one is related to
+the rate of change of the of the series. So if you think about
+the dlm representation again, these two components,
+I can collect into the vector wt. and then assume that this wt Is normal. Now this is a bivariate normal. So what would be my F and
+my G in this model? So again my theta
+vector has two components My G, so my F is going to be
+a two dimensional vectors. So I can write down F transposed
+as the only component that appears at this level is the first
+component of the vector. I'm going to have 1 and
+then a zero for F transposed. And then my G here if
+you think about writing down theta t times G say the t -1 +wt. Then you have that you're G
+is going to have this form. So for the first component,
+I have past values of both components. That's why I have a 1 and 1 here for the second component I only have
+the past value of the second component. So there is a zero and a 1. So this tells me what is the structure
+of this second order polynomial. If I think about how to obtain
+the forecast function for this second order polynomial is going to
+be very similar to what we did before. So you can write it down
+as F transposed G to the power of h,
+expected value of theta t given Dt. Now the expected value is
+going to be vector also with two components because theta_t
+is a two dimensional vector. The structure here if you look at what G is G to the power of h going to be a matrix, that is going to look like 1, h, 0 1. When you multiply that matrix time this times this F what you're going to end up having is something that
+looks like 1 h times this expected value of theta t given Dt. So I can think of two components here, so this gives you a constant on h,
+this part is not going to depend on h. So I can write this down as k t
+11 component multiplied by 1 and then I have another constant,
+multiplied by h. So you can see what happens now is
+that your forecast function has the form of a linear polynomial. So it's just a linear function
+on the number of steps ahead. The slope and the intercept
+related to that linear function are going to depend on
+the expected value of, theta_t given the all
+the information I have up to time t. But essentially is a way
+to model linear trends. So this is what happens with
+the second order polynomial model. As we included linear trends and
+constant values in the forecast function, we may want to also incorporate
+other kinds of trends, polynomial trends in the model. So you may want to have a quadratic
+form, the forecast function or a cubic forecast function
+as a function of h. So the all those can be incorporated using
+the general p-order polynomial model, so I will just describe
+the form of this model. And in this type of model, the forecast function is
+going to have order p -1. So your parameter vector is
+going to have dimension p. So you're going to have theta_t theta t1 to tp. Your F matrix is going to be constant
+if I write it as a row vector. F transpose is going to be
+a p dimensional vector with the one in the first entry and
+zeros everywhere else. My G matrix is going to have this form and
+there is different parameterizations of this model and
+I will talk a little bit about this. But one way to parameterize the model
+is something that looks like this. So you have ones in
+the diagonal of the matrix, the matrix is going to be a p
+by p has to be the dimension of the p compatible with
+the dimension of the state vector. And then you have zeros's
+below the diagonal above that set of ones that
+are also ones above the diagonal. So this matrix G is what we call a Jordan block of dimension p of 1. So here 1 is the number that
+appears in the diagonal. And then I have a p Ip matrix,
+I have ones in the upper diagonal part. So this is the form of the model, so
+once again I have the F the G, and the wt. I have my model. The forecast function in
+this case again can be written as F transposed
+G to the power of h. And when you simplify times expected
+value of theta_t, given Dt. Once you simplify those functions you get something that is a polynomial of
+order p-1 in h. So I just can write this
+down as kt constant. Plus kt1 h + kt p- 1, h to the p -1, so that's my forecast function. There is an alternative parameterization
+of this model that has the same F and the same algebraic form
+of the forecast function, the same form of the forecast function. But instead of having this G matrix,
+it has a matrix that has ones in the diagonal and
+ones everywhere above the diagonal. So it's an upper triangular matrix
+with ones in the diagonal and above the diagonal. That's a different parameterization of
+the same model is going to have the same general form of the forecast function
+is a different parameterization. So again, you can consider the way
+you think about these models is you think what kind of forecast
+function I want to have for my future? What is the type of predictions
+that I expect to have in my model? And if they look like a linear trend,
+I use a second order polynomial. If it looks like a quadratic
+trend in the forecast then I would use 3rd order polynomial
+model representation.
+:::
+
 
 ## Regression models (Video)
 
@@ -1400,23 +1590,124 @@ legend('bottomleft', legend=c("filtered","smoothed"),
        col = c("red", "blue"), lty=c(1, 1))
 
 ```
+
 ## Second order polynomial: Filtering and smoothing example (Video)
 
 In this video walk through the code provided in the section below the comment
 
-> **Similarly, for the second order polynomial and the co2 data:**
+::: {.callout-note collapse="true"}
+## Video Transcript
+
+
+[MUSIC] We now consider another example
+where instead of fitting a first order polynomial we're fitting
+a second order polynomial DLM. So I just want to show you how to set up
+the structure of the model in a case in which you have a state parameter vector. That is of dimension larger than
+one in this particular case we have a bivariate state parameter vector. So once again we are going to source this file that has all the DLM functions for the case in which the F, G, V and W are known. So we're just assuming
+that this is the case and then we're assuming that F, G, V and W
+are constant over time in these examples. So we just I'm going to use a new
+data set which is also data set available in R this data set
+corresponds to the atmospheric CO2 concentrations in parts per
+million in the location of Mauna Loa. And this is monthly data so
+I'm just plotting the data here. If you look at the data you can see
+that it has two important features. One of them is an increasing
+trend as the time increases the concentration increases. And then the other very specific feature that you can see in this data set is this seasonal behavior. So right now what I'm going to do with this example is we are going to ignore the seasonal behavior, and we are going to try to fit the model that captures the linear increasing trend using
+a second order polynomial model. 
+
+So I'm going to just specify everything here. We are going to use the entire data set here. We're going to analyze the entire data. We are going to read in
+this into a list and then we're going to set up the DLM in matrices. So here because the model it's a second order polynomial we are going to have a state vector. That is of dimension two the F matrix is going to be, so it's a vector that has 1 in the first entry and 0 in the second one. And then G is this upper
+triangular matrix that has 1s in the diagonal and 1 above the diagonal as well. So the two parameters that we're
+fitting here one of them you can view the two components in the state of theta_t parameter vector. The first component corresponds
+to the baseline of the level and then the second component
+corresponds to the rate of growth in that level that we are fitting. So just defining the F and G like that. And then V the observational variance
+I'm just going to set it at 10. You can play with different numbers here,
+and the W is a diagonal matrix with .0001 in each of the elements in the diagonal. So these models are not as flexible as the
+ones that we are going to consider later. So in particular we are using
+an assumption that the two components in the state sector are independent over
+time which is usually not very realistic. And we can consider more
+flexible models later but just to show you here how
+to fit these models, for the prior distribution I
+have again two components. So I'm going to say that a priori my baseline is 315 parts per million. And then for the second, the rate of
+growth is going to be 0 a priori. And then I have C0 which is this
+10 times the diagonal of dimension 2 so this is an identity matrix. So is we have a diagonal with the elements in the diagonal equal to 10. So we wrap up all the DLM matrices with the functions that we defined before. And then we proceed with the filtering equations just using the forward filter function. We can obtain credible intervals for the expected value of Yt via this filtering equations. So the reason why I'm calling
+it the expected value of Yt via filtering it's just the first
+component of the say that theta_t vectors. So that corresponds to the level of
+the series, the expected value of that Yt. And then, I can compute the smoothing
+equations using the backward smoothing. And again I have to pass the data,
+the structure of the model in terms of the matrices and the results that I
+obtained via the filtering equations. And I can compute credible intervals for
+this expected value via smoothing and as we mentioned before, it has
+the same structure the smoothing and the filtering is just that,
+we call the mean and the variance mt and Ct. In the case of the filtering equations for the smoothing equations we just call them mnt and Cnt. So now we can plot all the results here. I'm just going to plot the results that correspond to the smoothing distributions just for
+you to see. And we can see here that is this trend that is estimated here is capturing the structure of this linear increasing trend. And you can play with different values of the signal to noise ratio. So different values of the V and the W. And if you change the values so that there is more or less signal to noise ratio, you will see that you will capture more of the seasonal structure and less of this linear trend structure. If you were to change those values. So if I go back a little bit here you can see that I have a very low signal to noise ratio and I picked this on purpose, because I didn't want to capture any of the seasonal behavior that I observe in the series through these parameters. So I'm assuming that a lot of the variation that I see now I'm just keeping it in the noise. Just because I want to just get a very smooth estimate for this linear trend through a second order polynomial model. In practice what we're going to do later is we really want to construct a model in which we have a component for the linear trend using the second order polynomial model. And then we add another component that will allow us to capture also the seasonal behavior that we observe in this series using a Fourier component model. So we will illustrate that later, in a separate example here is just again to
+show you how to use the code for specifying a second order polynomial.
+:::
 
 ## Using the dlm package in R (Video)
 
-The `dlm` package in R is a powerful tool for working with dynamic linear models. The package provides a wide range of functions for filtering, smoothing, forecasting, and parameter estimation in DLMs. In this video, we walk through the code provided in the section below.
+The `dlm` package in R is a powerful tool for working with dynamic linear models. The package provides a wide range of functions for filtering, smoothing, forecasting, and parameter estimation in DLMs. In this video, we walk through the code provided in @lst-dlm-package.
 
-Since the code below is too long, I will try and split it into smaller bits later. [TODO]{.cn}
+::: {.callout-note collapse="true"}
+## Video Transcript
 
+So here I'm going to show you how to use the `dlm` package to fit these dynamic linear models as well. So the dlm is package that is available from Cran. And it allows you to compute the filtering smoothing and forecasting equations for
+dynamic linear models. So I'm just going to show you how to do the same thing we've been doing with the code that I provided just using the dlm package. So I'm going to just run here the first examples that we ran. And I'm going to show you how to do the same again. So here, I'm just going through the Lake Huron data. So just setting up everything as we did before. And then going through the filtering and smoothing equations. And so we can now plot the results and just want to have all the results here. So we have the red line corresponds to the posterior mean for the distribution of $\theta_t$ given the $Dt$ using a first order polynomial model to fit the data. And the blue line corresponds to the smoothing mean. So the mean of the posterior distribution
+of the smoothing equations here. So now we can look at how to fit this with the dlm package. So you have to call, install the package if you don't have it installed. And then just call that library once you have installed the package. And the dlm package has a different set of functions to construct the model first. 
 
+So I'm going to use the function that is called the `dlmModPoly`, which allows you to fit polynomial models. So it constructs the polynomial models. The default function as you can
+see here is a function in that assumes that the polynomial
+model is of order 2. So here I want to polynomial
+model of all the 1. And then I'm going to specify
+the variance at the observational level, which is called dV in that package. dW is the variance at the evolution level. And then I have my prior mean for theta and the prior variance. I'm just using exactly
+the same prior distribution. And the package provides two
+functions of the dlm filter function allows you to providing the data. And the model that you just define computes the filtering
+recursions  here. And then there is another function
+that is called the dlmSmooth that you essentially pass the results
+of the filtering equations. And then you obtain
+the smoothing distributions. So we're just going to do that. And now I'm going to plot the results that
+I obtained from those filtering equations. One thing that you can see here,
+if I do names of, let's say results_filter_dlm. You can see that the way
+in which the dlm functions from the dlm package keep the results. It has a particular format. So in the case of the dlm package, you're going to have the information
+about what model you fitted. Then you have the mean of theta_t given
+Dt is kept in this m object. And then you have a is the prior
+mean of theta_t, given the t -1. And then f is the mean of the one
+step ahead forecast distribution. And then you have these U.C, D.C, U.R, D.R, those are just decompositions
+of the C variance matrix. So each of the Cs at time t. And then if you have also
+the composition of the R matrices. So the model, the way in which the functions
+are implemented in this dlm package. Assume used an SVD decomposition
+of all the matrices. So you have to keep in mind if you're
+going to recover the structure here for the different components in the model. You have to keep this in mind. So for the filtering results,
+this is the structure. If you do names of the results, smooth, with the dlm package. You're going to have again,
+here is the mean here that is called S and then you have the decomposition
+of the matrix as well. So, I'm just going to plot now for
+the filtering results. I'm just going to plot the mean here. And then for the smoothing distribution, I'm also going to plot that means. In this case, we're working with the first order polynomial. So the dimension of the state vector is 1. So you can see that we obtain exactly the same results. And you can compare them numerically. The upper plot corresponds to the results we get with the code that we've been using. And the second block corresponds to just using the code from the dlm package. We can also run the example with
+the second order polynomial. So again, if I use the specification
+of the model that we use before with the functions
+that we described. I can keep my results there. And if I use the dlm package,
+I can use again, this is a second order polynomial model. I say that the order of the polynomial is 2, I use this dlmModPoly function. I specify the observational variance,
+the system variance m0 and C0. So I'm using exactly the same
+priors in this case. And then I use the dlm filter function and
+the dlm smooth just to compute the moments of the filtering and
+smoothing distributions. And then I can plot everything here. We are plotting just the first component here. The posterior distribution for
+the first component of the theta vector. Which also corresponds to
+the expected value of the yt. And then if I do the same
+with the dlm package, you can see that you
+obtain the same results. So again, the upper plot
+corresponds to the results that we get from the code
+that we've been using. And then the bottom plot corresponds
+to the results that we get from the dlm package. So I just wanted to illustrate this. You're welcome to always
+use the dlm package. Just keep in mind the structure in
+which the matrices are kept is a little bit different than what
+we have been discussing. Because the dlm package uses and SVD decomposition of the covariance matrices and keeps everything like that. So there are some differences. But you can also use this package to obtain inference in the case of dynamic linear models. 
+:::
 
 ## R-code: Using the `dlm` package in R (Reading)
 
 ```{r}
+#| label: lst-dlm-package
+#| lst-label: lst-dlm-package
+#| lst-cap: Using the `dlm` package for dynamic linear models
+
 #################################################
 ##### Univariate DLM: Known, constant variances
 #################################################
@@ -1687,6 +1978,7 @@ This peer-reviewed activity is highly recommended. It does not figure into your 
 Consider the following R code: 
 
 ```{r}
+#| label: lst-sensitivity-to-model-params
 
 #######################
 ##### DLM package #####
