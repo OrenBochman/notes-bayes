@@ -4,18 +4,15 @@ title: "Normal Dynamic Linear Models, Part 2"
 subtitle: Time Series Analysis
 description: "Normal Dynamic Linear Models (NDLMs) are a class of models used for time series analysis that allow for flexible modeling of temporal dependencies."
 categories: 
-  - Coursera 
-  - notes
   - Bayesian Statistics
-  - Normal Dynamic Linear Models
   - Time Series
 keywords: 
-  - time series
-  - filtering
-  - smoothing
-  - NLDM
-  - Polynomial Trend Models
-  - Regression Models
+  - Time series
+  - Filtering
+  - Smoothing
+  - NDLM
+  - Normal Dynamic Linear Models
+  - Seasonal NDLM
   - Superposition Principle
   - R code
 image: course-banner.png
@@ -23,15 +20,19 @@ fig-caption: Notes about ... Bayesian Statistics
 title-block-banner: images/banner_deep.jpg
 ---
 
+## Seasonal NDLMs
 
-# Learning Objectives
+:::{.callout-note collapse="true"}
+
+## Learning Objectives {.unumbered}
 
 - [ ] Use R for analysis and forecasting of time series using the NDLM (cases of known or unknown observational variance and unknown system variance specified using a discount factor)
 - [ ] Derive the equations to obtain posterior inference and forecasting in the NDLM with unknown observational variance and system variance specified via discount factors
 - [ ] Define seasonal NDLMs
 - [ ] Apply the NDLM superposition principle and explain the role of the forecast function
 
-# Seasonal NDLMs
+:::
+
 
 ## Fourier representation (Video)
 
@@ -50,12 +51,12 @@ Transcript:
 > In the case of any frequency $\omega \in (0,\pi)$, we will have a DLM that has this structure: 
 
 $$\{ \underbrace {E_2}_{F},  \underbrace {J_2(1,\omega)}_{G}, \underbrace{\cdot}_{v_t}, \underbrace{\cdot}_{W_t}\}
-$$
+$$ {#eq-fourier-1}
 
 We will have the $F$ vector the 2-dimensional vector:
 $$
 E_2=(1,0)'
-$$
+$$ {#eq-fourier-2}
 
 As usual and the $G$ matrix will be the 2 by 2 matrix:
 
@@ -65,7 +66,9 @@ J_2(1, \omega) =
 \cos(\omega) & \sin(\omega) \\
 -\sin(\omega) & \cos(\omega)
 \end{pmatrix},
-$$
+$$ {#eq-fourier-3}
+
+where $\omega$ is the frequency that we are considering.
 
 
 Since this is a 2 by 2 matrix the our state parameter vector will also be a vector of dimension 2. 
@@ -83,7 +86,7 @@ f_t(h) &= E_2' [J_2(1, \omega)]^h \underbrace{\begin{pmatrix} a_t \\ b_t \end{pm
 &= a_t \cos(\omega h) + b_t \sin(\omega h) \\
 &= A_t \cos(\omega h + B_t).
 \end{aligned}
-$$
+$$ {#eq-seasonal-forecast-function}
 
 >
 > You're going to have the cosine and sine only multiplied by this. In the end, you're going to have something that looks like this.
@@ -95,11 +98,11 @@ $$
 ![slide 1](images/m4_0001.png){.column-margin width="250px" group="slides"}
 
 >
-> Here $p$, is the period and in this case, we are going to discuss essentially two different situations. One is when p is an odd number, the other one is when p is an even number. Let's begin with the case of p is odd and in this particular scenario, we can write down p as 2 times m minus 1 for some value of m. This gives me a period that is odd. How many frequencies I'm going to incorporate in this model? I'm going to be able to write down $\omega_j = 2 \pi \times j / p$, which is the fundamental period. j here goes from one all the way to m minus 1. Now we can use the superposition principle thinking we have a component DLM representation for each of these frequencies. They are all going to be between 0 and Pi. For each of them I'm going to have that two-dimensional DLM representation in terms of the state vector and then I can use the superposition principle to concatenate them all and get a model that has all these frequencies, the one related to the fundamental period and all the harmonics for that. Again, if I think about what is my F and my G here, I'm not writing down the t because both F and G are going to be constant over time. So my F is going to be again, I concatenate as many E_2 as I have frequencies in here. I'm going to have E_2 transpose and so on and I'm going to have m minus one of those. Times 2 gives me the dimension of Theta t. The vector here is 2 times m minus 1 dimensional vector.
+> Here $p$, is the period and in this case, we are going to discuss essentially two different situations. One is when p is an odd number, the other one is when p is an even number. Let's begin with the case of p is odd and in this particular scenario, we can write down p as 2 times m minus 1 for some value of m. This gives me a period that is odd. How many frequencies I'm going to incorporate in this model? I'm going to be able to write down $\omega_j = 2 \pi \times j / p$, which is the fundamental period. j here goes from one all the way to m minus 1. Now we can use the superposition principle thinking we have a component DLM representation for each of these frequencies. They are all going to be between 0 and Pi. For each of them I'm going to have that two-dimensional DLM representation in terms of the state vector and then I can use the superposition principle to concatenate them all and get a model that has all these frequencies, the one related to the fundamental period and all the harmonics for that. Again, if I think about what is my $F$ and my $G$ here, I'm not writing down the t because both F and G are going to be constant over time. So my $F$ is going to be again, I concatenate as many $E_2$ as I have frequencies in here. I'm going to have $E_2$ transpose and so on and I'm going to have m minus one of those. Times 2 gives me the dimension of $\theta_t$. The vector here is 2 times m minus 1 dimensional vector.
 >
-> My G is going to have that block diagonal structure where we are going to just have all those J_2 1 Omega 1, all the way down to the last harmonic. Each of these blocks is a two-by-two matrix and I'm going to put them together in a block diagonal form. This gives me the representation when the period is odd, what is the structure of the forecast function? Again, using the superposition principle, the forecast function is going to be just the sum of m minus 1 components, where each of those components is going to have an individual forecast function that has that cosine wave representation that we discussed before. Again, if I think about the forecast function at time t h steps ahead, I will be able to write it down like this.
+> My G is going to have that block diagonal structure where we are going to just have all those $J_{2,1} \omega_1$, all the way down to the last harmonic. Each of these blocks is a two-by-two matrix and I'm going to put them together in a block diagonal form. This gives me the representation when the period is odd, what is the structure of the forecast function? Again, using the superposition principle, the forecast function is going to be just the sum of m minus 1 components, where each of those components is going to have an individual forecast function that has that cosine wave representation that we discussed before. Again, if I think about the forecast function at time t h steps ahead, I will be able to write it down like this.
 >
-> This should be a B. B_t,j. Again here, I have an amplitude for each of the components and a phase for each of the components so it depends on time but does not depend on h. The h enters here, and this is my forecast function. In the case of P even the situation is slightly different. But again, it's the same in terms of using the superposition principle. In this case, we can write down P as 2 times m because it's an even number. Now I can write down these Omega j's as a function of the fundamental period. Again, this goes from 1 up to m minus 1. But there is a last frequency here. When j is equal to m, this simplifies to be the Nyquist frequency. In this case, I have my Omega is equal to Pi. In this particular case, when I concatenate everything, I'm going to have again an F and a G that look like this. Once again, I concatenate all of these up to the component m minus 1. Then I have this 1 for the last frequency. Then my G is going to be the block diagonal.
+> This should be a B. $B_{t,j}$. Again here, I have an amplitude for each of the components and a phase for each of the components so it depends on time but does not depend on h. The h enters here, and this is my forecast function. In the case of P even the situation is slightly different. But again, it's the same in terms of using the superposition principle. In this case, we can write down P as 2 times m because it's an even number. Now I can write down these Omega j's as a function of the fundamental period. Again, this goes from 1 up to m minus 1. But there is a last frequency here. When j is equal to m, this simplifies to be the **Nyquist frequency**. In this case, I have my Omega is equal to Pi. In this particular case, when I concatenate everything, I'm going to have again an F and a G that look like this. Once again, I concatenate all of these up to the component m minus 1. Then I have this 1 for the last frequency. Then my G is going to be the block diagonal.
 >
 > For the last frequency I have that minus 1. This determines the dimension of the state vector, in this case I'm going to have 2 times m minus 1 plus 1.
 >
