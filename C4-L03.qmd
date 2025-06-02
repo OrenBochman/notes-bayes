@@ -990,9 +990,9 @@ Omitted due to Coursera honor code
 
 ## Filtering (Video)
 
-![slide 1](images/m3_0041.png){.column-margin width="250px" group="slides"}
+![deriving the Prior and Forecast at Time t](images/m3_0041.png){.column-margin width="250px" group="slides"}
 
-![slide 1](images/m3_0042.png){.column-margin width="250px" group="slides"}
+![deriving the Posterior at Time t](images/m3_0042.png){.column-margin width="250px" group="slides"}
 
 [We will now delve into Bayesian inference in the case of the normal dynamic linear model where both the observational variance and the system variance are known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach.].{.mark}
 
@@ -1052,54 +1052,70 @@ $$ {#eq-normal-prior-for-the-parameters-given-the-data}
 Here $\mathcal{D}_0$ stands for the information that I have before collecting any data. And we are assuming $\theta_0$ follows a normal distribution with $m_0$ mean and variance covariance matrix $C_0$. So these are also specified when you're working with this model. We assume that  $m_0$ and $C_0$ are known.
 
 $$
-(\theta_{t} \mid \mathcal{D}_{t-1}) \sim  \mathcal{N}(m_{t-1}, C_{t-1}).
+(\theta_{t} \mid \mathcal{D}_{t-1}) \sim \mathcal{N}(m_{t-1}, C_{t-1}).
 $$ {#eq-filtering-assumption-1}
 
-We assume that this the filtering distribution follows this normal distribution based on @eq-normal-prior-for-the-parameters-given-the-data being conjugate of the normal and the linearity of @eq-generic-NDLM which aligns with maintaining the normal form during the linear updates taking place at each time step.
+We assume that this the filtering distribution follows this normal distribution based on [@eq-normal-prior-for-the-parameters-given-the-data] being conjugate of the normal and the linearity of [@eq-generic-NDLM] which aligns with maintaining the normal form during the linear updates taking place at each time step.
 
 Then, we can obtain the following distributions:
 
 1. Prior at Time $t$
 
-$$
-(\theta_t \mid D_{t-1}) \sim  \mathcal{N}(a_t, R_t),
-$$
+  $$
+  (\theta_t \mid \mathcal{D}_{t-1}) \sim  \mathcal{N}(a_t, R_t) \qquad \text{(prior at time t)} \qquad
+  $$ {#eq-prior-at-time-t}
 
-with
+  with 
 
-$$
-a_t = G_t m_{t-1} \qquad R_t = G_t C_{t-1} G_t' + W_t.
-$$
+  $$ \begin{aligned}
+  a_t \doteq& \mathbb{E}(\theta_t \mid \mathcal{D}_{t-1}) =& G_t  \mathbb{E}(G_t \theta_{t-1} \mid \mathcal{D}_{t-1} ) =& G_t m_{t-1} \\
+  R_t \doteq& \mathbb{V}ar(\theta_t \mid \mathcal{D}_{t-1}) =& G_t \mathbb{V}ar(\theta_t \mid \mathcal{D}_{t-1}) =& G_t C_{t-1} G_t' + W_t.
+  \end{aligned}
+  $$ {#eq-derivation-for-a-t-and-R-t}
+
+  Where we simply took the first and second moments of the system equation from [@eq-generic-NDLM] conditioned on our information set $\mathcal{D}_{t-1}$ 
 
 2. One-Step Forecast
 
-$$
-(y_t \mid D_{t-1}) \sim  \mathcal{N}(f_t, q_t),
-$$
+  $$
+  (y_t \mid \mathcal{D}_{t-1}) \sim  \mathcal{N}(f_t, q_t) \qquad \text{(one step forecast fn)} \qquad
+  $$ {#eq-one-step-forecast-fn}
 
-with
+  with
 
-$$
-f_t = F_t' a_t, \quad q_t = F_t' R_t F_t + v_t.
-$$
+  $$\begin{aligned}
+  f_t \doteq & \mathbb{E}(y_t \mid \mathcal{D}_{t-1}) &= F_t'\mathbb{E}(y_t \mid \mathcal{D}_{t-1})  &= F_t' a_t, \\
+  q_t \doteq & \mathbb{V}ar(y_t \mid \mathcal{D}_{t-1}) &= F_t'\mathbb{V}ar(y_t \mid \mathcal{D}_{t-1})  &= F_t' R_t F_t + v_t.
+  \end{aligned}
+  $$ {#eq-derivation-for-f-t-and-q-t}
 
-3. Posterior at Time $t:$ $(\theta_t \mid \mathcal{D}_t) \sim  \mathcal{N}(m_t, C_t)$ with
+  Where we now took the first moments on the observation equation conditioned on the information set $\mathcal{D}_t)$
 
-$$
-\begin{aligned}
-m_t &= a_t + R_t F_t q_t^{-1} (y_t - f_t), \\
-C_t &= R_t - R_t F_t q_t^{-1} F_t' R_t.
-\end{aligned}
-$$
+3. Posterior at Time $t$ 
+
+  $$
+  (\theta_t \mid \mathcal{D}_t) \sim  \mathcal{N}(m_t, C_t)
+  $$ 
+  
+  with
+
+  $$\begin{aligned}
+  m_t &= a_t + R_t F_t q_t^{-1} (y_t - f_t), \\
+  C_t &= R_t - R_t F_t q_t^{-1} F_t' R_t.
+  \end{aligned}
+  $$
+
+  These can be derived using Normal theory or via Bayes' theorem. Both are shown in [@west2013bayesian]
+
 
 Now, denoting $e_t = (y_t - f_t)$ and $A_t = R_t F_t q_t^{-1}$, we can rewrite the equations above as:
 
-$$
-\begin{aligned}
-m_t &= a_t + A_t e_t, \\
-C_t &= R_t - A_t q_t A_t'
-\end{aligned}
-$$
+  $$
+  \begin{aligned}
+  m_t &= a_t + A_t e_t, \\
+  C_t &= R_t - A_t q_t A_t'
+  \end{aligned}
+  $$
 
 ::: {.callout-note collapse="true"}
 ## Video Transcript
