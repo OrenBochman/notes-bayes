@@ -9,6 +9,7 @@ categories:
 keywords: 
   - Time Series
   - Filtering
+  - Kalman filtering
   - Smoothing
   - NDLM
   - Normal Dynamic Linear Models
@@ -809,7 +810,7 @@ $$
 Two references for the Superposition principle are
 
 - [@west2013bayesian §3.1 p. 98]
-- [@prado2010time §4.2.1 p. 136]
+- [@prado2023time §4.2.1 p. 136]
 
 ::: {#imp-superposition .callout-important}
 
@@ -1005,29 +1006,27 @@ Omitted due to Coursera honor code
 
 # Bayesian Inference in the NDLM: Part 1
 
-## Filtering (Video)
 
-![Derivation for the Prior and Forecast at Time t](images/m3_0041.png){.column-margin width="250px" group="slides"}
-
-![Derivation of the Posterior at Time t](images/m3_0042.png){.column-margin width="250px" group="slides"}
-
-[We will now delve into Bayesian inference in the case of the normal dynamic linear model where both the observational variance and the system variance are known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach.]{.mark}
-
-
-:::: {#fig-sean-law .column-margin }
+::: {#fig-sean-law .column-margin .content-visible when-format="html" }
 {{< video https://www.youtube.com/watch?v=0O6dlq6a4rA&ab_channel=SciPy >}}
 
 Sean Law - STUMPY: Modern Time Series Analysis with Matrix Profiles 
-::::
+
+:::
+
+We will now delve into Bayesian inference in the case of the normal dynamic linear model where both the observational variance and the system variance are known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach
+
 
 ::: {.callout-note collapse='true'}
 
 ### Reality check {.unnumbered}
 
+A large portion of the next video is dedicated to laying the ground for use bayesian inference in the NDLM. I was thinking we will infer $F, G,V, W$ from the data, once we supply a normal prior $\mathcal{N}(M,C)$. But this is not the case. Infact we don't seem to be particularly Bayesian when going about constructing the NDLM model. 
 
-The next bit tells us what we know and then what we want to use bayesian inference for (i.e. filtering smoothing, of the parameters $\theta_t$ given the data and forecasting $y_t$ based on that)
+ (i.e. filtering smoothing, of the parameters $\theta_t$ given the data and forecasting $y_t$ based on that)
 
-I kind of got annoyed that we know everything I want to infer $F,G,V,W$ and Priors $M,C$. But that not the process with time series analysis. 
+I was initilly dissapointed that we assume that we know everything I want to infer. This is an open question for the proverbial [Feynman Notebook](./C4-L06.qmd). In reality that is just another problem.
+ But that not the process with time series analysis. 
 
 However, at some point I saw a talk about [STUMPY](https://stumpy.readthedocs.io/en/latest/Tutorial_STUMPY_Basics.html) which does many cool time series stuff in python. And the speaker Sean Law talks about all the different Data Science & DSP Mojos `#magicspells` one can use, the nascent issues when comparing lots of times series or even just time series with lots of data. He makes another point that there is `#NoFreeLunch` - each Mojo comes with with its own assumptions and limitations before making the case for using [Matrix Profiles](https://stumpy.readthedocs.io/en/latest/Tutorial_STUMPY_Basics.html).
 
@@ -1039,17 +1038,34 @@ Splitting a TS into trend periods and a stationary residual isn't too tricky in 
 
 :::
 
+## Filtering (Video)
 
-So recall we are working with a model that looks like this.
+![Derivation for the Prior and Forecast at Time t](images/m3_0041.png){.column-margin width="250px" group="slides"}
+
+![Derivation of the Posterior at Time t](images/m3_0042.png){.column-margin width="250px" group="slides"}
+
+
+Recall we are working in a Bayesian setting where a NDLM model with a normal prior would like this:
 
 $$
 \begin{aligned}
-y_t &= F_t' \theta_t + \nu_t, & \nu_t \sim  \mathcal{N}(0, v_t), \\
-\theta_t &= G_t \theta_{t-1} + \omega_t, & \omega_t \sim  \mathcal{N}(0, W_t), 
+  y_t &= F_t' \theta_t + \nu_t & \nu_t &\sim \mathcal{N}(0, v_t) & \text{(observation)}\\
+  \theta_t &= G_t \theta_{t-1} + \omega_t & \omega_t &\sim  \mathcal{N}(0, W_t) & \text{(evolution)} \\
+  & &(\theta_0 \mid \mathcal{D}_0) & \sim  \mathcal{N}(m_0, C_0) & \text{(prior)}
 \end{aligned}
 $$ {#eq-generic-NDLM}
 
-We will assume that $\nu_t, \omega_t F_t, G_t$ are known for all $t$.
+- In the prior  $\mathcal{D}_0$ stands for the information that we have before collecting any data and 
+- We are assuming $\theta_0$ follows a normal distribution with 
+- $m_0$ mean
+- $C_0$.
+
+Since we are doing filtering which is a retrospective analysis, of past states we assume that we know $m_0, C_0, \nu_t, \omega_t, F_t, G_t \forall t$.
+
+
+However, there is often great interest in looking back in time in order to get a clearer picture of what happened.
+
+Furthermore since we a filtering (i.e. )
 
 We are interested in performing Bayesian inference in this setting and we talked about different kinds of distributions. 
 
@@ -1062,17 +1078,18 @@ In this case we have to begin with a distribution at time zero for $\theta_0$. S
 
 We also assume a prior distribution of the form:
 
-$$
-(\theta_0 \mid D_0) \sim  \mathcal{N}(m_0, C_0)
-$$ {#eq-normal-prior-for-the-parameters-given-the-data}
 
-Here $\mathcal{D}_0$ stands for the information that I have before collecting any data. And we are assuming $\theta_0$ follows a normal distribution with $m_0$ mean and variance covariance matrix $C_0$. So these are also specified when you're working with this model. We assume that  $m_0$ and $C_0$ are known.
 
 $$
 (\theta_{t} \mid \mathcal{D}_{t-1}) \sim \mathcal{N}(m_{t-1}, C_{t-1}).
 $$ {#eq-filtering-assumption-1}
 
-We assume that this the filtering distribution follows this normal distribution based on [@eq-normal-prior-for-the-parameters-given-the-data] being conjugate of the normal and the linearity of [@eq-generic-NDLM] which aligns with maintaining the normal form during the linear updates taking place at each time step.
+We assume that this the filtering distribution follows this normal distribution based on 
+
+1. the prior in [@eq-generic-NDLM] being conjugate of the normal and  
+2. the linearity of the model in [@eq-generic-NDLM]. 
+
+These result in updates to the model parameters and uncertainty, at each time step, preserving the normal structure from the prior.
 
 Then, we can obtain the following distributions:
 
@@ -1085,8 +1102,8 @@ Then, we can obtain the following distributions:
   with 
 
   $$ \begin{aligned}
-  a_t \doteq& \mathbb{E}(\theta_t \mid \mathcal{D}_{t-1}) =& G_t  \mathbb{E}(G_t \theta_{t-1} \mid \mathcal{D}_{t-1} ) =& G_t m_{t-1} \\
-  R_t \doteq& \mathbb{V}ar(\theta_t \mid \mathcal{D}_{t-1}) =& G_t \mathbb{V}ar(\theta_t \mid \mathcal{D}_{t-1}) =& G_t C_{t-1} G_t' + W_t.
+  a_t \doteq& \mathbb{E}[\theta_t \mid \mathcal{D}_{t-1}] =& G_t  \mathbb{E}[G_t \theta_{t-1} \mid \mathcal{D}_{t-1} ] =& G_t m_{t-1} \\
+  R_t \doteq& \mathbb{V}ar[\theta_t \mid \mathcal{D}_{t-1}] =& G_t \mathbb{V}ar[\theta_t \mid \mathcal{D}_{t-1}] =& G_t C_{t-1} G_t' + W_t.
   \end{aligned}
   $$ {#eq-derivation-for-a-t-and-R-t}
 
@@ -1101,12 +1118,18 @@ Then, we can obtain the following distributions:
   with
 
   $$\begin{aligned}
-  f_t \doteq & \mathbb{E}(y_t \mid \mathcal{D}_{t-1}) &= F_t'\mathbb{E}(y_t \mid \mathcal{D}_{t-1})  &= F_t' a_t, \\
-  q_t \doteq & \mathbb{V}ar(y_t \mid \mathcal{D}_{t-1}) &= F_t'\mathbb{V}ar(y_t \mid \mathcal{D}_{t-1})  &= F_t' R_t F_t + v_t.
+  f_t 
+     & \doteq \mathbb{E}[ y_t \mid \mathcal{D}_{t-1} ]
+     & = F_t' \mathbb{E}[ y_t \mid \mathcal{D}_{t-1} ]
+     & = F_t' a_t \\
+  q_t 
+     & \doteq \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}] 
+     & = F_t' \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}]  
+     & = F_t' R_t F_t + v_t
   \end{aligned}
   $$ {#eq-derivation-for-f-t-and-q-t}
 
-  Where we now took the first moments on the observation equation conditioned on the information set $\mathcal{D}_t)$
+  Where we took the first moments on the observation equation conditioned on the information set $\mathcal{D}_t$ and substituted @eq-one-step-forecast-fn 
 
 3. Posterior at Time $t$ 
 
@@ -1120,9 +1143,9 @@ Then, we can obtain the following distributions:
   m_t &= a_t + R_t F_t q_t^{-1} (y_t - f_t), \\
   C_t &= R_t - R_t F_t q_t^{-1} F_t' R_t.
   \end{aligned}
-  $$
+  $$ {#eq-posterior-at-time-t}
 
-  These can be derived via Normal theory or via the Multivariate Bayes' theorem. The background for both seems to be provided in [@west2013bayesian sec 17.2.2-3 p.639]
+  These can be derived via Normal theory or via the Multivariate Bayes' theorem. The background for both seems to be provided in [@west2013bayesian §17.2.3 p.639]
 
 Now, denoting $e_t = (y_t - f_t)$ and $A_t = R_t F_t q_t^{-1}$, we can rewrite the equations above as:
 
@@ -1130,11 +1153,10 @@ Now, denoting $e_t = (y_t - f_t)$ and $A_t = R_t F_t q_t^{-1}$, we can rewrite t
 It follows that 
 
 $$
-
 \begin{pmatrix}Y \\ \theta\end{pmatrix} \sim \mathcal{N}
 \left(
-\begin{pmatrix}F'a \\ a \end{pmatrix},
-\begin{pmatrix} F'RF + V & F'R \\ RF & R \end{pmatrix}
+  \begin{pmatrix}F'a \\ a \end{pmatrix},
+  \begin{pmatrix} F'RF + V & F'R \\ RF & R \end{pmatrix}
 \right)
 $$
 
@@ -1144,11 +1166,11 @@ RF R
 
 Therefore, identifying Y with X1 and θ with X2 in the partition of X in 17.2.2, we have
 $$
-Y ∼ N[F′a, F′RF + V]
+Y \sim \mathcal{N}[F'a, F'RF + V]
 $$
 
 $$
-(θ | Y) ∼ N[m, C],
+(\theta \mid Y) \sim \mathcal{N}[m, C],
 $$
 
 where
@@ -1167,10 +1189,13 @@ $$
 
 $$
   \begin{aligned}
-  m_t &= a_t + A_t e_t, \\
-  C_t &= R_t - A_t q_t A_t'
+  \theta \mid \mathcal{D}_t &\sim \mathcal{N}(m_t,C_t)\\
+  m_t &\doteq a_t + A_t e_t, \\
+  C_t &\doteq R_t - A_t q_t A_t'
   \end{aligned}
-$$
+$$ {#eq-posterior-distribution}
+
+@eq-derivation-for-a-t-and-R-t , @eq-derivation-for-f-t-and-q-t and @eq-posterior-distribution are often referred to as the [Kalman filtering](https://en.wikipedia.org/wiki/Kalman_filter) equations. 
 
 ::: {.callout-note collapse="true"}
 ## Video Transcript
@@ -1230,8 +1255,7 @@ $$
 
 3. Posterior at Time $t: (\theta_t \mid \mathcal{D}_t) \sim  \mathcal{N}(m_t, C_t)$ with
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 m_t &= a_t + R_t F_t q_t^{-1} (y_t - f_t), \\
 C_t &= R_t - R_t F_t q_t^{-1} F_t' R_t.
 \end{aligned}
@@ -1239,8 +1263,7 @@ $$
 
 Now, denoting $e_t = (y_t - f_t)$ and $A_t = R_t F_t q_t^{-1}$, we can rewrite the equations above as:
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 m_t &= a_t + A_t e_t, \\
 C_t &= R_t - A_t q_t A_t'
 \end{aligned}
