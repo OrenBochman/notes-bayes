@@ -1,3 +1,20 @@
+---
+title: "Assessing Convergence"
+subtitle: "Bayesian Statistics: Techniques and Models"
+description: "An overview of methods for assessing convergence in Markov Chain Monte Carlo simulations."
+categories:
+  - Monte Carlo Estimation
+keywords:
+  - convergence diagnostics
+  - trace plots
+  - autocorrelation
+  - effective sample size
+  - Gelman-Rubin diagnostic
+  - R programming
+  - statistical modeling
+  - Bayesian statistics
+---
+
 # Notes - Assessing Convergence
 
 ## Convergence diagnostics
@@ -38,7 +55,7 @@ The chain appears to have converged at this much larger time scale.
 
 ### Monte Carlo effective sample size
 
-One major difference between the two chains we've looked at is the level of autocorrelation in each. Autocorrelation is a number between $-1$$-1$ and $+1$$+1$ which measures how linearly dependent the current value of the chain is on past values (called lags). We can see this with an autocorrelation plot:
+One major difference between the two chains we've looked at is the level of autocorrelation in each. Autocorrelation is a number between $-1$ and $+1$ which measures how linearly dependent the current value of the chain is on past values (called lags). We can see this with an autocorrelation plot:
 
 ```{r}
 coda::autocorr.plot(as.mcmc(post0$mu))
@@ -54,7 +71,7 @@ coda::autocorr.diag(as.mcmc(post1$mu))
 
 Autocorrelation is important because it tells us how much information is available in our Markov chain. Sampling 1000 iterations from a highly correlated Markov chain yields less information about the stationary distribution than we would obtain from 1000 samples *independently* drawn from the stationary distribution.
 
-Autocorrelation is a major component in calculating the Monte Carlo effective sample size of your chain. The Monte Carlo effective sample size is how many *independent* samples from the stationary distribution you would have to draw to have equivalent information in your Markov chain. Essentially it is the $m$$m$ (sample size) we chose in the lesson on Monte Carlo estimation.
+Autocorrelation is a major component in calculating the Monte Carlo effective sample size of your chain. The Monte Carlo effective sample size is how many *independent* samples from the stationary distribution you would have to draw to have equivalent information in your Markov chain. Essentially it is the $m$ (sample size) we chose in the lesson on Monte Carlo estimation.
 
 ```{r}
 str(post2) # contains 100,000 iterations
@@ -191,7 +208,11 @@ str(pmc)
 coda::traceplot(pmc)
 ```
 
-It appears that after about iteration 200, all chains are exploring the stationary (posterior) distribution. We can back up our visual results with the Gelman and Rubin diagnostic. This diagnostic statistic calculates the variability within chains, comparing that to the variability between chains. If all chains have converged to the stationary distribution, the variability between chains should be relatively small, and the potential scale reduction factor, reported by the the diagnostic, should be close to one. If the values are much higher than one, then we would conclude that the chains have not yet converged.
+It appears that after about iteration 200, all chains are exploring the stationary (posterior) distribution. 
+We can back up our visual results with the Gelman Rubin diagnostic.  \index{Gelman Rubin diagnostic}
+This diagnostic statistic calculates the variability within chains, comparing that to the variability between chains. 
+If all chains have converged to the stationary distribution, the variability between chains should be relatively small, and the potential scale reduction factor, reported by the the diagnostic, should be close to one. 
+If the values are much higher than one, then we would conclude that the chains have not yet converged.
 
 ```{r}
 coda::gelman.diag(pmc)
@@ -205,6 +226,8 @@ coda::gelman.plot(pmc)
 ?gelman.diag
 ```
 
+\index{shrink factor}
+\index{scale reduction factor}
 From the plot, we can see that if we only used the first 50 iterations, the potential scale reduction factor or "shrink factor" would be close to 10, indicating that the chains have not converged. But after about iteration 300, the "shrink factor" is essentially one, indicating that by then, we have probably reached convergence. Of course, we shouldn't stop sampling as soon as we reach convergence. Instead, this is where we should begin saving our samples for Monte Carlo estimation.
 
 ### Monte Carlo estimation

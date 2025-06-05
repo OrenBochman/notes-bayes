@@ -1,10 +1,31 @@
-# Notes - Gibbs sampling
+---
+title: "Gibbs sampling"
+subtitle: "Bayesian Statistics: Techniques and Models"
+description: "An introduction to the Gibbs sampling algorithm for sampling from complex probability distributions."
+categories:
+  - Monte Carlo Estimation
+keywords:
+  - Gibbs sampling
+  - Markov Chain Monte Carlo
+  - Full conditional distributions
+  - Bayesian inference
+  - MCMC
+  - Conditional distributions
+  - Conjugate priors
+  - Normal distribution
+  - Inverse gamma distribution
+  - Scaled inverse chi-square distribution
+  - R programming
+  - Statistical modeling
+  - Bayesian statistics  
+---
+
 
 Gibbs sampling is a Gibbs sampling is named after the physicist Josiah Willard Gibbs, in reference to an analogy between the sampling algorithm and statistical physics. The algorithm was described in [@geman1984] by brothers *Stuart and Donald Geman*, and became popularized in the statistics community for calculating marginal probability distribution, especially the posterior distribution. Gibbs sampling is better suited for sampling from models with many variables by sampling them one at a time from a full conditional distribution.
 
-![Gibbs sampler](images/c2l05-fig-01-Gibbs-sampler.jpg){.column-margin}
+![Gibbs sampler](images/c2l05-fig-01-Gibbs-sampler.jpg){.column-margin width="200px"}
 
-::: callout-tip
+::: {.callout-tip}
 ### How does the Gibbs sampling simplify updating multiple parameters in MCMC?
 
 It divides the process into updating one parameter at a time using (potentially convenient) full conditional distributions. The price we pay for this convenience is
@@ -17,8 +38,7 @@ It is also possible to run a Gibbs sampler that draws from the "full" conditiona
 
 ## Multiple parameter sampling and full conditional distributions
 
-![Multiple parameter sampling and full conditional distributions](images/c2l05-ss-02-Multiple-parameter-sampling-and-full-conditional-distributions.png){.column-margin}
-
+![Multiple parameter sampling and full conditional distributions](images/c2l05-ss-02-Multiple-parameter-sampling-and-full-conditional-distributions.png){.column-margin width="200px"}
 So far, we have demonstrated MCMC for a single parameter.
 
 What if we seek the posterior distribution of multiple parameters, and that posterior distribution does not have a standard form?
@@ -27,9 +47,16 @@ One option is to perform Metropolis-Hastings (M-H) by sampling candidates for al
 
 Another (simpler) option is to sample the parameters one at a time.
 
-As a simple example, suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $p(\theta, \phi \mid y) \propto g(\theta, \phi)$. If we knew the value of $\phi$, then we would just draw a candidate for $\theta$ and use $g(\theta, \phi)$ to compute our Metropolis-Hastings ratio, and possibly accept the candidate. Before moving on to the next iteration, if we don't know $\phi$, then we can perform a similar update for it. Draw a candidate for $\phi$ using some proposal distribution and again use $g(\theta, \phi)$ to compute our Metropolis-Hastings ratio. Here we pretend we know the value of $\theta$ by substituting its current iteration from the Markov chain. Once we've drawn for both $\theta$ and $\phi$, that completes one iteration and we begin the next iteration by drawing a new $\theta$. In other words, we're just going back and forth, updating the parameters one at a time, plugging the current value of the other parameter into $g(\theta, \phi)$.
+As a simple example, suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $p(\theta, \phi \mid y) \propto g(\theta, \phi)$. 
+If we knew the value of $\phi$, then we would just draw a candidate for $\theta$ and use $g(\theta, \phi)$ to compute our Metropolis-Hastings ratio, and possibly accept the candidate. 
+Before moving on to the next iteration, if we don't know $\phi$, then we can perform a similar update for it. 
+Draw a candidate for $\phi$ using some proposal distribution and again use $g(\theta, \phi)$ to compute our Metropolis-Hastings ratio. 
+Here we pretend we know the value of $\theta$ by substituting its current iteration from the Markov chain. 
+Once we've drawn for both $\theta$ and $\phi$, that completes one iteration and we begin the next iteration by drawing a new $\theta$. 
+In other words, we're just going back and forth, updating the parameters one at a time, plugging the current value of the other parameter into $g(\theta, \phi)$.
 
-This idea of one-at-a-time updates is used in what we call *Gibbs sampling*, which also produces a stationary Markov chain (whose stationary distribution is the posterior). If you recall, this is the namesake of `JAGS`, "just another Gibbs sampler."
+This idea of one-at-a-time updates is used in what we call *Gibbs sampling*, which also produces a stationary Markov chain (whose stationary distribution is the posterior). 
+If you recall, this is the namesake of `JAGS`, "just another Gibbs sampler."
 
 ### Full conditional distributions
 
@@ -57,7 +84,7 @@ where we simply now treat $\phi$ as a known number. Likewise, the other full con
 
 ### Gibbs sampler
 
-::: callout-note
+::: {.callout-note}
 The idea of Gibbs sampling is that we can **update multiple parameters by sampling just one parameter at a time**, cycling through all parameters and repeating. To perform the update for one particular parameter, we substitute in the current values of all other parameters.
 :::
 
@@ -74,7 +101,9 @@ In the following segments, we will provide a concrete example of finding full co
 
 ### Normal likelihood, unknown mean and variance
 
-![Normal likelihood, unknown mean and variance](images/c2l05-ss-03-conditionally-conjugate-prior-example-with-Normal-likelihood.png){.column-margin}
+![Normal likelihood, unknown mean and variance](images/c2l05-ss-03-conditionally-conjugate-prior-example-with-Normal-likelihood.png){.column-margin width="200px"}
+
+![Normal likelihood conjugate prior](images/c2l05-ss-04-conditionally-conjugate-prior-example-with-Normal-likelihood.png){.column-margin width="200px"}
 
 Let's return to the example at the end of Lesson 2 where we have normal likelihood with unknown mean and unknown variance. The model is:
 
@@ -107,8 +136,6 @@ $$
 From here, it is easy to continue on to find the two full conditional distributions we need.
 
 First let's look at $\mu$, assuming $\sigma^2$ is known (in which case it becomes a constant and is absorbed into the normalizing constant):
-
-![Normal likelihood conjugate prior](images/c2l05-ss-04-conditionally-conjugate-prior-example-with-Normal-likelihood.png){.column-margin}
 
 $$
 \begin{aligned}

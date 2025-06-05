@@ -1,10 +1,22 @@
-# Notes - Metropolis-Hastings
+---
+title: "Metropolis-Hastings"
+subtitle: "Bayesian Statistics: Techniques and Models"
+description: "An introduction to the Metropolis-Hastings algorithm for sampling from complex probability distributions."
+categories:
+  - Monte Carlo Estimation
+keywords:
+  - Markov Chain Monte Carlo
+  - Metropolis-Hastings
+  - MCMC
+  - Gibbs Sampling
+---
 
 ## The Metropolis-Hastings Algorithm
 
+\index{Metropolis-Hastings} 
 **Metropolis-Hastings** (M-H) is an algorithm that allows us to sample from a generic probability distribution (which we will call the target distribution), even if we do not know the normalizing constant. To do this, we construct and sample from a Markov chain whose stationary distribution is the target distribution. It consists of picking an arbitrary starting value and iteratively accepting or rejecting candidate samples drawn from another distribution, one that is easy to sample.
 
-::: callout-important
+::: {.callout-important}
 ## Why use M-H or MCMC?
 
 We will use M-H or other MCMC methods if there is no easy way to simulate independent draws from the target distribution. This can be due to non-conjugate priors, challenges in evaluating the normalizing constant or multiple explanatory variables.
@@ -12,8 +24,8 @@ We will use M-H or other MCMC methods if there is no easy way to simulate indepe
 
 ## The M-H Algorithm
 
-![The Metropolis-Hastings Algorithm](images/c2l04-ss-01-Metropolis-Hastings.png){.column-margin}
-
+![The Metropolis-Hastings Algorithm](images/c2l04-ss-01-Metropolis-Hastings.png){.column-margin width="200px"}
+\index{target distribution}
 Let's say we wish to produce samples from a *target distribution* $p(\theta) \propto g(\theta)$, where we don't know the normalizing constant (since $\int g(\theta)d\theta$ is hard or impossible to compute), so we only have $g(\theta)$, the *unnormalized joint probability* to work with. The Metropolis-Hastings algorithm proceeds as follows.
 
 1.  Select an **initial value** $\theta_0$.
@@ -26,23 +38,29 @@ Let's say we wish to produce samples from a *target distribution* $p(\theta) \pr
             -   **accept** $\theta^∗$ and set $\theta_i=\theta^∗$ with probability $\alpha$,
             -   **reject** $\theta^∗$ and set $\theta_i=\theta_{i−1}$ with probability $1−\alpha$.
 
-::: callout-important
+::: {.callout-important}
 ## Correction to the proposal distribution
 
-Steps 2.b and 2.c act as a **correction** [**correction**]{.column-margin} since the *proposal distribution* is not the *target distribution*. At each step in the chain, we draw a random candidate value of the parameter and decide whether to *"move"* the chain there or remain where we are. If the proposed move to the candidate is "advantageous," $(\alpha \ge 1)$ we "move" there and if it is not *"advantageous,"* we still might move there, but only with probability $\alpha$. Since our decision to "move" to the candidate only depends on where the chain currently is, this is a *Markov chain*.
+Steps 2.b and 2.c act as a **correction** [**correction**]{.column-margin} since the *proposal distribution* is not the *target distribution*. 
+At each step in the chain, we draw a random candidate value of the parameter and decide whether to *"move"* the chain there or remain where we are. 
+If the proposed move to the candidate is "advantageous," $(\alpha \ge 1)$ we "move" there and if it is not *"advantageous,"* we still might move there, but only with probability $\alpha$. 
+Since our decision to "move" to the candidate only depends on where the chain currently is, this is a *Markov chain*.
 :::
 
 ## Proposal distribution *q*
 
-One careful choice we must make is the candidate generating distribution $q(\theta^∗\mid\theta_{i−1})$. It may or may not depend on the previous iteration's value of $\theta$.
+One careful choice we must make is the candidate generating distribution $q(\theta^∗\mid\theta_{i−1})$. 
+It may or may not depend on the previous iteration's value of $\theta$.
 
-::: callout-important
+::: {.callout-important}
 ## Independent Metropolis-Hastings
 
-The simpler case is when the proposal distribution $q$ does not depend on the previous value. We then write it as $q(\theta^∗)$. This arises if it is always the same distribution. We call this case **independent Metropolis-Hastings**. If we use independent M-H, $q(\theta)$ **should be as similar as possible to** $p(\theta)$.
+The simpler case is when the proposal distribution $q$ does not depend on the previous value. We then write it as $q(\theta^∗)$. 
+This arises if it is always the same distribution. We call this case **independent Metropolis-Hastings**. 
+If we use independent M-H, $q(\theta)$ **should be as similar as possible to** $p(\theta)$.
 :::
 
-::: callout-important
+::: {.callout-important}
 ## Random-Walk Metropolis-Hastings
 
 In the more general case, the proposal distribution takes the form $q(\theta^∗\mid\theta_{i−1})$ with dependence on the previous iteration, is **Random-Walk Metropolis-Hastings**. Here, the proposal distribution is centered on $\theta_{i−1}$.
@@ -62,7 +80,7 @@ In the next segment, we will see a demonstration of this algorithm used in a dis
 
 ## Demonstration of a Discrete case
 
-![MCMC Coin Flip Example](images/c2l04-ss-02-Monte-Carlo-Demonstration.png){.column-margin}
+![MCMC Coin Flip Example](images/c2l04-ss-02-Monte-Carlo-Demonstration.png){.column-margin width="200px"}
 
 The following segment is by Herbert Lee, a professor of statistics and applied mathematics at the University of California, Santa Cruz.
 
@@ -76,11 +94,15 @@ And then you need to figure out, what's your posterior probability that this is 
 
 Our unknown parameter $\theta$, can either take the values *fair* or *loaded*.
 
-$$\theta = \{\text{fair, loaded} \}$$ {#eq-mcmc-coin-flip-rv}
+$$
+\theta = \{\text{fair, loaded} \}
+$$ {#eq-mcmc-coin-flip-rv}
 
 Our **prior** for $\theta$ is the probability of theta equals loaded, is 0.6.
 
-$$P(\theta=\text{loaded})=0.6 \qquad  \text{(prior)}$$ {#eq-mcmc-coin-flip-prior}
+$$
+P(\theta=\text{loaded})=0.6 \qquad  \text{(prior)}
+$$ {#eq-mcmc-coin-flip-prior}
 
 Our likelihood will follow a Binomial distribution, depending upon the value of $\theta$.
 
@@ -114,13 +136,13 @@ But suppose we had a more complicated problem, where we couldn't work this all o
 
 We can do this with Markov chain Monte Carlo. In particular, using the Metropolis-Hastings algorithm. What we'll do is, we'll set up a Markov chain whose **equilibrium distribution** has this **posterior distribution**. So we'll consider a Markov chain with two states, theta equals fair and theta equals loaded. And we'll allow the chain to move between those two states, with certain transition probabilities. We set this up using this using the Metropolis-Hastings algorithm.
 
-![The Metropolis-Hastings Algorithm](images/c2l04-ss-03-Monte-Carlo-Demonstration.png){.column-margin}
+![The Metropolis-Hastings Algorithm](images/c2l04-ss-03-Monte-Carlo-Demonstration.png){.column-margin width="200px"}
 
 So under the Metropolis-Hastings algorithm, step one is we start at an arbitrary location. And in this case, we can
 
 1.  start at either $\theta \ne \text{fair}$, or $\theta \ne \text{loaded}$.
 
-It doesn't really matter where we start, we'll be moving back and forth and we're going to look at the long-term running average, the long-term simulations.
+It does not really matter where we start, we'll be moving back and forth and we're going to look at the long-term running average, the long-term simulations.
 
 So the key is we'll be simulating.
 
@@ -157,7 +179,7 @@ In this case,
 
 -   If $\theta^* = \text{fair} \implies \alpha = { 0.0125 \over 0.00794}=1.574$
 
-![The Metropolis-Hastings Algorithm](images/c2l04-ss-04-Monte-Carlo-Demonstration.png){.column-margin}
+![The Metropolis-Hastings Algorithm](images/c2l04-ss-04-Monte-Carlo-Demonstration.png){.column-margin width="200px"}
 
 Given these probabilities, we then can do the acceptance or rejection step.
 
@@ -175,8 +197,7 @@ If the $\theta^*=\text{loaded} \implies \alpha=0.635$. So we accept theta star w
 
 We can draw this out as a Markov chain with two states, Fair and 'loaded'. If it's in the 'loaded' state, it will move with probability one to the fair state. If it's in the fair state, it will move with a probability of $0.635$ to the 'loaded' state. And with a probability of $0.365$ it will stay in the fair state.
 
-![state diagram](images/c2l04-states.png)
-
+![state diagram](images/c2l04-states.png){.column-margin width="200px"}
 
 And so here's a little diagram for this Markov chain with two states. In which case it will move back and forth with certain probabilities.
 
@@ -186,7 +207,7 @@ If you've seen a little bit of the theory of Markov chains. We can say that a Ma
 
 $$
 \pi P = \pi \qquad \text{(def. stationary distribution)}
-$$ {#eq-mcmc-coins-tationarity}
+$$ {#eq-mcmc-coins-stationarity}
 
 Here we have a transition probability matrix $P$, where we can think about 'fair' and 'loaded'. Moving from the 'fair' state, remaining in the 'fair' state happens with a probability of $0.365$ and it moves from 'fair' to 'loaded', with a probability of $0.635$. If it's in the 'loaded' state, we'll move to the 'fair' state with probability one, and it will stay in the 'loaded' state with probability 0.
 
@@ -227,11 +248,17 @@ Recall the model from the last segment of Lesson 2 where the data are the percen
 
 Recall that the posterior distribution is
 
-$$p(\mu \mid y_1, \ldots, y_n) \propto \frac{\exp[ n ( \bar{y} \mu - \mu^2/2)]}{1 + \mu^2}$$ The posterior distribution on the left is our target distribution and the expression on the right is our $g(\mu)$.
+$$
+p(\mu \mid y_1, \ldots, y_n) \propto \frac{\exp[ n ( \bar{y} \mu - \mu^2/2)]}{1 + \mu^2}
+$$ 
+
+The posterior distribution on the left is our target distribution and the expression on the right is our $g(\mu)$.
 
 The first thing we can do in R is write a function to evaluate $g(\mu)$. Because posterior distributions include likelihoods (the product of many numbers that are potentially small), $g(\mu)$ might evaluate to such a small number that to the computer, it is effectively zero. This will cause a problem when we evaluate the acceptance ratio $\alpha$. To avoid this problem, we can work on the log scale, which will be more numerically stable. Thus, we will write a function to evaluate
 
-$$\log(g(\mu)) = n ( \bar{y} \mu - \mu^2/2) - \log(1 + \mu^2)$$
+$$
+\log(g(\mu)) = n ( \bar{y} \mu - \mu^2/2) - \log(1 + \mu^2)
+$$
 
 This function will require three arguments, $\mu$, $\bar{y}$, and $n$.
 
@@ -388,7 +415,7 @@ There are four steps to implementing a model in `JAGS` through `R`:
 3.  Run the MCMC sampler.
 4.  Post-processing.
 
-We will demonstrate these steps with our running example with the data are the percent change in total personnel from last year to this year for $n=10$$n=10$ companies. We used a normal likelihood with known variance and t distribution for the prior on the unknown mean.
+We will demonstrate these steps with our running example with the data are the percent change in total personnel from last year to this year for $n=10$ companies. We used a normal likelihood with known variance and t distribution for the prior on the unknown mean.
 
 ### 1. Specify the model
 
