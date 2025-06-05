@@ -272,6 +272,7 @@ str(Leinhardt) # <1>
 ## EDA
 
 ```{r}
+#| label: C2-L07-8
 pairs(Leinhardt) # <1>
 ```
 
@@ -282,16 +283,19 @@ pairs(Leinhardt) # <1>
 We'll start with a simple linear regression model that relates infant mortality to per capita income.
 
 ```{r}
+#| label: C2-L07-9
 plot(infant ~ income, data=Leinhardt)
 ```
 
 ```{r}
+#| label: C2-L07-10
 hist(Leinhardt$infant)
 ```
 
 this is **right-skewed** (many small values and a number of much larger one)
 
 ```{r}
+#| label: C2-L07-11
 hist(Leinhardt$income)
 ```
 
@@ -329,6 +333,7 @@ scatterplot(loginfant ~ logincome,data=Leinhardt) # <1>
 1.  scatterplot with a regression fit and uncertainty for the data
 
 ```{r}
+#| label: C2-L07-14
 #| echo: false
 #| error: false
 #| warning: false
@@ -354,12 +359,14 @@ plt
 The reference Bayesian analysis (with a non-informative prior) is available directly in `R`.
 
 ```{r}
+#| label: C2-L07-15
 #| output: False
 lmod0 = lm(loginfant ~ logincome, data=Leinhardt)
 summary(lmod0)
 ```
 
 ```{r}
+#| label: C2-L07-16
 #| eval: False
 #| code-summary: regression output
 lm(formula = loginfant ~ logincome, data = Leinhardt)
@@ -392,10 +399,12 @@ F-statistic: 99.84 on 1 and 99 DF,  p-value: < 2.2e-16
 Now we'll fit this model in `JAGS`. A few countries have missing values, and for simplicity, we will omit those.
 
 ```{r}
+#| label: C2-L07-17
 dat = na.omit(Leinhardt)
 ```
 
 ```{r}
+#| label: C2-L07-18
 #| echo: false
 library("rjags")
 ```
@@ -453,23 +462,27 @@ mod1_csim = do.call(rbind, mod1_sim) # <11>
 Before we check the inferences from the model, we should perform convergence diagnostics for our Markov chains.
 
 ```{r}
+#| label: C2-L07-20
 par(mar = c(2.5, 1, 2.5, 1))
 plot(mod1_sim)
 ```
 
 ```{r}
+#| label: C2-L07-21
 gelman.diag(mod1_sim) # <1>
 ```
 
 1.  Gelman Rubin diagnostics scale reduction close to 1 indicated MCMC convergence
 
 ```{r}
+#| label: C2-L07-22
 autocorr.diag(mod1_sim) # <1>
 ```
 
 1.  high autocorrelation indicates a low sample size
 
 ```{r}
+#| label: C2-L07-23
 #| layout-ncol: 1
 #autocorr.plot(mod1_sim , auto.layout = F)
 autocorr.plot(mod1_csim , auto.layout = F)
@@ -477,6 +490,7 @@ autocorr.plot(mod1_csim , auto.layout = F)
 ```
 
 ```{r}
+#| label: C2-L07-24
 effectiveSize(mod1_sim) #<1>
 ```
 
@@ -487,6 +501,7 @@ the ess for sigma is good but for the betas 350 this is too low for estimateing 
 We can get a posterior summary of the parameters in our model.
 
 ```{r}
+#| label: C2-L07-25
 summary(mod1_sim)
 ```
 
@@ -503,6 +518,7 @@ Checking residuals (the difference between the response and the model's predicti
 First, let's look at what would have happened if we fit the reference linear model to the un-transformed variables.
 
 ```{r}
+#| label: C2-L07-26
 lmod0 = lm(infant ~ income, data=Leinhardt)
 plot(resid(lmod0)) # to check independence (looks okay)
 ```
@@ -510,12 +526,14 @@ plot(resid(lmod0)) # to check independence (looks okay)
 there should not be a pattern - but we can see an increase. This is not an issue and due to the data being presorted.
 
 ```{r}
+#| label: C2-L07-27
 plot(predict(lmod0), resid(lmod0)) # to check for linearity, constant variance (looks bad)
 ```
 
 after 80 the variance starts increasing
 
 ```{r}
+#| label: C2-L07-28
 qqnorm(resid(lmod0)) # to check Normality assumption (we want this to be a straight line)
 #?qqnorm
 ```
@@ -525,11 +543,13 @@ This looks good except for the last few points.
 Now let's return to our model fit to the log-transformed variables. In a Bayesian model, we have distributions for residuals, but we'll simplify and look only at the residuals evaluated at the posterior mean of the parameters.
 
 ```{r}
+#| label: C2-L07-29
 X = cbind(rep(1.0, data1_jags$n), data1_jags$log_income)
 head(X)
 ```
 
 ```{r}
+#| label: C2-L07-30
 (pm_params1 = colMeans(mod1_csim)) # <1>
 
 ```
@@ -537,6 +557,7 @@ head(X)
 1.  posterior mean - using (var = expr) forces R to return the value of var
 
 ```{r}
+#| label: C2-L07-31
 yhat1 = drop(X %*% pm_params1[1:2]) # <1>
 resid1 = data1_jags$y - yhat1       # <2>
 plot(resid1) # <3>
@@ -551,18 +572,22 @@ So to get the residuals from Stan we extract the b parameter.
 Although we did not discuss it we could estimate $\hat y$ by drawing K predictions for each x_i and look at $res_i=\frac{1}{K}\sum_k|y_i -\hat y_{i,k}|$ and plot upper and fit a line as well as lower and upper bounds as well. Also I'm not sure but I guess we can also do with using the predictive posterior dist. Anyhow here is a link to something like this: [Extracting and visualizing tidy residuals from Bayesian models](https://mjskay.github.io/tidybayes/articles/tidybayes-residuals.html#probability-residuals-and-quantile-residuals) -jk
 
 ```{r}
+#| label: C2-L07-32
 plot(yhat1, resid1) # against predicted values
 ```
 
 ```{r}
+#| label: C2-L07-33
 qqnorm(resid1) # checking normality of residuals
 ```
 
 ```{r}
+#| label: C2-L07-34
 plot(predict(lmod0), resid(mod1)) # to compare with reference linear model
 ```
 
 ```{r}
+#| label: C2-L07-35
 rownames(dat)[order(resid1, decreasing=TRUE)[1:5]] # which countries have the largest positive residuals?
 ```
 
@@ -581,6 +606,7 @@ In the previous segment, we saw two outliers in the model relating the logarithm
 Looking back at our data, there are two variables we haven't used yet: `region` and `oil`. The `oil` variable indicates oil-exporting countries. Both Saudi Arabia and Libya are oil-exporting countries, so perhaps this might explain part of the anomaly.
 
 ```{r}
+#| label: C2-L07-36
 library("rjags")
 
 mod2_string = " model {
@@ -627,11 +653,13 @@ mod2_csim = as.mcmc(do.call(rbind, mod2_sim)) # combine multiple chains
 As usual, check the convergence diagnostics.
 
 ```{r}
+#| label: C2-L07-37
 par(mar = c(2., 1, 2., 1))
 plot(mod2_sim)
 ```
 
 ```{r}
+#| label: C2-L07-38
 gelman.diag(mod2_sim)
 autocorr.diag(mod2_sim)
 ```
@@ -645,12 +673,14 @@ autocorr.plot(mod2_csim,auto.layout=FALSE )
 ```
 
 ```{r}
+#| label: C2-L07-40
 effectiveSize(mod2_sim)
 ```
 
 We can get a posterior summary of the parameters in our model.
 
 ```{r}
+#| label: C2-L07-41
 summary(mod2_sim)
 ```
 
@@ -659,29 +689,35 @@ It looks like there is a positive relationship between oil-production and log-in
 Now let's check the residuals.
 
 ```{r}
+#| label: C2-L07-42
 X2 = cbind(rep(1.0, data1_jags$n), data2_jags$log_income, data2_jags$is_oil)
 head(X2)
 ```
 
 ```{r}
+#| label: C2-L07-43
 (pm_params2 = colMeans(mod2_csim)) # posterior mean
 ```
 
 ```{r}
+#| label: C2-L07-44
 yhat2 = drop(X2 %*% pm_params2[1:3])
 resid2 = data2_jags$y - yhat2
 plot(resid2) # against data index
 ```
 
 ```{r}
+#| label: C2-L07-45
 plot(yhat2, resid2) # against predicted values
 ```
 
 ```{r}
+#| label: C2-L07-46
 plot(yhat1, resid1) # residuals from the first model
 ```
 
 ```{r}
+#| label: C2-L07-47
 sd(resid2) # standard deviation of residuals
 ```
 
@@ -698,6 +734,7 @@ These look much better, although the residuals for Saudi Arabia and Libya are st
 The $t$ linear model might look something like this. Notice that the $t$ distribution has three parameters, including a positive "degrees of freedom" parameter. The smaller the degrees of freedom, the heavier the tails of the distribution. We might fix the degrees of freedom to some number, or we can assign it a prior distribution.
 
 ```{r}
+#| label: C2-L07-48
 #| fig-column: margin
 #| fig-cap: normal and t distributions
 curve(dnorm(x), from = -5, to = 5)
@@ -705,6 +742,7 @@ curve(dt(x,1), from = -5, to = 5,col="red", add = TRUE)
 ```
 
 ```{r}
+#| label: C2-L07-49
 mod3_string = " model {
     for (i in 1:length(y)) {                                    # <1>
         y[i] ~ dt( mu[i], tau, df )
@@ -732,6 +770,7 @@ mod3_string = " model {
 We fit this model.
 
 ```{r}
+#| label: C2-L07-50
 set.seed(73)
 data3_jags = list(y=dat$loginfant, log_income=dat$logincome,
                   is_oil=as.numeric(dat$oil=="yes"))        # <3>
@@ -755,6 +794,7 @@ mod3_csim = as.mcmc(do.call(rbind, mod3_sim)) # combine multiple chains
 check MCMC convergence visually
 
 ```{r}
+#| label: C2-L07-51
 par(mar = c(2.5, 1, 2.5, 1))
 plot(mod3_sim)
 ```
@@ -762,10 +802,12 @@ plot(mod3_sim)
 check MCMC convergence quantitatively using *Rubin Gelman*
 
 ```{r}
+#| label: C2-L07-52
 gelman.diag(mod3_sim)
 ```
 
 ```{r}
+#| label: C2-L07-53
 effectiveSize(mod3_sim)
 ```
 
@@ -780,18 +822,21 @@ Let's calculate the DIC for our first two models:
 the simple linear regression on log-income,
 
 ```{r}
+#| label: C2-L07-54
 dic.samples(mod1, n.iter=1e3)
 ```
 
 and the second model where we add oil production.
 
 ```{r}
+#| label: C2-L07-55
 dic.samples(mod2, n.iter=1e3)
 ```
 
 and the second model where we introduce the Student t likelihood.
 
 ```{r}
+#| label: C2-L07-56
 dic.samples(mod3, n.iter=1e3)
 ```
 
@@ -804,6 +849,7 @@ We add these two quantities to get the DIC (the last number). The better-fitting
 We encourage you to explore different model specifications and compare their fit to the data using DIC. [Wikipedia](https://en.wikipedia.org/wiki/Deviance_information_criterion) provides a good introduction to DIC and we can find more details about the `JAGS` implementation through the `rjags` package documentation by entering `?dic.samples` in the `R` console.
 
 ```{r}
+#| label: C2-L07-57
 #?dic.samples
 ```
 
@@ -840,6 +886,7 @@ Let's try to cover the diagnostic plots which help us validate a regression mode
     -   outliers.
 
 ```{r}
+#| label: C2-L07-58
 #| fig-cap: Residuals vs Fitted plot
 plot(lmod0, 1)
 ```
@@ -865,6 +912,7 @@ The regression is valid if the residuals are lined well on the straight dashed l
 we can get this plot as follows
 
 ```{r}
+#| label: C2-L07-59
 plot(lmod0, 2)
 ```
 
@@ -877,6 +925,7 @@ for more info see [understanding QQ plots](https://data.library.virginia.edu/und
 This plot shows if residuals are spread equally along the ranges of predictors. This is how you can check the assumption of equal variance (homoscedasticity). It's good if you see a horizontal line with equally (randomly) spread points.
 
 ```{r}
+#| label: C2-L07-60
 plot(lmod0, 3)
 ```
 
@@ -891,6 +940,7 @@ in this case: - most of the points are to the right - the red line is almost fla
 -   Another aspect of Cook's distance is it can be used to identify regions of the design space where the model is poorly supported by the data - i.e. where the model is extrapolating and if we can get more data in that region we can improve the model.
 
 ```{r}
+#| label: C2-L07-61
 plot(lmod0, 4)
 ```
 
@@ -901,6 +951,7 @@ see [@cook1977, @williams1987]
 ### Residuals vs Leverage {#sec-residuals-vs-leverage}
 
 ```{r}
+#| label: C2-L07-62
 plot(lmod0, 5)
 #plot(mod3, 5)
 ```

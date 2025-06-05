@@ -28,6 +28,7 @@ Our first visual tool for assessing chains is the trace plot. A trace plot shows
 First, let's talk about what a chain should look like. Here is an example of a chain that has most likely converged.
 
 ```{r}
+#| label: C2-L06-1
 source('mh.r')
 library("coda")
 set.seed(61)
@@ -38,6 +39,7 @@ coda::traceplot(as.mcmc(post0$mu[-c(1:500)]))
 If the chain is stationary, it should not be showing any long-term trends. The average value for the chain should be roughly flat. It should not be wandering as in this example:
 
 ```{r}
+#| label: C2-L06-2
 set.seed(61)
 post1 = mh(n=n, ybar=ybar, n_iter=1e3, mu_init=0.0, cand_sd=0.04)
 coda::traceplot(as.mcmc(post1$mu[-c(1:500)]))
@@ -46,6 +48,7 @@ coda::traceplot(as.mcmc(post1$mu[-c(1:500)]))
 If this is the case, you need to run the chain many more iterations, as seen here:
 
 ```{r}
+#| label: C2-L06-3
 set.seed(61)
 post2 = mh(n=n, ybar=ybar, n_iter=100e3, mu_init=0.0, cand_sd=0.04)
 coda::traceplot(as.mcmc(post2$mu))
@@ -58,14 +61,17 @@ The chain appears to have converged at this much larger time scale.
 One major difference between the two chains we've looked at is the level of autocorrelation in each. Autocorrelation is a number between $-1$ and $+1$ which measures how linearly dependent the current value of the chain is on past values (called lags). We can see this with an autocorrelation plot:
 
 ```{r}
+#| label: C2-L06-4
 coda::autocorr.plot(as.mcmc(post0$mu))
 ```
 
 ```{r}
+#| label: C2-L06-5
 coda::autocorr.plot(as.mcmc(post1$mu))
 ```
 
 ```{r}
+#| label: C2-L06-6
 coda::autocorr.diag(as.mcmc(post1$mu))
 ```
 
@@ -74,50 +80,61 @@ Autocorrelation is important because it tells us how much information is availab
 Autocorrelation is a major component in calculating the Monte Carlo effective sample size of your chain. The Monte Carlo effective sample size is how many *independent* samples from the stationary distribution you would have to draw to have equivalent information in your Markov chain. Essentially it is the $m$ (sample size) we chose in the lesson on Monte Carlo estimation.
 
 ```{r}
+#| label: C2-L06-7
 str(post2) # contains 100,000 iterations
 ```
 
 ```{r}
+#| label: C2-L06-8
 coda::effectiveSize(as.mcmc(post2$mu)) # effective sample size of ~350
 ```
 
 ```{r}
+#| label: C2-L06-9
 ## thin out the samples until autocorrelation is essentially 0. This will leave you with approximately independent samples. The number of samples remaining is similar to the effective sample size.
 coda::autocorr.plot(as.mcmc(post2$mu), lag.max=500)
 ```
 
 ```{r}
+#| label: C2-L06-10
 thin_interval = 400 # how far apart the iterations are for autocorrelation to be essentially 0.
 thin_indx = seq(from=thin_interval, to=length(post2$mu), by=thin_interval)
 head(thin_indx)
 ```
 
 ```{r}
+#| label: C2-L06-11
 post2mu_thin = post2$mu[thin_indx]
 traceplot(as.mcmc(post2$mu))
 ```
 
 ```{r}
+#| label: C2-L06-12
 traceplot(as.mcmc(post2mu_thin))
 ```
 
 ```{r}
+#| label: C2-L06-13
 coda::autocorr.plot(as.mcmc(post2mu_thin), lag.max=10)
 ```
 
 ```{r}
+#| label: C2-L06-14
 effectiveSize(as.mcmc(post2mu_thin))
 ```
 
 ```{r}
+#| label: C2-L06-15
 length(post2mu_thin)
 ```
 
 ```{r}
+#| label: C2-L06-16
 str(post0) # contains 10,000 iterations
 ```
 
 ```{r}
+#| label: C2-L06-17
 coda::effectiveSize(as.mcmc(post0$mu)) # effective sample size of ~2,500
 ```
 
@@ -136,10 +153,12 @@ raftery.diag(as.mcmc(post0$mu))
 ```
 
 ```{r}
+#| label: C2-L06-18
 raftery.diag(as.mcmc(post0$mu), q=0.005, r=0.001, s=0.95)
 ```
 
 ```{r}
+#| label: C2-L06-19
 ## 
 ## Quantile (q) = 0.005
 ## Accuracy (r) = +/- 0.001
@@ -149,6 +168,7 @@ raftery.diag(as.mcmc(post0$mu), q=0.005, r=0.001, s=0.95)
 ```
 
 ```{r}
+#| label: C2-L06-20
 ?raftery.diag
 ```
 
@@ -159,6 +179,7 @@ In the case of the first chain from `post0`, it looks like we would need about 3
 We have also seen how the initial value of the chain can affect how quickly the chain converges. If our initial value is far from the bulk of the posterior distribution, then it may take a while for the chain to travel there. We saw this in an earlier example.
 
 ```{r}
+#| label: C2-L06-21
 set.seed(62)
 post3 = mh(n=n, ybar=ybar, n_iter=500, mu_init=10.0, cand_sd=0.3)
 coda::traceplot(as.mcmc(post3$mu))
@@ -171,6 +192,7 @@ Clearly, the first 100 or so iterations do not reflect draws from the stationary
 If we want to be more confident that we have converged to the true stationary distribution, we can simulate multiple chains, each with a different starting value.
 
 ```{r}
+#| label: C2-L06-22
 set.seed(61)
 
 nsim = 500
@@ -179,32 +201,38 @@ post1$accpt
 ```
 
 ```{r}
+#| label: C2-L06-23
 post2 = mh(n=n, ybar=ybar, n_iter=nsim, mu_init=-5.0, cand_sd=0.4)
 post2$accpt
 ```
 
 ```{r}
+#| label: C2-L06-24
 post3 = mh(n=n, ybar=ybar, n_iter=nsim, mu_init=7.0, cand_sd=0.1)
 post3$accpt
 ```
 
 ```{r}
+#| label: C2-L06-25
 post4 = mh(n=n, ybar=ybar, n_iter=nsim, mu_init=23.0, cand_sd=0.5)
 post4$accpt
 ```
 
 ```{r}
+#| label: C2-L06-26
 post5 = mh(n=n, ybar=ybar, n_iter=nsim, mu_init=-17.0, cand_sd=0.4)
 post5$accpt
 ```
 
 ```{R}
+#| label: C2-L06-27
 pmc = mcmc.list(as.mcmc(post1$mu), as.mcmc(post2$mu), 
                 as.mcmc(post3$mu), as.mcmc(post4$mu), as.mcmc(post5$mu))
 str(pmc)
 ```
 
 ```{r}
+#| label: C2-L06-28
 coda::traceplot(pmc)
 ```
 
@@ -215,14 +243,17 @@ If all chains have converged to the stationary distribution, the variability bet
 If the values are much higher than one, then we would conclude that the chains have not yet converged.
 
 ```{r}
+#| label: C2-L06-29
 coda::gelman.diag(pmc)
 ```
 
 ```{r}
+#| label: C2-L06-30
 coda::gelman.plot(pmc)
 ```
 
 ```{r}
+#| label: C2-L06-31
 ?gelman.diag
 ```
 
@@ -235,11 +266,13 @@ From the plot, we can see that if we only used the first 50 iterations, the pote
 If we are reasonably confident that our Markov chain has converged, then we can go ahead and treat it as a Monte Carlo sample from the posterior distribution. Thus, we can use the techniques from Lesson 3 to calculate posterior quantities like the posterior mean and posterior intervals from the samples directly.
 
 ```{r}
+#| label: C2-L06-32
 nburn = 1000 # remember to discard early iterations
 post0$mu_keep = post0$mu[-c(1:1000)]
 summary(as.mcmc(post0$mu_keep))
 ```
 
 ```{r}
+#| label: C2-L06-33
 mean(post0$mu_keep > 1.0) # posterior probability that mu  > 1.0
 ```
