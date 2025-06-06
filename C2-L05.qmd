@@ -51,7 +51,7 @@ One option is to perform Metropolis-Hastings (M-H) by sampling candidates for al
 
 Another (simpler) option is to sample the parameters one at a time.
 
-As a simple example, suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $p(\theta, \phi \mid y) \propto g(\theta, \phi)$. 
+As a simple example, suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $\mathbb{P}r(\theta, \phi \mid y) \propto g(\theta, \phi)$. 
 If we knew the value of $\phi$, then we would just draw a candidate for $\theta$ and use $g(\theta, \phi)$ to compute our Metropolis-Hastings ratio, and possibly accept the candidate. 
 Before moving on to the next iteration, if we don't know $\phi$, then we can perform a similar update for it. 
 Draw a candidate for $\phi$ using some proposal distribution and again use $g(\theta, \phi)$ to compute our Metropolis-Hastings ratio. 
@@ -67,24 +67,24 @@ If you recall, this is the namesake of `JAGS`, "just another Gibbs sampler."
 Before describing the full **Gibbs sampling algorithm** \index{Gibbs sampling algorithm}, there's one more thing we can do. Using the chain rule of probability, we have
 
 $$
-p(\theta, \phi \mid y) = p(\theta \mid \phi, y) \cdot p(\phi \mid y)
+\mathbb{P}r(\theta, \phi \mid y) = \mathbb{P}r(\theta \mid \phi, y) \cdot \mathbb{P}r(\phi \mid y)
 $$
 
-Notice that the only difference between $p(\theta, \phi \mid y)$ and $p(\theta \mid \phi, y)$ is multiplication by a factor that doesn't involve $\theta$. Since the $g(\theta, \phi)$ function above, when viewed as a function of $\theta$ is proportional to both these expressions, we might as well have replaced it with $p(\theta \mid \phi, y)$ in our update for $\theta$.
+Notice that the only difference between $\mathbb{P}r(\theta, \phi \mid y)$ and $\mathbb{P}r(\theta \mid \phi, y)$ is multiplication by a factor that doesn't involve $\theta$. Since the $g(\theta, \phi)$ function above, when viewed as a function of $\theta$ is proportional to both these expressions, we might as well have replaced it with $\mathbb{P}r(\theta \mid \phi, y)$ in our update for $\theta$.
 
-This distribution $p(\theta \mid \phi, y)$ is called the **full conditional distribution** [**Full conditional distribution**]{.column-margin} for $\theta$. \index{full conditional distribution}
+This distribution $\mathbb{P}r(\theta \mid \phi, y)$ is called the **full conditional distribution** [**Full conditional distribution**]{.column-margin} for $\theta$. \index{full conditional distribution}
 
-Why use $p(\theta \mid \phi, y)$ instead of $g(\theta, \phi)$?
+Why use $\mathbb{P}r(\theta \mid \phi, y)$ instead of $g(\theta, \phi)$?
 
 In some cases, the full conditional distribution is a standard distribution we know how to sample. If that happens, we no longer need to draw a candidate and decide whether to accept it. In fact, if we treat the full conditional distribution as a candidate proposal distribution, the resulting Metropolis-Hastings acceptance probability becomes exactly 1.
 
 Gibbs samplers require a little more work up front because you need to find the full conditional distribution for each parameter. The good news is that all full conditional distributions have the same starting point: the full joint posterior distribution. Using the example above, we have
 
 $$
-p(\theta \mid \phi, y) \propto p(\theta, \phi \mid y)
+\mathbb{P}r(\theta \mid \phi, y) \propto \mathbb{P}r(\theta, \phi \mid y)
 $$
 
-where we simply now treat $\phi$ as a known number. Likewise, the other full conditional is $p(\phi \mid \theta, y) \propto p(\theta, \phi \mid y)$ where here, we consider $\theta$ to be a known number. We always start with the full posterior distribution. Thus, the process of finding full conditional distributions is the same as finding the posterior distribution of each parameter, pretending that all other parameters are known.
+where we simply now treat $\phi$ as a known number. Likewise, the other full conditional is $\mathbb{P}r(\phi \mid \theta, y) \propto \mathbb{P}r(\theta, \phi \mid y)$ where here, we consider $\theta$ to be a known number. We always start with the full posterior distribution. Thus, the process of finding full conditional distributions is the same as finding the posterior distribution of each parameter, pretending that all other parameters are known.
 
 ### Gibbs sampler
 
@@ -92,10 +92,10 @@ where we simply now treat $\phi$ as a known number. Likewise, the other full con
 The idea of Gibbs sampling is that we can **update multiple parameters by sampling just one parameter at a time**, cycling through all parameters and repeating. To perform the update for one particular parameter, we substitute in the current values of all other parameters.
 :::
 
-Here is the algorithm. Suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $p(\theta, \phi \mid y)$. If we can find the distribution of each parameter at a time, i.e., $p(\theta \mid \phi, y)$ and $p(\phi \mid \theta, y)$, then we can take turns sampling these distributions like so:
+Here is the algorithm. Suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $\mathbb{P}r(\theta, \phi \mid y)$. If we can find the distribution of each parameter at a time, i.e., $\mathbb{P}r(\theta \mid \phi, y)$ and $\mathbb{P}r(\phi \mid \theta, y)$, then we can take turns sampling these distributions like so:
 
-1.  Using $\phi_{i-1}$, draw $\theta_i$ from $p(\theta \mid \phi = \phi_{i-1}, y)$.
-2.  Using $\theta_i$, draw $\phi_i$ from $p(\phi \mid \theta = \theta_i, y)$.
+1.  Using $\phi_{i-1}$, draw $\theta_i$ from $\mathbb{P}r(\theta \mid \phi = \phi_{i-1}, y)$.
+2.  Using $\theta_i$, draw $\phi_i$ from $\mathbb{P}r(\phi \mid \theta = \theta_i, y)$.
 
 Together, steps 1 and 2 complete one cycle of the Gibbs sampler and produce the draw for $(\theta_i, \phi_i)$ in one iteration of a MCMC sampler. If there are more than two parameters, we can handle that also. One Gibbs cycle would include an update for each of the parameters.
 
@@ -129,8 +129,8 @@ Let's first work out the form of the full posterior distribution. When we begin 
 
 $$
 \begin{aligned}
-p( \mu, \sigma^2 \mid y_1, y_2, \ldots, y_n ) &\propto
-p(y_1, y_2, \ldots, y_n \mid \mu, \sigma^2) p(\mu) p(\sigma^2) 
+\mathbb{P}r( \mu, \sigma^2 \mid y_1, y_2, \ldots, y_n ) &\propto
+\mathbb{P}r(y_1, y_2, \ldots, y_n \mid \mu, \sigma^2) \mathbb{P}r(\mu) \mathbb{P}r(\sigma^2) 
 \\ &= \prod_{i=1}^n \text{N} ( y_i \mid \mu, \sigma^2 ) \times \text{N}( \mu \mid \mu_0, \sigma_0^2) \times \text{IG}(\sigma^2 \mid \nu_0, \beta_0) 
 \\ &= \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}}\exp \left[ -\frac{(y_i - \mu)^2}{2\sigma^2} \right] 
 \\ & \qquad \times\frac{1}{\sqrt{2\pi\sigma_0^2}} \exp \left[ -\frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right] 
@@ -147,7 +147,7 @@ First let's look at $\mu$, assuming $\sigma^2$ is known (in which case it become
 
 $$
 \begin{aligned}
-p(\mu \mid \sigma^2, y_1, \ldots, y_n) &\propto p( \mu, \sigma^2 \mid y_1, \ldots, y_n ) 
+\mathbb{P}r(\mu \mid \sigma^2, y_1, \ldots, y_n) &\propto \mathbb{P}r( \mu, \sigma^2 \mid y_1, \ldots, y_n ) 
 \\ &\propto \exp \left[ -\frac{\sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} \right] \exp \left[ -\frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right] 
 \\ &\propto \exp \left[ -\frac{1}{2} \left( \frac{ \sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} + \frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right) \right] 
 \\ &\propto \text{N} \left( \mu \mid \frac{n\bar{y}/\sigma^2 + \mu_0/\sigma_0^2}{n/\sigma^2 + 1/\sigma_0^2} \frac{1}{n/\sigma^2 + 1/\sigma_0^2} \right)
@@ -160,7 +160,7 @@ Now let's look at $\sigma^2$, assuming $\mu$ is known:
 
 $$
 \begin{aligned}
-p(\sigma^2 \mid \mu, y_1, \ldots, y_n) & \propto p( \mu, \sigma^2 \mid y_1, \ldots, y_n ) 
+\mathbb{P}r(\sigma^2 \mid \mu, y_1, \ldots, y_n) & \propto \mathbb{P}r( \mu, \sigma^2 \mid y_1, \ldots, y_n ) 
 \\ &\propto (\sigma^2)^{-n/2} \exp \left[ -\frac{\sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} \right] (\sigma^2)^{-(\nu_0 + 1)} \exp \left[ -\frac{\beta_0}{\sigma^2} \right] I_{\sigma^2 > 0}(\sigma^2) 
 \\ &\propto (\sigma^2)^{-(\nu_0 + n/2 + 1)} \exp \left[ -\frac{1}{\sigma^2} \left( \beta_0 + \frac{\sum_{i=1}^n (y_i - \mu)^2}{2} \right) \right] I_{\sigma^2 > 0}(\sigma^2) 
 \\ &\propto \text{IG}\left( \sigma^2 \mid \nu_0 + \frac{n}{2}, \, \beta_0 + \frac{\sum_{i=1}^n (y_i - \mu)^2}{2} \right) 

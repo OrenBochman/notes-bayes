@@ -673,7 +673,13 @@ window.Quarto = {
 
 <section id="sec-monte-carlo-integration" class="level2 page-columns page-full" data-number="17.1">
 <h2 data-number="17.1" class="anchored" data-anchor-id="sec-monte-carlo-integration"><span class="header-section-number">17.1</span> Monte Carlo Integration</h2>
-<div class="page-columns page-full"><p> Before we learn how to simulate from complicated posterior distributions, let’s review some of the basics of Monte Carlo estimation.</p><div class="no-row-height column-margin column-container"><img src="images/c2l03-ss-01-Monte-Carlo-integration.png" class="img-fluid" width="200" alt="Monte Carlo Integration"></div></div>
+
+<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/c2l03-ss-01-Monte-Carlo-integration.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Monte Carlo Integration"><img src="images/c2l03-ss-01-Monte-Carlo-integration.png" class="img-fluid figure-img" width="200" alt="Monte Carlo Integration"></a></p>
+<figcaption>Monte Carlo Integration</figcaption>
+</figure>
+</div></div><p> Before we learn how to simulate from complicated posterior distributions, let’s review some of the basics of Monte Carlo estimation.</p>
 <p>Monte Carlo estimation refers to simulating hypothetical draws from a probability distribution in order to calculate important quantities. By “important quantities,” we mean things like the <em>mean</em>, the <em>variance</em>, or the <em>probability</em> of some event or distributional property.</p>
 <p>All of these calculations involve integration, which except for the simplest distributions, may range from very difficult to impossible :-) .</p>
 <p>Suppose we have a random variable <span class="math inline">\theta</span> that follows a <a href="./A03.html#sec-the-gamma-distribution"><span class="math inline">\Gamma</span> distribution</a></p>
@@ -707,36 +713,36 @@ window.Quarto = {
 
 <div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="images/c2l03-ss-02-Monte-Carlo-integration.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Monte Carlo Integration"><img src="images/c2l03-ss-02-Monte-Carlo-integration.png" class="img-fluid figure-img" width="200" alt="Monte Carlo Integration"></a></p>
+<p><a href="images/c2l03-ss-02-Monte-Carlo-integration.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Monte Carlo Integration"><img src="images/c2l03-ss-02-Monte-Carlo-integration.png" class="img-fluid figure-img" width="200" alt="Monte Carlo Integration"></a></p>
 <figcaption>Monte Carlo Integration</figcaption>
 </figure>
 </div></div><p>This method can be used to calculate many different integrals. Say <span class="math inline">h(\theta)</span> is any function and we want to calculate</p>
 <p><span id="eq-monte-carlo-integration-full"><span class="math display">
-\int h(\theta) p(\theta) d\theta = \mathbb{E}(h(\theta)) \approx \frac{1}{m}\sum_{i=1}^m h(\theta_i^*) \qquad
+\int h(\theta) \mathbb{P}r(\theta) d\theta = \mathbb{E}(h(\theta)) \approx \frac{1}{m}\sum_{i=1}^m h(\theta_i^*) \qquad
 \tag{17.6}</span></span></p>
-<p>where <span class="math inline">p(\theta)</span> is the probability density function of <span class="math inline">\theta</span> and <span class="math inline">h(\theta)</span> is any function of <span class="math inline">\theta</span>.</p>
+<p>where <span class="math inline">\mathbb{P}r(\theta)</span> is the probability density function of <span class="math inline">\theta</span> and <span class="math inline">h(\theta)</span> is any function of <span class="math inline">\theta</span>.</p>
 <p><strong>This integral is precisely what is meant by</strong> <span class="math inline">\mathbb{E}[h(\theta)]</span> , so we can conveniently approximate it by taking the sample mean of <span class="math inline">h(\theta_i^*)</span>. That is, we apply the function h to each simulated sample from the distribution, and take the average of all the results.</p>
 <p>One extremely useful example of an h function is is the indicator <span class="math inline">I_A(\theta)</span> where A is some logical condition about the value of <span class="math inline">\theta</span>. To demonstrate, suppose <span class="math inline">h(\theta)=I_{[\theta&lt;5]}(\theta)</span>, which will give a 1 if <span class="math inline">\theta &lt;5</span> and return a 0 otherwise.</p>
 <p>What is <span class="math inline">\mathbb{E}(h(\theta))</span>?</p>
 <p>This is the integral:</p>
 <p><span id="eq-gamma-prob-full"><span class="math display">
 \begin{aligned}
-\mathbb{E}[h(\theta)] &amp;= \int_0^\infty \mathbb{I}_{[\theta&lt;5]}(\theta) p(\theta) d\theta \\
-&amp;= \int_0^5 1 \cdot p(\theta) d\theta + \int_5^\infty 0 \cdot p(\theta) d\theta \\
-&amp;= P(\theta &lt; 5) \qquad
+\mathbb{E}[h(\theta)] &amp;= \int_0^\infty \mathbb{I}_{[\theta&lt;5]}(\theta) \mathbb{P}r(\theta) d\theta \\
+&amp;= \int_0^5 1 \cdot \mathbb{P}r(\theta) d\theta + \int_5^\infty 0 \cdot \mathbb{P}r(\theta) d\theta \\
+&amp;= \mathbb{P}r(\theta &lt; 5) \qquad
 \end{aligned}
 \tag{17.7}</span></span></p>
 <p>So what does this mean?</p>
 <p>It means we can approximate the probability that <span class="math inline">\theta &lt; 5</span> by drawing many samples <span class="math inline">\theta^∗_i</span> , and approximating this integral with <span class="math inline">\frac{1}{m} \sum_{i=1}^m I_{\theta^* &lt; 5} (\theta_i^*)</span>. This expression is simply counting how many of those samples come out to be less than 5 , and dividing by the total number of simulated samples.</p>
 <p>That’s convenient!</p>
-<p>Likewise, we can approximate quantiles of a distribution. If we are looking for the value z such that <span class="math inline">P(\theta &lt; z) = 0.9</span> , we simply arrange the samples <span class="math inline">\theta^∗_i</span> in ascending order and find the smallest drawn value that is greater than 90% of the others.</p>
+<p>Likewise, we can approximate quantiles of a distribution. If we are looking for the value z such that <span class="math inline">\mathbb{P}r(\theta &lt; z) = 0.9</span> , we simply arrange the samples <span class="math inline">\theta^∗_i</span> in ascending order and find the smallest drawn value that is greater than 90% of the others.</p>
 </section>
 <section id="monte-carlo-error-and-marginalization" class="level2 page-columns page-full" data-number="17.3">
 <h2 data-number="17.3" class="anchored" data-anchor-id="monte-carlo-error-and-marginalization"><span class="header-section-number">17.3</span> Monte Carlo Error and Marginalization</h2>
 
 <div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="images/c2l03-ss-02-Monte-Carlo-integration.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Monte Carlo Error and Marginalization"><img src="images/c2l03-ss-02-Monte-Carlo-integration.png" class="img-fluid figure-img" width="200" alt="Monte Carlo Error and Marginalization"></a></p>
+<p><a href="images/c2l03-ss-02-Monte-Carlo-integration.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Monte Carlo Error and Marginalization"><img src="images/c2l03-ss-02-Monte-Carlo-integration.png" class="img-fluid figure-img" width="200" alt="Monte Carlo Error and Marginalization"></a></p>
 <figcaption>Monte Carlo Error and Marginalization</figcaption>
 </figure>
 </div></div><p><strong>How good is an approximation by Monte Carlo sampling?</strong></p>
@@ -750,15 +756,15 @@ window.Quarto = {
 <section id="marginalization" class="level2" data-number="17.4">
 <h2 data-number="17.4" class="anchored" data-anchor-id="marginalization"><span class="header-section-number">17.4</span> Marginalization</h2>
 <p>We can also obtain Monte Carlo samples from hierarchical models.</p>
-<p>As a simple example, let’s consider a binomial random variable where <span class="math inline">y\mid\phi\sim Bin(10,\phi)</span> and further suppose <span class="math inline">\phi</span> is random (as if it had a prior) and is distributed beta <span class="math inline">\phi \sim Beta(2,2)</span> .</p>
-<p>Given any hierarchical model, we can always write the joint distribution of y and <span class="math inline">\phi</span> as <span class="math inline">p(y,\phi) = p(y \mid \phi)p(\phi)</span> using the chain rule of probability.</p>
+<p>As a simple example, let’s consider a binomial random variable where <span class="math inline">y \mid \phi \sim \mathrm{Bin}(10,\phi)</span> and further suppose <span class="math inline">\phi</span> is random (as if it had a prior) and is distributed beta <span class="math inline">\phi \sim \mathrm{Beta}(2,2)</span> .</p>
+<p>Given any hierarchical model, we can always write the joint distribution of <span class="math inline">y</span> and <span class="math inline">\phi</span> as <span class="math inline">\mathbb{P}r(y,\phi) = \mathbb{P}r(y \mid \phi)\mathbb{P}r(\phi)</span> using the chain rule of probability.</p>
 <p>To simulate from this joint distribution, repeat these steps for a large number <span class="math inline">m</span> :</p>
 <ol type="1">
 <li>Simulate <span class="math inline">\phi^∗_i</span> from its Beta(2,2) distribution.</li>
 <li>Given the drawn <span class="math inline">\phi^∗_i</span> , simulate <span class="math inline">y^∗_i</span> from <span class="math inline">Bin(10,\phi^*_i)</span> .</li>
 </ol>
 <p>This will produce m independent pairs of <span class="math inline">(y^∗,\phi^∗)_i</span> drawn from their joint distribution.</p>
-<p>One major advantage of Monte Carlo simulation is that marginalizing is easy. Calculating the marginal distribution of <span class="math inline">y</span> , <span class="math inline">p(y)=\int^1_0 p(y,\phi)d\phi</span>, might be challenging. But if we have draws from the joint distribution, we can just discard the <span class="math inline">\phi^∗_i</span> draws and use the <span class="math inline">y^∗_i</span> as samples from their marginal distribution.</p>
+<p>One major advantage of Monte Carlo simulation is that marginalizing is easy. Calculating the marginal distribution of <span class="math inline">y</span> , <span class="math inline">\mathbb{P}r(y)=\int^1_0 \mathbb{P}r(y,\phi)d\phi</span>, might be challenging. But if we have draws from the joint distribution, we can just discard the <span class="math inline">\phi^∗_i</span> draws and use the <span class="math inline">y^∗_i</span> as samples from their marginal distribution.</p>
 <p>This is also called the prior predictive distribution introduced in the previous course.</p>
 <p>In the next segment, we will demonstrate some of these principles.</p>
 <p>Remember, we do not yet know how to sample from the complicated posterior distributions introduced in the previous lesson.</p>
@@ -795,7 +801,7 @@ window.Quarto = {
 <div id="fig-plot-gamma" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-plot-gamma-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="C2-L03_files/figure-html/fig-plot-gamma-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;17.1: Histogram of simulated gamma samples with true density"><img src="C2-L03_files/figure-html/fig-plot-gamma-1.png" class="img-fluid figure-img" width="672"></a>
+<a href="C2-L03_files/figure-html/fig-plot-gamma-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;17.1: Histogram of simulated gamma samples with true density"><img src="C2-L03_files/figure-html/fig-plot-gamma-1.png" class="img-fluid figure-img" width="672"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-plot-gamma-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;17.1: Histogram of simulated gamma samples with true density
@@ -967,13 +973,13 @@ Figure&nbsp;17.1: Histogram of simulated gamma samples with true density
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">prop.table</span>(<span class="fu">table</span>(y)), <span class="at">ylab=</span><span class="st">"P(y)"</span>, <span class="at">main=</span><span class="st">"Marginal distribution of y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">prop.table</span>(<span class="fu">table</span>(y)), <span class="at">ylab=</span><span class="st">"Pr(y)"</span>, <span class="at">main=</span><span class="st">"Marginal distribution of y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div id="fig-mc-hierarchical-marginal" class="quarto-float quarto-figure quarto-figure-center anchored" width="672">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-hierarchical-marginal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="C2-L03_files/figure-html/fig-mc-hierarchical-marginal-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;17.2: "><img src="C2-L03_files/figure-html/fig-mc-hierarchical-marginal-1.png" id="fig-mc-hierarchical-marginal" class="img-fluid figure-img" width="672"></a>
+<a href="C2-L03_files/figure-html/fig-mc-hierarchical-marginal-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;17.2: "><img src="C2-L03_files/figure-html/fig-mc-hierarchical-marginal-1.png" id="fig-mc-hierarchical-marginal" class="img-fluid figure-img" width="672"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-mc-hierarchical-marginal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;17.2
@@ -989,17 +995,17 @@ Figure&nbsp;17.2
 <h2 data-number="18.1" class="anchored" data-anchor-id="definition"><span class="header-section-number">18.1</span> Definition</h2>
 <p>If we have a sequence of random variables <span class="math inline">X_1,X_2,\dots X_n</span> where the indices <span class="math inline">1,2,\dots,n</span> represent successive points in time, we can use the chain rule of probability to calculate the probability of the entire sequence:</p>
 <p><span id="eq-chain-rule-full"><span class="math display">
-p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2, X_1) \cdot \ldots \cdot p(X_n \mid X_{n-1}, X_{n-2}, \ldots, X_2, X_1) \qquad
+\mathbb{P}r(X_1, X_2, \ldots X_n) = \mathbb{P}r(X_1) \cdot \mathbb{P}r(X_2 \mid X_1) \cdot \mathbb{P}r(X_3 \mid X_2, X_1) \cdot \ldots \cdot \mathbb{P}r(X_n \mid X_{n-1}, X_{n-2}, \ldots, X_2, X_1) \qquad
 \tag{18.1}</span></span></p>
 <p>Markov chains simplify this expression by using the Markov assumption. The assumption is that given the entire past history, the probability distribution for the random variable at the next time step only depends on the current variable. Mathematically, the assumption is written like this:</p>
 <p><span id="eq-markov-assumption-full"><span class="math display">
-p(X_{t+1} \mid X_t, X_{t-1}, \ldots, X_2, X_1 ) = p(X_{t+1} \mid X_t) \qquad
+\mathbb{P}r(X_{t+1} \mid X_t, X_{t-1}, \ldots, X_2, X_1 ) = \mathbb{P}r(X_{t+1} \mid X_t) \qquad
 \tag{18.2}</span></span></p>
 <p>for all <span class="math inline">t=2,\dots,n</span>. Under this assumption, we can write the first expression as</p>
 <p><span id="eq-markov-chain-factorization-full"><span class="math display">
-p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2) \cdot p(X_4 \mid X_3) \cdot \ldots \cdot p(X_n \mid X_{n-1}) \qquad
+\mathbb{P}r(X_1, X_2, \ldots X_n) = \mathbb{P}r(X_1) \cdot \mathbb{P}r(X_2 \mid X_1) \cdot \mathbb{P}r(X_3 \mid X_2) \cdot \mathbb{P}r(X_4 \mid X_3) \cdot \ldots \cdot \mathbb{P}r(X_n \mid X_{n-1}) \qquad
 \tag{18.3}</span></span></p>
-<p>which is much simpler than the original. It consists of an initial distribution for the first variable, p(X1), and n−1 transition probabilities. We usually make one more assumption: that the transition probabilities do not change with time. Hence, the transition from time t to time t+1 depends only on the value of Xt.</p>
+<p>which is much simpler than the original. It consists of an initial distribution for the first variable, <span class="math inline">\mathbb{P}r(X_1)</span>, and n−1 transition probabilities. We usually make one more assumption: that the transition probabilities do not change with time. Hence, the transition from time t to time t+1 depends only on the value of Xt.</p>
 </section>
 <section id="examples-of-markov-chains" class="level2" data-number="18.2">
 <h2 data-number="18.2" class="anchored" data-anchor-id="examples-of-markov-chains"><span class="header-section-number">18.2</span> Examples of Markov chains</h2>
@@ -1022,7 +1028,7 @@ p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2) \cd
 <h3 data-number="18.2.2" class="anchored" data-anchor-id="random-walk-continuous"><span class="header-section-number">18.2.2</span> Random walk (continuous)</h3>
 <p>Now let’s look at a continuous example of a Markov chain. Say <span class="math inline">X_t=0</span> and we have the following transition model:</p>
 <p><span id="eq-random-walk-transition-full"><span class="math display">
-p(X_{t+1}\mid X_t=x_t)=N(x_t,1) \qquad
+\mathbb{P}r(X_{t+1}\mid X_t=x_t)=N(x_t,1) \qquad
 \tag{18.4}</span></span></p>
 <p>That is, the probability distribution for the next state is Normal with variance 1 and mean equal to the current state. This is often referred to as a “random walk.” Clearly, it is a Markov chain because the transition to the next state Xt+1 only depends on the current state Xt.</p>
 <p>This example is straightforward to code in R:</p>
@@ -1043,7 +1049,7 @@ p(X_{t+1}\mid X_t=x_t)=N(x_t,1) \qquad
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><a href="C2-L03_files/figure-html/lst-random-walk-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="C2-L03_files/figure-html/lst-random-walk-1.png" class="img-fluid figure-img" width="672"></a></p>
+<p><a href="C2-L03_files/figure-html/lst-random-walk-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="C2-L03_files/figure-html/lst-random-walk-1.png" class="img-fluid figure-img" width="672"></a></p>
 </figure>
 </div>
 </div>
@@ -1063,8 +1069,8 @@ Q =
 .5 &amp; 0 &amp; 0 &amp; .5 &amp; 0 \\
 \end{pmatrix} \qquad
 \tag{18.5}</span></span></p>
-<p>where the transitions from State 1 are in the first row, the transitions from State 2 are in the second row, etc. For example, the probability p(Xt+1=5∣Xt=4) can be found in the fourth row, fifth column.</p>
-<p>The transition matrix is especially useful if we want to find the probabilities associated with multiple steps of the chain. For example, we might want to know p(Xt+2=3∣Xt=1), the probability of your secret number being 3 two steps from now, given that your number is currently 1. We can calculate this as ∑k=15p(Xt+2=3∣Xt+1=k)⋅p(Xt+1=k∣Xt=1), which conveniently is found in the first row and third column of Q2.</p>
+<p>where the transitions from State 1 are in the first row, the transitions from State 2 are in the second row, etc. For example, the probability <span class="math inline">\mathbb{P}r(X_{t+1}=5\mid X_t=4)</span> can be found in the fourth row, fifth column.</p>
+<p>The transition matrix is especially useful if we want to find the probabilities associated with multiple steps of the chain. For example, we might want to know <span class="math inline">\mathbb{P}r(X_{t+2}=3 \mid X_t=1)</span>, the probability of your secret number being 3 two steps from now, given that your number is currently 1. We can calculate this as <span class="math inline">\sum_{k=15} \mathbb{P}r(X_t+2=3 \mid X_t+1=k) \cdot \mathbb{P}r(X_{t+1}=k \mid X_t=1)</span>, which conveniently is found in the first row and third column of <span class="math inline">Q_2</span>.</p>
 <p>We can perform this matrix multiplication easily in R:</p>
 <div class="cell">
 <details class="code-fold">
@@ -1100,7 +1106,7 @@ Q =
 </section>
 <section id="stationary-distribution" class="level2" data-number="18.4">
 <h2 data-number="18.4" class="anchored" data-anchor-id="stationary-distribution"><span class="header-section-number">18.4</span> Stationary distribution</h2>
-<p>Suppose we want to know the probability distribution of the your secret number in the distant future, say <span class="math inline">p(X_{t+h} \mid X_t)</span> where h is a large number. Let’s calculate this for a few different values of h.</p>
+<p>Suppose we want to know the probability distribution of the your secret number in the distant future, say <span class="math inline">\mathbb{P}r(X_{t+h} \mid X_t)</span> where h is a large number. Let’s calculate this for a few different values of h.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1149,7 +1155,7 @@ Q =
 [5,] 0.199 0.200 0.200 0.199 0.201</code></pre>
 </div>
 </div>
-<p>Notice that as the future horizon gets more distant, the transition distributions appear to converge. The state you are currently in becomes less important in determining the more distant future. If we let h get really large, and take it to the limit, all the rows of the long-range transition matrix will become equal to <span class="math inline">(.2,.2,.2,.2,.2)</span>. That is, if you run the Markov chain for a very long time, the probability that you will end up in any particular state is 1/5=.2 for each of the five states. These long-range probabilities are equal to what is called the stationary distribution of the Markov chain.</p>
+<p>Notice that as the future horizon gets more distant, the transition distributions appear to converge. The state you are currently in becomes less important in determining the more distant future. If we let h get really large, and take it to the limit, all the rows of the long-range transition matrix will become equal to <span class="math inline">(.2,.2,.2,.2,.2)</span>. That is, if you run the Markov chain for a very long time, the probability that you will end up in any particular state is <span class="math inline">1/5=.2</span> for each of the five states. These long-range probabilities are equal to what is called the stationary distribution of the Markov chain.</p>
 <p>The stationary distribution of a chain is the initial state distribution for which performing a transition will not change the probability of ending up in any given state. That is,</p>
 <div class="cell">
 <details class="code-fold">
@@ -1199,7 +1205,7 @@ Table&nbsp;18.1
 <section id="continuous-example" class="level3" data-number="18.4.1">
 <h3 data-number="18.4.1" class="anchored" data-anchor-id="continuous-example"><span class="header-section-number">18.4.1</span> Continuous example</h3>
 <p>The continuous random walk example we gave earlier does not have a stationary distribution. However, we can modify it so that it does have a stationary distribution.</p>
-<p>Let the transition distribution be <span class="math inline">p(X_{t + 1}\mid X_t = x_t)=N(\phi x_t,1)</span> where <span class="math inline">-1 &lt; \phi &lt; 1</span>. That is, the probability distribution for the next state is Normal with variance <span class="math inline">1</span> and mean equal to <span class="math inline">ϕ</span> times the current state. As long as <span class="math inline">\phi</span> is between −1 and 1, then the stationary distribution will exist for this model.</p>
+<p>Let the transition distribution be <span class="math inline">\mathbb{P}r(X_{t + 1}\mid X_t = x_t)=N(\phi x_t,1)</span> where <span class="math inline">-1 &lt; \phi &lt; 1</span>. That is, the probability distribution for the next state is Normal with variance <span class="math inline">1</span> and mean equal to <span class="math inline">ϕ</span> times the current state. As long as <span class="math inline">\phi</span> is between −1 and 1, then the stationary distribution will exist for this model.</p>
 <p>Let’s simulate this chain for <span class="math inline">\phi=−0.6</span>.</p>
 <div class="cell">
 <details class="code-fold">
@@ -1220,7 +1226,7 @@ Table&nbsp;18.1
 <div id="fig-mc-ar1" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-ar1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="C2-L03_files/figure-html/fig-mc-ar1-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;18.1: Simulated AR(1) process with phi=-0.6"><img src="C2-L03_files/figure-html/fig-mc-ar1-1.png" class="img-fluid figure-img" width="672"></a>
+<a href="C2-L03_files/figure-html/fig-mc-ar1-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;18.1: Simulated AR(1) process with phi=-0.6"><img src="C2-L03_files/figure-html/fig-mc-ar1-1.png" class="img-fluid figure-img" width="672"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-ar1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;18.1: Simulated AR(1) process with phi=-0.6
@@ -1244,7 +1250,7 @@ Figure&nbsp;18.1: Simulated AR(1) process with phi=-0.6
 <div id="fig-mc-stationary-distribution" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-stationary-distribution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="C2-L03_files/figure-html/fig-mc-stationary-distribution-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;18.2: Histogram of simulated AR(1) process with theoretical stationary distribution"><img src="C2-L03_files/figure-html/fig-mc-stationary-distribution-1.png" class="img-fluid figure-img" width="672"></a>
+<a href="C2-L03_files/figure-html/fig-mc-stationary-distribution-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;18.2: Histogram of simulated AR(1) process with theoretical stationary distribution"><img src="C2-L03_files/figure-html/fig-mc-stationary-distribution-1.png" class="img-fluid figure-img" width="672"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-stationary-distribution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;18.2: Histogram of simulated AR(1) process with theoretical stationary distribution
@@ -1777,502 +1783,508 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a><span class="fu">## Monte Carlo Integration {#sec-monte-carlo-integration}</span></span>
 <span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a><span class="al">![Monte Carlo Integration](images/c2l03-ss-01-Monte-Carlo-integration.png)</span>{.column-margin width="200px"}</span>
-<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a>\index{Monte Carlo integration} \index{Monte Carlo}</span>
-<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a>Before we learn how to simulate from complicated posterior distributions, let's review some of the basics of Monte Carlo estimation.</span>
-<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a>Monte Carlo estimation refers to simulating hypothetical draws from a probability distribution in order to calculate important quantities. By "important quantities," we mean things like the *mean*, the *variance*, or the *probability* of some event or distributional property.</span>
+<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a>\index{Monte Carlo integration} \index{Monte Carlo}</span>
+<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a>Before we learn how to simulate from complicated posterior distributions, let's review some of the basics of Monte Carlo estimation.</span>
 <span id="cb50-24"><a href="#cb50-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a>All of these calculations involve integration, which except for the simplest distributions, may range from very difficult to impossible :-) .</span>
+<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a>Monte Carlo estimation refers to simulating hypothetical draws from a probability distribution in order to calculate important quantities. By "important quantities," we mean things like the *mean*, the *variance*, or the *probability* of some event or distributional property.</span>
 <span id="cb50-26"><a href="#cb50-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-27"><a href="#cb50-27" aria-hidden="true" tabindex="-1"></a>Suppose we have a random variable $\theta$ that follows a  <span class="co">[</span><span class="ot">$\Gamma$ distribution</span><span class="co">](A03.qmd#sec-the-gamma-distribution)</span></span>
+<span id="cb50-27"><a href="#cb50-27" aria-hidden="true" tabindex="-1"></a>All of these calculations involve integration, which except for the simplest distributions, may range from very difficult to impossible :-) .</span>
 <span id="cb50-28"><a href="#cb50-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-29"><a href="#cb50-29" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-30"><a href="#cb50-30" aria-hidden="true" tabindex="-1"></a> \theta \sim \mathrm{Gamma}(a,b) \qquad</span>
-<span id="cb50-31"><a href="#cb50-31" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-distribution-full}</span>
-<span id="cb50-32"><a href="#cb50-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-33"><a href="#cb50-33" aria-hidden="true" tabindex="-1"></a>Let's say $a=2$ and $b=\frac{1}{3}$ , where $a$ is the *shape parameter* and $b$ is the *rate parameter*.</span>
+<span id="cb50-29"><a href="#cb50-29" aria-hidden="true" tabindex="-1"></a>Suppose we have a random variable $\theta$ that follows a  <span class="co">[</span><span class="ot">$\Gamma$ distribution</span><span class="co">](A03.qmd#sec-the-gamma-distribution)</span></span>
+<span id="cb50-30"><a href="#cb50-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-31"><a href="#cb50-31" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb50-32"><a href="#cb50-32" aria-hidden="true" tabindex="-1"></a> \theta \sim \mathrm{Gamma}(a,b) \qquad</span>
+<span id="cb50-33"><a href="#cb50-33" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-distribution-full}</span>
 <span id="cb50-34"><a href="#cb50-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-35"><a href="#cb50-35" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-36"><a href="#cb50-36" aria-hidden="true" tabindex="-1"></a>  a=2 \qquad b=1/3 \qquad</span>
-<span id="cb50-37"><a href="#cb50-37" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-params}</span>
-<span id="cb50-38"><a href="#cb50-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-39"><a href="#cb50-39" aria-hidden="true" tabindex="-1"></a>To calculate the mean of this distribution, we would need to compute the following integral. </span>
-<span id="cb50-40"><a href="#cb50-40" aria-hidden="true" tabindex="-1"></a>It is possible to compute this integral, and the answer is $\frac{a}{b}$ (6 in this case).</span>
-<span id="cb50-41"><a href="#cb50-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-42"><a href="#cb50-42" aria-hidden="true" tabindex="-1"></a>$$ </span>
-<span id="cb50-43"><a href="#cb50-43" aria-hidden="true" tabindex="-1"></a>\mathbb{E}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span> = \int_0^\infty \theta f(\theta) d\theta = \int_0^\infty \theta \frac{b^a}{\Gamma(a)}\theta^{a-1}e^{-b\theta} d\theta = \frac{a}{b} \qquad</span>
-<span id="cb50-44"><a href="#cb50-44" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-mean-full}</span>
-<span id="cb50-45"><a href="#cb50-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-46"><a href="#cb50-46" aria-hidden="true" tabindex="-1"></a>However, we could verify this answer through Monte Carlo estimation.</span>
+<span id="cb50-35"><a href="#cb50-35" aria-hidden="true" tabindex="-1"></a>Let's say $a=2$ and $b=\frac{1}{3}$ , where $a$ is the *shape parameter* and $b$ is the *rate parameter*.</span>
+<span id="cb50-36"><a href="#cb50-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-37"><a href="#cb50-37" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb50-38"><a href="#cb50-38" aria-hidden="true" tabindex="-1"></a>  a=2 \qquad b=1/3 \qquad</span>
+<span id="cb50-39"><a href="#cb50-39" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-params}</span>
+<span id="cb50-40"><a href="#cb50-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-41"><a href="#cb50-41" aria-hidden="true" tabindex="-1"></a>To calculate the mean of this distribution, we would need to compute the following integral. </span>
+<span id="cb50-42"><a href="#cb50-42" aria-hidden="true" tabindex="-1"></a>It is possible to compute this integral, and the answer is $\frac{a}{b}$ (6 in this case).</span>
+<span id="cb50-43"><a href="#cb50-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-44"><a href="#cb50-44" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb50-45"><a href="#cb50-45" aria-hidden="true" tabindex="-1"></a>\mathbb{E}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span> = \int_0^\infty \theta f(\theta) d\theta = \int_0^\infty \theta \frac{b^a}{\Gamma(a)}\theta^{a-1}e^{-b\theta} d\theta = \frac{a}{b} \qquad</span>
+<span id="cb50-46"><a href="#cb50-46" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-mean-full}</span>
 <span id="cb50-47"><a href="#cb50-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-48"><a href="#cb50-48" aria-hidden="true" tabindex="-1"></a>To do so, we would simulate a large number of draws (call them $\theta^∗_i \quad (i=1,\ldots ,m)$ ) from this gamma distribution and calculate their sample mean.</span>
+<span id="cb50-48"><a href="#cb50-48" aria-hidden="true" tabindex="-1"></a>However, we could verify this answer through Monte Carlo estimation.</span>
 <span id="cb50-49"><a href="#cb50-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-50"><a href="#cb50-50" aria-hidden="true" tabindex="-1"></a>Why can we do this?</span>
+<span id="cb50-50"><a href="#cb50-50" aria-hidden="true" tabindex="-1"></a>To do so, we would simulate a large number of draws (call them $\theta^∗_i \quad (i=1,\ldots ,m)$ ) from this gamma distribution and calculate their sample mean.</span>
 <span id="cb50-51"><a href="#cb50-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-52"><a href="#cb50-52" aria-hidden="true" tabindex="-1"></a>Recall from the previous course that if we have a random sample from a distribution, the average of those samples converges in probability to the true mean of that distribution by the **[Law of Large Numbers](A07.qmd)**.</span>
+<span id="cb50-52"><a href="#cb50-52" aria-hidden="true" tabindex="-1"></a>Why can we do this?</span>
 <span id="cb50-53"><a href="#cb50-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-54"><a href="#cb50-54" aria-hidden="true" tabindex="-1"></a>Furthermore, by the **[Central Limit Theorem](A08.qmd)** (CLT), this sample mean $\bar{\theta}^* = \frac{1}{m}\sum_{i=1}^m \theta_i^*$ approximately follows a normal distribution with mean $\mathbb{E}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>$ and variance $\mathbb{V}ar<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>/m$ .</span>
+<span id="cb50-54"><a href="#cb50-54" aria-hidden="true" tabindex="-1"></a>Recall from the previous course that if we have a random sample from a distribution, the average of those samples converges in probability to the true mean of that distribution by the **[Law of Large Numbers](A07.qmd)**.</span>
 <span id="cb50-55"><a href="#cb50-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-56"><a href="#cb50-56" aria-hidden="true" tabindex="-1"></a>The theoretical variance of $\theta$ is the following integral:</span>
+<span id="cb50-56"><a href="#cb50-56" aria-hidden="true" tabindex="-1"></a>Furthermore, by the **[Central Limit Theorem](A08.qmd)** (CLT), this sample mean $\bar{\theta}^* = \frac{1}{m}\sum_{i=1}^m \theta_i^*$ approximately follows a normal distribution with mean $\mathbb{E}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>$ and variance $\mathbb{V}ar<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>/m$ .</span>
 <span id="cb50-57"><a href="#cb50-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-58"><a href="#cb50-58" aria-hidden="true" tabindex="-1"></a>$$ </span>
-<span id="cb50-59"><a href="#cb50-59" aria-hidden="true" tabindex="-1"></a>\text{Var}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span> = \int_0^\infty (\theta-\mathbb{E}(\theta))^2 f(\theta) d\theta \qquad</span>
-<span id="cb50-60"><a href="#cb50-60" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-variance-full}</span>
-<span id="cb50-61"><a href="#cb50-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-62"><a href="#cb50-62" aria-hidden="true" tabindex="-1"></a>Just like we did with the mean, we could approximate this variance with the sample variance </span>
+<span id="cb50-58"><a href="#cb50-58" aria-hidden="true" tabindex="-1"></a>The theoretical variance of $\theta$ is the following integral:</span>
+<span id="cb50-59"><a href="#cb50-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-60"><a href="#cb50-60" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb50-61"><a href="#cb50-61" aria-hidden="true" tabindex="-1"></a>\text{Var}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span> = \int_0^\infty (\theta-\mathbb{E}(\theta))^2 f(\theta) d\theta \qquad</span>
+<span id="cb50-62"><a href="#cb50-62" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-variance-full}</span>
 <span id="cb50-63"><a href="#cb50-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-64"><a href="#cb50-64" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-65"><a href="#cb50-65" aria-hidden="true" tabindex="-1"></a>\text{Var}<span class="co">[</span><span class="ot">\theta^*</span><span class="co">]</span> = \frac{1}{m}\sum_{i=1}^m (\theta_i^* - \bar{\theta}^*)^2 \qquad</span>
-<span id="cb50-66"><a href="#cb50-66" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-sample-variance-full}</span>
-<span id="cb50-67"><a href="#cb50-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-68"><a href="#cb50-68" aria-hidden="true" tabindex="-1"></a><span class="fu">## Calculating probabilities</span></span>
+<span id="cb50-64"><a href="#cb50-64" aria-hidden="true" tabindex="-1"></a>Just like we did with the mean, we could approximate this variance with the sample variance </span>
+<span id="cb50-65"><a href="#cb50-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-66"><a href="#cb50-66" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb50-67"><a href="#cb50-67" aria-hidden="true" tabindex="-1"></a>\text{Var}<span class="co">[</span><span class="ot">\theta^*</span><span class="co">]</span> = \frac{1}{m}\sum_{i=1}^m (\theta_i^* - \bar{\theta}^*)^2 \qquad</span>
+<span id="cb50-68"><a href="#cb50-68" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-sample-variance-full}</span>
 <span id="cb50-69"><a href="#cb50-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-70"><a href="#cb50-70" aria-hidden="true" tabindex="-1"></a><span class="al">![Monte Carlo Integration](images/c2l03-ss-02-Monte-Carlo-integration.png)</span>{.column-margin width="200px"}</span>
+<span id="cb50-70"><a href="#cb50-70" aria-hidden="true" tabindex="-1"></a><span class="fu">## Calculating probabilities</span></span>
 <span id="cb50-71"><a href="#cb50-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-72"><a href="#cb50-72" aria-hidden="true" tabindex="-1"></a>This method can be used to calculate many different integrals. </span>
-<span id="cb50-73"><a href="#cb50-73" aria-hidden="true" tabindex="-1"></a>Say $h(\theta)$ is any function and we want to calculate</span>
+<span id="cb50-72"><a href="#cb50-72" aria-hidden="true" tabindex="-1"></a><span class="al">![Monte Carlo Integration](images/c2l03-ss-02-Monte-Carlo-integration.png)</span>{.column-margin width="200px"}</span>
+<span id="cb50-73"><a href="#cb50-73" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb50-74"><a href="#cb50-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-75"><a href="#cb50-75" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-76"><a href="#cb50-76" aria-hidden="true" tabindex="-1"></a>\int h(\theta) p(\theta) d\theta = \mathbb{E}(h(\theta)) \approx \frac{1}{m}\sum_{i=1}^m h(\theta_i^*) \qquad</span>
-<span id="cb50-77"><a href="#cb50-77" aria-hidden="true" tabindex="-1"></a>$$ {#eq-monte-carlo-integration-full}</span>
+<span id="cb50-75"><a href="#cb50-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-76"><a href="#cb50-76" aria-hidden="true" tabindex="-1"></a>This method can be used to calculate many different integrals. </span>
+<span id="cb50-77"><a href="#cb50-77" aria-hidden="true" tabindex="-1"></a>Say $h(\theta)$ is any function and we want to calculate</span>
 <span id="cb50-78"><a href="#cb50-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-79"><a href="#cb50-79" aria-hidden="true" tabindex="-1"></a>where $p(\theta)$ is the probability density function of $\theta$ and $h(\theta)$ is any function of $\theta$.</span>
-<span id="cb50-80"><a href="#cb50-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-81"><a href="#cb50-81" aria-hidden="true" tabindex="-1"></a>**This integral is precisely what is meant by** $\mathbb{E}<span class="co">[</span><span class="ot">h(\theta)</span><span class="co">]</span>$ , so we can conveniently approximate it by taking the sample mean of $h(\theta_i^*)$. </span>
-<span id="cb50-82"><a href="#cb50-82" aria-hidden="true" tabindex="-1"></a>That is, we apply the function h to each simulated sample from the distribution, and take the average of all the results.</span>
-<span id="cb50-83"><a href="#cb50-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-84"><a href="#cb50-84" aria-hidden="true" tabindex="-1"></a>One extremely useful example of an h function is is the indicator $I_A(\theta)$ where A is some logical condition about the value of $\theta$. </span>
-<span id="cb50-85"><a href="#cb50-85" aria-hidden="true" tabindex="-1"></a>To demonstrate, suppose $h(\theta)=I_{<span class="co">[</span><span class="ot">\theta&lt;5</span><span class="co">]</span>}(\theta)$, which will give a 1 if $\theta &lt;5$ and return a 0 otherwise. </span>
-<span id="cb50-86"><a href="#cb50-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-87"><a href="#cb50-87" aria-hidden="true" tabindex="-1"></a>What is $\mathbb{E}(h(\theta))$? </span>
-<span id="cb50-88"><a href="#cb50-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-89"><a href="#cb50-89" aria-hidden="true" tabindex="-1"></a>This is the integral: </span>
+<span id="cb50-79"><a href="#cb50-79" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb50-80"><a href="#cb50-80" aria-hidden="true" tabindex="-1"></a>\int h(\theta) \mathbb{P}r(\theta) d\theta = \mathbb{E}(h(\theta)) \approx \frac{1}{m}\sum_{i=1}^m h(\theta_i^*) \qquad</span>
+<span id="cb50-81"><a href="#cb50-81" aria-hidden="true" tabindex="-1"></a>$$ {#eq-monte-carlo-integration-full}</span>
+<span id="cb50-82"><a href="#cb50-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-83"><a href="#cb50-83" aria-hidden="true" tabindex="-1"></a>where $\mathbb{P}r(\theta)$ is the probability density function of $\theta$ and $h(\theta)$ is any function of $\theta$.</span>
+<span id="cb50-84"><a href="#cb50-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-85"><a href="#cb50-85" aria-hidden="true" tabindex="-1"></a>**This integral is precisely what is meant by** $\mathbb{E}<span class="co">[</span><span class="ot">h(\theta)</span><span class="co">]</span>$ , so we can conveniently approximate it by taking the sample mean of $h(\theta_i^*)$. </span>
+<span id="cb50-86"><a href="#cb50-86" aria-hidden="true" tabindex="-1"></a>That is, we apply the function h to each simulated sample from the distribution, and take the average of all the results.</span>
+<span id="cb50-87"><a href="#cb50-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-88"><a href="#cb50-88" aria-hidden="true" tabindex="-1"></a>One extremely useful example of an h function is is the indicator $I_A(\theta)$ where A is some logical condition about the value of $\theta$. </span>
+<span id="cb50-89"><a href="#cb50-89" aria-hidden="true" tabindex="-1"></a>To demonstrate, suppose $h(\theta)=I_{<span class="co">[</span><span class="ot">\theta&lt;5</span><span class="co">]</span>}(\theta)$, which will give a 1 if $\theta &lt;5$ and return a 0 otherwise. </span>
 <span id="cb50-90"><a href="#cb50-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-91"><a href="#cb50-91" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-92"><a href="#cb50-92" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb50-93"><a href="#cb50-93" aria-hidden="true" tabindex="-1"></a>\mathbb{E}<span class="co">[</span><span class="ot">h(\theta)</span><span class="co">]</span> &amp;= \int_0^\infty \mathbb{I}_{<span class="co">[</span><span class="ot">\theta&lt;5</span><span class="co">]</span>}(\theta) p(\theta) d\theta <span class="sc">\\</span></span>
-<span id="cb50-94"><a href="#cb50-94" aria-hidden="true" tabindex="-1"></a>&amp;= \int_0^5 1 \cdot p(\theta) d\theta + \int_5^\infty 0 \cdot p(\theta) d\theta <span class="sc">\\</span></span>
-<span id="cb50-95"><a href="#cb50-95" aria-hidden="true" tabindex="-1"></a>&amp;= P(\theta &lt; 5) \qquad</span>
-<span id="cb50-96"><a href="#cb50-96" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb50-97"><a href="#cb50-97" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-prob-full}</span>
-<span id="cb50-98"><a href="#cb50-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-99"><a href="#cb50-99" aria-hidden="true" tabindex="-1"></a>So what does this mean? </span>
-<span id="cb50-100"><a href="#cb50-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-101"><a href="#cb50-101" aria-hidden="true" tabindex="-1"></a>It means we can approximate the probability that $\theta &lt; 5$ by drawing many samples $\theta^∗_i$ , and approximating this integral with $\frac{1}{m} \sum_{i=1}^m I_{\theta^* &lt; 5} (\theta_i^*)$. </span>
-<span id="cb50-102"><a href="#cb50-102" aria-hidden="true" tabindex="-1"></a>This expression is simply counting how many of those samples come out to be less than 5 , and dividing by the total number of simulated samples. </span>
-<span id="cb50-103"><a href="#cb50-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-104"><a href="#cb50-104" aria-hidden="true" tabindex="-1"></a>That's convenient!</span>
-<span id="cb50-105"><a href="#cb50-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-106"><a href="#cb50-106" aria-hidden="true" tabindex="-1"></a>Likewise, we can approximate quantiles of a distribution. </span>
-<span id="cb50-107"><a href="#cb50-107" aria-hidden="true" tabindex="-1"></a>If we are looking for the value z such that $P(\theta &lt; z) = 0.9$ , we simply arrange the samples $\theta^∗_i$ in ascending order and find the smallest drawn value that is greater than 90% of the others.</span>
-<span id="cb50-108"><a href="#cb50-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-109"><a href="#cb50-109" aria-hidden="true" tabindex="-1"></a><span class="fu">## Monte Carlo Error and Marginalization</span></span>
-<span id="cb50-110"><a href="#cb50-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-111"><a href="#cb50-111" aria-hidden="true" tabindex="-1"></a><span class="al">![Monte Carlo Error and Marginalization](images/c2l03-ss-02-Monte-Carlo-integration.png)</span>{.column-margin width="200px"}</span>
+<span id="cb50-91"><a href="#cb50-91" aria-hidden="true" tabindex="-1"></a>What is $\mathbb{E}(h(\theta))$? </span>
+<span id="cb50-92"><a href="#cb50-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-93"><a href="#cb50-93" aria-hidden="true" tabindex="-1"></a>This is the integral: </span>
+<span id="cb50-94"><a href="#cb50-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-95"><a href="#cb50-95" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb50-96"><a href="#cb50-96" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb50-97"><a href="#cb50-97" aria-hidden="true" tabindex="-1"></a>\mathbb{E}<span class="co">[</span><span class="ot">h(\theta)</span><span class="co">]</span> &amp;= \int_0^\infty \mathbb{I}_{<span class="co">[</span><span class="ot">\theta&lt;5</span><span class="co">]</span>}(\theta) \mathbb{P}r(\theta) d\theta <span class="sc">\\</span></span>
+<span id="cb50-98"><a href="#cb50-98" aria-hidden="true" tabindex="-1"></a>&amp;= \int_0^5 1 \cdot \mathbb{P}r(\theta) d\theta + \int_5^\infty 0 \cdot \mathbb{P}r(\theta) d\theta <span class="sc">\\</span></span>
+<span id="cb50-99"><a href="#cb50-99" aria-hidden="true" tabindex="-1"></a>&amp;= \mathbb{P}r(\theta &lt; 5) \qquad</span>
+<span id="cb50-100"><a href="#cb50-100" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb50-101"><a href="#cb50-101" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gamma-prob-full}</span>
+<span id="cb50-102"><a href="#cb50-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-103"><a href="#cb50-103" aria-hidden="true" tabindex="-1"></a>So what does this mean? </span>
+<span id="cb50-104"><a href="#cb50-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-105"><a href="#cb50-105" aria-hidden="true" tabindex="-1"></a>It means we can approximate the probability that $\theta &lt; 5$ by drawing many samples $\theta^∗_i$ , and approximating this integral with $\frac{1}{m} \sum_{i=1}^m I_{\theta^* &lt; 5} (\theta_i^*)$. </span>
+<span id="cb50-106"><a href="#cb50-106" aria-hidden="true" tabindex="-1"></a>This expression is simply counting how many of those samples come out to be less than 5 , and dividing by the total number of simulated samples. </span>
+<span id="cb50-107"><a href="#cb50-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-108"><a href="#cb50-108" aria-hidden="true" tabindex="-1"></a>That's convenient!</span>
+<span id="cb50-109"><a href="#cb50-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-110"><a href="#cb50-110" aria-hidden="true" tabindex="-1"></a>Likewise, we can approximate quantiles of a distribution. </span>
+<span id="cb50-111"><a href="#cb50-111" aria-hidden="true" tabindex="-1"></a>If we are looking for the value z such that $\mathbb{P}r(\theta &lt; z) = 0.9$ , we simply arrange the samples $\theta^∗_i$ in ascending order and find the smallest drawn value that is greater than 90% of the others.</span>
 <span id="cb50-112"><a href="#cb50-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-113"><a href="#cb50-113" aria-hidden="true" tabindex="-1"></a>**How good is an approximation by Monte Carlo sampling?**</span>
+<span id="cb50-113"><a href="#cb50-113" aria-hidden="true" tabindex="-1"></a><span class="fu">## Monte Carlo Error and Marginalization</span></span>
 <span id="cb50-114"><a href="#cb50-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-115"><a href="#cb50-115" aria-hidden="true" tabindex="-1"></a>Again we can turn to the CLT, which tells us that the variance of our estimate is controlled in part by $m$. For a better estimate, we want larger $m$.</span>
+<span id="cb50-115"><a href="#cb50-115" aria-hidden="true" tabindex="-1"></a><span class="al">![Monte Carlo Error and Marginalization](images/c2l03-ss-02-Monte-Carlo-integration.png)</span>{.column-margin width="200px"}</span>
 <span id="cb50-116"><a href="#cb50-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-117"><a href="#cb50-117" aria-hidden="true" tabindex="-1"></a>For example, if we seek $\mathbb{E}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>$ and variance $Var<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>/m$ . </span>
+<span id="cb50-117"><a href="#cb50-117" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb50-118"><a href="#cb50-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-119"><a href="#cb50-119" aria-hidden="true" tabindex="-1"></a>The variance tells us how far our estimate might be from the true value. </span>
+<span id="cb50-119"><a href="#cb50-119" aria-hidden="true" tabindex="-1"></a>**How good is an approximation by Monte Carlo sampling?**</span>
 <span id="cb50-120"><a href="#cb50-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-121"><a href="#cb50-121" aria-hidden="true" tabindex="-1"></a>One way to approximate $Var<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>$ is to replace it with the sample variance. </span>
+<span id="cb50-121"><a href="#cb50-121" aria-hidden="true" tabindex="-1"></a>Again we can turn to the CLT, which tells us that the variance of our estimate is controlled in part by $m$. For a better estimate, we want larger $m$.</span>
 <span id="cb50-122"><a href="#cb50-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-123"><a href="#cb50-123" aria-hidden="true" tabindex="-1"></a>The standard deviation of our Monte Carlo estimate is the square root of that, or the sample standard deviation divided by $\sqrt{m}$ . </span>
+<span id="cb50-123"><a href="#cb50-123" aria-hidden="true" tabindex="-1"></a>For example, if we seek $\mathbb{E}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>$ and variance $Var<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>/m$ . </span>
 <span id="cb50-124"><a href="#cb50-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-125"><a href="#cb50-125" aria-hidden="true" tabindex="-1"></a>If $m$ is large, it is reasonable to assume that the true value will likely be within about two standard deviations of your Monte Carlo estimate.</span>
+<span id="cb50-125"><a href="#cb50-125" aria-hidden="true" tabindex="-1"></a>The variance tells us how far our estimate might be from the true value. </span>
 <span id="cb50-126"><a href="#cb50-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-127"><a href="#cb50-127" aria-hidden="true" tabindex="-1"></a><span class="fu">## Marginalization</span></span>
+<span id="cb50-127"><a href="#cb50-127" aria-hidden="true" tabindex="-1"></a>One way to approximate $Var<span class="co">[</span><span class="ot">\theta</span><span class="co">]</span>$ is to replace it with the sample variance. </span>
 <span id="cb50-128"><a href="#cb50-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-129"><a href="#cb50-129" aria-hidden="true" tabindex="-1"></a>We can also obtain Monte Carlo samples from hierarchical models. </span>
+<span id="cb50-129"><a href="#cb50-129" aria-hidden="true" tabindex="-1"></a>The standard deviation of our Monte Carlo estimate is the square root of that, or the sample standard deviation divided by $\sqrt{m}$ . </span>
 <span id="cb50-130"><a href="#cb50-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-131"><a href="#cb50-131" aria-hidden="true" tabindex="-1"></a>As a simple example, let's consider a binomial random variable where $y\mid\phi\sim Bin(10,\phi)$ and further suppose $\phi$ is random (as if it had a prior) and is distributed beta $\phi \sim Beta(2,2)$ . </span>
+<span id="cb50-131"><a href="#cb50-131" aria-hidden="true" tabindex="-1"></a>If $m$ is large, it is reasonable to assume that the true value will likely be within about two standard deviations of your Monte Carlo estimate.</span>
 <span id="cb50-132"><a href="#cb50-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-133"><a href="#cb50-133" aria-hidden="true" tabindex="-1"></a>Given any hierarchical model, we can always write the joint distribution of y and $\phi$ as $p(y,\phi) = p(y \mid \phi)p(\phi)$ using the chain rule of probability. </span>
+<span id="cb50-133"><a href="#cb50-133" aria-hidden="true" tabindex="-1"></a><span class="fu">## Marginalization</span></span>
 <span id="cb50-134"><a href="#cb50-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-135"><a href="#cb50-135" aria-hidden="true" tabindex="-1"></a>To simulate from this joint distribution, repeat these steps for a large number $m$ :</span>
+<span id="cb50-135"><a href="#cb50-135" aria-hidden="true" tabindex="-1"></a>We can also obtain Monte Carlo samples from hierarchical models. </span>
 <span id="cb50-136"><a href="#cb50-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-137"><a href="#cb50-137" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Simulate $\phi^∗_i$ from its Beta(2,2) distribution.</span>
-<span id="cb50-138"><a href="#cb50-138" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Given the drawn $\phi^∗_i$ , simulate $y^∗_i$ from $Bin(10,\phi^*_i)$ .</span>
-<span id="cb50-139"><a href="#cb50-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-140"><a href="#cb50-140" aria-hidden="true" tabindex="-1"></a>This will produce m independent pairs of $(y^∗,\phi^∗)_i$ drawn from their joint distribution. </span>
-<span id="cb50-141"><a href="#cb50-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-142"><a href="#cb50-142" aria-hidden="true" tabindex="-1"></a>One major advantage of Monte Carlo simulation is that marginalizing is easy. Calculating the marginal distribution of $y$ , $p(y)=\int^1_0 p(y,\phi)d\phi$, might be challenging. </span>
-<span id="cb50-143"><a href="#cb50-143" aria-hidden="true" tabindex="-1"></a>But if we have draws from the joint distribution, we can just discard the $\phi^∗_i$ draws and use the $y^∗_i$ as samples from their marginal distribution. </span>
-<span id="cb50-144"><a href="#cb50-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-145"><a href="#cb50-145" aria-hidden="true" tabindex="-1"></a>This is also called the prior predictive distribution introduced in the previous course.</span>
-<span id="cb50-146"><a href="#cb50-146" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-147"><a href="#cb50-147" aria-hidden="true" tabindex="-1"></a>In the next segment, we will demonstrate some of these principles. </span>
-<span id="cb50-148"><a href="#cb50-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-149"><a href="#cb50-149" aria-hidden="true" tabindex="-1"></a>Remember, we do not yet know how to sample from the complicated posterior distributions introduced in the previous lesson. </span>
+<span id="cb50-137"><a href="#cb50-137" aria-hidden="true" tabindex="-1"></a>As a simple example, let's consider a binomial random variable where $y \mid \phi \sim \mathrm{Bin}(10,\phi)$ and further suppose $\phi$ is random (as if it had a prior) and is distributed beta $\phi \sim \mathrm{Beta}(2,2)$ . </span>
+<span id="cb50-138"><a href="#cb50-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-139"><a href="#cb50-139" aria-hidden="true" tabindex="-1"></a>Given any hierarchical model, we can always write the joint distribution of $y$ and $\phi$ as $\mathbb{P}r(y,\phi) = \mathbb{P}r(y \mid \phi)\mathbb{P}r(\phi)$ using the chain rule of probability. </span>
+<span id="cb50-140"><a href="#cb50-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-141"><a href="#cb50-141" aria-hidden="true" tabindex="-1"></a>To simulate from this joint distribution, repeat these steps for a large number $m$ :</span>
+<span id="cb50-142"><a href="#cb50-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-143"><a href="#cb50-143" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Simulate $\phi^∗_i$ from its Beta(2,2) distribution.</span>
+<span id="cb50-144"><a href="#cb50-144" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Given the drawn $\phi^∗_i$ , simulate $y^∗_i$ from $Bin(10,\phi^*_i)$ .</span>
+<span id="cb50-145"><a href="#cb50-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-146"><a href="#cb50-146" aria-hidden="true" tabindex="-1"></a>This will produce m independent pairs of $(y^∗,\phi^∗)_i$ drawn from their joint distribution. </span>
+<span id="cb50-147"><a href="#cb50-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-148"><a href="#cb50-148" aria-hidden="true" tabindex="-1"></a>One major advantage of Monte Carlo simulation is that marginalizing is easy. Calculating the marginal distribution of $y$ , $\mathbb{P}r(y)=\int^1_0 \mathbb{P}r(y,\phi)d\phi$, might be challenging. </span>
+<span id="cb50-149"><a href="#cb50-149" aria-hidden="true" tabindex="-1"></a>But if we have draws from the joint distribution, we can just discard the $\phi^∗_i$ draws and use the $y^∗_i$ as samples from their marginal distribution. </span>
 <span id="cb50-150"><a href="#cb50-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-151"><a href="#cb50-151" aria-hidden="true" tabindex="-1"></a>But once we learn that, we will be able to use the principles from this lesson to make approximate inferences from those posterior distributions.</span>
+<span id="cb50-151"><a href="#cb50-151" aria-hidden="true" tabindex="-1"></a>This is also called the prior predictive distribution introduced in the previous course.</span>
 <span id="cb50-152"><a href="#cb50-152" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-153"><a href="#cb50-153" aria-hidden="true" tabindex="-1"></a><span class="fu">## Computing Examples</span></span>
+<span id="cb50-153"><a href="#cb50-153" aria-hidden="true" tabindex="-1"></a>In the next segment, we will demonstrate some of these principles. </span>
 <span id="cb50-154"><a href="#cb50-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-155"><a href="#cb50-155" aria-hidden="true" tabindex="-1"></a>Monte Carlo simulation from the most common distributions is very straightforward in <span class="in">`R`</span>.</span>
+<span id="cb50-155"><a href="#cb50-155" aria-hidden="true" tabindex="-1"></a>Remember, we do not yet know how to sample from the complicated posterior distributions introduced in the previous lesson. </span>
 <span id="cb50-156"><a href="#cb50-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-157"><a href="#cb50-157" aria-hidden="true" tabindex="-1"></a>Let's start with the example from the previous segment, where $\theta \sim Gamma(a,b)$ with $a=2, b=1/3$ . </span>
-<span id="cb50-158"><a href="#cb50-158" aria-hidden="true" tabindex="-1"></a>This could represent the posterior distribution of $\theta$ if our data came from a Poisson distribution with mean $\theta$ and we had used a conjugate gamma prior. </span>
-<span id="cb50-159"><a href="#cb50-159" aria-hidden="true" tabindex="-1"></a>Let's start with $m=100$ .</span>
+<span id="cb50-157"><a href="#cb50-157" aria-hidden="true" tabindex="-1"></a>But once we learn that, we will be able to use the principles from this lesson to make approximate inferences from those posterior distributions.</span>
+<span id="cb50-158"><a href="#cb50-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-159"><a href="#cb50-159" aria-hidden="true" tabindex="-1"></a><span class="fu">## Computing Examples</span></span>
 <span id="cb50-160"><a href="#cb50-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-163"><a href="#cb50-163" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-164"><a href="#cb50-164" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-init-mc-simulation</span></span>
-<span id="cb50-165"><a href="#cb50-165" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">32</span>) <span class="co"># Initializes the random number generator so we can replicate these results. To get different random numbers, change the seed. </span></span>
-<span id="cb50-166"><a href="#cb50-166" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="dv">100</span> </span>
-<span id="cb50-167"><a href="#cb50-167" aria-hidden="true" tabindex="-1"></a>a <span class="ot">=</span> <span class="fl">2.0</span> </span>
-<span id="cb50-168"><a href="#cb50-168" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="fl">1.0</span> <span class="sc">/</span> <span class="fl">3.0</span> </span>
-<span id="cb50-169"><a href="#cb50-169" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-170"><a href="#cb50-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-171"><a href="#cb50-171" aria-hidden="true" tabindex="-1"></a>To simulate $m$ independent samples, use the <span class="in">`rgamma`</span> function.</span>
-<span id="cb50-172"><a href="#cb50-172" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-175"><a href="#cb50-175" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-176"><a href="#cb50-176" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-simulate-gamma</span></span>
-<span id="cb50-177"><a href="#cb50-177" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fu">rgamma</span>(<span class="at">n=</span>m, <span class="at">shape =</span> a, <span class="at">rate=</span>b) </span>
-<span id="cb50-178"><a href="#cb50-178" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-179"><a href="#cb50-179" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-180"><a href="#cb50-180" aria-hidden="true" tabindex="-1"></a>We can plot a histogram of the generated data, and compare that to the true density.</span>
-<span id="cb50-181"><a href="#cb50-181" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-184"><a href="#cb50-184" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-185"><a href="#cb50-185" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-plot-gamma</span></span>
-<span id="cb50-186"><a href="#cb50-186" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: Histogram of simulated gamma samples with true density</span></span>
-<span id="cb50-187"><a href="#cb50-187" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(theta, <span class="at">freq=</span><span class="cn">FALSE</span>) </span>
-<span id="cb50-188"><a href="#cb50-188" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(<span class="fu">dgamma</span>(<span class="at">x=</span>x, <span class="at">shape=</span>a, <span class="at">rate=</span>b), <span class="at">col=</span><span class="st">"blue"</span>, <span class="at">add=</span><span class="cn">TRUE</span>)</span>
-<span id="cb50-189"><a href="#cb50-189" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-190"><a href="#cb50-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-191"><a href="#cb50-191" aria-hidden="true" tabindex="-1"></a>To find our Monte Carlo approximation to $\mathbb{E}(\theta)$ , let's take the average of our sample (and compare it with the truth).</span>
-<span id="cb50-192"><a href="#cb50-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-195"><a href="#cb50-195" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-196"><a href="#cb50-196" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-mean-calculation</span></span>
-<span id="cb50-197"><a href="#cb50-197" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(theta) <span class="sc">/</span> m <span class="co"># sample mean </span></span>
-<span id="cb50-198"><a href="#cb50-198" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-199"><a href="#cb50-199" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-202"><a href="#cb50-202" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-203"><a href="#cb50-203" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-mean-function</span></span>
-<span id="cb50-204"><a href="#cb50-204" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(theta) <span class="co"># sample mean </span></span>
-<span id="cb50-205"><a href="#cb50-205" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-206"><a href="#cb50-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-209"><a href="#cb50-209" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-210"><a href="#cb50-210" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-mean</span></span>
-<span id="cb50-211"><a href="#cb50-211" aria-hidden="true" tabindex="-1"></a>a <span class="sc">/</span> b <span class="co"># true expected value</span></span>
-<span id="cb50-212"><a href="#cb50-212" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-213"><a href="#cb50-213" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-214"><a href="#cb50-214" aria-hidden="true" tabindex="-1"></a>Not bad, but we can do better if we increase $m$ to say, 10,000.</span>
-<span id="cb50-215"><a href="#cb50-215" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-218"><a href="#cb50-218" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-219"><a href="#cb50-219" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-init-mc-simulation-big-sample</span></span>
-<span id="cb50-220"><a href="#cb50-220" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fl">1e4</span> </span>
-<span id="cb50-221"><a href="#cb50-221" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">=</span> <span class="fu">rgamma</span>(<span class="at">n=</span>m, <span class="at">shape=</span>a, <span class="at">rate=</span>b) </span>
-<span id="cb50-222"><a href="#cb50-222" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(theta)</span>
-<span id="cb50-223"><a href="#cb50-223" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-224"><a href="#cb50-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-225"><a href="#cb50-225" aria-hidden="true" tabindex="-1"></a>How about the variance of $\theta$ ?</span>
-<span id="cb50-226"><a href="#cb50-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-229"><a href="#cb50-229" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-230"><a href="#cb50-230" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-variance-calculation-big-sample</span></span>
-<span id="cb50-231"><a href="#cb50-231" aria-hidden="true" tabindex="-1"></a><span class="fu">var</span>(theta) <span class="co"># sample variance</span></span>
-<span id="cb50-232"><a href="#cb50-232" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-233"><a href="#cb50-233" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-236"><a href="#cb50-236" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-237"><a href="#cb50-237" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-variance-function-big-sample</span></span>
-<span id="cb50-238"><a href="#cb50-238" aria-hidden="true" tabindex="-1"></a>a <span class="sc">/</span> b<span class="sc">^</span><span class="dv">2</span> <span class="co"># true variance of Gamma(a,b) </span></span>
-<span id="cb50-239"><a href="#cb50-239" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-240"><a href="#cb50-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-241"><a href="#cb50-241" aria-hidden="true" tabindex="-1"></a>We can also approximate the probability that $\theta &lt; 5$ .</span>
-<span id="cb50-242"><a href="#cb50-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-245"><a href="#cb50-245" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-246"><a href="#cb50-246" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-probability-calculation</span></span>
-<span id="cb50-247"><a href="#cb50-247" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">=</span> theta <span class="sc">&lt;</span> <span class="fl">5.0</span> <span class="co"># set of indicators, TRUE if theta_i &lt; 5 </span></span>
-<span id="cb50-248"><a href="#cb50-248" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(ind)         <span class="co"># automatically converts FALSE/TRUE to 0/1 </span></span>
-<span id="cb50-249"><a href="#cb50-249" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-250"><a href="#cb50-250" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-253"><a href="#cb50-253" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-254"><a href="#cb50-254" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-probability-function</span></span>
-<span id="cb50-255"><a href="#cb50-255" aria-hidden="true" tabindex="-1"></a><span class="fu">pgamma</span>(<span class="at">q=</span><span class="fl">5.0</span>, <span class="at">shape=</span>a, <span class="at">rate=</span>b) <span class="co"># true value of Pr( theta &lt; 5 )</span></span>
-<span id="cb50-256"><a href="#cb50-256" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-257"><a href="#cb50-257" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-258"><a href="#cb50-258" aria-hidden="true" tabindex="-1"></a>What is the 0.9 quantile (90th percentile) of $\theta$ ? We can use the <span class="in">`quantile`</span> function which will order the samples for us and find the appropriate sample quantile.</span>
-<span id="cb50-259"><a href="#cb50-259" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-262"><a href="#cb50-262" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-263"><a href="#cb50-263" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-simulated-quantile-calculation</span></span>
-<span id="cb50-264"><a href="#cb50-264" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(<span class="at">x=</span>theta, <span class="at">probs=</span><span class="fl">0.9</span>) </span>
-<span id="cb50-265"><a href="#cb50-265" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-266"><a href="#cb50-266" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-269"><a href="#cb50-269" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-270"><a href="#cb50-270" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-quantile-function</span></span>
-<span id="cb50-271"><a href="#cb50-271" aria-hidden="true" tabindex="-1"></a><span class="fu">qgamma</span>(<span class="at">p=</span><span class="fl">0.9</span>, <span class="at">shape=</span>a, <span class="at">rate=</span>b) <span class="co"># true value of 0.9 quantile</span></span>
-<span id="cb50-272"><a href="#cb50-272" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-273"><a href="#cb50-273" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-274"><a href="#cb50-274" aria-hidden="true" tabindex="-1"></a><span class="fu">## Monte Carlo error</span></span>
-<span id="cb50-275"><a href="#cb50-275" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-276"><a href="#cb50-276" aria-hidden="true" tabindex="-1"></a>We can use the <span class="co">[</span><span class="ot">CLT</span><span class="co">](A08.qmd)</span> to approximate how accurate our Monte Carlo estimates are. For example, if we seek $E(\theta)$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}(\theta)$ and variance $Var(\theta)/m$ . We will use the sample standard deviation divided by the square root of m to approximate the Monte Carlo standard deviation.</span>
-<span id="cb50-277"><a href="#cb50-277" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-280"><a href="#cb50-280" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-281"><a href="#cb50-281" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-se-estimate</span></span>
-<span id="cb50-282"><a href="#cb50-282" aria-hidden="true" tabindex="-1"></a>se <span class="ot">=</span> <span class="fu">sd</span>(theta) <span class="sc">/</span> <span class="fu">sqrt</span>(m) </span>
-<span id="cb50-283"><a href="#cb50-283" aria-hidden="true" tabindex="-1"></a><span class="fl">2.0</span> <span class="sc">*</span> se <span class="co"># we are reasonably confident that the Monte Carlo estimate is no more than this far from the truth</span></span>
-<span id="cb50-284"><a href="#cb50-284" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-285"><a href="#cb50-285" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-286"><a href="#cb50-286" aria-hidden="true" tabindex="-1"></a>These numbers give us a reasonable range for the quantity we are estimating with Monte Carlo. The same applies for other Monte Carlo estimates, like the probability that $\theta &lt; 5$.</span>
-<span id="cb50-287"><a href="#cb50-287" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-290"><a href="#cb50-290" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-291"><a href="#cb50-291" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-se-probability</span></span>
-<span id="cb50-292"><a href="#cb50-292" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">=</span> theta <span class="sc">&lt;</span> <span class="fl">5.0</span> </span>
-<span id="cb50-293"><a href="#cb50-293" aria-hidden="true" tabindex="-1"></a>se <span class="ot">=</span> <span class="fu">sd</span>(ind) <span class="sc">/</span> <span class="fu">sqrt</span>(m)</span>
-<span id="cb50-294"><a href="#cb50-294" aria-hidden="true" tabindex="-1"></a><span class="fl">2.0</span> <span class="sc">*</span> se <span class="co"># we are reasonably confident that the Monte Carlo estimate is no more than this far from the truth </span></span>
-<span id="cb50-295"><a href="#cb50-295" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-296"><a href="#cb50-296" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-297"><a href="#cb50-297" aria-hidden="true" tabindex="-1"></a><span class="fu">## Marginalization</span></span>
-<span id="cb50-298"><a href="#cb50-298" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-299"><a href="#cb50-299" aria-hidden="true" tabindex="-1"></a>Let's also do the second example of simulating a hierarchical model. In our example from the previous segment, we had a binomial random variable where </span>
-<span id="cb50-300"><a href="#cb50-300" aria-hidden="true" tabindex="-1"></a>$y \mid \phi \overset{\text{iid}}{\sim}\text{Binomial}(10,\phi)$, and $\phi \sim Beta(2,2)$. To simulate from this joint distribution, repeat these steps for a large number $m$ :</span>
-<span id="cb50-301"><a href="#cb50-301" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-302"><a href="#cb50-302" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Simulate $\phi_i$ from its $Beta(2,2)$ distribution.</span>
-<span id="cb50-303"><a href="#cb50-303" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Given the drawn $\phi_i$ , simulate $y_i$ from $Bin(10,\phi_i)$ .</span>
+<span id="cb50-161"><a href="#cb50-161" aria-hidden="true" tabindex="-1"></a>Monte Carlo simulation from the most common distributions is very straightforward in <span class="in">`R`</span>.</span>
+<span id="cb50-162"><a href="#cb50-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-163"><a href="#cb50-163" aria-hidden="true" tabindex="-1"></a>Let's start with the example from the previous segment, where $\theta \sim Gamma(a,b)$ with $a=2, b=1/3$ . </span>
+<span id="cb50-164"><a href="#cb50-164" aria-hidden="true" tabindex="-1"></a>This could represent the posterior distribution of $\theta$ if our data came from a Poisson distribution with mean $\theta$ and we had used a conjugate gamma prior. </span>
+<span id="cb50-165"><a href="#cb50-165" aria-hidden="true" tabindex="-1"></a>Let's start with $m=100$ .</span>
+<span id="cb50-166"><a href="#cb50-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-169"><a href="#cb50-169" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-170"><a href="#cb50-170" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-init-mc-simulation</span></span>
+<span id="cb50-171"><a href="#cb50-171" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">32</span>) <span class="co"># Initializes the random number generator so we can replicate these results. To get different random numbers, change the seed. </span></span>
+<span id="cb50-172"><a href="#cb50-172" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="dv">100</span> </span>
+<span id="cb50-173"><a href="#cb50-173" aria-hidden="true" tabindex="-1"></a>a <span class="ot">=</span> <span class="fl">2.0</span> </span>
+<span id="cb50-174"><a href="#cb50-174" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="fl">1.0</span> <span class="sc">/</span> <span class="fl">3.0</span> </span>
+<span id="cb50-175"><a href="#cb50-175" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-176"><a href="#cb50-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-177"><a href="#cb50-177" aria-hidden="true" tabindex="-1"></a>To simulate $m$ independent samples, use the <span class="in">`rgamma`</span> function.</span>
+<span id="cb50-178"><a href="#cb50-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-181"><a href="#cb50-181" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-182"><a href="#cb50-182" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-simulate-gamma</span></span>
+<span id="cb50-183"><a href="#cb50-183" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fu">rgamma</span>(<span class="at">n=</span>m, <span class="at">shape =</span> a, <span class="at">rate=</span>b) </span>
+<span id="cb50-184"><a href="#cb50-184" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-185"><a href="#cb50-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-186"><a href="#cb50-186" aria-hidden="true" tabindex="-1"></a>We can plot a histogram of the generated data, and compare that to the true density.</span>
+<span id="cb50-187"><a href="#cb50-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-190"><a href="#cb50-190" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-191"><a href="#cb50-191" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-plot-gamma</span></span>
+<span id="cb50-192"><a href="#cb50-192" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: Histogram of simulated gamma samples with true density</span></span>
+<span id="cb50-193"><a href="#cb50-193" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(theta, <span class="at">freq=</span><span class="cn">FALSE</span>) </span>
+<span id="cb50-194"><a href="#cb50-194" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(<span class="fu">dgamma</span>(<span class="at">x=</span>x, <span class="at">shape=</span>a, <span class="at">rate=</span>b), <span class="at">col=</span><span class="st">"blue"</span>, <span class="at">add=</span><span class="cn">TRUE</span>)</span>
+<span id="cb50-195"><a href="#cb50-195" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-196"><a href="#cb50-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-197"><a href="#cb50-197" aria-hidden="true" tabindex="-1"></a>To find our Monte Carlo approximation to $\mathbb{E}(\theta)$ , let's take the average of our sample (and compare it with the truth).</span>
+<span id="cb50-198"><a href="#cb50-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-201"><a href="#cb50-201" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-202"><a href="#cb50-202" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-mean-calculation</span></span>
+<span id="cb50-203"><a href="#cb50-203" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(theta) <span class="sc">/</span> m <span class="co"># sample mean </span></span>
+<span id="cb50-204"><a href="#cb50-204" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-205"><a href="#cb50-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-208"><a href="#cb50-208" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-209"><a href="#cb50-209" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-mean-function</span></span>
+<span id="cb50-210"><a href="#cb50-210" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(theta) <span class="co"># sample mean </span></span>
+<span id="cb50-211"><a href="#cb50-211" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-212"><a href="#cb50-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-215"><a href="#cb50-215" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-216"><a href="#cb50-216" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-mean</span></span>
+<span id="cb50-217"><a href="#cb50-217" aria-hidden="true" tabindex="-1"></a>a <span class="sc">/</span> b <span class="co"># true expected value</span></span>
+<span id="cb50-218"><a href="#cb50-218" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-219"><a href="#cb50-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-220"><a href="#cb50-220" aria-hidden="true" tabindex="-1"></a>Not bad, but we can do better if we increase $m$ to say, 10,000.</span>
+<span id="cb50-221"><a href="#cb50-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-224"><a href="#cb50-224" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-225"><a href="#cb50-225" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-init-mc-simulation-big-sample</span></span>
+<span id="cb50-226"><a href="#cb50-226" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fl">1e4</span> </span>
+<span id="cb50-227"><a href="#cb50-227" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">=</span> <span class="fu">rgamma</span>(<span class="at">n=</span>m, <span class="at">shape=</span>a, <span class="at">rate=</span>b) </span>
+<span id="cb50-228"><a href="#cb50-228" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(theta)</span>
+<span id="cb50-229"><a href="#cb50-229" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-230"><a href="#cb50-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-231"><a href="#cb50-231" aria-hidden="true" tabindex="-1"></a>How about the variance of $\theta$ ?</span>
+<span id="cb50-232"><a href="#cb50-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-235"><a href="#cb50-235" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-236"><a href="#cb50-236" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-variance-calculation-big-sample</span></span>
+<span id="cb50-237"><a href="#cb50-237" aria-hidden="true" tabindex="-1"></a><span class="fu">var</span>(theta) <span class="co"># sample variance</span></span>
+<span id="cb50-238"><a href="#cb50-238" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-239"><a href="#cb50-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-242"><a href="#cb50-242" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-243"><a href="#cb50-243" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-variance-function-big-sample</span></span>
+<span id="cb50-244"><a href="#cb50-244" aria-hidden="true" tabindex="-1"></a>a <span class="sc">/</span> b<span class="sc">^</span><span class="dv">2</span> <span class="co"># true variance of Gamma(a,b) </span></span>
+<span id="cb50-245"><a href="#cb50-245" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-246"><a href="#cb50-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-247"><a href="#cb50-247" aria-hidden="true" tabindex="-1"></a>We can also approximate the probability that $\theta &lt; 5$ .</span>
+<span id="cb50-248"><a href="#cb50-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-251"><a href="#cb50-251" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-252"><a href="#cb50-252" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-probability-calculation</span></span>
+<span id="cb50-253"><a href="#cb50-253" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">=</span> theta <span class="sc">&lt;</span> <span class="fl">5.0</span> <span class="co"># set of indicators, TRUE if theta_i &lt; 5 </span></span>
+<span id="cb50-254"><a href="#cb50-254" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(ind)         <span class="co"># automatically converts FALSE/TRUE to 0/1 </span></span>
+<span id="cb50-255"><a href="#cb50-255" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-256"><a href="#cb50-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-259"><a href="#cb50-259" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-260"><a href="#cb50-260" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-probability-function</span></span>
+<span id="cb50-261"><a href="#cb50-261" aria-hidden="true" tabindex="-1"></a><span class="fu">pgamma</span>(<span class="at">q=</span><span class="fl">5.0</span>, <span class="at">shape=</span>a, <span class="at">rate=</span>b) <span class="co"># true value of Pr( theta &lt; 5 )</span></span>
+<span id="cb50-262"><a href="#cb50-262" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-263"><a href="#cb50-263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-264"><a href="#cb50-264" aria-hidden="true" tabindex="-1"></a>What is the 0.9 quantile (90th percentile) of $\theta$ ? We can use the <span class="in">`quantile`</span> function which will order the samples for us and find the appropriate sample quantile.</span>
+<span id="cb50-265"><a href="#cb50-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-268"><a href="#cb50-268" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-269"><a href="#cb50-269" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-simulated-quantile-calculation</span></span>
+<span id="cb50-270"><a href="#cb50-270" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(<span class="at">x=</span>theta, <span class="at">probs=</span><span class="fl">0.9</span>) </span>
+<span id="cb50-271"><a href="#cb50-271" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-272"><a href="#cb50-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-275"><a href="#cb50-275" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-276"><a href="#cb50-276" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-true-quantile-function</span></span>
+<span id="cb50-277"><a href="#cb50-277" aria-hidden="true" tabindex="-1"></a><span class="fu">qgamma</span>(<span class="at">p=</span><span class="fl">0.9</span>, <span class="at">shape=</span>a, <span class="at">rate=</span>b) <span class="co"># true value of 0.9 quantile</span></span>
+<span id="cb50-278"><a href="#cb50-278" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-279"><a href="#cb50-279" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-280"><a href="#cb50-280" aria-hidden="true" tabindex="-1"></a><span class="fu">## Monte Carlo error</span></span>
+<span id="cb50-281"><a href="#cb50-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-282"><a href="#cb50-282" aria-hidden="true" tabindex="-1"></a>We can use the <span class="co">[</span><span class="ot">CLT</span><span class="co">](A08.qmd)</span> to approximate how accurate our Monte Carlo estimates are. For example, if we seek $E(\theta)$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}(\theta)$ and variance $Var(\theta)/m$ . We will use the sample standard deviation divided by the square root of m to approximate the Monte Carlo standard deviation.</span>
+<span id="cb50-283"><a href="#cb50-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-286"><a href="#cb50-286" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-287"><a href="#cb50-287" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-se-estimate</span></span>
+<span id="cb50-288"><a href="#cb50-288" aria-hidden="true" tabindex="-1"></a>se <span class="ot">=</span> <span class="fu">sd</span>(theta) <span class="sc">/</span> <span class="fu">sqrt</span>(m) </span>
+<span id="cb50-289"><a href="#cb50-289" aria-hidden="true" tabindex="-1"></a><span class="fl">2.0</span> <span class="sc">*</span> se <span class="co"># we are reasonably confident that the Monte Carlo estimate is no more than this far from the truth</span></span>
+<span id="cb50-290"><a href="#cb50-290" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-291"><a href="#cb50-291" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-292"><a href="#cb50-292" aria-hidden="true" tabindex="-1"></a>These numbers give us a reasonable range for the quantity we are estimating with Monte Carlo. The same applies for other Monte Carlo estimates, like the probability that $\theta &lt; 5$.</span>
+<span id="cb50-293"><a href="#cb50-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-296"><a href="#cb50-296" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-297"><a href="#cb50-297" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-se-probability</span></span>
+<span id="cb50-298"><a href="#cb50-298" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">=</span> theta <span class="sc">&lt;</span> <span class="fl">5.0</span> </span>
+<span id="cb50-299"><a href="#cb50-299" aria-hidden="true" tabindex="-1"></a>se <span class="ot">=</span> <span class="fu">sd</span>(ind) <span class="sc">/</span> <span class="fu">sqrt</span>(m)</span>
+<span id="cb50-300"><a href="#cb50-300" aria-hidden="true" tabindex="-1"></a><span class="fl">2.0</span> <span class="sc">*</span> se <span class="co"># we are reasonably confident that the Monte Carlo estimate is no more than this far from the truth </span></span>
+<span id="cb50-301"><a href="#cb50-301" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-302"><a href="#cb50-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-303"><a href="#cb50-303" aria-hidden="true" tabindex="-1"></a><span class="fu">## Marginalization</span></span>
 <span id="cb50-304"><a href="#cb50-304" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-307"><a href="#cb50-307" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-308"><a href="#cb50-308" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-hierarchical-loop</span></span>
-<span id="cb50-309"><a href="#cb50-309" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fl">10e4</span></span>
+<span id="cb50-305"><a href="#cb50-305" aria-hidden="true" tabindex="-1"></a>Let's also do the second example of simulating a hierarchical model. In our example from the previous segment, we had a binomial random variable where </span>
+<span id="cb50-306"><a href="#cb50-306" aria-hidden="true" tabindex="-1"></a>$y \mid \phi \overset{\text{iid}}{\sim}\text{Binomial}(10,\phi)$, and $\phi \sim Beta(2,2)$. To simulate from this joint distribution, repeat these steps for a large number $m$ :</span>
+<span id="cb50-307"><a href="#cb50-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-308"><a href="#cb50-308" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Simulate $\phi_i$ from its $Beta(2,2)$ distribution.</span>
+<span id="cb50-309"><a href="#cb50-309" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Given the drawn $\phi_i$ , simulate $y_i$ from $Bin(10,\phi_i)$ .</span>
 <span id="cb50-310"><a href="#cb50-310" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-311"><a href="#cb50-311" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">numeric</span>(m) <span class="co"># create the vectors we will fill in with simulations </span></span>
-<span id="cb50-312"><a href="#cb50-312" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">=</span> <span class="fu">numeric</span>(m)</span>
-<span id="cb50-313"><a href="#cb50-313" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-314"><a href="#cb50-314" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m) {</span>
-<span id="cb50-315"><a href="#cb50-315" aria-hidden="true" tabindex="-1"></a>  phi[i] <span class="ot">=</span> <span class="fu">rbeta</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">shape1=</span><span class="fl">2.0</span>, <span class="at">shape2=</span><span class="fl">2.0</span>)</span>
-<span id="cb50-316"><a href="#cb50-316" aria-hidden="true" tabindex="-1"></a>  y[i] <span class="ot">=</span> <span class="fu">rbinom</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">size=</span><span class="dv">10</span>, <span class="at">prob=</span>phi[i]) </span>
-<span id="cb50-317"><a href="#cb50-317" aria-hidden="true" tabindex="-1"></a>} </span>
-<span id="cb50-318"><a href="#cb50-318" aria-hidden="true" tabindex="-1"></a><span class="co"># which is equivalent to the following 'vectorized' code </span></span>
-<span id="cb50-319"><a href="#cb50-319" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">=</span> <span class="fu">rbeta</span>(<span class="at">n=</span>m, <span class="at">shape1=</span><span class="fl">2.0</span>, <span class="at">shape2=</span><span class="fl">2.0</span>) </span>
-<span id="cb50-320"><a href="#cb50-320" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">rbinom</span>(<span class="at">n=</span>m, <span class="at">size=</span><span class="dv">10</span>, <span class="at">prob=</span>phi)</span>
-<span id="cb50-321"><a href="#cb50-321" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-322"><a href="#cb50-322" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-323"><a href="#cb50-323" aria-hidden="true" tabindex="-1"></a>If we are interested only in the marginal distribution of $y$ , we can just ignore the draws for $\phi$ and treat the draws of $y$ as a sample from its marginal distribution.</span>
-<span id="cb50-324"><a href="#cb50-324" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-327"><a href="#cb50-327" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-328"><a href="#cb50-328" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-hierarchical-mean</span></span>
-<span id="cb50-329"><a href="#cb50-329" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(y) </span>
-<span id="cb50-330"><a href="#cb50-330" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-331"><a href="#cb50-331" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-334"><a href="#cb50-334" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-335"><a href="#cb50-335" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-mc-hierarchical-marginal</span></span>
-<span id="cb50-336"><a href="#cb50-336" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">prop.table</span>(<span class="fu">table</span>(y)), <span class="at">ylab=</span><span class="st">"P(y)"</span>, <span class="at">main=</span><span class="st">"Marginal distribution of y"</span>)</span>
-<span id="cb50-337"><a href="#cb50-337" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-338"><a href="#cb50-338" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-339"><a href="#cb50-339" aria-hidden="true" tabindex="-1"></a><span class="fu"># Markov chains</span></span>
-<span id="cb50-340"><a href="#cb50-340" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-341"><a href="#cb50-341" aria-hidden="true" tabindex="-1"></a><span class="fu">## Definition</span></span>
-<span id="cb50-342"><a href="#cb50-342" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-343"><a href="#cb50-343" aria-hidden="true" tabindex="-1"></a>If we have a sequence of random variables $X_1,X_2,\dots X_n$ where the indices $1,2,\dots,n$ represent successive points in time, we can use the chain rule of probability to calculate the probability of the entire sequence:</span>
+<span id="cb50-313"><a href="#cb50-313" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-314"><a href="#cb50-314" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-hierarchical-loop</span></span>
+<span id="cb50-315"><a href="#cb50-315" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fl">10e4</span></span>
+<span id="cb50-316"><a href="#cb50-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-317"><a href="#cb50-317" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">numeric</span>(m) <span class="co"># create the vectors we will fill in with simulations </span></span>
+<span id="cb50-318"><a href="#cb50-318" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">=</span> <span class="fu">numeric</span>(m)</span>
+<span id="cb50-319"><a href="#cb50-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-320"><a href="#cb50-320" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m) {</span>
+<span id="cb50-321"><a href="#cb50-321" aria-hidden="true" tabindex="-1"></a>  phi[i] <span class="ot">=</span> <span class="fu">rbeta</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">shape1=</span><span class="fl">2.0</span>, <span class="at">shape2=</span><span class="fl">2.0</span>)</span>
+<span id="cb50-322"><a href="#cb50-322" aria-hidden="true" tabindex="-1"></a>  y[i] <span class="ot">=</span> <span class="fu">rbinom</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">size=</span><span class="dv">10</span>, <span class="at">prob=</span>phi[i]) </span>
+<span id="cb50-323"><a href="#cb50-323" aria-hidden="true" tabindex="-1"></a>} </span>
+<span id="cb50-324"><a href="#cb50-324" aria-hidden="true" tabindex="-1"></a><span class="co"># which is equivalent to the following 'vectorized' code </span></span>
+<span id="cb50-325"><a href="#cb50-325" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">=</span> <span class="fu">rbeta</span>(<span class="at">n=</span>m, <span class="at">shape1=</span><span class="fl">2.0</span>, <span class="at">shape2=</span><span class="fl">2.0</span>) </span>
+<span id="cb50-326"><a href="#cb50-326" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">rbinom</span>(<span class="at">n=</span>m, <span class="at">size=</span><span class="dv">10</span>, <span class="at">prob=</span>phi)</span>
+<span id="cb50-327"><a href="#cb50-327" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-328"><a href="#cb50-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-329"><a href="#cb50-329" aria-hidden="true" tabindex="-1"></a>If we are interested only in the marginal distribution of $y$ , we can just ignore the draws for $\phi$ and treat the draws of $y$ as a sample from its marginal distribution.</span>
+<span id="cb50-330"><a href="#cb50-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-333"><a href="#cb50-333" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-334"><a href="#cb50-334" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-hierarchical-mean</span></span>
+<span id="cb50-335"><a href="#cb50-335" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(y) </span>
+<span id="cb50-336"><a href="#cb50-336" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-337"><a href="#cb50-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-340"><a href="#cb50-340" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-341"><a href="#cb50-341" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-mc-hierarchical-marginal</span></span>
+<span id="cb50-342"><a href="#cb50-342" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">prop.table</span>(<span class="fu">table</span>(y)), <span class="at">ylab=</span><span class="st">"Pr(y)"</span>, <span class="at">main=</span><span class="st">"Marginal distribution of y"</span>)</span>
+<span id="cb50-343"><a href="#cb50-343" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb50-344"><a href="#cb50-344" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-345"><a href="#cb50-345" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-346"><a href="#cb50-346" aria-hidden="true" tabindex="-1"></a>p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2, X_1) \cdot \ldots \cdot p(X_n \mid X_{n-1}, X_{n-2}, \ldots, X_2, X_1) \qquad</span>
-<span id="cb50-347"><a href="#cb50-347" aria-hidden="true" tabindex="-1"></a>$$ {#eq-chain-rule-full}</span>
+<span id="cb50-345"><a href="#cb50-345" aria-hidden="true" tabindex="-1"></a><span class="fu"># Markov chains</span></span>
+<span id="cb50-346"><a href="#cb50-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-347"><a href="#cb50-347" aria-hidden="true" tabindex="-1"></a><span class="fu">## Definition</span></span>
 <span id="cb50-348"><a href="#cb50-348" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-349"><a href="#cb50-349" aria-hidden="true" tabindex="-1"></a>Markov chains simplify this expression by using the Markov assumption. The assumption is that given the entire past history, the probability distribution for the random variable at the next time step only depends on the current variable. Mathematically, the assumption is written like this:</span>
+<span id="cb50-349"><a href="#cb50-349" aria-hidden="true" tabindex="-1"></a>If we have a sequence of random variables $X_1,X_2,\dots X_n$ where the indices $1,2,\dots,n$ represent successive points in time, we can use the chain rule of probability to calculate the probability of the entire sequence:</span>
 <span id="cb50-350"><a href="#cb50-350" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb50-351"><a href="#cb50-351" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-352"><a href="#cb50-352" aria-hidden="true" tabindex="-1"></a>p(X_{t+1} \mid X_t, X_{t-1}, \ldots, X_2, X_1 ) = p(X_{t+1} \mid X_t) \qquad</span>
-<span id="cb50-353"><a href="#cb50-353" aria-hidden="true" tabindex="-1"></a>$$ {#eq-markov-assumption-full}</span>
+<span id="cb50-352"><a href="#cb50-352" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(X_1, X_2, \ldots X_n) = \mathbb{P}r(X_1) \cdot \mathbb{P}r(X_2 \mid X_1) \cdot \mathbb{P}r(X_3 \mid X_2, X_1) \cdot \ldots \cdot \mathbb{P}r(X_n \mid X_{n-1}, X_{n-2}, \ldots, X_2, X_1) \qquad</span>
+<span id="cb50-353"><a href="#cb50-353" aria-hidden="true" tabindex="-1"></a>$$ {#eq-chain-rule-full}</span>
 <span id="cb50-354"><a href="#cb50-354" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-355"><a href="#cb50-355" aria-hidden="true" tabindex="-1"></a>for all $t=2,\dots,n$. Under this assumption, we can write the first expression as</span>
+<span id="cb50-355"><a href="#cb50-355" aria-hidden="true" tabindex="-1"></a>Markov chains simplify this expression by using the Markov assumption. The assumption is that given the entire past history, the probability distribution for the random variable at the next time step only depends on the current variable. Mathematically, the assumption is written like this:</span>
 <span id="cb50-356"><a href="#cb50-356" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb50-357"><a href="#cb50-357" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-358"><a href="#cb50-358" aria-hidden="true" tabindex="-1"></a>p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2) \cdot p(X_4 \mid X_3) \cdot \ldots \cdot p(X_n \mid X_{n-1}) \qquad</span>
-<span id="cb50-359"><a href="#cb50-359" aria-hidden="true" tabindex="-1"></a>$$ {#eq-markov-chain-factorization-full}</span>
+<span id="cb50-358"><a href="#cb50-358" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(X_{t+1} \mid X_t, X_{t-1}, \ldots, X_2, X_1 ) = \mathbb{P}r(X_{t+1} \mid X_t) \qquad</span>
+<span id="cb50-359"><a href="#cb50-359" aria-hidden="true" tabindex="-1"></a>$$ {#eq-markov-assumption-full}</span>
 <span id="cb50-360"><a href="#cb50-360" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-361"><a href="#cb50-361" aria-hidden="true" tabindex="-1"></a>which is much simpler than the original. It consists of an initial distribution for the first variable, p(X1), and n−1 transition probabilities. We usually make one more assumption: that the transition probabilities do not change with time. Hence, the transition from time t to time t+1 depends only on the value of Xt.</span>
+<span id="cb50-361"><a href="#cb50-361" aria-hidden="true" tabindex="-1"></a>for all $t=2,\dots,n$. Under this assumption, we can write the first expression as</span>
 <span id="cb50-362"><a href="#cb50-362" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-363"><a href="#cb50-363" aria-hidden="true" tabindex="-1"></a><span class="fu">## Examples of Markov chains</span></span>
-<span id="cb50-364"><a href="#cb50-364" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-365"><a href="#cb50-365" aria-hidden="true" tabindex="-1"></a><span class="fu">### Discrete Markov chain</span></span>
+<span id="cb50-363"><a href="#cb50-363" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb50-364"><a href="#cb50-364" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(X_1, X_2, \ldots X_n) = \mathbb{P}r(X_1) \cdot \mathbb{P}r(X_2 \mid X_1) \cdot \mathbb{P}r(X_3 \mid X_2) \cdot \mathbb{P}r(X_4 \mid X_3) \cdot \ldots \cdot \mathbb{P}r(X_n \mid X_{n-1}) \qquad</span>
+<span id="cb50-365"><a href="#cb50-365" aria-hidden="true" tabindex="-1"></a>$$ {#eq-markov-chain-factorization-full}</span>
 <span id="cb50-366"><a href="#cb50-366" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-367"><a href="#cb50-367" aria-hidden="true" tabindex="-1"></a>Suppose you have a secret number (make it an integer) between 1 and 5. We will call it your initial number at step 1. Now for each time step, your secret number will change according to the following rules:</span>
+<span id="cb50-367"><a href="#cb50-367" aria-hidden="true" tabindex="-1"></a>which is much simpler than the original. It consists of an initial distribution for the first variable, $\mathbb{P}r(X_1)$, and n−1 transition probabilities. We usually make one more assumption: that the transition probabilities do not change with time. Hence, the transition from time t to time t+1 depends only on the value of Xt.</span>
 <span id="cb50-368"><a href="#cb50-368" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-369"><a href="#cb50-369" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Flip a coin.</span>
-<span id="cb50-370"><a href="#cb50-370" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span></span>
-<span id="cb50-371"><a href="#cb50-371" aria-hidden="true" tabindex="-1"></a>    a.  If the coin turns up heads, then increase your secret number by one (5 increases to 1).</span>
-<span id="cb50-372"><a href="#cb50-372" aria-hidden="true" tabindex="-1"></a>    b.  If the coin turns up tails, then decrease your secret number by one (1 decreases to 5).</span>
-<span id="cb50-373"><a href="#cb50-373" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Repeat n times, and record the evolving history of your secret number.</span>
+<span id="cb50-369"><a href="#cb50-369" aria-hidden="true" tabindex="-1"></a><span class="fu">## Examples of Markov chains</span></span>
+<span id="cb50-370"><a href="#cb50-370" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-371"><a href="#cb50-371" aria-hidden="true" tabindex="-1"></a><span class="fu">### Discrete Markov chain</span></span>
+<span id="cb50-372"><a href="#cb50-372" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-373"><a href="#cb50-373" aria-hidden="true" tabindex="-1"></a>Suppose you have a secret number (make it an integer) between 1 and 5. We will call it your initial number at step 1. Now for each time step, your secret number will change according to the following rules:</span>
 <span id="cb50-374"><a href="#cb50-374" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-375"><a href="#cb50-375" aria-hidden="true" tabindex="-1"></a>Before the experiment, we can think of the sequence of secret numbers as a sequence of random variables, each taking on a value in $<span class="sc">\{</span>1,2,3,4,5<span class="sc">\}</span>$. Assume that the coin is fair, so that with each flip, the probability of heads and tails are both 0.5.</span>
-<span id="cb50-376"><a href="#cb50-376" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-377"><a href="#cb50-377" aria-hidden="true" tabindex="-1"></a>Does this game qualify as a true Markov chain? Suppose your secret number is currently 4 and that the history of your secret numbers is $(2,1,2,3)$. What is the probability that on the next step, your secret number will be 5? What about the other four possibilities? Because of the rules of this game, the probability of the next transition will depend only on the fact that your current number is 4. The numbers further back in your history are irrelevant, so this is a Markov chain.</span>
-<span id="cb50-378"><a href="#cb50-378" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-379"><a href="#cb50-379" aria-hidden="true" tabindex="-1"></a>This is an example of a discrete Markov chain, where the possible values of the random variables come from a discrete set. Those possible values (secret numbers in this example) are called states of the chain. The states are usually numbers, as in this example, but they can represent anything. In one common example, the states describe the weather on a particular day, which could be labeled as 1-fair, 2-poor.</span>
+<span id="cb50-375"><a href="#cb50-375" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Flip a coin.</span>
+<span id="cb50-376"><a href="#cb50-376" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span></span>
+<span id="cb50-377"><a href="#cb50-377" aria-hidden="true" tabindex="-1"></a>    a.  If the coin turns up heads, then increase your secret number by one (5 increases to 1).</span>
+<span id="cb50-378"><a href="#cb50-378" aria-hidden="true" tabindex="-1"></a>    b.  If the coin turns up tails, then decrease your secret number by one (1 decreases to 5).</span>
+<span id="cb50-379"><a href="#cb50-379" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Repeat n times, and record the evolving history of your secret number.</span>
 <span id="cb50-380"><a href="#cb50-380" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-381"><a href="#cb50-381" aria-hidden="true" tabindex="-1"></a><span class="fu">### Random walk (continuous)</span></span>
+<span id="cb50-381"><a href="#cb50-381" aria-hidden="true" tabindex="-1"></a>Before the experiment, we can think of the sequence of secret numbers as a sequence of random variables, each taking on a value in $<span class="sc">\{</span>1,2,3,4,5<span class="sc">\}</span>$. Assume that the coin is fair, so that with each flip, the probability of heads and tails are both 0.5.</span>
 <span id="cb50-382"><a href="#cb50-382" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-383"><a href="#cb50-383" aria-hidden="true" tabindex="-1"></a>Now let's look at a continuous example of a Markov chain. Say $X_t=0$ and we have the following transition model:</span>
+<span id="cb50-383"><a href="#cb50-383" aria-hidden="true" tabindex="-1"></a>Does this game qualify as a true Markov chain? Suppose your secret number is currently 4 and that the history of your secret numbers is $(2,1,2,3)$. What is the probability that on the next step, your secret number will be 5? What about the other four possibilities? Because of the rules of this game, the probability of the next transition will depend only on the fact that your current number is 4. The numbers further back in your history are irrelevant, so this is a Markov chain.</span>
 <span id="cb50-384"><a href="#cb50-384" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-385"><a href="#cb50-385" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-386"><a href="#cb50-386" aria-hidden="true" tabindex="-1"></a>p(X_{t+1}\mid X_t=x_t)=N(x_t,1) \qquad</span>
-<span id="cb50-387"><a href="#cb50-387" aria-hidden="true" tabindex="-1"></a>$$ {#eq-random-walk-transition-full}</span>
+<span id="cb50-385"><a href="#cb50-385" aria-hidden="true" tabindex="-1"></a>This is an example of a discrete Markov chain, where the possible values of the random variables come from a discrete set. Those possible values (secret numbers in this example) are called states of the chain. The states are usually numbers, as in this example, but they can represent anything. In one common example, the states describe the weather on a particular day, which could be labeled as 1-fair, 2-poor.</span>
+<span id="cb50-386"><a href="#cb50-386" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-387"><a href="#cb50-387" aria-hidden="true" tabindex="-1"></a><span class="fu">### Random walk (continuous)</span></span>
 <span id="cb50-388"><a href="#cb50-388" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-389"><a href="#cb50-389" aria-hidden="true" tabindex="-1"></a>That is, the probability distribution for the next state is Normal with variance 1 and mean equal to the current state. This is often referred to as a "random walk." Clearly, it is a Markov chain because the transition to the next state Xt+1 only depends on the current state Xt.</span>
+<span id="cb50-389"><a href="#cb50-389" aria-hidden="true" tabindex="-1"></a>Now let's look at a continuous example of a Markov chain. Say $X_t=0$ and we have the following transition model:</span>
 <span id="cb50-390"><a href="#cb50-390" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-391"><a href="#cb50-391" aria-hidden="true" tabindex="-1"></a>This example is straightforward to code in R:</span>
-<span id="cb50-392"><a href="#cb50-392" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-395"><a href="#cb50-395" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-396"><a href="#cb50-396" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-random-walk</span></span>
-<span id="cb50-397"><a href="#cb50-397" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">34</span>)</span>
+<span id="cb50-391"><a href="#cb50-391" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb50-392"><a href="#cb50-392" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(X_{t+1}\mid X_t=x_t)=N(x_t,1) \qquad</span>
+<span id="cb50-393"><a href="#cb50-393" aria-hidden="true" tabindex="-1"></a>$$ {#eq-random-walk-transition-full}</span>
+<span id="cb50-394"><a href="#cb50-394" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-395"><a href="#cb50-395" aria-hidden="true" tabindex="-1"></a>That is, the probability distribution for the next state is Normal with variance 1 and mean equal to the current state. This is often referred to as a "random walk." Clearly, it is a Markov chain because the transition to the next state Xt+1 only depends on the current state Xt.</span>
+<span id="cb50-396"><a href="#cb50-396" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-397"><a href="#cb50-397" aria-hidden="true" tabindex="-1"></a>This example is straightforward to code in R:</span>
 <span id="cb50-398"><a href="#cb50-398" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-399"><a href="#cb50-399" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">100</span></span>
-<span id="cb50-400"><a href="#cb50-400" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">numeric</span>(n)</span>
-<span id="cb50-401"><a href="#cb50-401" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-402"><a href="#cb50-402" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>n) {</span>
-<span id="cb50-403"><a href="#cb50-403" aria-hidden="true" tabindex="-1"></a>  x[i] <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean=</span>x[i<span class="dv">-1</span>], <span class="at">sd=</span><span class="fl">1.0</span>)</span>
-<span id="cb50-404"><a href="#cb50-404" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb50-405"><a href="#cb50-405" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-406"><a href="#cb50-406" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.ts</span>(x)</span>
-<span id="cb50-407"><a href="#cb50-407" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-408"><a href="#cb50-408" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-409"><a href="#cb50-409" aria-hidden="true" tabindex="-1"></a><span class="fu">## Transition matrix</span></span>
-<span id="cb50-410"><a href="#cb50-410" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-411"><a href="#cb50-411" aria-hidden="true" tabindex="-1"></a>Let's return to our example of the discrete Markov chain. If we assume that transition probabilities do not change with time, then there are a total of 25 (52) potential transition probabilities. Potential transition probabilities would be from State 1 to State 2, State 1 to State 3, and so forth. These transition probabilities can be arranged into a matrix Q:</span>
-<span id="cb50-412"><a href="#cb50-412" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-413"><a href="#cb50-413" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-414"><a href="#cb50-414" aria-hidden="true" tabindex="-1"></a>Q = </span>
-<span id="cb50-415"><a href="#cb50-415" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
-<span id="cb50-416"><a href="#cb50-416" aria-hidden="true" tabindex="-1"></a>0 &amp; .5 &amp; 0 &amp; 0 &amp; .5 <span class="sc">\\</span></span>
-<span id="cb50-417"><a href="#cb50-417" aria-hidden="true" tabindex="-1"></a>.5 &amp; 0 &amp; .5 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb50-418"><a href="#cb50-418" aria-hidden="true" tabindex="-1"></a>0 &amp; .5 &amp; 0 &amp; .5 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb50-419"><a href="#cb50-419" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; .5 &amp; 0 &amp; .5 <span class="sc">\\</span></span>
-<span id="cb50-420"><a href="#cb50-420" aria-hidden="true" tabindex="-1"></a>.5 &amp; 0 &amp; 0 &amp; .5 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb50-421"><a href="#cb50-421" aria-hidden="true" tabindex="-1"></a>\end{pmatrix} \qquad</span>
-<span id="cb50-422"><a href="#cb50-422" aria-hidden="true" tabindex="-1"></a>$$ {#eq-transition-matrix-full}</span>
-<span id="cb50-423"><a href="#cb50-423" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-424"><a href="#cb50-424" aria-hidden="true" tabindex="-1"></a>where the transitions from State 1 are in the first row, the transitions from State 2 are in the second row, etc. For example, the probability p(Xt+1=5∣Xt=4) can be found in the fourth row, fifth column.</span>
-<span id="cb50-425"><a href="#cb50-425" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-426"><a href="#cb50-426" aria-hidden="true" tabindex="-1"></a>The transition matrix is especially useful if we want to find the probabilities associated with multiple steps of the chain. For example, we might want to know p(Xt+2=3∣Xt=1), the probability of your secret number being 3 two steps from now, given that your number is currently 1. We can calculate this as ∑k=15p(Xt+2=3∣Xt+1=k)⋅p(Xt+1=k∣Xt=1), which conveniently is found in the first row and third column of Q2.</span>
-<span id="cb50-427"><a href="#cb50-427" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-428"><a href="#cb50-428" aria-hidden="true" tabindex="-1"></a>We can perform this matrix multiplication easily in R:</span>
+<span id="cb50-401"><a href="#cb50-401" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-402"><a href="#cb50-402" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-random-walk</span></span>
+<span id="cb50-403"><a href="#cb50-403" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">34</span>)</span>
+<span id="cb50-404"><a href="#cb50-404" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-405"><a href="#cb50-405" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">100</span></span>
+<span id="cb50-406"><a href="#cb50-406" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">numeric</span>(n)</span>
+<span id="cb50-407"><a href="#cb50-407" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-408"><a href="#cb50-408" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>n) {</span>
+<span id="cb50-409"><a href="#cb50-409" aria-hidden="true" tabindex="-1"></a>  x[i] <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean=</span>x[i<span class="dv">-1</span>], <span class="at">sd=</span><span class="fl">1.0</span>)</span>
+<span id="cb50-410"><a href="#cb50-410" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb50-411"><a href="#cb50-411" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-412"><a href="#cb50-412" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.ts</span>(x)</span>
+<span id="cb50-413"><a href="#cb50-413" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-414"><a href="#cb50-414" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-415"><a href="#cb50-415" aria-hidden="true" tabindex="-1"></a><span class="fu">## Transition matrix</span></span>
+<span id="cb50-416"><a href="#cb50-416" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-417"><a href="#cb50-417" aria-hidden="true" tabindex="-1"></a>Let's return to our example of the discrete Markov chain. If we assume that transition probabilities do not change with time, then there are a total of 25 (52) potential transition probabilities. Potential transition probabilities would be from State 1 to State 2, State 1 to State 3, and so forth. These transition probabilities can be arranged into a matrix Q:</span>
+<span id="cb50-418"><a href="#cb50-418" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-419"><a href="#cb50-419" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb50-420"><a href="#cb50-420" aria-hidden="true" tabindex="-1"></a>Q = </span>
+<span id="cb50-421"><a href="#cb50-421" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
+<span id="cb50-422"><a href="#cb50-422" aria-hidden="true" tabindex="-1"></a>0 &amp; .5 &amp; 0 &amp; 0 &amp; .5 <span class="sc">\\</span></span>
+<span id="cb50-423"><a href="#cb50-423" aria-hidden="true" tabindex="-1"></a>.5 &amp; 0 &amp; .5 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb50-424"><a href="#cb50-424" aria-hidden="true" tabindex="-1"></a>0 &amp; .5 &amp; 0 &amp; .5 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb50-425"><a href="#cb50-425" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; .5 &amp; 0 &amp; .5 <span class="sc">\\</span></span>
+<span id="cb50-426"><a href="#cb50-426" aria-hidden="true" tabindex="-1"></a>.5 &amp; 0 &amp; 0 &amp; .5 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb50-427"><a href="#cb50-427" aria-hidden="true" tabindex="-1"></a>\end{pmatrix} \qquad</span>
+<span id="cb50-428"><a href="#cb50-428" aria-hidden="true" tabindex="-1"></a>$$ {#eq-transition-matrix-full}</span>
 <span id="cb50-429"><a href="#cb50-429" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-432"><a href="#cb50-432" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-433"><a href="#cb50-433" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix</span></span>
-<span id="cb50-434"><a href="#cb50-434" aria-hidden="true" tabindex="-1"></a>Q <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>,</span>
-<span id="cb50-435"><a href="#cb50-435" aria-hidden="true" tabindex="-1"></a>             <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>,</span>
-<span id="cb50-436"><a href="#cb50-436" aria-hidden="true" tabindex="-1"></a>             <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>,</span>
-<span id="cb50-437"><a href="#cb50-437" aria-hidden="true" tabindex="-1"></a>             <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>,</span>
-<span id="cb50-438"><a href="#cb50-438" aria-hidden="true" tabindex="-1"></a>             <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>), </span>
-<span id="cb50-439"><a href="#cb50-439" aria-hidden="true" tabindex="-1"></a>           <span class="at">nrow=</span><span class="dv">5</span>, <span class="at">byrow=</span><span class="cn">TRUE</span>)</span>
-<span id="cb50-440"><a href="#cb50-440" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-441"><a href="#cb50-441" aria-hidden="true" tabindex="-1"></a>Q <span class="sc">%*%</span> Q <span class="co"># Matrix multiplication in R. This is Q^2.</span></span>
-<span id="cb50-442"><a href="#cb50-442" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-443"><a href="#cb50-443" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-444"><a href="#cb50-444" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-447"><a href="#cb50-447" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-448"><a href="#cb50-448" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix-2-steps</span></span>
-<span id="cb50-449"><a href="#cb50-449" aria-hidden="true" tabindex="-1"></a>(Q <span class="sc">%*%</span> Q)[<span class="dv">1</span>,<span class="dv">3</span>]</span>
+<span id="cb50-430"><a href="#cb50-430" aria-hidden="true" tabindex="-1"></a>where the transitions from State 1 are in the first row, the transitions from State 2 are in the second row, etc. For example, the probability $\mathbb{P}r(X_{t+1}=5\mid X_t=4)$ can be found in the fourth row, fifth column.</span>
+<span id="cb50-431"><a href="#cb50-431" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-432"><a href="#cb50-432" aria-hidden="true" tabindex="-1"></a>The transition matrix is especially useful if we want to find the probabilities associated with multiple steps of the chain. For example, we might want to know  $\mathbb{P}r(X_{t+2}=3 \mid X_t=1)$, the probability of your secret number being 3 two steps from now, given that your number is currently 1. We can calculate this as $\sum_{k=15} \mathbb{P}r(X_t+2=3 \mid X_t+1=k) \cdot \mathbb{P}r(X_{t+1}=k \mid X_t=1)$, which conveniently is found in the first row and third column of $Q_2$.</span>
+<span id="cb50-433"><a href="#cb50-433" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-434"><a href="#cb50-434" aria-hidden="true" tabindex="-1"></a>We can perform this matrix multiplication easily in R:</span>
+<span id="cb50-435"><a href="#cb50-435" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-438"><a href="#cb50-438" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-439"><a href="#cb50-439" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix</span></span>
+<span id="cb50-440"><a href="#cb50-440" aria-hidden="true" tabindex="-1"></a>Q <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>,</span>
+<span id="cb50-441"><a href="#cb50-441" aria-hidden="true" tabindex="-1"></a>             <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>,</span>
+<span id="cb50-442"><a href="#cb50-442" aria-hidden="true" tabindex="-1"></a>             <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>,</span>
+<span id="cb50-443"><a href="#cb50-443" aria-hidden="true" tabindex="-1"></a>             <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>,</span>
+<span id="cb50-444"><a href="#cb50-444" aria-hidden="true" tabindex="-1"></a>             <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>), </span>
+<span id="cb50-445"><a href="#cb50-445" aria-hidden="true" tabindex="-1"></a>           <span class="at">nrow=</span><span class="dv">5</span>, <span class="at">byrow=</span><span class="cn">TRUE</span>)</span>
+<span id="cb50-446"><a href="#cb50-446" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-447"><a href="#cb50-447" aria-hidden="true" tabindex="-1"></a>Q <span class="sc">%*%</span> Q <span class="co"># Matrix multiplication in R. This is Q^2.</span></span>
+<span id="cb50-448"><a href="#cb50-448" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-449"><a href="#cb50-449" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb50-450"><a href="#cb50-450" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-451"><a href="#cb50-451" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-452"><a href="#cb50-452" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-453"><a href="#cb50-453" aria-hidden="true" tabindex="-1"></a>Therefore, if your secret number is currently 1, the probability that the number will be 3 two steps from now is .25.</span>
-<span id="cb50-454"><a href="#cb50-454" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-455"><a href="#cb50-455" aria-hidden="true" tabindex="-1"></a><span class="fu">## Stationary distribution</span></span>
+<span id="cb50-453"><a href="#cb50-453" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-454"><a href="#cb50-454" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix-2-steps</span></span>
+<span id="cb50-455"><a href="#cb50-455" aria-hidden="true" tabindex="-1"></a>(Q <span class="sc">%*%</span> Q)[<span class="dv">1</span>,<span class="dv">3</span>]</span>
 <span id="cb50-456"><a href="#cb50-456" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-457"><a href="#cb50-457" aria-hidden="true" tabindex="-1"></a>Suppose we want to know the probability distribution of the your secret number in the distant future, say $p(X_{t+h} \mid X_t)$ where h is a large number. Let's calculate this for a few different values of h.</span>
+<span id="cb50-457"><a href="#cb50-457" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb50-458"><a href="#cb50-458" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-461"><a href="#cb50-461" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-462"><a href="#cb50-462" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix-5-steps</span></span>
-<span id="cb50-463"><a href="#cb50-463" aria-hidden="true" tabindex="-1"></a>Q5 <span class="ot">=</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="co"># h=5 steps in the future</span></span>
-<span id="cb50-464"><a href="#cb50-464" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(Q5, <span class="dv">3</span>)</span>
-<span id="cb50-465"><a href="#cb50-465" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-466"><a href="#cb50-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-469"><a href="#cb50-469" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-470"><a href="#cb50-470" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix-10-steps</span></span>
-<span id="cb50-471"><a href="#cb50-471" aria-hidden="true" tabindex="-1"></a>Q10 <span class="ot">=</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="co"># h=10 steps in the future</span></span>
-<span id="cb50-472"><a href="#cb50-472" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(Q10, <span class="dv">3</span>)</span>
-<span id="cb50-473"><a href="#cb50-473" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-474"><a href="#cb50-474" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-477"><a href="#cb50-477" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-478"><a href="#cb50-478" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix-30-steps</span></span>
-<span id="cb50-479"><a href="#cb50-479" aria-hidden="true" tabindex="-1"></a>Q30 <span class="ot">=</span> Q</span>
-<span id="cb50-480"><a href="#cb50-480" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">30</span>) {</span>
-<span id="cb50-481"><a href="#cb50-481" aria-hidden="true" tabindex="-1"></a>  Q30 <span class="ot">=</span> Q30 <span class="sc">%*%</span> Q</span>
-<span id="cb50-482"><a href="#cb50-482" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb50-483"><a href="#cb50-483" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(Q30, <span class="dv">3</span>) <span class="co"># h=30 steps in the future</span></span>
-<span id="cb50-484"><a href="#cb50-484" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-485"><a href="#cb50-485" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-486"><a href="#cb50-486" aria-hidden="true" tabindex="-1"></a>Notice that as the future horizon gets more distant, the transition distributions appear to converge. The state you are currently in becomes less important in determining the more distant future. If we let h get really large, and take it to the limit, all the rows of the long-range transition matrix will become equal to $(.2,.2,.2,.2,.2)$. That is, if you run the Markov chain for a very long time, the probability that you will end up in any particular state is 1/5=.2 for each of the five states. These long-range probabilities are equal to what is called the stationary distribution of the Markov chain.</span>
-<span id="cb50-487"><a href="#cb50-487" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-488"><a href="#cb50-488" aria-hidden="true" tabindex="-1"></a>The stationary distribution of a chain is the initial state distribution for which performing a transition will not change the probability of ending up in any given state. That is,</span>
-<span id="cb50-489"><a href="#cb50-489" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-492"><a href="#cb50-492" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-493"><a href="#cb50-493" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-stationary-distribution-initial</span></span>
-<span id="cb50-494"><a href="#cb50-494" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>) <span class="sc">%*%</span> Q</span>
+<span id="cb50-459"><a href="#cb50-459" aria-hidden="true" tabindex="-1"></a>Therefore, if your secret number is currently 1, the probability that the number will be 3 two steps from now is .25.</span>
+<span id="cb50-460"><a href="#cb50-460" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-461"><a href="#cb50-461" aria-hidden="true" tabindex="-1"></a><span class="fu">## Stationary distribution</span></span>
+<span id="cb50-462"><a href="#cb50-462" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-463"><a href="#cb50-463" aria-hidden="true" tabindex="-1"></a>Suppose we want to know the probability distribution of the your secret number in the distant future, say $\mathbb{P}r(X_{t+h} \mid X_t)$ where h is a large number. Let's calculate this for a few different values of h.</span>
+<span id="cb50-464"><a href="#cb50-464" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-467"><a href="#cb50-467" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-468"><a href="#cb50-468" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix-5-steps</span></span>
+<span id="cb50-469"><a href="#cb50-469" aria-hidden="true" tabindex="-1"></a>Q5 <span class="ot">=</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="co"># h=5 steps in the future</span></span>
+<span id="cb50-470"><a href="#cb50-470" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(Q5, <span class="dv">3</span>)</span>
+<span id="cb50-471"><a href="#cb50-471" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-472"><a href="#cb50-472" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-475"><a href="#cb50-475" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-476"><a href="#cb50-476" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix-10-steps</span></span>
+<span id="cb50-477"><a href="#cb50-477" aria-hidden="true" tabindex="-1"></a>Q10 <span class="ot">=</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="sc">%*%</span> Q <span class="co"># h=10 steps in the future</span></span>
+<span id="cb50-478"><a href="#cb50-478" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(Q10, <span class="dv">3</span>)</span>
+<span id="cb50-479"><a href="#cb50-479" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-480"><a href="#cb50-480" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-483"><a href="#cb50-483" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-484"><a href="#cb50-484" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-transition-matrix-30-steps</span></span>
+<span id="cb50-485"><a href="#cb50-485" aria-hidden="true" tabindex="-1"></a>Q30 <span class="ot">=</span> Q</span>
+<span id="cb50-486"><a href="#cb50-486" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">30</span>) {</span>
+<span id="cb50-487"><a href="#cb50-487" aria-hidden="true" tabindex="-1"></a>  Q30 <span class="ot">=</span> Q30 <span class="sc">%*%</span> Q</span>
+<span id="cb50-488"><a href="#cb50-488" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb50-489"><a href="#cb50-489" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(Q30, <span class="dv">3</span>) <span class="co"># h=30 steps in the future</span></span>
+<span id="cb50-490"><a href="#cb50-490" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-491"><a href="#cb50-491" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-492"><a href="#cb50-492" aria-hidden="true" tabindex="-1"></a>Notice that as the future horizon gets more distant, the transition distributions appear to converge. The state you are currently in becomes less important in determining the more distant future. If we let h get really large, and take it to the limit, all the rows of the long-range transition matrix will become equal to $(.2,.2,.2,.2,.2)$. That is, if you run the Markov chain for a very long time, the probability that you will end up in any particular state is $1/5=.2$ for each of the five states. These long-range probabilities are equal to what is called the stationary distribution of the Markov chain.</span>
+<span id="cb50-493"><a href="#cb50-493" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-494"><a href="#cb50-494" aria-hidden="true" tabindex="-1"></a>The stationary distribution of a chain is the initial state distribution for which performing a transition will not change the probability of ending up in any given state. That is,</span>
 <span id="cb50-495"><a href="#cb50-495" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-496"><a href="#cb50-496" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-497"><a href="#cb50-497" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-498"><a href="#cb50-498" aria-hidden="true" tabindex="-1"></a>One consequence of this property is that once a chain reaches its stationary distribution, the stationary distribution will remain the distribution of the states thereafter.</span>
-<span id="cb50-499"><a href="#cb50-499" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-500"><a href="#cb50-500" aria-hidden="true" tabindex="-1"></a>We can also demonstrate the stationary distribution by simulating a long chain from this example.</span>
+<span id="cb50-498"><a href="#cb50-498" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-499"><a href="#cb50-499" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-stationary-distribution-initial</span></span>
+<span id="cb50-500"><a href="#cb50-500" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>) <span class="sc">%*%</span> Q</span>
 <span id="cb50-501"><a href="#cb50-501" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-504"><a href="#cb50-504" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-505"><a href="#cb50-505" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-stationary-distribution-simulation</span></span>
-<span id="cb50-506"><a href="#cb50-506" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">5000</span></span>
-<span id="cb50-507"><a href="#cb50-507" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">numeric</span>(n)</span>
-<span id="cb50-508"><a href="#cb50-508" aria-hidden="true" tabindex="-1"></a>x[<span class="dv">1</span>] <span class="ot">=</span> <span class="dv">1</span> <span class="co"># fix the state as 1 for time 1</span></span>
-<span id="cb50-509"><a href="#cb50-509" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>n) {</span>
-<span id="cb50-510"><a href="#cb50-510" aria-hidden="true" tabindex="-1"></a>  x[i] <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="dv">5</span>, <span class="at">size=</span><span class="dv">1</span>, <span class="at">prob=</span>Q[x[i<span class="dv">-1</span>],]) <span class="co"># draw the next state from the intergers 1 to 5 with probabilities from the transition matrix Q, based on the previous value of X.</span></span>
-<span id="cb50-511"><a href="#cb50-511" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb50-512"><a href="#cb50-512" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-513"><a href="#cb50-513" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-514"><a href="#cb50-514" aria-hidden="true" tabindex="-1"></a>Now that we have simulated the chain, let's look at the distribution of visits to the five states.</span>
-<span id="cb50-515"><a href="#cb50-515" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-518"><a href="#cb50-518" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-519"><a href="#cb50-519" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-mc-stationary-distribution</span></span>
-<span id="cb50-520"><a href="#cb50-520" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(x) <span class="sc">/</span> n</span>
-<span id="cb50-521"><a href="#cb50-521" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-522"><a href="#cb50-522" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-523"><a href="#cb50-523" aria-hidden="true" tabindex="-1"></a>The overall distribution of the visits to the states is approximately equal to the stationary distribution.</span>
-<span id="cb50-524"><a href="#cb50-524" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-525"><a href="#cb50-525" aria-hidden="true" tabindex="-1"></a>As we have just seen, if you simulate a Markov chain for many iterations, the samples can be used as a Monte Carlo sample from the stationary distribution. This is exactly how we are going to use Markov chains for Bayesian inference. In order to simulate from a complicated posterior distribution, we will set up and run a Markov chain whose stationary distribution is the posterior distribution.</span>
-<span id="cb50-526"><a href="#cb50-526" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-527"><a href="#cb50-527" aria-hidden="true" tabindex="-1"></a>It is important to note that the stationary distribution doesn't always exist for any given Markov chain. The Markov chain must have certain properties, which we won't discuss here. However, the Markov chain algorithms we'll use in future lessons for Monte Carlo estimation are guaranteed to produce stationary distributions.</span>
+<span id="cb50-502"><a href="#cb50-502" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-503"><a href="#cb50-503" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-504"><a href="#cb50-504" aria-hidden="true" tabindex="-1"></a>One consequence of this property is that once a chain reaches its stationary distribution, the stationary distribution will remain the distribution of the states thereafter.</span>
+<span id="cb50-505"><a href="#cb50-505" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-506"><a href="#cb50-506" aria-hidden="true" tabindex="-1"></a>We can also demonstrate the stationary distribution by simulating a long chain from this example.</span>
+<span id="cb50-507"><a href="#cb50-507" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-510"><a href="#cb50-510" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-511"><a href="#cb50-511" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-mc-stationary-distribution-simulation</span></span>
+<span id="cb50-512"><a href="#cb50-512" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">5000</span></span>
+<span id="cb50-513"><a href="#cb50-513" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">numeric</span>(n)</span>
+<span id="cb50-514"><a href="#cb50-514" aria-hidden="true" tabindex="-1"></a>x[<span class="dv">1</span>] <span class="ot">=</span> <span class="dv">1</span> <span class="co"># fix the state as 1 for time 1</span></span>
+<span id="cb50-515"><a href="#cb50-515" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>n) {</span>
+<span id="cb50-516"><a href="#cb50-516" aria-hidden="true" tabindex="-1"></a>  x[i] <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="dv">5</span>, <span class="at">size=</span><span class="dv">1</span>, <span class="at">prob=</span>Q[x[i<span class="dv">-1</span>],]) <span class="co"># draw the next state from the intergers 1 to 5 with probabilities from the transition matrix Q, based on the previous value of X.</span></span>
+<span id="cb50-517"><a href="#cb50-517" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb50-518"><a href="#cb50-518" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-519"><a href="#cb50-519" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-520"><a href="#cb50-520" aria-hidden="true" tabindex="-1"></a>Now that we have simulated the chain, let's look at the distribution of visits to the five states.</span>
+<span id="cb50-521"><a href="#cb50-521" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-524"><a href="#cb50-524" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-525"><a href="#cb50-525" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-mc-stationary-distribution</span></span>
+<span id="cb50-526"><a href="#cb50-526" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(x) <span class="sc">/</span> n</span>
+<span id="cb50-527"><a href="#cb50-527" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb50-528"><a href="#cb50-528" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-529"><a href="#cb50-529" aria-hidden="true" tabindex="-1"></a><span class="fu">### Continuous example</span></span>
+<span id="cb50-529"><a href="#cb50-529" aria-hidden="true" tabindex="-1"></a>The overall distribution of the visits to the states is approximately equal to the stationary distribution.</span>
 <span id="cb50-530"><a href="#cb50-530" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-531"><a href="#cb50-531" aria-hidden="true" tabindex="-1"></a>The continuous random walk example we gave earlier does not have a stationary distribution. However, we can modify it so that it does have a stationary distribution.</span>
+<span id="cb50-531"><a href="#cb50-531" aria-hidden="true" tabindex="-1"></a>As we have just seen, if you simulate a Markov chain for many iterations, the samples can be used as a Monte Carlo sample from the stationary distribution. This is exactly how we are going to use Markov chains for Bayesian inference. In order to simulate from a complicated posterior distribution, we will set up and run a Markov chain whose stationary distribution is the posterior distribution.</span>
 <span id="cb50-532"><a href="#cb50-532" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-533"><a href="#cb50-533" aria-hidden="true" tabindex="-1"></a>Let the transition distribution be $p(X_{t + 1}\mid X_t = x_t)=N(\phi x_t,1)$ where $-1 &lt; \phi &lt; 1$. That is, the probability distribution for the next state is Normal with variance $1$ and mean equal to $ϕ$ times the current state. As long as $\phi$ is between −1 and 1, then the stationary distribution will exist for this model.</span>
+<span id="cb50-533"><a href="#cb50-533" aria-hidden="true" tabindex="-1"></a>It is important to note that the stationary distribution doesn't always exist for any given Markov chain. The Markov chain must have certain properties, which we won't discuss here. However, the Markov chain algorithms we'll use in future lessons for Monte Carlo estimation are guaranteed to produce stationary distributions.</span>
 <span id="cb50-534"><a href="#cb50-534" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-535"><a href="#cb50-535" aria-hidden="true" tabindex="-1"></a>Let's simulate this chain for $\phi=−0.6$.</span>
+<span id="cb50-535"><a href="#cb50-535" aria-hidden="true" tabindex="-1"></a><span class="fu">### Continuous example</span></span>
 <span id="cb50-536"><a href="#cb50-536" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-539"><a href="#cb50-539" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-540"><a href="#cb50-540" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-mc-ar1</span></span>
-<span id="cb50-541"><a href="#cb50-541" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: Simulated AR(1) process with phi=-0.6</span></span>
-<span id="cb50-542"><a href="#cb50-542" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">38</span>)</span>
-<span id="cb50-543"><a href="#cb50-543" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-544"><a href="#cb50-544" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">1500</span></span>
-<span id="cb50-545"><a href="#cb50-545" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">numeric</span>(n)</span>
-<span id="cb50-546"><a href="#cb50-546" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">=</span> <span class="sc">-</span><span class="fl">0.6</span></span>
-<span id="cb50-547"><a href="#cb50-547" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-548"><a href="#cb50-548" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>n) {</span>
-<span id="cb50-549"><a href="#cb50-549" aria-hidden="true" tabindex="-1"></a>  x[i] <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean=</span>phi<span class="sc">*</span>x[i<span class="dv">-1</span>], <span class="at">sd=</span><span class="fl">1.0</span>)</span>
-<span id="cb50-550"><a href="#cb50-550" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb50-551"><a href="#cb50-551" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-552"><a href="#cb50-552" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.ts</span>(x)</span>
-<span id="cb50-553"><a href="#cb50-553" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-554"><a href="#cb50-554" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-555"><a href="#cb50-555" aria-hidden="true" tabindex="-1"></a>The theoretical stationary distribution for this chain is normal with mean $0$ and variance $1/(1−\phi^2)$, which in our example approximately equals $1.562$. Let's look at a histogram of our chain and compare that with the theoretical stationary distribution.</span>
-<span id="cb50-556"><a href="#cb50-556" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-557"><a href="#cb50-557" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb50-558"><a href="#cb50-558" aria-hidden="true" tabindex="-1"></a>\text{Var}_{\text{stationary}} = \frac{1}{1-\phi^2} \qquad</span>
-<span id="cb50-559"><a href="#cb50-559" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-stationary-variance-full}</span>
+<span id="cb50-537"><a href="#cb50-537" aria-hidden="true" tabindex="-1"></a>The continuous random walk example we gave earlier does not have a stationary distribution. However, we can modify it so that it does have a stationary distribution.</span>
+<span id="cb50-538"><a href="#cb50-538" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-539"><a href="#cb50-539" aria-hidden="true" tabindex="-1"></a>Let the transition distribution be $\mathbb{P}r(X_{t + 1}\mid X_t = x_t)=N(\phi x_t,1)$ where $-1 &lt; \phi &lt; 1$. That is, the probability distribution for the next state is Normal with variance $1$ and mean equal to $ϕ$ times the current state. As long as $\phi$ is between −1 and 1, then the stationary distribution will exist for this model.</span>
+<span id="cb50-540"><a href="#cb50-540" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-541"><a href="#cb50-541" aria-hidden="true" tabindex="-1"></a>Let's simulate this chain for $\phi=−0.6$.</span>
+<span id="cb50-542"><a href="#cb50-542" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-545"><a href="#cb50-545" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-546"><a href="#cb50-546" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-mc-ar1</span></span>
+<span id="cb50-547"><a href="#cb50-547" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: Simulated AR(1) process with phi=-0.6</span></span>
+<span id="cb50-548"><a href="#cb50-548" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">38</span>)</span>
+<span id="cb50-549"><a href="#cb50-549" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-550"><a href="#cb50-550" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">1500</span></span>
+<span id="cb50-551"><a href="#cb50-551" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">numeric</span>(n)</span>
+<span id="cb50-552"><a href="#cb50-552" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">=</span> <span class="sc">-</span><span class="fl">0.6</span></span>
+<span id="cb50-553"><a href="#cb50-553" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-554"><a href="#cb50-554" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>n) {</span>
+<span id="cb50-555"><a href="#cb50-555" aria-hidden="true" tabindex="-1"></a>  x[i] <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean=</span>phi<span class="sc">*</span>x[i<span class="dv">-1</span>], <span class="at">sd=</span><span class="fl">1.0</span>)</span>
+<span id="cb50-556"><a href="#cb50-556" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb50-557"><a href="#cb50-557" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-558"><a href="#cb50-558" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.ts</span>(x)</span>
+<span id="cb50-559"><a href="#cb50-559" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb50-560"><a href="#cb50-560" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-563"><a href="#cb50-563" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb50-564"><a href="#cb50-564" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-mc-stationary-distribution</span></span>
-<span id="cb50-565"><a href="#cb50-565" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: Histogram of simulated AR(1) process with theoretical stationary distribution</span></span>
-<span id="cb50-566"><a href="#cb50-566" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(x, <span class="at">freq=</span><span class="cn">FALSE</span>)</span>
-<span id="cb50-567"><a href="#cb50-567" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(<span class="fu">dnorm</span>(x, <span class="at">mean=</span><span class="fl">0.0</span>, <span class="at">sd=</span><span class="fu">sqrt</span>(<span class="fl">1.0</span><span class="sc">/</span>(<span class="fl">1.0</span><span class="sc">-</span>phi<span class="sc">^</span><span class="dv">2</span>))), <span class="at">col=</span><span class="st">"red"</span>, <span class="at">add=</span><span class="cn">TRUE</span>)</span>
-<span id="cb50-568"><a href="#cb50-568" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend=</span><span class="st">"theoretical stationary</span><span class="sc">\n</span><span class="st">distribution"</span>, <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">1</span>, <span class="at">bty=</span><span class="st">"n"</span>)</span>
-<span id="cb50-569"><a href="#cb50-569" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb50-570"><a href="#cb50-570" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-571"><a href="#cb50-571" aria-hidden="true" tabindex="-1"></a>It appears that the chain has reached the stationary distribution. Therefore, we could treat this simulation from the chain like a Monte Carlo sample from the stationary distribution, a normal with mean 0 and variance 1.562.</span>
-<span id="cb50-572"><a href="#cb50-572" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-573"><a href="#cb50-573" aria-hidden="true" tabindex="-1"></a>Because most posterior distributions we will look at are continuous, our Monte Carlo simulations with Markov chains will be similar to this example.</span>
+<span id="cb50-561"><a href="#cb50-561" aria-hidden="true" tabindex="-1"></a>The theoretical stationary distribution for this chain is normal with mean $0$ and variance $1/(1−\phi^2)$, which in our example approximately equals $1.562$. Let's look at a histogram of our chain and compare that with the theoretical stationary distribution.</span>
+<span id="cb50-562"><a href="#cb50-562" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-563"><a href="#cb50-563" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb50-564"><a href="#cb50-564" aria-hidden="true" tabindex="-1"></a>\text{Var}_{\text{stationary}} = \frac{1}{1-\phi^2} \qquad</span>
+<span id="cb50-565"><a href="#cb50-565" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-stationary-variance-full}</span>
+<span id="cb50-566"><a href="#cb50-566" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-569"><a href="#cb50-569" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb50-570"><a href="#cb50-570" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-mc-stationary-distribution</span></span>
+<span id="cb50-571"><a href="#cb50-571" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: Histogram of simulated AR(1) process with theoretical stationary distribution</span></span>
+<span id="cb50-572"><a href="#cb50-572" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(x, <span class="at">freq=</span><span class="cn">FALSE</span>)</span>
+<span id="cb50-573"><a href="#cb50-573" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(<span class="fu">dnorm</span>(x, <span class="at">mean=</span><span class="fl">0.0</span>, <span class="at">sd=</span><span class="fu">sqrt</span>(<span class="fl">1.0</span><span class="sc">/</span>(<span class="fl">1.0</span><span class="sc">-</span>phi<span class="sc">^</span><span class="dv">2</span>))), <span class="at">col=</span><span class="st">"red"</span>, <span class="at">add=</span><span class="cn">TRUE</span>)</span>
+<span id="cb50-574"><a href="#cb50-574" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend=</span><span class="st">"theoretical stationary</span><span class="sc">\n</span><span class="st">distribution"</span>, <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">1</span>, <span class="at">bty=</span><span class="st">"n"</span>)</span>
+<span id="cb50-575"><a href="#cb50-575" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb50-576"><a href="#cb50-576" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-577"><a href="#cb50-577" aria-hidden="true" tabindex="-1"></a>It appears that the chain has reached the stationary distribution. Therefore, we could treat this simulation from the chain like a Monte Carlo sample from the stationary distribution, a normal with mean 0 and variance 1.562.</span>
+<span id="cb50-578"><a href="#cb50-578" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-579"><a href="#cb50-579" aria-hidden="true" tabindex="-1"></a>Because most posterior distributions we will look at are continuous, our Monte Carlo simulations with Markov chains will be similar to this example.</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

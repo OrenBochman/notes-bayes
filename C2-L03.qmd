@@ -77,10 +77,10 @@ This method can be used to calculate many different integrals.
 Say $h(\theta)$ is any function and we want to calculate
 
 $$
-\int h(\theta) p(\theta) d\theta = \mathbb{E}(h(\theta)) \approx \frac{1}{m}\sum_{i=1}^m h(\theta_i^*) \qquad
+\int h(\theta) \mathbb{P}r(\theta) d\theta = \mathbb{E}(h(\theta)) \approx \frac{1}{m}\sum_{i=1}^m h(\theta_i^*) \qquad
 $$ {#eq-monte-carlo-integration-full}
 
-where $p(\theta)$ is the probability density function of $\theta$ and $h(\theta)$ is any function of $\theta$.
+where $\mathbb{P}r(\theta)$ is the probability density function of $\theta$ and $h(\theta)$ is any function of $\theta$.
 
 **This integral is precisely what is meant by** $\mathbb{E}[h(\theta)]$ , so we can conveniently approximate it by taking the sample mean of $h(\theta_i^*)$. 
 That is, we apply the function h to each simulated sample from the distribution, and take the average of all the results.
@@ -94,9 +94,9 @@ This is the integral:
 
 $$
 \begin{aligned}
-\mathbb{E}[h(\theta)] &= \int_0^\infty \mathbb{I}_{[\theta<5]}(\theta) p(\theta) d\theta \\
-&= \int_0^5 1 \cdot p(\theta) d\theta + \int_5^\infty 0 \cdot p(\theta) d\theta \\
-&= P(\theta < 5) \qquad
+\mathbb{E}[h(\theta)] &= \int_0^\infty \mathbb{I}_{[\theta<5]}(\theta) \mathbb{P}r(\theta) d\theta \\
+&= \int_0^5 1 \cdot \mathbb{P}r(\theta) d\theta + \int_5^\infty 0 \cdot \mathbb{P}r(\theta) d\theta \\
+&= \mathbb{P}r(\theta < 5) \qquad
 \end{aligned}
 $$ {#eq-gamma-prob-full}
 
@@ -108,7 +108,7 @@ This expression is simply counting how many of those samples come out to be less
 That's convenient!
 
 Likewise, we can approximate quantiles of a distribution. 
-If we are looking for the value z such that $P(\theta < z) = 0.9$ , we simply arrange the samples $\theta^∗_i$ in ascending order and find the smallest drawn value that is greater than 90% of the others.
+If we are looking for the value z such that $\mathbb{P}r(\theta < z) = 0.9$ , we simply arrange the samples $\theta^∗_i$ in ascending order and find the smallest drawn value that is greater than 90% of the others.
 
 ## Monte Carlo Error and Marginalization
 
@@ -134,9 +134,9 @@ If $m$ is large, it is reasonable to assume that the true value will likely be w
 
 We can also obtain Monte Carlo samples from hierarchical models. 
 
-As a simple example, let's consider a binomial random variable where $y\mid\phi\sim Bin(10,\phi)$ and further suppose $\phi$ is random (as if it had a prior) and is distributed beta $\phi \sim Beta(2,2)$ . 
+As a simple example, let's consider a binomial random variable where $y \mid \phi \sim \mathrm{Bin}(10,\phi)$ and further suppose $\phi$ is random (as if it had a prior) and is distributed beta $\phi \sim \mathrm{Beta}(2,2)$ . 
 
-Given any hierarchical model, we can always write the joint distribution of y and $\phi$ as $p(y,\phi) = p(y \mid \phi)p(\phi)$ using the chain rule of probability. 
+Given any hierarchical model, we can always write the joint distribution of $y$ and $\phi$ as $\mathbb{P}r(y,\phi) = \mathbb{P}r(y \mid \phi)\mathbb{P}r(\phi)$ using the chain rule of probability. 
 
 To simulate from this joint distribution, repeat these steps for a large number $m$ :
 
@@ -145,7 +145,7 @@ To simulate from this joint distribution, repeat these steps for a large number 
 
 This will produce m independent pairs of $(y^∗,\phi^∗)_i$ drawn from their joint distribution. 
 
-One major advantage of Monte Carlo simulation is that marginalizing is easy. Calculating the marginal distribution of $y$ , $p(y)=\int^1_0 p(y,\phi)d\phi$, might be challenging. 
+One major advantage of Monte Carlo simulation is that marginalizing is easy. Calculating the marginal distribution of $y$ , $\mathbb{P}r(y)=\int^1_0 \mathbb{P}r(y,\phi)d\phi$, might be challenging. 
 But if we have draws from the joint distribution, we can just discard the $\phi^∗_i$ draws and use the $y^∗_i$ as samples from their marginal distribution. 
 
 This is also called the prior predictive distribution introduced in the previous course.
@@ -303,7 +303,7 @@ mean(y)
 
 ```{r}
 #| label: fig-mc-hierarchical-marginal
-plot(prop.table(table(y)), ylab="P(y)", main="Marginal distribution of y")
+plot(prop.table(table(y)), ylab="Pr(y)", main="Marginal distribution of y")
 ```
 
 # Markov chains
@@ -313,22 +313,22 @@ plot(prop.table(table(y)), ylab="P(y)", main="Marginal distribution of y")
 If we have a sequence of random variables $X_1,X_2,\dots X_n$ where the indices $1,2,\dots,n$ represent successive points in time, we can use the chain rule of probability to calculate the probability of the entire sequence:
 
 $$
-p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2, X_1) \cdot \ldots \cdot p(X_n \mid X_{n-1}, X_{n-2}, \ldots, X_2, X_1) \qquad
+\mathbb{P}r(X_1, X_2, \ldots X_n) = \mathbb{P}r(X_1) \cdot \mathbb{P}r(X_2 \mid X_1) \cdot \mathbb{P}r(X_3 \mid X_2, X_1) \cdot \ldots \cdot \mathbb{P}r(X_n \mid X_{n-1}, X_{n-2}, \ldots, X_2, X_1) \qquad
 $$ {#eq-chain-rule-full}
 
 Markov chains simplify this expression by using the Markov assumption. The assumption is that given the entire past history, the probability distribution for the random variable at the next time step only depends on the current variable. Mathematically, the assumption is written like this:
 
 $$
-p(X_{t+1} \mid X_t, X_{t-1}, \ldots, X_2, X_1 ) = p(X_{t+1} \mid X_t) \qquad
+\mathbb{P}r(X_{t+1} \mid X_t, X_{t-1}, \ldots, X_2, X_1 ) = \mathbb{P}r(X_{t+1} \mid X_t) \qquad
 $$ {#eq-markov-assumption-full}
 
 for all $t=2,\dots,n$. Under this assumption, we can write the first expression as
 
 $$
-p(X_1, X_2, \ldots X_n) = p(X_1) \cdot p(X_2 \mid X_1) \cdot p(X_3 \mid X_2) \cdot p(X_4 \mid X_3) \cdot \ldots \cdot p(X_n \mid X_{n-1}) \qquad
+\mathbb{P}r(X_1, X_2, \ldots X_n) = \mathbb{P}r(X_1) \cdot \mathbb{P}r(X_2 \mid X_1) \cdot \mathbb{P}r(X_3 \mid X_2) \cdot \mathbb{P}r(X_4 \mid X_3) \cdot \ldots \cdot \mathbb{P}r(X_n \mid X_{n-1}) \qquad
 $$ {#eq-markov-chain-factorization-full}
 
-which is much simpler than the original. It consists of an initial distribution for the first variable, p(X1), and n−1 transition probabilities. We usually make one more assumption: that the transition probabilities do not change with time. Hence, the transition from time t to time t+1 depends only on the value of Xt.
+which is much simpler than the original. It consists of an initial distribution for the first variable, $\mathbb{P}r(X_1)$, and n−1 transition probabilities. We usually make one more assumption: that the transition probabilities do not change with time. Hence, the transition from time t to time t+1 depends only on the value of Xt.
 
 ## Examples of Markov chains
 
@@ -353,7 +353,7 @@ This is an example of a discrete Markov chain, where the possible values of the 
 Now let's look at a continuous example of a Markov chain. Say $X_t=0$ and we have the following transition model:
 
 $$
-p(X_{t+1}\mid X_t=x_t)=N(x_t,1) \qquad
+\mathbb{P}r(X_{t+1}\mid X_t=x_t)=N(x_t,1) \qquad
 $$ {#eq-random-walk-transition-full}
 
 That is, the probability distribution for the next state is Normal with variance 1 and mean equal to the current state. This is often referred to as a "random walk." Clearly, it is a Markov chain because the transition to the next state Xt+1 only depends on the current state Xt.
@@ -389,9 +389,9 @@ Q =
 \end{pmatrix} \qquad
 $$ {#eq-transition-matrix-full}
 
-where the transitions from State 1 are in the first row, the transitions from State 2 are in the second row, etc. For example, the probability p(Xt+1=5∣Xt=4) can be found in the fourth row, fifth column.
+where the transitions from State 1 are in the first row, the transitions from State 2 are in the second row, etc. For example, the probability $\mathbb{P}r(X_{t+1}=5\mid X_t=4)$ can be found in the fourth row, fifth column.
 
-The transition matrix is especially useful if we want to find the probabilities associated with multiple steps of the chain. For example, we might want to know p(Xt+2=3∣Xt=1), the probability of your secret number being 3 two steps from now, given that your number is currently 1. We can calculate this as ∑k=15p(Xt+2=3∣Xt+1=k)⋅p(Xt+1=k∣Xt=1), which conveniently is found in the first row and third column of Q2.
+The transition matrix is especially useful if we want to find the probabilities associated with multiple steps of the chain. For example, we might want to know  $\mathbb{P}r(X_{t+2}=3 \mid X_t=1)$, the probability of your secret number being 3 two steps from now, given that your number is currently 1. We can calculate this as $\sum_{k=15} \mathbb{P}r(X_t+2=3 \mid X_t+1=k) \cdot \mathbb{P}r(X_{t+1}=k \mid X_t=1)$, which conveniently is found in the first row and third column of $Q_2$.
 
 We can perform this matrix multiplication easily in R:
 
@@ -418,7 +418,7 @@ Therefore, if your secret number is currently 1, the probability that the number
 
 ## Stationary distribution
 
-Suppose we want to know the probability distribution of the your secret number in the distant future, say $p(X_{t+h} \mid X_t)$ where h is a large number. Let's calculate this for a few different values of h.
+Suppose we want to know the probability distribution of the your secret number in the distant future, say $\mathbb{P}r(X_{t+h} \mid X_t)$ where h is a large number. Let's calculate this for a few different values of h.
 
 ```{r}
 #| label: lst-mc-transition-matrix-5-steps
@@ -441,7 +441,7 @@ for (i in 2:30) {
 round(Q30, 3) # h=30 steps in the future
 ```
 
-Notice that as the future horizon gets more distant, the transition distributions appear to converge. The state you are currently in becomes less important in determining the more distant future. If we let h get really large, and take it to the limit, all the rows of the long-range transition matrix will become equal to $(.2,.2,.2,.2,.2)$. That is, if you run the Markov chain for a very long time, the probability that you will end up in any particular state is 1/5=.2 for each of the five states. These long-range probabilities are equal to what is called the stationary distribution of the Markov chain.
+Notice that as the future horizon gets more distant, the transition distributions appear to converge. The state you are currently in becomes less important in determining the more distant future. If we let h get really large, and take it to the limit, all the rows of the long-range transition matrix will become equal to $(.2,.2,.2,.2,.2)$. That is, if you run the Markov chain for a very long time, the probability that you will end up in any particular state is $1/5=.2$ for each of the five states. These long-range probabilities are equal to what is called the stationary distribution of the Markov chain.
 
 The stationary distribution of a chain is the initial state distribution for which performing a transition will not change the probability of ending up in any given state. That is,
 
@@ -482,7 +482,7 @@ It is important to note that the stationary distribution doesn't always exist fo
 
 The continuous random walk example we gave earlier does not have a stationary distribution. However, we can modify it so that it does have a stationary distribution.
 
-Let the transition distribution be $p(X_{t + 1}\mid X_t = x_t)=N(\phi x_t,1)$ where $-1 < \phi < 1$. That is, the probability distribution for the next state is Normal with variance $1$ and mean equal to $ϕ$ times the current state. As long as $\phi$ is between −1 and 1, then the stationary distribution will exist for this model.
+Let the transition distribution be $\mathbb{P}r(X_{t + 1}\mid X_t = x_t)=N(\phi x_t,1)$ where $-1 < \phi < 1$. That is, the probability distribution for the next state is Normal with variance $1$ and mean equal to $ϕ$ times the current state. As long as $\phi$ is between −1 and 1, then the stationary distribution will exist for this model.
 
 Let's simulate this chain for $\phi=−0.6$.
 

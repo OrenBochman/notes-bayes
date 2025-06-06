@@ -28,21 +28,21 @@ Hence, the key question is how to determine the parameters of the distribution f
 What you need to know now is that Bayesian methods can be used to calculate the distribution of a model parameter given some data. In the context of weight uncertainty in neural networks, this is convenient, since we are looking for the distribution of weights (model parameters) given some (training) data. The key step relies on Bayes' theorem. This theorem states, in mathematical notation, that
 
 $$
-P(w \mid D) = \frac{P(D \mid w) P(w)}{\int P(D \mid w') P(w') \text{d}w'}
+\mathbb{P}r(w \mid D) = \frac{\mathbb{P}r(D \mid w) \mathbb{P}r(w)}{\int \mathbb{P}r(D \mid w') \mathbb{P}r(w') \text{d}w'}
 $$
 
 where the terms mean the following:
 
 -   $D$ is some data, e.g. $x$ and $y$ value pairs: $D = \{(x_1, y_1), \ldots, (x_n, y_n)\}$ . This is sometimes called the *evidence*.
 -   $w$ is the value of a model weight.
--   $P(w)$ is called the *prior*. This is our "prior" belief on the probability density of a model weight, i.e. the distribution that we postulate before seeing any data.
--   $P(D \mid w)$ is the *likelihood* of having observed data $D$ given weight $w$ . It is precisely the same likelihood used to calculate the negative log-likelihood.
--   $P(w \mid D)$ is the *posterior* density of the distribution of the model weight at value $w$ , given our training data. It is called *posterior* since it represents the distribution of our model weight *after* taking the training data into account.
+-   $\mathbb{P}r(w)$ is called the *prior*. This is our "prior" belief on the probability density of a model weight, i.e. the distribution that we postulate before seeing any data.
+-   $\mathbb{P}r(D \mid w)$ is the *likelihood* of having observed data $D$ given weight $w$ . It is precisely the same likelihood used to calculate the negative log-likelihood.
+-   $\mathbb{P}r(w \mid D)$ is the *posterior* density of the distribution of the model weight at value $w$ , given our training data. It is called *posterior* since it represents the distribution of our model weight *after* taking the training data into account.
 
-Note that the term ${\int P(D \mid w') P(w') \text{d}w'} = P(D)$ does not depend on $w$ (as the $w'$ is an integration variable). It is only a normalization term. For this reason, we will from this point on write Bayes' theorem as
+Note that the term ${\int \mathbb{P}r(D \mid w') \mathbb{P}r(w') \text{d}w'} = \mathbb{P}r(D)$ does not depend on $w$ (as the $w'$ is an integration variable). It is only a normalization term. For this reason, we will from this point on write Bayes' theorem as
 
 $$
-P(w \mid D) = \frac{P(D \mid w) P(w)}{P(D)}.
+\mathbb{P}r(w \mid D) = \frac{\mathbb{P}r(D \mid w) \mathbb{P}r(w)}{\mathbb{P}r(D)}.
 $$
 
 Bayes' theorem gives us a way of combining data with some "prior belief" on model parameters to obtain a distribution for these model parameters that considers the data, called the *posterior distribution*.
@@ -51,21 +51,21 @@ Bayes' theorem gives us a way of combining data with some "prior belief" on mode
 
 The above formula gives a way to determine the distribution of each weight in the neural network:
 
-1.  Pick a prior density $P(w)$ .
+1.  Pick a prior density $\mathbb{P}r(w)$ .
 
-2.  Using training data $D$ , determine the likelihood $P(D \mid w)$ .
+2.  Using training data $D$ , determine the likelihood $\mathbb{P}r(D \mid w)$ .
 
-3.  Determine the posterior density $P(w \mid D)$ using Bayes' theorem.
+3.  Determine the posterior density $\mathbb{P}r(w \mid D)$ using Bayes' theorem.
 
 This is the distribution of the NN weight.
 
-While this works in principle, in many practical settings it is difficult to implement. The main reason is that the normalization constant ${\int P(D \mid w') P(w') \text{d}w'} = P(D)$ may be very difficult to calculate, as it involves solving or approximating a complicated integral. For this reason, approximate methods, such as *Variational Bayes* described below, are often employed.
+While this works in principle, in many practical settings it is difficult to implement. The main reason is that the normalization constant ${\int \mathbb{P}r(D \mid w') \mathbb{P}r(w') \text{d}w'} = \mathbb{P}r(D)$ may be very difficult to calculate, as it involves solving or approximating a complicated integral. For this reason, approximate methods, such as *Variational Bayes* described below, are often employed.
 
 ## Variational Bayes
 
-*Variational Bayes* \index{Variational Bayes} methods approximate the posterior distribution with a second function, called a *variational posterior*. This function has a known functional form, and hence avoids the need to determine the posterior $P(w \mid D)$ exactly. Of course, approximating a function with another one has some risks, since the approximation may be very bad, leading to a posterior that is highly inaccurate. In order to mediate this, the variational posterior usually has a number of parameters, denoted by $\theta$ , that are tuned so that the function approximates the posterior as well as possible. Let's see how this works below.
+*Variational Bayes* \index{Variational Bayes} methods approximate the posterior distribution with a second function, called a *variational posterior*. This function has a known functional form, and hence avoids the need to determine the posterior $\mathbb{P}r(w \mid D)$ exactly. Of course, approximating a function with another one has some risks, since the approximation may be very bad, leading to a posterior that is highly inaccurate. In order to mediate this, the variational posterior usually has a number of parameters, denoted by $\theta$ , that are tuned so that the function approximates the posterior as well as possible. Let's see how this works below.
 
-Instead of $P(w \mid D)$ , we assume the network weight has density $q(w \mid \theta)$ , parameterized by $\theta$ . $q(w \mid \theta)$ is known as the *variational posterior* \index{Variational Posterior}. We want $q(w \mid \theta)$ to approximate $P(w \mid D)$ , so we want the "difference" between $q(w \mid \theta)$ and $P(w \mid D)$ to be as small as possible. This "difference" between the two distributions is measured by the [Kullback-Leibler divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence) $D_{\text{KL}}$ (note that this is **unrelated** to the $D$ we use to denote the data). The Kullback-Leibler divergence between two distributions with densities $f(x)$ and $g(x)$ respectively is defined as
+Instead of $\mathbb{P}r(w \mid D)$ , we assume the network weight has density $q(w \mid \theta)$ , parameterized by $\theta$ . $q(w \mid \theta)$ is known as the *variational posterior* \index{Variational Posterior}. We want $q(w \mid \theta)$ to approximate $\mathbb{P}r(w \mid D)$ , so we want the "difference" between $q(w \mid \theta)$ and $\mathbb{P}r(w \mid D)$ to be as small as possible. This "difference" between the two distributions is measured by the [Kullback-Leibler divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence) $D_{\text{KL}}$ (note that this is **unrelated** to the $D$ we use to denote the data). The Kullback-Leibler divergence between two distributions with densities $f(x)$ and $g(x)$ respectively is defined as
 
 $$
 D_{KL} (f(x) \parallel g(x)) = \int f(x) \log \left( \frac{f(x)}{g(x)} \right) \text{d} x
@@ -73,45 +73,45 @@ $$
 
 Note that this function has value 0 (indicating no difference) when $f(x) \equiv g(x)$ , which is the result we expect. We use the convention that $\frac{0}{0} = 1$ here.
 
-Viewing the data $D$ as a constant, the Kullback-Leibler \index{Kullback-Leibler} divergence between $q(w \mid \theta)$ and $P(w \mid D)$ is hence:
+Viewing the data $D$ as a constant, the Kullback-Leibler \index{Kullback-Leibler} divergence between $q(w \mid \theta)$ and $\mathbb{P}r(w \mid D)$ is hence:
 
 $$
 \begin{aligned}
-  D_{KL} (q(w \mid \theta) \parallel P(w \mid D)) &= \int q(w \mid \theta) \log \left( \frac{q(w \mid \theta)}{P(w \mid D)} \right) \text{d} w \\
-&= \int q(w \mid \theta) \log \left( \frac{q(w \mid \theta) P(D)}{P(D \mid w) P(w)} \right) \text{d} w \\
-&= \int q(w \mid \theta) \log P(D) \text{d} w + \int q(w \mid \theta) \log \left( \frac{q(w \mid \theta)}{P(w)} \right) \text{d} w - \int q(w \mid \theta) \log P(D \mid w) \text{d} w \\
-&= \log P(D) + D_{KL} ( q(w \mid \theta) \parallel P(w) ) - \mathbb{E}_{q(w \mid \theta)}(\log P(D \mid w))
+  D_{KL} (q(w \mid \theta) \parallel \mathbb{P}r(w \mid D)) &= \int q(w \mid \theta) \log \left( \frac{q(w \mid \theta)}{\mathbb{P}r(w \mid D)} \right) \text{d} w \\
+&= \int q(w \mid \theta) \log \left( \frac{q(w \mid \theta) \mathbb{P}r(D)}{\mathbb{P}r(D \mid w) \mathbb{P}r(w)} \right) \text{d} w \\
+&= \int q(w \mid \theta) \log \mathbb{P}r(D) \text{d} w + \int q(w \mid \theta) \log \left( \frac{q(w \mid \theta)}{\mathbb{P}r(w)} \right) \text{d} w - \int q(w \mid \theta) \log \mathbb{P}r(D \mid w) \text{d} w \\
+&= \log \mathbb{P}r(D) + D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) - \mathbb{E}_{q(w \mid \theta)}(\log \mathbb{P}r(D \mid w))
 \end{aligned}
 $$
 
 where, in the last line, we have used
 
 $$
-\int q(w \mid \theta) \log P(D) \text{d}w = \log P(D) \int q(w \mid \theta) \text{d} w = \log P(D)
+\int q(w \mid \theta) \log \mathbb{P}r(D) \text{d}w = \log \mathbb{P}r(D) \int q(w \mid \theta) \text{d} w = \log \mathbb{P}r(D)
 $$
 
 since $q(w \mid \theta)$ is a probability distribution and hence integrates to 1. If we consider the data $D$ to be constant, the first term is a constant also, and we may ignore it when minimizing the above. Hence, we are left with the function
 
 $$
 \begin{aligned}
-L(\theta \mid D) &= D_{KL} ( q(w \mid \theta) \parallel P(w) ) - \mathbb{E}_{q(w \mid \theta)}(\log P(D \mid w))
+L(\theta \mid D) &= D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) - \mathbb{E}_{q(w \mid \theta)}(\log \mathbb{P}r(D \mid w))
 \end{aligned}
 $$
 
-Note that this function depends only on $\theta$ and $D$ , since $w$ is an integration variable. This function has a nice interpretation as the sum of: - The Kullback-Leibler divergence between the variational posterior $q(w \mid \theta)$ and the prior $P(w)$ . This is called the *complexity cost*, and it depends on $\theta$ and the prior but not the data $D$ . - The expectation of the negative log likelihood $\log P(D \mid w)$ under the variational posterior $q(w \mid \theta)$ . This is called the *likelihood cost* and it depends on $\theta$ and the data but not the prior.
+Note that this function depends only on $\theta$ and $D$ , since $w$ is an integration variable. This function has a nice interpretation as the sum of: - The Kullback-Leibler divergence between the variational posterior $q(w \mid \theta)$ and the prior $\mathbb{P}r(w)$ . This is called the *complexity cost*, and it depends on $\theta$ and the prior but not the data $D$ . - The expectation of the negative log likelihood $\log \mathbb{P}r(D \mid w)$ under the variational posterior $q(w \mid \theta)$ . This is called the *likelihood cost* and it depends on $\theta$ and the data but not the prior.
 
 $L(\theta \mid D)$ is the loss function that we minimize to determine the parameter $\theta$ . Note also from the above derivation, that we have
 
 $$
 \begin{aligned}
-\log P(D) &= \mathbb{E}_{q(w \mid \theta)}(\log P(D \mid w)) - D_{KL} ( q(w \mid \theta) \parallel P(w) ) + D_{KL} (q(w \mid \theta) \parallel P(w \mid D))\\
-&\ge \mathbb{E}_{q(w \mid \theta)}(\log P(D \mid w)) - D_{KL} ( q(w \mid \theta) \parallel P(w) ) =: ELBO
+\log \mathbb{P}r(D) &= \mathbb{E}_{q(w \mid \theta)}(\log \mathbb{P}r(D \mid w)) - D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) + D_{KL} (q(w \mid \theta) \parallel \mathbb{P}r(w \mid D))\\
+&\ge \mathbb{E}_{q(w \mid \theta)}(\log \mathbb{P}r(D \mid w)) - D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) =: ELBO
 \end{aligned}
 $$
 
-which follows because $D_{KL} (q(w \mid \theta) \parallel P(w \mid D))$ is non negative. The final expression on the right hand side is therefore a lower bound on the log-evidence, and is called the *evidence lower bound*, often shortened to *ELBO*. The \index{ELBO} {ELBO} is the negative of our loss function, so minimizing the loss function is equivalent to maximizing the ELBO.
+which follows because $D_{KL} (q(w \mid \theta) \parallel \mathbb{P}r(w \mid D))$ is non negative. The final expression on the right hand side is therefore a lower bound on the log-evidence, and is called the *evidence lower bound*, often shortened to *ELBO*. The \index{ELBO} {ELBO} is the negative of our loss function, so minimizing the loss function is equivalent to maximizing the ELBO.
 
-Maximizing the ELBO requires a trade off between the KL term and expected log-likelihood term. On the one hand, the divergence between $q(w \mid \theta)$ and $P(w)$ should be kept small, meaning the variational posterior shouldn't be too different to the prior. On the other, the variational posterior parameters should maximize the expectation of the log-likelihood $\log P(D \mid w)$ , meaning the model assigns a high likelihood to the data.
+Maximizing the ELBO requires a trade off between the KL term and expected log-likelihood term. On the one hand, the divergence between $q(w \mid \theta)$ and $\mathbb{P}r(w)$ should be kept small, meaning the variational posterior shouldn't be too different to the prior. On the other, the variational posterior parameters should maximize the expectation of the log-likelihood $\log \mathbb{P}r(D \mid w)$ , meaning the model assigns a high likelihood to the data.
 
 ## A backpropagation scheme
 
@@ -119,7 +119,7 @@ Maximizing the ELBO requires a trade off between the KL term and expected log-li
 
 We can use the above ideas to create a neural network with weight uncertainty, which we will call a *Bayesian neural network*. From a high level, this works as follows. Suppose we want to determine the distribution of a particular neural network weight $w$ .
 
-1.  Assign the weight a prior distribution with density $P(w)$ , which represents our beliefs on the possible values of this network before any training data. This may be something simple, like a unit Gaussian. Furthermore, this prior distribution will usually not have any trainable parameters.
+1.  Assign the weight a prior distribution with density $\mathbb{P}r(w)$ , which represents our beliefs on the possible values of this network before any training data. This may be something simple, like a unit Gaussian. Furthermore, this prior distribution will usually not have any trainable parameters.
 2.  Assign the weight a variational posterior with density $q(w \mid \theta)$ with some trainable parameter $\theta$ .
 3.  $q(w \mid \theta)$ is the approximation for the weight's posterior distribution. Tune $\theta$ to make this approximation as accurate as possible as measured by the ELBO.
 
@@ -129,15 +129,15 @@ Hence, the function we want to minimise is
 
 $$
 \begin{aligned}
-L(\theta \mid D) &= D_{KL} ( q(w \mid \theta) \parallel P(w) ) - \mathbb{E}_{q(w \mid \theta)}(\log P(D \mid w)) \\
-&= \int q(w \mid \theta) ( \log q(w \mid \theta) - \log P(D \mid w) - \log P(w) ) \text{d}w.
+L(\theta \mid D) &= D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) - \mathbb{E}_{q(w \mid \theta)}(\log \mathbb{P}r(D \mid w)) \\
+&= \int q(w \mid \theta) ( \log q(w \mid \theta) - \log \mathbb{P}r(D \mid w) - \log \mathbb{P}r(w) ) \text{d}w.
 \end{aligned}
 $$
 
 In principle, we could take derivatives of $L(\theta \mid D)$ with respect to $\theta$ and use this to update its value. However, this involves doing an integral over $w$ , and this is a calculation that may be impossible or very computationally expensive. Instead, we want to write this function as an expectation and use a Monte Carlo approximation to calculate derivatives. At present, we can write this function as
 
 $$
-L(\theta \mid D) = \mathbb{E}_{q(w \mid \theta)} ( \log q(w \mid \theta) - \log P(D \mid w) - \log P(w) )
+L(\theta \mid D) = \mathbb{E}_{q(w \mid \theta)} ( \log q(w \mid \theta) - \log \mathbb{P}r(D \mid w) - \log \mathbb{P}r(w) )
 $$
 
 However, taking derivatives with respect to $\theta$ is difficult because the underlying distribution the expectation is taken with respect to depends on $\theta$ . One way we can handle this is with the *reparameterization trick*.
@@ -184,7 +184,7 @@ The above reparameterization trick works in cases where we can write the $w = g(
 Putting this all together, for our loss function $L(\theta \mid D) \equiv L(\mu, \sigma \mid D)$ , we have
 
 $$
-f(w; \mu, \sigma) = \log q(w \mid \mu, \sigma) - \log P(D \mid w) - \log P(w)
+f(w; \mu, \sigma) = \log q(w \mid \mu, \sigma) - \log \mathbb{P}r(D \mid w) - \log \mathbb{P}r(w)
 $$
 
 $$
@@ -200,7 +200,7 @@ $$
 $$
 
 $$
-f(w; \mu, \sigma) = \log q(w \mid \mu, \sigma) - \log P(D \mid w) - \log P(w)
+f(w; \mu, \sigma) = \log q(w \mid \mu, \sigma) - \log \mathbb{P}r(D \mid w) - \log \mathbb{P}r(w)
 $$
 
 where $w_i = \mu + \sigma \epsilon_i, \, \epsilon_i \sim N(0, 1)$ . In practice, we often only take a single sample $\epsilon_1$ for each training point. This leads to the following backpropagation scheme:
@@ -223,8 +223,8 @@ Note that the loss function (or negative of the ELBO) is
 
 $$
 \begin{aligned}
-L(\theta \mid D) &= D_{KL} ( q(w \mid \theta) \parallel P(w) ) - \mathbb{E}_{q(w \mid \theta)}(\log P(D \mid w)) \\
-& = D_{KL} ( q(w \mid \theta) \parallel P(w) ) - \sum_{j=1}^N \log P(y_j, x_j \mid w_j)
+L(\theta \mid D) &= D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) - \mathbb{E}_{q(w \mid \theta)}(\log \mathbb{P}r(D \mid w)) \\
+& = D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) - \sum_{j=1}^N \log \mathbb{P}r(y_j, x_j \mid w_j)
 \end{aligned}
 $$
 
@@ -234,7 +234,7 @@ If training occurs in minibatches of size $B$ , typically much smaller than $N$ 
 
 $$
 \begin{aligned}
-D_{KL} ( q(w \mid \theta) \parallel P(w) ) - \sum_{j=1}^{B} \log P(y_j, x_j \mid w_j).
+D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) - \sum_{j=1}^{B} \log \mathbb{P}r(y_j, x_j \mid w_j).
 \end{aligned}
 $$
 
@@ -242,7 +242,7 @@ Note that the scaling factors between the first and second terms have changed, s
 
 $$
 \begin{aligned}
-\frac{1}{N} D_{KL} ( q(w \mid \theta) \parallel P(w) ) - \frac{1}{B} \sum_{j=1}^{B} \log P(y_j, x_j \mid w_j).
+\frac{1}{N} D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) - \frac{1}{B} \sum_{j=1}^{B} \log \mathbb{P}r(y_j, x_j \mid w_j).
 \end{aligned}
 $$
 
