@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.11">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Oren Bochman">
+
+<title>c2-l11-ex2 – Bayesian Statistics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-279bd408c6dfe7bd56e8b154fe269440.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-923206e44a13b4518db4dede9f4ebdc9.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-279bd408c6dfe7bd56e8b154fe269440.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-37379e3bbb48fc9e4c504b22bdb22879.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-e12ace95bce8268b44b48d9ebb190a16.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-37379e3bbb48fc9e4c504b22bdb22879.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar docked slimcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C2-L01.html">2. Techniques and Models</a></li><li class="breadcrumb-item"><a href="./C2-L11-Ex2.html">Homework on Non-Normal Hierarchical Models</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Bayesian Statistics</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Intro</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./about.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction to Bayesian Statistics</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">1. From Concept to Data Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L01-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on paradigms of probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayes’ Theorem</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L02-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Conditional Probability and Bayes’ Law</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L02-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Conditional Probability and Bayes’ Law</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Distributions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L03-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Random Variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L03-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Distributions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Frequentist Inference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L04-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework - Frequentist MLE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayesian Inference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L05-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Likelihoods and MLEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L05-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Bayesian Inference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Priors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L06-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework Posterior Probabilities</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Binomial Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L07-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Priors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Poisson Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L08-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Poisson Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L08-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Honors Quiz - Beta Bernoulli</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exponential Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L09-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework exponential data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Normally distributed Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L10-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework Normal data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Non-Informative Priors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L11-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework Alternative Priors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L12.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Brief Review of Regression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L12-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">—</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L12-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Honnors Homework On Regression</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">2. Techniques and Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Statistical Modeling and Monte Carlo estimation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayesian Modeling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Monte Carlo estimation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metropolis-Hastings</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L04-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on the Metropolis-Hastings algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Gibbs sampling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L05-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">HW - Gibbs-Sampling algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assessing Convergence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L06-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on the Gibbs-Sampling algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L06-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Honnors Homework on M-H algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Notes - Linear regression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L07-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">HW on Linear Regression Model Part 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L07-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">HW - Deviance information criterion (DIC)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ANOVA</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L08-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">HW on ANOVA</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L08-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">HW+ - Multiple Factor ANOVA</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Logistic regression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L09-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Logistic Regression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Poisson regression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L10-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Poisson regression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Hierarchical modeling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L11-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Hierarchical Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L11-Ex2.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Homework on Non-Normal Hierarchical Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L12.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Capstone Project</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L12-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homework on Predictive distributions and mixture models</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">3. Mixture Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basic Concepts of Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex1-Basic-Definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basic Concepts of Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex2-Gaussian-mixtures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mixtures of Gaussians</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex3-Zero-Inflated-distribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Definition of Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex4-Def-mixture-models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Zero inflated distributions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex5.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basic Concepts of Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex6.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basic Concepts of Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The EM algorithm for zero-inflated mixtures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The EM algorithm for Zero-Inflated Mixtures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The EM algorithm for Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">MCMC for Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L03-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The MCMC algorithm for Zero-Inflated Mixtures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L03-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Markov chain Monte Carlo algorithms for Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Applications of Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L04-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Old Faithful eruptions density estimation with the EM algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L04-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Old Faithful eruptions density estimation with the MCMC algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L04-Ex3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayesian Mixture Models for Classification of Banknotes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Practical Considerations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L05-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Computational considerations for Mixture Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L05-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayesian Information Criteria (BIC)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L05-Ex3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Estimating the number of components in Bayesian settings</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L05-Ex4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Estimating the partition structure in Bayesian models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L05-Ex5.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The MCMC algorithm for Zero-Inflated Mixtures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">4. Time series Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L00.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Week 0: Introductions to time series analysis and the AR(1) process</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introductions to Time Series analysis &amp; the AR(1) process</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The AR(p) process</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Normal Dynamic Linear Models, Part 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Normal Dynamic Linear Models, Part 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Final Project</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Week 0: Feyman Notebook on Bayesian Time Series Analysis</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">5. Capstone Project</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+ <span class="menu-text">C5-L01.qmd</span>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true">
+ <span class="menu-text">6. Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendix: Notation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendix: Discrete Distributions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendix: Continuous Distributions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendix: Exponents &amp; Logarithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendix: The Law of Large Numbers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendix: The Central Limit Theorem</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendix: Conjugate Priors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendix: Link Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayes by backprop</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A12.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayesian Books in R &amp; Python</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summary</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#homework-on-non-normal-hierarchical-models" id="toc-homework-on-non-normal-hierarchical-models" class="nav-link active" data-scroll-target="#homework-on-non-normal-hierarchical-models"><span class="header-section-number">1</span> Homework on Non-Normal Hierarchical Models</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content"><div class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C2-L01.html">2. Techniques and Models</a></li><li class="breadcrumb-item"><a href="./C2-L11-Ex2.html">Homework on Non-Normal Hierarchical Models</a></li></ol></nav><div class="quarto-title-tools-only"><h1></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Oren Bochman </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="homework-on-non-normal-hierarchical-models" class="level2 page-columns page-full" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="homework-on-non-normal-hierarchical-models"><span class="header-section-number">1</span> Homework on Non-Normal Hierarchical Models</h2>
+<div id="exr-Non-Normal-Hierarchical-Model-1" class="theorem exercise page-columns page-full">
+<div class="page-columns page-full"><p><span class="theorem-title"><strong>Exercise 1</strong></span>  We have seen an example of extending a normal linear model to a hierarchical model. We will now explore extending a non-normal linear model. Consider again the OME data in the MASS package in R, which we explored in the quiz from Lesson 9. The data consist of experimental results from tests of auditory perception in children. Under varying conditions and for multiple trials under each condition, children either correctly or incorrectly identified the source of changing signals.</p><div class="no-row-height column-margin column-container"><span class=""><strong>Hierarchical Model</strong></span></div></div>
+<p>One variable we did not use in the model was the child ID number. It turns out that there are multiple (ranging from eight to 20) observations for each child. For example, the first 20 rows of the data are all results from Child 1. Why is it reasonable to consider fitting a hierarchical model in this scenario?</p>
+</div>
+<div class="solution callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Solution:
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul class="task-list">
+<li><label><input type="checkbox">Observations are independent, within and between different children. Separate tests were conducted, so there’s no reason to believe the data are correlated.</label></li>
+<li><label><input type="checkbox">Some of the children in the study may be siblings, and their results may be more correlated than for unrelated children.</label></li>
+<li><label><input type="checkbox" checked="">Observations from a single child are likely correlated. For example, two results from one child are more likely to be similar than two results from two different children.</label></li>
+<li><label><input type="checkbox">The children may be grouped in a hierarchical fashion, for example, classes in a school.</label></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="exr-Non-Normal-Hierarchical-Model-2" class="theorem exercise page-columns page-full">
+<div class="page-columns page-full"><p><span class="theorem-title"><strong>Exercise 2</strong></span>  Recall that the original model looked like this:</p><div class="no-row-height column-margin column-container"><span class=""><strong>Hierarchical Model</strong></span></div></div>
+<p><span class="math display">
+\begin{aligned}
+y_i \mid \phi_i  &amp; \overset{\text{ind}}{\sim} \text{Binomial}(n_i, \phi_i) \, , \quad i = 1,\ldots,712 \, ,
+\\ \text{logit}(\phi_i) &amp;= \beta_0 + \beta_1 {\texttt Age}_i + \beta_2 I_{({\texttt OME}_i = {\texttt low})} + \beta_3 {\texttt Loud}_i + \beta_4 I_{({\texttt Noise}_i = {\texttt incoherent})}
+\\ \beta_0   &amp; \sim \text{N}(0, 5^2)
+\\  \beta_k  &amp; \overset{\text{iid}}{\sim} \text{N}(0, 4^2) \, , \quad k = 1,2,3
+\end{aligned}
+</span></p>
+<p>As with other models, we will extend the intercept (and rename it) so that the linear part of the model looks like this:</p>
+<p><span class="math display">
+\text{logit}(\phi_i) = \alpha_{{\texttt ID}_i} + \beta_1 {\texttt Age}_i + \beta_2 I_{({\texttt OME}_i = {\texttt low})} + \beta_3 {\texttt Loud}_i + \beta_4 I_{({\texttt Noise}_i = {\texttt incoherent})}
+</span></p>
+<p>where <span class="math inline">{\texttt ID}_i</span> is an index identifying the child for observation <span class="math inline">i.</span> The hierarchical prior for the intercepts would then look like this:</p>
+<p><span class="math display">
+\alpha_j \overset{\text{iid}}{\sim} \text{N}(\mu, \tau^2) \, , \quad j = 1,\ldots, 63
+</span></p>
+<p>followed by priors for <span class="math inline">\mu</span> and <span class="math inline">\tau^2</span>:</p>
+<p><span class="math display">
+\mu \sim \text{N}(0, 10^2) \\ \tau^2 \sim \text{IG}(1/2, 1/2)
+</span></p>
+<p>What does <span class="math inline">\tau^2</span> indicate in the context of this model?</p>
+</div>
+<div class="solution callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Solution:
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul class="task-list">
+<li><label><input type="checkbox">The variability in proportion of correct responses across tests for one child.</label></li>
+<li><label><input type="checkbox">The variability in the number of correct responses across tests for one child.</label></li>
+<li><label><input type="checkbox">The variability of the intercept across all observations in the data.</label></li>
+<li><label><input type="checkbox" checked="">The variability of the intercept between children.</label></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="exr-Non-Normal-Hierarchical-Model-3" class="theorem exercise page-columns page-full">
+<div class="page-columns page-full"><p><span class="theorem-title"><strong>Exercise 3</strong></span>  Fit the hierarchical model proposed in Question 2 with JAGS by adjusting the code given in the quiz from Lesson 9 (below). The following R code will be necessary to reproduce the results.</p><div class="no-row-height column-margin column-container"><span class=""><strong>Hierarchical Model</strong></span></div></div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"MASS"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"OME"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> <span class="fu">subset</span>(OME, OME <span class="sc">!=</span> <span class="st">"N/A"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>OME <span class="ot">=</span> <span class="fu">factor</span>(dat<span class="sc">$</span>OME) <span class="co"># relabel OME</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>ID <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">factor</span>(dat<span class="sc">$</span>ID)) <span class="co"># relabel ID so there are no gaps in numbers (they now go from 1 to 63)</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="do">## Original reference model and covariate matrix</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>mod_glm <span class="ot">=</span> <span class="fu">glm</span>(Correct<span class="sc">/</span>Trials <span class="sc">~</span> Age <span class="sc">+</span> OME <span class="sc">+</span> Loud <span class="sc">+</span> Noise, <span class="at">data=</span>dat, <span class="at">weights=</span>Trials, <span class="at">family=</span><span class="st">"binomial"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>X <span class="ot">=</span> <span class="fu">model.matrix</span>(mod_glm)[,<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="do">## Original model (that needs to be extended)</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>mod_string <span class="ot">=</span> <span class="st">" model {</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="st">    for (i in 1:length(y)) {</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="st">        y[i] ~ dbin(phi[i], n[i])</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="st">        #logit(phi[i]) = b0 + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="st">    logit(phi[i]) = a[ID[i]] + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="st">  for (k in 1:max(ID) ) {</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="st">    a[k] ~ dnorm(a0, prec_a)</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="st">    #a ~ dnorm(0.0, 1.0/5.0^2)</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="st">  a0 ~ dnorm(0,1.0/10.0^2)</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="st">  prec_a ~ dgamma(0.5,0.5)</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="st">  tau = sqrt(1/prec_a)</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="st">    for (j in 1:4) {</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="st">        b[j] ~ dnorm(0.0, 1.0/4.0^2)</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="st">} "</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>data_jags <span class="ot">=</span> <span class="fu">as.list</span>(<span class="fu">as.data.frame</span>(X))</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>y <span class="ot">=</span> dat<span class="sc">$</span>Correct</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>n <span class="ot">=</span> dat<span class="sc">$</span>Trials</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>ID <span class="ot">=</span> dat<span class="sc">$</span>ID</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">113</span>)</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>params <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"b"</span>,<span class="st">"a"</span>,<span class="st">"a0"</span>,<span class="st">"tau"</span>)</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">2.5</span>, <span class="dv">1</span>, <span class="fl">2.5</span>, <span class="dv">1</span>))</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">=</span> <span class="fu">jags.model</span>(<span class="fu">textConnection</span>(mod_string), <span class="at">data=</span>data_jags, <span class="at">n.chains=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 712
+   Unobserved stochastic nodes: 69
+   Total graph size: 6500
+
+Initializing model</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(mod, <span class="fl">1e3</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">2.5</span>, <span class="dv">1</span>, <span class="fl">2.5</span>, <span class="dv">1</span>))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>mod_sim <span class="ot">=</span> <span class="fu">coda.samples</span>(<span class="at">model=</span>mod, <span class="at">variable.names=</span>params, <span class="at">n.iter=</span><span class="fl">1e3</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>mod_csim <span class="ot">=</span> <span class="fu">as.mcmc</span>(<span class="fu">do.call</span>(rbind, mod_sim))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>How do the convergence diagnostics look?</p>
+</div>
+<div class="solution callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Solution:
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gelman.diag</span>(mod_sim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Potential scale reduction factors:
+
+      Point est. Upper C.I.
+a[1]        1.48       2.24
+a[2]        1.48       2.23
+a[3]        1.43       2.11
+a[4]        1.53       2.35
+a[5]        1.46       2.19
+a[6]        1.35       1.93
+a[7]        1.49       2.26
+a[8]        1.47       2.21
+a[9]        1.36       1.94
+a[10]       1.42       2.09
+a[11]       1.48       2.24
+a[12]       1.35       1.91
+a[13]       1.41       2.08
+a[14]       1.41       2.07
+a[15]       1.47       2.21
+a[16]       1.39       2.04
+a[17]       1.40       2.04
+a[18]       1.43       2.10
+a[19]       1.37       1.98
+a[20]       1.46       2.19
+a[21]       1.38       2.01
+a[22]       1.43       2.12
+a[23]       1.31       1.84
+a[24]       1.51       2.32
+a[25]       1.46       2.20
+a[26]       1.37       1.98
+a[27]       1.39       2.03
+a[28]       1.42       2.09
+a[29]       1.38       2.00
+a[30]       1.40       2.06
+a[31]       1.41       2.06
+a[32]       1.36       1.95
+a[33]       1.40       2.06
+a[34]       1.40       2.04
+a[35]       1.37       1.97
+a[36]       1.33       1.90
+a[37]       1.42       2.10
+a[38]       1.38       2.01
+a[39]       1.40       2.05
+a[40]       1.33       1.89
+a[41]       1.33       1.89
+a[42]       1.44       2.13
+a[43]       1.41       2.07
+a[44]       1.39       2.01
+a[45]       1.40       2.04
+a[46]       1.37       1.99
+a[47]       1.41       2.07
+a[48]       1.41       2.07
+a[49]       1.36       1.96
+a[50]       1.41       2.08
+a[51]       1.38       2.01
+a[52]       1.34       1.91
+a[53]       1.40       2.04
+a[54]       1.38       2.00
+a[55]       1.29       1.79
+a[56]       1.39       2.02
+a[57]       1.45       2.16
+a[58]       1.43       2.13
+a[59]       1.41       2.06
+a[60]       1.40       2.04
+a[61]       1.37       1.98
+a[62]       1.37       1.97
+a[63]       1.44       2.15
+a0          1.64       2.64
+b[1]        1.19       1.55
+b[2]        1.12       1.37
+b[3]        1.26       1.75
+b[4]        1.02       1.07
+tau         1.02       1.06
+
+Multivariate psrf
+
+1.4</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.diag</span>(mod_sim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            a[1]      a[2]      a[3]      a[4]      a[5]      a[6]      a[7]
+Lag 0  1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000
+Lag 1  0.7384115 0.7589160 0.7477754 0.8130073 0.7828902 0.6552116 0.7612009
+Lag 5  0.6320003 0.6733677 0.6283192 0.7157442 0.6741526 0.5464496 0.6628827
+Lag 10 0.6011340 0.6246967 0.5918353 0.6812182 0.6483540 0.5043516 0.6072099
+Lag 50 0.3782057 0.3794023 0.3893817 0.4321379 0.3989824 0.2986257 0.3953205
+            a[8]      a[9]     a[10]     a[11]     a[12]     a[13]     a[14]
+Lag 0  1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000
+Lag 1  0.7480722 0.7067193 0.7389464 0.7588335 0.6635101 0.6657928 0.6735779
+Lag 5  0.6392104 0.5711087 0.6293384 0.6761727 0.5083479 0.5466971 0.5604437
+Lag 10 0.6157704 0.5317715 0.6053351 0.6246028 0.4844472 0.5159358 0.5225860
+Lag 50 0.3820233 0.3323511 0.3643555 0.3981989 0.3346961 0.3237202 0.3548105
+           a[15]     a[16]     a[17]     a[18]     a[19]     a[20]     a[21]
+Lag 0  1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000
+Lag 1  0.7317163 0.6820253 0.6716004 0.7421061 0.6988594 0.7671423 0.7089165
+Lag 5  0.6069226 0.5747271 0.5230867 0.6224305 0.5491634 0.6813483 0.5869220
+Lag 10 0.5878651 0.5388267 0.4861165 0.5651611 0.5325498 0.6480784 0.5715649
+Lag 50 0.3700457 0.3360556 0.2875709 0.3601249 0.3180743 0.4043996 0.3801908
+           a[22]     a[23]     a[24]     a[25]     a[26]     a[27]     a[28]
+Lag 0  1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000
+Lag 1  0.8037006 0.6584901 0.7917202 0.7084050 0.6751556 0.6826420 0.6988987
+Lag 5  0.7082411 0.5299643 0.6807149 0.5972439 0.5572872 0.5703755 0.5915298
+Lag 10 0.6491302 0.4851329 0.6583263 0.5536366 0.5235020 0.5238350 0.5708779
+Lag 50 0.4121396 0.3146076 0.3983622 0.3800256 0.3558079 0.3464781 0.3559758
+           a[29]     a[30]     a[31]     a[32]     a[33]     a[34]     a[35]
+Lag 0  1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000
+Lag 1  0.6554065 0.6893182 0.6809088 0.6751089 0.6582870 0.6828014 0.6847781
+Lag 5  0.5431500 0.5538284 0.5618483 0.5380522 0.5537609 0.5638235 0.5561663
+Lag 10 0.5044323 0.5209618 0.5612138 0.4942244 0.5133794 0.5413041 0.5182117
+Lag 50 0.3178461 0.3385031 0.3438089 0.2864588 0.3398149 0.3553755 0.3083645
+           a[36]     a[37]     a[38]     a[39]     a[40]     a[41]     a[42]
+Lag 0  1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000
+Lag 1  0.6559472 0.6612355 0.6946259 0.6600176 0.6280698 0.6322145 0.6871007
+Lag 5  0.5474776 0.5496478 0.5820781 0.5282913 0.4933737 0.4864758 0.5933165
+Lag 10 0.5028826 0.5276242 0.5412495 0.5142185 0.4725571 0.4322696 0.5434797
+Lag 50 0.3258714 0.3180498 0.3267427 0.3404627 0.2962344 0.2767433 0.3538876
+           a[43]     a[44]     a[45]     a[46]     a[47]     a[48]     a[49]
+Lag 0  1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000
+Lag 1  0.6682095 0.6802619 0.6684407 0.6752517 0.6600898 0.6842115 0.6686602
+Lag 5  0.5352402 0.5502613 0.5612497 0.5632664 0.5365567 0.5179433 0.5475056
+Lag 10 0.5215595 0.5107113 0.5147386 0.5105006 0.4635394 0.5146646 0.5163282
+Lag 50 0.3332889 0.3084381 0.3394340 0.3141649 0.2865138 0.3099736 0.3087018
+           a[50]     a[51]     a[52]     a[53]     a[54]     a[55]     a[56]
+Lag 0  1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000
+Lag 1  0.6881296 0.6635374 0.6426570 0.7067085 0.6712957 0.6358072 0.6842669
+Lag 5  0.5539886 0.5716139 0.5277994 0.5702085 0.5264127 0.4845313 0.5588057
+Lag 10 0.5322639 0.5280073 0.4801114 0.5563522 0.4984606 0.4592124 0.5164007
+Lag 50 0.3432262 0.3306224 0.3108628 0.3630232 0.3269052 0.2901837 0.3323929
+           a[57]     a[58]     a[59]     a[60]     a[61]     a[62]     a[63]
+Lag 0  1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000 1.0000000
+Lag 1  0.7002908 0.7491153 0.6888401 0.7073981 0.6739860 0.6522490 0.6871424
+Lag 5  0.6037649 0.6400560 0.5512992 0.5859669 0.5540001 0.5470158 0.5751582
+Lag 10 0.5664133 0.5929086 0.5286043 0.5454899 0.5240993 0.5052415 0.5303184
+Lag 50 0.3641708 0.3823791 0.3264806 0.3647112 0.3392222 0.3161184 0.3154212
+              a0      b[1]       b[2]      b[3]       b[4]          tau
+Lag 0  1.0000000 1.0000000 1.00000000 1.0000000 1.00000000 1.0000000000
+Lag 1  0.9804429 0.9454800 0.88868626 0.9707409 0.47560290 0.6867878779
+Lag 5  0.9431717 0.7827141 0.56664884 0.8661804 0.04605940 0.2661491737
+Lag 10 0.8951097 0.6358818 0.32463070 0.7465827 0.02341867 0.0594861522
+Lag 50 0.5625958 0.2071369 0.02759236 0.2303559 0.02141137 0.0009459412</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">effectiveSize</span>(mod_sim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>     a[1]      a[2]      a[3]      a[4]      a[5]      a[6]      a[7]      a[8] 
+ 32.48613  37.68245  41.79408  23.87680  31.59278  58.59754  42.22577  39.94962 
+     a[9]     a[10]     a[11]     a[12]     a[13]     a[14]     a[15]     a[16] 
+ 54.91486  35.74868  36.69694  51.50531  57.52082  62.60160  39.53437  43.72551 
+    a[17]     a[18]     a[19]     a[20]     a[21]     a[22]     a[23]     a[24] 
+ 60.99215  62.00972  56.10194  36.28346  37.72041  41.15899  72.20036  30.51418 
+    a[25]     a[26]     a[27]     a[28]     a[29]     a[30]     a[31]     a[32] 
+ 38.30646  55.95998  58.14786  35.42232  72.22349  55.34557  35.14419  55.55883 
+    a[33]     a[34]     a[35]     a[36]     a[37]     a[38]     a[39]     a[40] 
+ 45.79354  39.54010  38.97129  50.27835  53.39231  46.58026  60.38666  64.05775 
+    a[41]     a[42]     a[43]     a[44]     a[45]     a[46]     a[47]     a[48] 
+ 85.93085  58.56096  62.02050  65.22789  34.94011  57.87375  56.75564  48.69259 
+    a[49]     a[50]     a[51]     a[52]     a[53]     a[54]     a[55]     a[56] 
+ 58.69677  47.35716  38.38298  55.19775  40.37113  50.23325  72.85406  46.04376 
+    a[57]     a[58]     a[59]     a[60]     a[61]     a[62]     a[63]        a0 
+ 44.67369  37.80013  53.91011  45.18546  45.03964  61.29044  46.98851  14.64713 
+     b[1]      b[2]      b[3]      b[4]       tau 
+ 77.16964 179.52186  44.54993 987.59389 423.75479 </code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="do">## convergence diagnostics</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">2.5</span>, <span class="dv">1</span>, <span class="fl">2.5</span>, <span class="dv">1</span>))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mod_sim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-1.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-2.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-3.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-4.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-5.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-5.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-6.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-6.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-7.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-7.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-8.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-8.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-9.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-9.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-10.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-10.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-11.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-11.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-12.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-12.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-13.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-13.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-14.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-14.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-15.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-15.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-16.png" class="lightbox" data-gallery="quarto-lightbox-gallery-16"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-16.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-17.png" class="lightbox" data-gallery="quarto-lightbox-gallery-17"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-17.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- marginal plots-18.png" class="lightbox" data-gallery="quarto-lightbox-gallery-18"><img src="C2-L11-Ex2_files/figure-html/s3- marginal plots-18.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">2.5</span>, <span class="dv">1</span>, <span class="fl">2.5</span>, <span class="dv">1</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.plot</span>(mod_csim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- correlation plots-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-19"><img src="C2-L11-Ex2_files/figure-html/s3- correlation plots-1.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- correlation plots-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-20"><img src="C2-L11-Ex2_files/figure-html/s3- correlation plots-2.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- correlation plots-3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-21"><img src="C2-L11-Ex2_files/figure-html/s3- correlation plots-3.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- correlation plots-4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-22"><img src="C2-L11-Ex2_files/figure-html/s3- correlation plots-4.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- correlation plots-5.png" class="lightbox" data-gallery="quarto-lightbox-gallery-23"><img src="C2-L11-Ex2_files/figure-html/s3- correlation plots-5.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- correlation plots-6.png" class="lightbox" data-gallery="quarto-lightbox-gallery-24"><img src="C2-L11-Ex2_files/figure-html/s3- correlation plots-6.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- correlation plots-7.png" class="lightbox" data-gallery="quarto-lightbox-gallery-25"><img src="C2-L11-Ex2_files/figure-html/s3- correlation plots-7.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L11-Ex2_files/figure-html/s3- correlation plots-8.png" class="lightbox" data-gallery="quarto-lightbox-gallery-26"><img src="C2-L11-Ex2_files/figure-html/s3- correlation plots-8.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<ul class="task-list">
+<li><label><input type="checkbox">The chains suddenly jump from exploring one space to exploring another, as though the parameters are switching labels. The parameters do not appear to be uniquely identified by the data.</label></li>
+<li><label><input type="checkbox" checked="">Autocorrelation is quite strong in the chains. This model would require a large number of MCMC iterations before we would use the results to make solid conclusions.</label></li>
+<li><label><input type="checkbox">Different chains from different initial values fail to explore the same space. Advanced MCMC techniques will be required to explore this multi-modal (many-peaked) posterior.</label></li>
+<li><label><input type="checkbox">Convergence diagnostics look great. There are no concerns</label></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="exr-Non-Normal-Hierarchical-Model-4" class="theorem exercise page-columns page-full">
+<div class="page-columns page-full"><p><span class="theorem-title"><strong>Exercise 4</strong></span>  The DIC value for the original model fit in the quiz for logistic regression is about 1264. Calculate a DIC value for this new hierarchical model. What do you conclude?</p><div class="no-row-height column-margin column-container"><span class=""><strong>Hierarchical Model</strong></span></div></div>
+</div>
+<div class="solution callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Solution:
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="do">## s4 - compute new DIC</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>(<span class="at">dic =</span> <span class="fu">dic.samples</span>(mod, <span class="at">n.iter=</span><span class="fl">1e3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Mean deviance:  1240 
+penalty 28.05 
+Penalized deviance: 1268 </code></pre>
+</div>
+</div>
+<ul class="task-list">
+<li><label><input type="checkbox">The DIC value for this new model is higher, indicating a preference for the new model.</label></li>
+<li><label><input type="checkbox" checked="">The DIC value for this new model is higher, indicating a preference for the original model.</label></li>
+<li><label><input type="checkbox">The DIC value for this new model is lower, indicating a preference for the new model.</label></li>
+<li><label><input type="checkbox">The DIC value for this new model is lower, indicating a preference for the original model.</label></li>
+</ul>
+<p>It turns out that in this case, the hierarchical model accounting for correlated tests with the same child does not help the model in terms of predictive accuracy. Theoretically, the hierarchical model is probably more justified because of the hierarchical structure of the data. However, the data appear to be essentially uncorrelated in practice</p>
+</div>
+</div>
+</div>
+<div id="exr-Non-Normal-Hierarchical-Model-5" class="theorem exercise page-columns page-full">
+<div class="page-columns page-full"><p><span class="theorem-title"><strong>Exercise 5</strong></span>  The actual number of parameters in this hierarchical model is 69 (63 random intercepts, four regression coefficients, and two hyperparameters). What is the effective number of parameters? Round your answer to one decimal place.</p><div class="no-row-height column-margin column-container"><span class=""><strong>Hierarchical Model</strong></span></div></div>
+</div>
+<div class="solution callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Solution:
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>27.51</p>
+<p>This number is so much smaller than the actual number of parameters partially because the intercept parameters are very similar for many of the children.</p>
+</div>
+</div>
+</div>
+<div id="exr-Non-Normal-Hierarchical-Model-6" class="theorem exercise page-columns page-full">
+<div class="page-columns page-full"><p><span class="theorem-title"><strong>Exercise 6</strong></span> In the hierarchical model with random intercepts, we assumed that the common distribution for the intercepts is normal. What could we examine to assess whether this is a reasonable assumption?</p><div class="no-row-height column-margin column-container"><span class=""><strong>Hierarchical Model</strong></span></div></div>
+</div>
+<div class="solution callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Solution:
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul class="task-list">
+<li><label><input type="checkbox" checked="">We could look at the second-level residuals calculated from <span class="math inline">\alpha_j − \mu</span> and evaluate how they are distributed.</label></li>
+<li><label><input type="checkbox">We could look at the posterior distribution of <span class="math inline">\mu</span>.</label></li>
+<li><label><input type="checkbox">We could look at the data-level residuals calculated from <span class="math inline">(y_i−\phi_i)</span> and evaluate how they are distributed.</label></li>
+<li><label><input type="checkbox">We could look at the data-level residuals calculated from <span class="math inline">({y_i \over n_i}−\phi_i)</span> and evaluate how they are distributed.</label></li>
+</ul>
+<p>We could perform the equivalent of a linear model residual analysis for this level of the model, using the estimates of the intercepts as the data.</p>
+</div>
+</div>
+</div>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script type="text/javascript">
+
+// replace cmd keyboard shortcut w/ control on non-Mac platforms
+const kPlatformMac = typeof navigator !== 'undefined' ? /Mac/.test(navigator.platform) : false;
+if (!kPlatformMac) {
+   var kbds = document.querySelectorAll("kbd")
+   kbds.forEach(function(kbd) {
+      kbd.innerHTML = kbd.innerHTML.replace(/⌘/g, '⌃');
+   });
+}
+
+// tweak headings in pymd
+document.querySelectorAll(".pymd span.co").forEach(el => {
+   if (!el.innerText.startsWith("#|")) {
+      el.style.fontWeight = 1000;
+   }
+});
+
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## Homework on Non-Normal Hierarchical Models</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'Setup'</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-label: lst-Non-Normal-Hierarchical-Model-0</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-cap: 'Setup'</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">#| attr-source: "id=lst-Non-Normal-Hierarchical-Model-0 lst-cap='setup'"</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: false</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"rjags"</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"COUNT"</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"badhealth"</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>dat<span class="ot">=</span>badhealth</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>::: {#exr-Non-Normal-Hierarchical-Model-1}</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Hierarchical Model**</span><span class="co">]</span>{.column-margin} We have seen an example of extending a normal linear model to a hierarchical model. We will now explore extending a non-normal linear model. Consider again the OME data in the MASS package in R, which we explored in the quiz from Lesson 9. The data consist of experimental results from tests of auditory perception in children. Under varying conditions and for multiple trials under each condition, children either correctly or incorrectly identified the source of changing signals.</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>One variable we did not use in the model was the child ID number. It turns out that there are multiple (ranging from eight to 20) observations for each child. For example, the first 20 rows of the data are all results from Child 1. Why is it reasonable to consider fitting a hierarchical model in this scenario?</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Observations are independent, within and between different children. Separate tests were conducted, so there's no reason to believe the data are correlated.</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Some of the children in the study may be siblings, and their results may be more correlated than for unrelated children.</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Observations from a single child are likely correlated. For example, two results from one child are more likely to be similar than two results from two different children.</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The children may be grouped in a hierarchical fashion, for example, classes in a school.</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>::: {#exr-Non-Normal-Hierarchical-Model-2}</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Hierarchical Model**</span><span class="co">]</span>{.column-margin} Recall that the original model looked like this:</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>y_i \mid \phi_i  &amp; \overset{\text{ind}}{\sim} \text{Binomial}(n_i, \phi_i) \, , \quad i = 1,\ldots,712 \, , </span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> \text{logit}(\phi_i) &amp;= \beta_0 + \beta_1 {\texttt Age}_i + \beta_2 I_{({\texttt OME}_i = {\texttt low})} + \beta_3 {\texttt Loud}_i + \beta_4 I_{({\texttt Noise}_i = {\texttt incoherent})} </span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> \beta_0   &amp; \sim \text{N}(0, 5^2) </span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span>  \beta_k  &amp; \overset{\text{iid}}{\sim} \text{N}(0, 4^2) \, , \quad k = 1,2,3</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>As with other models, we will extend the intercept (and rename it) so that the linear part of the model looks like this:</span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>\text{logit}(\phi_i) = \alpha_{{\texttt ID}_i} + \beta_1 {\texttt Age}_i + \beta_2 I_{({\texttt OME}_i = {\texttt low})} + \beta_3 {\texttt Loud}_i + \beta_4 I_{({\texttt Noise}_i = {\texttt incoherent})}</span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>where ${\texttt ID}_i$ is an index identifying the child for observation $i.$ The hierarchical prior for the intercepts would then look like this:</span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>\alpha_j \overset{\text{iid}}{\sim} \text{N}(\mu, \tau^2) \, , \quad j = 1,\ldots, 63</span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>followed by priors for $\mu$ and $\tau^2$:</span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>\mu \sim \text{N}(0, 10^2) <span class="sc">\\</span> \tau^2 \sim \text{IG}(1/2, 1/2)</span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>What does $\tau^2$ indicate in the context of this model?</span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The variability in proportion of correct responses across tests for one child.</span>
+<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The variability in the number of correct responses across tests for one child.</span>
+<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The variability of the intercept across all observations in the data.</span>
+<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> The variability of the intercept between children.</span>
+<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a>::: {#exr-Non-Normal-Hierarchical-Model-3}</span>
+<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Hierarchical Model**</span><span class="co">]</span>{.column-margin} Fit the hierarchical model proposed in Question 2 with JAGS by adjusting the code given in the quiz from Lesson 9 (below). The following R code will be necessary to reproduce the results.</span>
+<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-80"><a href="#cb14-80" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-81"><a href="#cb14-81" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: q3</span></span>
+<span id="cb14-82"><a href="#cb14-82" aria-hidden="true" tabindex="-1"></a><span class="co">#| </span></span>
+<span id="cb14-83"><a href="#cb14-83" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"MASS"</span>)</span>
+<span id="cb14-84"><a href="#cb14-84" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"OME"</span>)</span>
+<span id="cb14-85"><a href="#cb14-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-86"><a href="#cb14-86" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> <span class="fu">subset</span>(OME, OME <span class="sc">!=</span> <span class="st">"N/A"</span>)</span>
+<span id="cb14-87"><a href="#cb14-87" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>OME <span class="ot">=</span> <span class="fu">factor</span>(dat<span class="sc">$</span>OME) <span class="co"># relabel OME</span></span>
+<span id="cb14-88"><a href="#cb14-88" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>ID <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">factor</span>(dat<span class="sc">$</span>ID)) <span class="co"># relabel ID so there are no gaps in numbers (they now go from 1 to 63)</span></span>
+<span id="cb14-89"><a href="#cb14-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-90"><a href="#cb14-90" aria-hidden="true" tabindex="-1"></a><span class="do">## Original reference model and covariate matrix</span></span>
+<span id="cb14-91"><a href="#cb14-91" aria-hidden="true" tabindex="-1"></a>mod_glm <span class="ot">=</span> <span class="fu">glm</span>(Correct<span class="sc">/</span>Trials <span class="sc">~</span> Age <span class="sc">+</span> OME <span class="sc">+</span> Loud <span class="sc">+</span> Noise, <span class="at">data=</span>dat, <span class="at">weights=</span>Trials, <span class="at">family=</span><span class="st">"binomial"</span>)</span>
+<span id="cb14-92"><a href="#cb14-92" aria-hidden="true" tabindex="-1"></a>X <span class="ot">=</span> <span class="fu">model.matrix</span>(mod_glm)[,<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb14-93"><a href="#cb14-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-94"><a href="#cb14-94" aria-hidden="true" tabindex="-1"></a><span class="do">## Original model (that needs to be extended)</span></span>
+<span id="cb14-95"><a href="#cb14-95" aria-hidden="true" tabindex="-1"></a>mod_string <span class="ot">=</span> <span class="st">" model {</span></span>
+<span id="cb14-96"><a href="#cb14-96" aria-hidden="true" tabindex="-1"></a><span class="st">    for (i in 1:length(y)) {</span></span>
+<span id="cb14-97"><a href="#cb14-97" aria-hidden="true" tabindex="-1"></a><span class="st">        y[i] ~ dbin(phi[i], n[i])</span></span>
+<span id="cb14-98"><a href="#cb14-98" aria-hidden="true" tabindex="-1"></a><span class="st">        #logit(phi[i]) = b0 + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
+<span id="cb14-99"><a href="#cb14-99" aria-hidden="true" tabindex="-1"></a><span class="st">    logit(phi[i]) = a[ID[i]] + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
+<span id="cb14-100"><a href="#cb14-100" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb14-101"><a href="#cb14-101" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
+<span id="cb14-102"><a href="#cb14-102" aria-hidden="true" tabindex="-1"></a><span class="st">  for (k in 1:max(ID) ) {</span></span>
+<span id="cb14-103"><a href="#cb14-103" aria-hidden="true" tabindex="-1"></a><span class="st">    a[k] ~ dnorm(a0, prec_a)</span></span>
+<span id="cb14-104"><a href="#cb14-104" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb14-105"><a href="#cb14-105" aria-hidden="true" tabindex="-1"></a><span class="st">    #a ~ dnorm(0.0, 1.0/5.0^2)</span></span>
+<span id="cb14-106"><a href="#cb14-106" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb14-107"><a href="#cb14-107" aria-hidden="true" tabindex="-1"></a><span class="st">  a0 ~ dnorm(0,1.0/10.0^2)</span></span>
+<span id="cb14-108"><a href="#cb14-108" aria-hidden="true" tabindex="-1"></a><span class="st">  prec_a ~ dgamma(0.5,0.5)</span></span>
+<span id="cb14-109"><a href="#cb14-109" aria-hidden="true" tabindex="-1"></a><span class="st">  tau = sqrt(1/prec_a)</span></span>
+<span id="cb14-110"><a href="#cb14-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-111"><a href="#cb14-111" aria-hidden="true" tabindex="-1"></a><span class="st">    for (j in 1:4) {</span></span>
+<span id="cb14-112"><a href="#cb14-112" aria-hidden="true" tabindex="-1"></a><span class="st">        b[j] ~ dnorm(0.0, 1.0/4.0^2)</span></span>
+<span id="cb14-113"><a href="#cb14-113" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb14-114"><a href="#cb14-114" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
+<span id="cb14-115"><a href="#cb14-115" aria-hidden="true" tabindex="-1"></a><span class="st">} "</span></span>
+<span id="cb14-116"><a href="#cb14-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-117"><a href="#cb14-117" aria-hidden="true" tabindex="-1"></a>data_jags <span class="ot">=</span> <span class="fu">as.list</span>(<span class="fu">as.data.frame</span>(X))</span>
+<span id="cb14-118"><a href="#cb14-118" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>y <span class="ot">=</span> dat<span class="sc">$</span>Correct</span>
+<span id="cb14-119"><a href="#cb14-119" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>n <span class="ot">=</span> dat<span class="sc">$</span>Trials</span>
+<span id="cb14-120"><a href="#cb14-120" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>ID <span class="ot">=</span> dat<span class="sc">$</span>ID</span>
+<span id="cb14-121"><a href="#cb14-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-122"><a href="#cb14-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-123"><a href="#cb14-123" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">113</span>)</span>
+<span id="cb14-124"><a href="#cb14-124" aria-hidden="true" tabindex="-1"></a>params <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"b"</span>,<span class="st">"a"</span>,<span class="st">"a0"</span>,<span class="st">"tau"</span>)</span>
+<span id="cb14-125"><a href="#cb14-125" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">2.5</span>, <span class="dv">1</span>, <span class="fl">2.5</span>, <span class="dv">1</span>))</span>
+<span id="cb14-126"><a href="#cb14-126" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">=</span> <span class="fu">jags.model</span>(<span class="fu">textConnection</span>(mod_string), <span class="at">data=</span>data_jags, <span class="at">n.chains=</span><span class="dv">3</span>)</span>
+<span id="cb14-127"><a href="#cb14-127" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(mod, <span class="fl">1e3</span>)</span>
+<span id="cb14-128"><a href="#cb14-128" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">2.5</span>, <span class="dv">1</span>, <span class="fl">2.5</span>, <span class="dv">1</span>))</span>
+<span id="cb14-129"><a href="#cb14-129" aria-hidden="true" tabindex="-1"></a>mod_sim <span class="ot">=</span> <span class="fu">coda.samples</span>(<span class="at">model=</span>mod, <span class="at">variable.names=</span>params, <span class="at">n.iter=</span><span class="fl">1e3</span>)</span>
+<span id="cb14-130"><a href="#cb14-130" aria-hidden="true" tabindex="-1"></a>mod_csim <span class="ot">=</span> <span class="fu">as.mcmc</span>(<span class="fu">do.call</span>(rbind, mod_sim))</span>
+<span id="cb14-131"><a href="#cb14-131" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-132"><a href="#cb14-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-133"><a href="#cb14-133" aria-hidden="true" tabindex="-1"></a>How do the convergence diagnostics look?</span>
+<span id="cb14-134"><a href="#cb14-134" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-135"><a href="#cb14-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-136"><a href="#cb14-136" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb14-137"><a href="#cb14-137" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb14-138"><a href="#cb14-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-141"><a href="#cb14-141" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-142"><a href="#cb14-142" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: s3 - numbers</span></span>
+<span id="cb14-143"><a href="#cb14-143" aria-hidden="true" tabindex="-1"></a><span class="fu">gelman.diag</span>(mod_sim)</span>
+<span id="cb14-144"><a href="#cb14-144" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.diag</span>(mod_sim)</span>
+<span id="cb14-145"><a href="#cb14-145" aria-hidden="true" tabindex="-1"></a><span class="fu">effectiveSize</span>(mod_sim)</span>
+<span id="cb14-146"><a href="#cb14-146" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-147"><a href="#cb14-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-150"><a href="#cb14-150" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-151"><a href="#cb14-151" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: s3- marginal plots</span></span>
+<span id="cb14-152"><a href="#cb14-152" aria-hidden="true" tabindex="-1"></a><span class="do">## convergence diagnostics</span></span>
+<span id="cb14-153"><a href="#cb14-153" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">2.5</span>, <span class="dv">1</span>, <span class="fl">2.5</span>, <span class="dv">1</span>))</span>
+<span id="cb14-154"><a href="#cb14-154" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mod_sim)</span>
+<span id="cb14-155"><a href="#cb14-155" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-156"><a href="#cb14-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-159"><a href="#cb14-159" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-160"><a href="#cb14-160" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: s3- correlation plots</span></span>
+<span id="cb14-161"><a href="#cb14-161" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">2.5</span>, <span class="dv">1</span>, <span class="fl">2.5</span>, <span class="dv">1</span>))</span>
+<span id="cb14-162"><a href="#cb14-162" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.plot</span>(mod_csim)</span>
+<span id="cb14-163"><a href="#cb14-163" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-164"><a href="#cb14-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-165"><a href="#cb14-165" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The chains suddenly jump from exploring one space to exploring another, as though the parameters are switching labels. The parameters do not appear to be uniquely identified by the data.</span>
+<span id="cb14-166"><a href="#cb14-166" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Autocorrelation is quite strong in the chains. This model would require a large number of MCMC iterations before we would use the results to make solid conclusions.</span>
+<span id="cb14-167"><a href="#cb14-167" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Different chains from different initial values fail to explore the same space. Advanced MCMC techniques will be required to explore this multi-modal (many-peaked) posterior.</span>
+<span id="cb14-168"><a href="#cb14-168" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Convergence diagnostics look great. There are no concerns</span>
+<span id="cb14-169"><a href="#cb14-169" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-170"><a href="#cb14-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-171"><a href="#cb14-171" aria-hidden="true" tabindex="-1"></a>::: {#exr-Non-Normal-Hierarchical-Model-4}</span>
+<span id="cb14-172"><a href="#cb14-172" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Hierarchical Model**</span><span class="co">]</span>{.column-margin} The DIC value for the original model fit in the quiz for logistic regression is about 1264. Calculate a DIC value for this new hierarchical model. What do you conclude?</span>
+<span id="cb14-173"><a href="#cb14-173" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-174"><a href="#cb14-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-175"><a href="#cb14-175" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb14-176"><a href="#cb14-176" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb14-177"><a href="#cb14-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-180"><a href="#cb14-180" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-181"><a href="#cb14-181" aria-hidden="true" tabindex="-1"></a><span class="do">## s4 - compute new DIC</span></span>
+<span id="cb14-182"><a href="#cb14-182" aria-hidden="true" tabindex="-1"></a>(<span class="at">dic =</span> <span class="fu">dic.samples</span>(mod, <span class="at">n.iter=</span><span class="fl">1e3</span>))</span>
+<span id="cb14-183"><a href="#cb14-183" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-184"><a href="#cb14-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-185"><a href="#cb14-185" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The DIC value for this new model is higher, indicating a preference for the new model.</span>
+<span id="cb14-186"><a href="#cb14-186" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> The DIC value for this new model is higher, indicating a preference for the original model.</span>
+<span id="cb14-187"><a href="#cb14-187" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The DIC value for this new model is lower, indicating a preference for the new model.</span>
+<span id="cb14-188"><a href="#cb14-188" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The DIC value for this new model is lower, indicating a preference for the original model.</span>
+<span id="cb14-189"><a href="#cb14-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-190"><a href="#cb14-190" aria-hidden="true" tabindex="-1"></a>It turns out that in this case, the hierarchical model accounting for correlated tests with the same child does not help the model in terms of predictive accuracy. Theoretically, the hierarchical model is probably more justified because of the hierarchical structure of the data. However, the data appear to be essentially uncorrelated in practice</span>
+<span id="cb14-191"><a href="#cb14-191" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-192"><a href="#cb14-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-193"><a href="#cb14-193" aria-hidden="true" tabindex="-1"></a>::: {#exr-Non-Normal-Hierarchical-Model-5}</span>
+<span id="cb14-194"><a href="#cb14-194" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Hierarchical Model**</span><span class="co">]</span>{.column-margin} The actual number of parameters in this hierarchical model is 69 (63 random intercepts, four regression coefficients, and two hyperparameters). What is the effective number of parameters? Round your answer to one decimal place.</span>
+<span id="cb14-195"><a href="#cb14-195" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-196"><a href="#cb14-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-197"><a href="#cb14-197" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb14-198"><a href="#cb14-198" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb14-199"><a href="#cb14-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-200"><a href="#cb14-200" aria-hidden="true" tabindex="-1"></a>27.51</span>
+<span id="cb14-201"><a href="#cb14-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-202"><a href="#cb14-202" aria-hidden="true" tabindex="-1"></a>This number is so much smaller than the actual number of parameters partially because the intercept parameters are very similar for many of the children.</span>
+<span id="cb14-203"><a href="#cb14-203" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-204"><a href="#cb14-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-205"><a href="#cb14-205" aria-hidden="true" tabindex="-1"></a>::: {#exr-Non-Normal-Hierarchical-Model-6}</span>
+<span id="cb14-206"><a href="#cb14-206" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Hierarchical Model**</span><span class="co">]</span>{.column-margin}In the hierarchical model with random intercepts, we assumed that the common distribution for the intercepts is normal. What could we examine to assess whether this is a reasonable assumption?</span>
+<span id="cb14-207"><a href="#cb14-207" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-208"><a href="#cb14-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-209"><a href="#cb14-209" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb14-210"><a href="#cb14-210" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb14-211"><a href="#cb14-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-212"><a href="#cb14-212" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> We could look at the second-level residuals calculated from $\alpha_j − \mu$ and evaluate how they are distributed.</span>
+<span id="cb14-213"><a href="#cb14-213" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> We could look at the posterior distribution of $\mu$.</span>
+<span id="cb14-214"><a href="#cb14-214" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> We could look at the data-level residuals calculated from $(y_i−\phi_i)$ and evaluate how they are distributed.</span>
+<span id="cb14-215"><a href="#cb14-215" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> We could look at the data-level residuals calculated from $({y_i \over n_i}−\phi_i)$ and evaluate how they are distributed.</span>
+<span id="cb14-216"><a href="#cb14-216" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-217"><a href="#cb14-217" aria-hidden="true" tabindex="-1"></a>We could perform the equivalent of a linear model residual analysis for this level of the model, using the estimates of the intercepts as the data.</span>
+<span id="cb14-218"><a href="#cb14-218" aria-hidden="true" tabindex="-1"></a>:::</span>
+</code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"fade","descPosition":"bottom","loop":true,"openEffect":"fade","selector":".lightbox","skin":"my-css-class"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
