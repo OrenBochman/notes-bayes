@@ -2035,190 +2035,195 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} Compare the estimates between the original lesson model and this model with the summary function. Notice that the posterior means for the three μ parameters are essentially unchanged. However, the posterior variability for these parameters has changed. The posterior for which group's mean was most affected by fitting separate group variances?</span>
 <span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: False</span></span>
-<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"rjags"</span>)</span>
-<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: plantgrowth-model1</span></span>
-<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: False</span></span>
-<span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"PlantGrowth"</span>)  <span class="co"># load the data set</span></span>
-<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a><span class="co">#?PlantGrowth</span></span>
-<span id="cb17-53"><a href="#cb17-53" aria-hidden="true" tabindex="-1"></a>mod1_string <span class="ot">=</span> <span class="st">" model {</span></span>
-<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a><span class="st">    for (i in 1:length(y)) {</span></span>
-<span id="cb17-55"><a href="#cb17-55" aria-hidden="true" tabindex="-1"></a><span class="st">        y[i] ~ dnorm(mu[grp[i]], prec)</span></span>
-<span id="cb17-56"><a href="#cb17-56" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb17-57"><a href="#cb17-57" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
-<span id="cb17-58"><a href="#cb17-58" aria-hidden="true" tabindex="-1"></a><span class="st">    for (j in 1:3) {</span></span>
-<span id="cb17-59"><a href="#cb17-59" aria-hidden="true" tabindex="-1"></a><span class="st">        mu[j] ~ dnorm(0.0, 1.0/1.0e6)</span></span>
-<span id="cb17-60"><a href="#cb17-60" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb17-61"><a href="#cb17-61" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
-<span id="cb17-62"><a href="#cb17-62" aria-hidden="true" tabindex="-1"></a><span class="st">    prec ~ dgamma(5/2.0, 5*1.0/2.0)</span></span>
-<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a><span class="st">    sig = sqrt( 1.0 / prec )</span></span>
-<span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a><span class="st">} "</span></span>
-<span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-66"><a href="#cb17-66" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">82</span>)</span>
-<span id="cb17-67"><a href="#cb17-67" aria-hidden="true" tabindex="-1"></a><span class="co">#str(PlantGrowth)</span></span>
-<span id="cb17-68"><a href="#cb17-68" aria-hidden="true" tabindex="-1"></a>data1_jags <span class="ot">=</span> <span class="fu">list</span>(<span class="at">y=</span>PlantGrowth<span class="sc">$</span>weight, <span class="at">grp=</span><span class="fu">as.numeric</span>(PlantGrowth<span class="sc">$</span>group))</span>
-<span id="cb17-69"><a href="#cb17-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-70"><a href="#cb17-70" aria-hidden="true" tabindex="-1"></a>params <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"mu"</span>, <span class="st">"sig"</span>)</span>
-<span id="cb17-71"><a href="#cb17-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-72"><a href="#cb17-72" aria-hidden="true" tabindex="-1"></a>inits1 <span class="ot">=</span> <span class="cf">function</span>() {</span>
-<span id="cb17-73"><a href="#cb17-73" aria-hidden="true" tabindex="-1"></a>    inits <span class="ot">=</span> <span class="fu">list</span>(<span class="st">"mu"</span><span class="ot">=</span><span class="fu">rnorm</span>(<span class="dv">3</span>,<span class="fl">0.0</span>,<span class="fl">100.0</span>), <span class="st">"prec"</span><span class="ot">=</span><span class="fu">rgamma</span>(<span class="dv">1</span>,<span class="fl">1.0</span>,<span class="fl">1.0</span>))</span>
-<span id="cb17-74"><a href="#cb17-74" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb17-75"><a href="#cb17-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-76"><a href="#cb17-76" aria-hidden="true" tabindex="-1"></a>mod1 <span class="ot">=</span> <span class="fu">jags.model</span>(<span class="fu">textConnection</span>(mod1_string), <span class="at">data=</span>data1_jags, <span class="at">inits=</span>inits1, <span class="at">n.chains=</span><span class="dv">3</span>)</span>
-<span id="cb17-77"><a href="#cb17-77" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(mod1, <span class="fl">1e3</span>)</span>
-<span id="cb17-78"><a href="#cb17-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-79"><a href="#cb17-79" aria-hidden="true" tabindex="-1"></a>mod1_sim <span class="ot">=</span> <span class="fu">coda.samples</span>(<span class="at">model=</span>mod1, <span class="at">variable.names=</span>params, <span class="at">n.iter=</span><span class="fl">5e3</span>)</span>
-<span id="cb17-80"><a href="#cb17-80" aria-hidden="true" tabindex="-1"></a>mod1_csim <span class="ot">=</span> <span class="fu">as.mcmc</span>(<span class="fu">do.call</span>(rbind, mod1_sim)) <span class="co"># combined chains</span></span>
-<span id="cb17-81"><a href="#cb17-81" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-82"><a href="#cb17-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-85"><a href="#cb17-85" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-86"><a href="#cb17-86" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: plantgrowth-model2</span></span>
-<span id="cb17-87"><a href="#cb17-87" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: False</span></span>
-<span id="cb17-88"><a href="#cb17-88" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"PlantGrowth"</span>)  <span class="co"># load the data set</span></span>
-<span id="cb17-89"><a href="#cb17-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-90"><a href="#cb17-90" aria-hidden="true" tabindex="-1"></a>mod2_string <span class="ot">=</span> <span class="st">" model {</span></span>
-<span id="cb17-91"><a href="#cb17-91" aria-hidden="true" tabindex="-1"></a><span class="st">    for (i in 1:length(y)) {</span></span>
-<span id="cb17-92"><a href="#cb17-92" aria-hidden="true" tabindex="-1"></a><span class="st">        y[i] ~ dnorm(mu[grp[i]], prec[grp[i]])</span></span>
-<span id="cb17-93"><a href="#cb17-93" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb17-94"><a href="#cb17-94" aria-hidden="true" tabindex="-1"></a><span class="st">    for (j in 1:3) {</span></span>
-<span id="cb17-95"><a href="#cb17-95" aria-hidden="true" tabindex="-1"></a><span class="st">        mu[j] ~ dnorm(0.0, 1.0/1.0e6)</span></span>
-<span id="cb17-96"><a href="#cb17-96" aria-hidden="true" tabindex="-1"></a><span class="st">        prec[j] ~ dgamma(5/2.0, 5*1.0/2.0)</span></span>
-<span id="cb17-97"><a href="#cb17-97" aria-hidden="true" tabindex="-1"></a><span class="st">        sig[j] = sqrt( 1.0 / prec[j] )</span></span>
-<span id="cb17-98"><a href="#cb17-98" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb17-99"><a href="#cb17-99" aria-hidden="true" tabindex="-1"></a><span class="st">} "</span></span>
-<span id="cb17-100"><a href="#cb17-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-101"><a href="#cb17-101" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">82</span>)</span>
-<span id="cb17-102"><a href="#cb17-102" aria-hidden="true" tabindex="-1"></a>data2_jags <span class="ot">=</span> <span class="fu">list</span>(<span class="at">y=</span>PlantGrowth<span class="sc">$</span>weight, <span class="at">grp=</span><span class="fu">as.numeric</span>(PlantGrowth<span class="sc">$</span>group))</span>
-<span id="cb17-103"><a href="#cb17-103" aria-hidden="true" tabindex="-1"></a>params <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"mu"</span>, <span class="st">"sig"</span>)</span>
-<span id="cb17-104"><a href="#cb17-104" aria-hidden="true" tabindex="-1"></a>inits2 <span class="ot">=</span> <span class="cf">function</span>() {</span>
-<span id="cb17-105"><a href="#cb17-105" aria-hidden="true" tabindex="-1"></a>    inits <span class="ot">=</span> <span class="fu">list</span>(<span class="st">"mu"</span><span class="ot">=</span><span class="fu">rnorm</span>(<span class="dv">3</span>,<span class="fl">0.0</span>,<span class="fl">100.0</span>), <span class="st">"prec"</span><span class="ot">=</span><span class="fu">rgamma</span>(<span class="dv">3</span>,<span class="fl">1.0</span>,<span class="fl">1.0</span>))</span>
-<span id="cb17-106"><a href="#cb17-106" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb17-107"><a href="#cb17-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-108"><a href="#cb17-108" aria-hidden="true" tabindex="-1"></a>mod2 <span class="ot">=</span> <span class="fu">jags.model</span>(<span class="fu">textConnection</span>(mod2_string), <span class="at">data=</span>data2_jags, <span class="at">inits=</span>inits2, <span class="at">n.chains=</span><span class="dv">3</span>)</span>
-<span id="cb17-109"><a href="#cb17-109" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(mod2, <span class="fl">1e3</span>)</span>
-<span id="cb17-110"><a href="#cb17-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-111"><a href="#cb17-111" aria-hidden="true" tabindex="-1"></a>mod2_sim <span class="ot">=</span> <span class="fu">coda.samples</span>(<span class="at">model=</span>mod2, <span class="at">variable.names=</span>params, <span class="at">n.iter=</span><span class="fl">5e3</span>)</span>
-<span id="cb17-112"><a href="#cb17-112" aria-hidden="true" tabindex="-1"></a>mod2_csim <span class="ot">=</span> <span class="fu">as.mcmc</span>(<span class="fu">do.call</span>(rbind, mod2_sim)) <span class="co"># combined chains</span></span>
-<span id="cb17-113"><a href="#cb17-113" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-114"><a href="#cb17-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-117"><a href="#cb17-117" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-118"><a href="#cb17-118" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod1_csim)</span>
-<span id="cb17-119"><a href="#cb17-119" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod2_csim)</span>
-<span id="cb17-120"><a href="#cb17-120" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-121"><a href="#cb17-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-122"><a href="#cb17-122" aria-hidden="true" tabindex="-1"></a>Compare the estimates between the original lesson model and this model with the summary function. Notice that the posterior means for the three μ parameters are essentially unchanged. However, the posterior variability for these parameters has changed. The posterior for which group's mean was most affected by fitting separate group variances??</span>
-<span id="cb17-123"><a href="#cb17-123" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb17-124"><a href="#cb17-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-125"><a href="#cb17-125" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb17-126"><a href="#cb17-126" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb17-127"><a href="#cb17-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-128"><a href="#cb17-128" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Group 1: control</span>
-<span id="cb17-129"><a href="#cb17-129" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Group 2: treatment 1.</span>
-<span id="cb17-130"><a href="#cb17-130" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Group 3: treatment 2</span>
-<span id="cb17-131"><a href="#cb17-131" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The effect on the marginal posterior was the same for all three groups.</span>
-<span id="cb17-132"><a href="#cb17-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-133"><a href="#cb17-133" aria-hidden="true" tabindex="-1"></a>SD of group 2 mean increased from 0.23035 to 0.2988 that a 0.07 change</span>
+<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L08-Ex1-1</span></span>
+<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: False</span></span>
+<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"rjags"</span>)</span>
+<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: plantgrowth-model1</span></span>
+<span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: False</span></span>
+<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"PlantGrowth"</span>)  <span class="co"># load the data set</span></span>
+<span id="cb17-53"><a href="#cb17-53" aria-hidden="true" tabindex="-1"></a><span class="co">#?PlantGrowth</span></span>
+<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a>mod1_string <span class="ot">=</span> <span class="st">" model {</span></span>
+<span id="cb17-55"><a href="#cb17-55" aria-hidden="true" tabindex="-1"></a><span class="st">    for (i in 1:length(y)) {</span></span>
+<span id="cb17-56"><a href="#cb17-56" aria-hidden="true" tabindex="-1"></a><span class="st">        y[i] ~ dnorm(mu[grp[i]], prec)</span></span>
+<span id="cb17-57"><a href="#cb17-57" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb17-58"><a href="#cb17-58" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
+<span id="cb17-59"><a href="#cb17-59" aria-hidden="true" tabindex="-1"></a><span class="st">    for (j in 1:3) {</span></span>
+<span id="cb17-60"><a href="#cb17-60" aria-hidden="true" tabindex="-1"></a><span class="st">        mu[j] ~ dnorm(0.0, 1.0/1.0e6)</span></span>
+<span id="cb17-61"><a href="#cb17-61" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb17-62"><a href="#cb17-62" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
+<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a><span class="st">    prec ~ dgamma(5/2.0, 5*1.0/2.0)</span></span>
+<span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a><span class="st">    sig = sqrt( 1.0 / prec )</span></span>
+<span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a><span class="st">} "</span></span>
+<span id="cb17-66"><a href="#cb17-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-67"><a href="#cb17-67" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">82</span>)</span>
+<span id="cb17-68"><a href="#cb17-68" aria-hidden="true" tabindex="-1"></a><span class="co">#str(PlantGrowth)</span></span>
+<span id="cb17-69"><a href="#cb17-69" aria-hidden="true" tabindex="-1"></a>data1_jags <span class="ot">=</span> <span class="fu">list</span>(<span class="at">y=</span>PlantGrowth<span class="sc">$</span>weight, <span class="at">grp=</span><span class="fu">as.numeric</span>(PlantGrowth<span class="sc">$</span>group))</span>
+<span id="cb17-70"><a href="#cb17-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-71"><a href="#cb17-71" aria-hidden="true" tabindex="-1"></a>params <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"mu"</span>, <span class="st">"sig"</span>)</span>
+<span id="cb17-72"><a href="#cb17-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-73"><a href="#cb17-73" aria-hidden="true" tabindex="-1"></a>inits1 <span class="ot">=</span> <span class="cf">function</span>() {</span>
+<span id="cb17-74"><a href="#cb17-74" aria-hidden="true" tabindex="-1"></a>    inits <span class="ot">=</span> <span class="fu">list</span>(<span class="st">"mu"</span><span class="ot">=</span><span class="fu">rnorm</span>(<span class="dv">3</span>,<span class="fl">0.0</span>,<span class="fl">100.0</span>), <span class="st">"prec"</span><span class="ot">=</span><span class="fu">rgamma</span>(<span class="dv">1</span>,<span class="fl">1.0</span>,<span class="fl">1.0</span>))</span>
+<span id="cb17-75"><a href="#cb17-75" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-76"><a href="#cb17-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-77"><a href="#cb17-77" aria-hidden="true" tabindex="-1"></a>mod1 <span class="ot">=</span> <span class="fu">jags.model</span>(<span class="fu">textConnection</span>(mod1_string), <span class="at">data=</span>data1_jags, <span class="at">inits=</span>inits1, <span class="at">n.chains=</span><span class="dv">3</span>)</span>
+<span id="cb17-78"><a href="#cb17-78" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(mod1, <span class="fl">1e3</span>)</span>
+<span id="cb17-79"><a href="#cb17-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-80"><a href="#cb17-80" aria-hidden="true" tabindex="-1"></a>mod1_sim <span class="ot">=</span> <span class="fu">coda.samples</span>(<span class="at">model=</span>mod1, <span class="at">variable.names=</span>params, <span class="at">n.iter=</span><span class="fl">5e3</span>)</span>
+<span id="cb17-81"><a href="#cb17-81" aria-hidden="true" tabindex="-1"></a>mod1_csim <span class="ot">=</span> <span class="fu">as.mcmc</span>(<span class="fu">do.call</span>(rbind, mod1_sim)) <span class="co"># combined chains</span></span>
+<span id="cb17-82"><a href="#cb17-82" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-83"><a href="#cb17-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-86"><a href="#cb17-86" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-87"><a href="#cb17-87" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: plantgrowth-model2</span></span>
+<span id="cb17-88"><a href="#cb17-88" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: False</span></span>
+<span id="cb17-89"><a href="#cb17-89" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"PlantGrowth"</span>)  <span class="co"># load the data set</span></span>
+<span id="cb17-90"><a href="#cb17-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-91"><a href="#cb17-91" aria-hidden="true" tabindex="-1"></a>mod2_string <span class="ot">=</span> <span class="st">" model {</span></span>
+<span id="cb17-92"><a href="#cb17-92" aria-hidden="true" tabindex="-1"></a><span class="st">    for (i in 1:length(y)) {</span></span>
+<span id="cb17-93"><a href="#cb17-93" aria-hidden="true" tabindex="-1"></a><span class="st">        y[i] ~ dnorm(mu[grp[i]], prec[grp[i]])</span></span>
+<span id="cb17-94"><a href="#cb17-94" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb17-95"><a href="#cb17-95" aria-hidden="true" tabindex="-1"></a><span class="st">    for (j in 1:3) {</span></span>
+<span id="cb17-96"><a href="#cb17-96" aria-hidden="true" tabindex="-1"></a><span class="st">        mu[j] ~ dnorm(0.0, 1.0/1.0e6)</span></span>
+<span id="cb17-97"><a href="#cb17-97" aria-hidden="true" tabindex="-1"></a><span class="st">        prec[j] ~ dgamma(5/2.0, 5*1.0/2.0)</span></span>
+<span id="cb17-98"><a href="#cb17-98" aria-hidden="true" tabindex="-1"></a><span class="st">        sig[j] = sqrt( 1.0 / prec[j] )</span></span>
+<span id="cb17-99"><a href="#cb17-99" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb17-100"><a href="#cb17-100" aria-hidden="true" tabindex="-1"></a><span class="st">} "</span></span>
+<span id="cb17-101"><a href="#cb17-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-102"><a href="#cb17-102" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">82</span>)</span>
+<span id="cb17-103"><a href="#cb17-103" aria-hidden="true" tabindex="-1"></a>data2_jags <span class="ot">=</span> <span class="fu">list</span>(<span class="at">y=</span>PlantGrowth<span class="sc">$</span>weight, <span class="at">grp=</span><span class="fu">as.numeric</span>(PlantGrowth<span class="sc">$</span>group))</span>
+<span id="cb17-104"><a href="#cb17-104" aria-hidden="true" tabindex="-1"></a>params <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"mu"</span>, <span class="st">"sig"</span>)</span>
+<span id="cb17-105"><a href="#cb17-105" aria-hidden="true" tabindex="-1"></a>inits2 <span class="ot">=</span> <span class="cf">function</span>() {</span>
+<span id="cb17-106"><a href="#cb17-106" aria-hidden="true" tabindex="-1"></a>    inits <span class="ot">=</span> <span class="fu">list</span>(<span class="st">"mu"</span><span class="ot">=</span><span class="fu">rnorm</span>(<span class="dv">3</span>,<span class="fl">0.0</span>,<span class="fl">100.0</span>), <span class="st">"prec"</span><span class="ot">=</span><span class="fu">rgamma</span>(<span class="dv">3</span>,<span class="fl">1.0</span>,<span class="fl">1.0</span>))</span>
+<span id="cb17-107"><a href="#cb17-107" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-108"><a href="#cb17-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-109"><a href="#cb17-109" aria-hidden="true" tabindex="-1"></a>mod2 <span class="ot">=</span> <span class="fu">jags.model</span>(<span class="fu">textConnection</span>(mod2_string), <span class="at">data=</span>data2_jags, <span class="at">inits=</span>inits2, <span class="at">n.chains=</span><span class="dv">3</span>)</span>
+<span id="cb17-110"><a href="#cb17-110" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(mod2, <span class="fl">1e3</span>)</span>
+<span id="cb17-111"><a href="#cb17-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-112"><a href="#cb17-112" aria-hidden="true" tabindex="-1"></a>mod2_sim <span class="ot">=</span> <span class="fu">coda.samples</span>(<span class="at">model=</span>mod2, <span class="at">variable.names=</span>params, <span class="at">n.iter=</span><span class="fl">5e3</span>)</span>
+<span id="cb17-113"><a href="#cb17-113" aria-hidden="true" tabindex="-1"></a>mod2_csim <span class="ot">=</span> <span class="fu">as.mcmc</span>(<span class="fu">do.call</span>(rbind, mod2_sim)) <span class="co"># combined chains</span></span>
+<span id="cb17-114"><a href="#cb17-114" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-115"><a href="#cb17-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-118"><a href="#cb17-118" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-119"><a href="#cb17-119" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L08-Ex1-4</span></span>
+<span id="cb17-120"><a href="#cb17-120" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod1_csim)</span>
+<span id="cb17-121"><a href="#cb17-121" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod2_csim)</span>
+<span id="cb17-122"><a href="#cb17-122" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-123"><a href="#cb17-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-124"><a href="#cb17-124" aria-hidden="true" tabindex="-1"></a>Compare the estimates between the original lesson model and this model with the summary function. Notice that the posterior means for the three μ parameters are essentially unchanged. However, the posterior variability for these parameters has changed. The posterior for which group's mean was most affected by fitting separate group variances??</span>
+<span id="cb17-125"><a href="#cb17-125" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-126"><a href="#cb17-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-127"><a href="#cb17-127" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb17-128"><a href="#cb17-128" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb17-129"><a href="#cb17-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-130"><a href="#cb17-130" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Group 1: control</span>
+<span id="cb17-131"><a href="#cb17-131" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Group 2: treatment 1.</span>
+<span id="cb17-132"><a href="#cb17-132" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Group 3: treatment 2</span>
+<span id="cb17-133"><a href="#cb17-133" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The effect on the marginal posterior was the same for all three groups.</span>
 <span id="cb17-134"><a href="#cb17-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-135"><a href="#cb17-135" aria-hidden="true" tabindex="-1"></a>Group 2 has the highest variation in plant weight, which results in less confidence in our posterior mean estimate. The posterior standard deviation of μ has increased the most for this group.</span>
-<span id="cb17-136"><a href="#cb17-136" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb17-137"><a href="#cb17-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-138"><a href="#cb17-138" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-4}</span>
-<span id="cb17-139"><a href="#cb17-139" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} Compute the deviance information criterion (DIC) for each of the two models and save the results as objects dic1 (for the original model) and dic2 (for the new model). Wha is the difference: DIC1 - DIC2?.</span>
-<span id="cb17-140"><a href="#cb17-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-141"><a href="#cb17-141" aria-hidden="true" tabindex="-1"></a>Hint: You can compute this directly with the following code: dic1−dic2.</span>
-<span id="cb17-142"><a href="#cb17-142" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb17-143"><a href="#cb17-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-144"><a href="#cb17-144" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb17-145"><a href="#cb17-145" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb17-146"><a href="#cb17-146" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-149"><a href="#cb17-149" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-150"><a href="#cb17-150" aria-hidden="true" tabindex="-1"></a>(<span class="at">dic1 =</span> <span class="fu">dic.samples</span>(mod1,<span class="fl">1e5</span>))</span>
-<span id="cb17-151"><a href="#cb17-151" aria-hidden="true" tabindex="-1"></a>(<span class="at">dic2 =</span> <span class="fu">dic.samples</span>(mod2,<span class="fl">1e5</span>))</span>
-<span id="cb17-152"><a href="#cb17-152" aria-hidden="true" tabindex="-1"></a>dic1<span class="sc">-</span>dic2</span>
-<span id="cb17-153"><a href="#cb17-153" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-154"><a href="#cb17-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-155"><a href="#cb17-155" aria-hidden="true" tabindex="-1"></a>-3.892918</span>
-<span id="cb17-156"><a href="#cb17-156" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-135"><a href="#cb17-135" aria-hidden="true" tabindex="-1"></a>SD of group 2 mean increased from 0.23035 to 0.2988 that a 0.07 change</span>
+<span id="cb17-136"><a href="#cb17-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-137"><a href="#cb17-137" aria-hidden="true" tabindex="-1"></a>Group 2 has the highest variation in plant weight, which results in less confidence in our posterior mean estimate. The posterior standard deviation of μ has increased the most for this group.</span>
+<span id="cb17-138"><a href="#cb17-138" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-139"><a href="#cb17-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-140"><a href="#cb17-140" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-4}</span>
+<span id="cb17-141"><a href="#cb17-141" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} Compute the deviance information criterion (DIC) for each of the two models and save the results as objects dic1 (for the original model) and dic2 (for the new model). Wha is the difference: DIC1 - DIC2?.</span>
+<span id="cb17-142"><a href="#cb17-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-143"><a href="#cb17-143" aria-hidden="true" tabindex="-1"></a>Hint: You can compute this directly with the following code: dic1−dic2.</span>
+<span id="cb17-144"><a href="#cb17-144" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-145"><a href="#cb17-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-146"><a href="#cb17-146" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb17-147"><a href="#cb17-147" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb17-148"><a href="#cb17-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-151"><a href="#cb17-151" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-152"><a href="#cb17-152" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L08-Ex1-5</span></span>
+<span id="cb17-153"><a href="#cb17-153" aria-hidden="true" tabindex="-1"></a>(<span class="at">dic1 =</span> <span class="fu">dic.samples</span>(mod1,<span class="fl">1e5</span>))</span>
+<span id="cb17-154"><a href="#cb17-154" aria-hidden="true" tabindex="-1"></a>(<span class="at">dic2 =</span> <span class="fu">dic.samples</span>(mod2,<span class="fl">1e5</span>))</span>
+<span id="cb17-155"><a href="#cb17-155" aria-hidden="true" tabindex="-1"></a>dic1<span class="sc">-</span>dic2</span>
+<span id="cb17-156"><a href="#cb17-156" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb17-157"><a href="#cb17-157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-158"><a href="#cb17-158" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-5}</span>
-<span id="cb17-159"><a href="#cb17-159" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} Based on the DIC calculations for these competing models, what should we conclude?</span>
-<span id="cb17-160"><a href="#cb17-160" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb17-161"><a href="#cb17-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-162"><a href="#cb17-162" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb17-163"><a href="#cb17-163" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb17-158"><a href="#cb17-158" aria-hidden="true" tabindex="-1"></a>-3.892918</span>
+<span id="cb17-159"><a href="#cb17-159" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-160"><a href="#cb17-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-161"><a href="#cb17-161" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-5}</span>
+<span id="cb17-162"><a href="#cb17-162" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} Based on the DIC calculations for these competing models, what should we conclude?</span>
+<span id="cb17-163"><a href="#cb17-163" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb17-164"><a href="#cb17-164" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-165"><a href="#cb17-165" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The DIC is higher for the new model, indicating preference for the model with separate variances across groups.</span>
-<span id="cb17-166"><a href="#cb17-166" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> The DIC is lower for the original model, indicating preference for the model with one common variance across groups.</span>
-<span id="cb17-167"><a href="#cb17-167" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The DIC is higher for the original model, indicating preference for the model with one common variance across groups.</span>
-<span id="cb17-168"><a href="#cb17-168" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The DIC is lower for the new model, indicating preference for the model with separate variances across groups.</span>
-<span id="cb17-169"><a href="#cb17-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-170"><a href="#cb17-170" aria-hidden="true" tabindex="-1"></a>This suggests we should stay with the original model (if our objective is good prediction).</span>
-<span id="cb17-171"><a href="#cb17-171" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-165"><a href="#cb17-165" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb17-166"><a href="#cb17-166" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb17-167"><a href="#cb17-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-168"><a href="#cb17-168" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The DIC is higher for the new model, indicating preference for the model with separate variances across groups.</span>
+<span id="cb17-169"><a href="#cb17-169" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> The DIC is lower for the original model, indicating preference for the model with one common variance across groups.</span>
+<span id="cb17-170"><a href="#cb17-170" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The DIC is higher for the original model, indicating preference for the model with one common variance across groups.</span>
+<span id="cb17-171"><a href="#cb17-171" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The DIC is lower for the new model, indicating preference for the model with separate variances across groups.</span>
 <span id="cb17-172"><a href="#cb17-172" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-173"><a href="#cb17-173" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-6}</span>
-<span id="cb17-174"><a href="#cb17-174" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} Use the original model (single variance) to calculate a 95% interval of highest posterior density (HPD) for $\mu_3−\mu_1$. Which of the following is closest to this interval?</span>
-<span id="cb17-175"><a href="#cb17-175" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb17-176"><a href="#cb17-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-177"><a href="#cb17-177" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb17-178"><a href="#cb17-178" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb17-173"><a href="#cb17-173" aria-hidden="true" tabindex="-1"></a>This suggests we should stay with the original model (if our objective is good prediction).</span>
+<span id="cb17-174"><a href="#cb17-174" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-175"><a href="#cb17-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-176"><a href="#cb17-176" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-6}</span>
+<span id="cb17-177"><a href="#cb17-177" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} Use the original model (single variance) to calculate a 95% interval of highest posterior density (HPD) for $\mu_3−\mu_1$. Which of the following is closest to this interval?</span>
+<span id="cb17-178"><a href="#cb17-178" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb17-179"><a href="#cb17-179" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-182"><a href="#cb17-182" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-183"><a href="#cb17-183" aria-hidden="true" tabindex="-1"></a>q5 <span class="ot">=</span> <span class="fu">as.mcmc</span>( <span class="fu">cbind</span>(mod1_csim,<span class="at">mudif=</span>mod1_csim[,<span class="dv">3</span>]<span class="sc">-</span>mod1_csim[,<span class="dv">1</span>]) )  <span class="co">#&lt;1&gt;</span></span>
-<span id="cb17-184"><a href="#cb17-184" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>((q5))                                                       <span class="co">#&lt;2&gt;</span></span>
-<span id="cb17-185"><a href="#cb17-185" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-186"><a href="#cb17-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-187"><a href="#cb17-187" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>add a parameter called <span class="in">`mudiff`</span> by calculate $\mu_3-\mu_1$ for each sample</span>
-<span id="cb17-188"><a href="#cb17-188" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>use the summary to get quantiles and read 2.5% and 97.5% for <span class="in">`mudiff`</span></span>
-<span id="cb17-189"><a href="#cb17-189" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-190"><a href="#cb17-190" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> (-0.20, 1.19)</span>
-<span id="cb17-191"><a href="#cb17-191" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> (-1.01, 0.25)</span>
-<span id="cb17-192"><a href="#cb17-192" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> (0.22, 1.49)</span>
-<span id="cb17-193"><a href="#cb17-193" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> (-0.14, 1.13)</span>
-<span id="cb17-194"><a href="#cb17-194" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-195"><a href="#cb17-195" aria-hidden="true" tabindex="-1"></a>The interval contains 0, indicating that the data lack strong (at least at the 95% level) evidence for $\mu_3\ne\mu_1$. In the lesson, the posterior probability that $\mu_3&gt;\mu_1$ was 0.94.</span>
-<span id="cb17-196"><a href="#cb17-196" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb17-197"><a href="#cb17-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-198"><a href="#cb17-198" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-7}</span>
-<span id="cb17-199"><a href="#cb17-199" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} What is the correct interpretation of $\mu_3−\mu_1$ in the context of the plant growth analysis?</span>
+<span id="cb17-180"><a href="#cb17-180" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb17-181"><a href="#cb17-181" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb17-182"><a href="#cb17-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-185"><a href="#cb17-185" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-186"><a href="#cb17-186" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L08-Ex1-6</span></span>
+<span id="cb17-187"><a href="#cb17-187" aria-hidden="true" tabindex="-1"></a>q5 <span class="ot">=</span> <span class="fu">as.mcmc</span>( <span class="fu">cbind</span>(mod1_csim,<span class="at">mudif=</span>mod1_csim[,<span class="dv">3</span>]<span class="sc">-</span>mod1_csim[,<span class="dv">1</span>]) )  <span class="co">#&lt;1&gt;</span></span>
+<span id="cb17-188"><a href="#cb17-188" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>((q5))                                                       <span class="co">#&lt;2&gt;</span></span>
+<span id="cb17-189"><a href="#cb17-189" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-190"><a href="#cb17-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-191"><a href="#cb17-191" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>add a parameter called <span class="in">`mudiff`</span> by calculate $\mu_3-\mu_1$ for each sample</span>
+<span id="cb17-192"><a href="#cb17-192" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>use the summary to get quantiles and read 2.5% and 97.5% for <span class="in">`mudiff`</span></span>
+<span id="cb17-193"><a href="#cb17-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-194"><a href="#cb17-194" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> (-0.20, 1.19)</span>
+<span id="cb17-195"><a href="#cb17-195" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> (-1.01, 0.25)</span>
+<span id="cb17-196"><a href="#cb17-196" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> (0.22, 1.49)</span>
+<span id="cb17-197"><a href="#cb17-197" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> (-0.14, 1.13)</span>
+<span id="cb17-198"><a href="#cb17-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-199"><a href="#cb17-199" aria-hidden="true" tabindex="-1"></a>The interval contains 0, indicating that the data lack strong (at least at the 95% level) evidence for $\mu_3\ne\mu_1$. In the lesson, the posterior probability that $\mu_3&gt;\mu_1$ was 0.94.</span>
 <span id="cb17-200"><a href="#cb17-200" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb17-201"><a href="#cb17-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-202"><a href="#cb17-202" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb17-203"><a href="#cb17-203" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb17-204"><a href="#cb17-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-205"><a href="#cb17-205" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> It is the effect (change) of treatment 2 with respect to the control in mean plant weight.</span>
-<span id="cb17-206"><a href="#cb17-206" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> It is the mean range of plant weight across the three treatment groups.</span>
-<span id="cb17-207"><a href="#cb17-207" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> It is the difference in plant weight between treatment 2 and control.</span>
-<span id="cb17-208"><a href="#cb17-208" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> It is the effect (change) of treatment 2 with respect to the control in plant weight.</span>
-<span id="cb17-209"><a href="#cb17-209" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-210"><a href="#cb17-210" aria-hidden="true" tabindex="-1"></a>MCMC algs are based on a process guaranteeing convergence to a stationary distribution.</span>
-<span id="cb17-211"><a href="#cb17-211" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb17-212"><a href="#cb17-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-213"><a href="#cb17-213" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-8}</span>
-<span id="cb17-214"><a href="#cb17-214" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} The linear model with a baseline mean and group effects is the default in R. However, we can also fit the cell means model in R using the following code:</span>
-<span id="cb17-215"><a href="#cb17-215" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-218"><a href="#cb17-218" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-219"><a href="#cb17-219" aria-hidden="true" tabindex="-1"></a>mod_cm <span class="ot">=</span> <span class="fu">lm</span>(weight <span class="sc">~</span> <span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> group, <span class="at">data=</span>PlantGrowth)</span>
-<span id="cb17-220"><a href="#cb17-220" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod_cm)</span>
-<span id="cb17-221"><a href="#cb17-221" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-222"><a href="#cb17-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-223"><a href="#cb17-223" aria-hidden="true" tabindex="-1"></a>where the −1 in the model formula tells R to drop the intercept. Because we used fairly noninformative priors for the $μ$ parameters in the analysis with JAGS, the results are very similar.</span>
-<span id="cb17-224"><a href="#cb17-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-225"><a href="#cb17-225" aria-hidden="true" tabindex="-1"></a>In addition to allowing different prior specifications, what is one advantage of posterior sampling with JAGS over fitting the reference model in R?</span>
-<span id="cb17-226"><a href="#cb17-226" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-202"><a href="#cb17-202" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-7}</span>
+<span id="cb17-203"><a href="#cb17-203" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} What is the correct interpretation of $\mu_3−\mu_1$ in the context of the plant growth analysis?</span>
+<span id="cb17-204"><a href="#cb17-204" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-205"><a href="#cb17-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-206"><a href="#cb17-206" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb17-207"><a href="#cb17-207" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb17-208"><a href="#cb17-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-209"><a href="#cb17-209" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> It is the effect (change) of treatment 2 with respect to the control in mean plant weight.</span>
+<span id="cb17-210"><a href="#cb17-210" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> It is the mean range of plant weight across the three treatment groups.</span>
+<span id="cb17-211"><a href="#cb17-211" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> It is the difference in plant weight between treatment 2 and control.</span>
+<span id="cb17-212"><a href="#cb17-212" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> It is the effect (change) of treatment 2 with respect to the control in plant weight.</span>
+<span id="cb17-213"><a href="#cb17-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-214"><a href="#cb17-214" aria-hidden="true" tabindex="-1"></a>MCMC algs are based on a process guaranteeing convergence to a stationary distribution.</span>
+<span id="cb17-215"><a href="#cb17-215" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-216"><a href="#cb17-216" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-217"><a href="#cb17-217" aria-hidden="true" tabindex="-1"></a>::: {#exr-ANOVA-8}</span>
+<span id="cb17-218"><a href="#cb17-218" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">ANOVA</span><span class="co">]</span>{.column-margin} The linear model with a baseline mean and group effects is the default in R. However, we can also fit the cell means model in R using the following code:</span>
+<span id="cb17-219"><a href="#cb17-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-222"><a href="#cb17-222" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-223"><a href="#cb17-223" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L08-Ex1-7</span></span>
+<span id="cb17-224"><a href="#cb17-224" aria-hidden="true" tabindex="-1"></a>mod_cm <span class="ot">=</span> <span class="fu">lm</span>(weight <span class="sc">~</span> <span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> group, <span class="at">data=</span>PlantGrowth)</span>
+<span id="cb17-225"><a href="#cb17-225" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod_cm)</span>
+<span id="cb17-226"><a href="#cb17-226" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb17-227"><a href="#cb17-227" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-228"><a href="#cb17-228" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb17-229"><a href="#cb17-229" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb17-230"><a href="#cb17-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-231"><a href="#cb17-231" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> We can obtain posterior mode estimates for each mean (or coefficient).</span>
-<span id="cb17-232"><a href="#cb17-232" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> We can obtain posterior standard deviations (standard errors) for each mean (or coefficient).</span>
-<span id="cb17-233"><a href="#cb17-233" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> We can estimate the proportion of the variation in plant weight attributable to the treatment group assignment.</span>
-<span id="cb17-234"><a href="#cb17-234" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> We can use the posterior samples to obtain simulated posterior distributions of any function of the parameters that may interest us (e.g., $μ_3−μ_1$).</span>
+<span id="cb17-228"><a href="#cb17-228" aria-hidden="true" tabindex="-1"></a>where the −1 in the model formula tells R to drop the intercept. Because we used fairly noninformative priors for the $μ$ parameters in the analysis with JAGS, the results are very similar.</span>
+<span id="cb17-229"><a href="#cb17-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-230"><a href="#cb17-230" aria-hidden="true" tabindex="-1"></a>In addition to allowing different prior specifications, what is one advantage of posterior sampling with JAGS over fitting the reference model in R?</span>
+<span id="cb17-231"><a href="#cb17-231" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-232"><a href="#cb17-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-233"><a href="#cb17-233" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb17-234"><a href="#cb17-234" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
 <span id="cb17-235"><a href="#cb17-235" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-236"><a href="#cb17-236" aria-hidden="true" tabindex="-1"></a>The outer edges of the distribution are sampled less frequently and therefore susceptible to changes between simulations. The **Raftery and Lewis** diagnostic can help you decide how many iterations you need to reliably estimate outer quantiles of the target distribution..</span>
-<span id="cb17-237"><a href="#cb17-237" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-236"><a href="#cb17-236" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> We can obtain posterior mode estimates for each mean (or coefficient).</span>
+<span id="cb17-237"><a href="#cb17-237" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> We can obtain posterior standard deviations (standard errors) for each mean (or coefficient).</span>
+<span id="cb17-238"><a href="#cb17-238" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> We can estimate the proportion of the variation in plant weight attributable to the treatment group assignment.</span>
+<span id="cb17-239"><a href="#cb17-239" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> We can use the posterior samples to obtain simulated posterior distributions of any function of the parameters that may interest us (e.g., $μ_3−μ_1$).</span>
+<span id="cb17-240"><a href="#cb17-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-241"><a href="#cb17-241" aria-hidden="true" tabindex="-1"></a>The outer edges of the distribution are sampled less frequently and therefore susceptible to changes between simulations. The **Raftery and Lewis** diagnostic can help you decide how many iterations you need to reliably estimate outer quantiles of the target distribution..</span>
+<span id="cb17-242"><a href="#cb17-242" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

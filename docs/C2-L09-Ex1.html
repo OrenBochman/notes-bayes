@@ -2518,228 +2518,236 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb32-125"><a href="#cb32-125" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Logistic Regression**</span><span class="co">]</span>{.column-margin} Next, we will fit a similar model in JAGS. To make the results comparable to those of the reference model, we will use the same configuration of covariates. We can extract this information from the reference model using model.matrix.</span>
 <span id="cb32-126"><a href="#cb32-126" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-129"><a href="#cb32-129" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-130"><a href="#cb32-130" aria-hidden="true" tabindex="-1"></a>X <span class="ot">=</span> <span class="fu">model.matrix</span>(mod_glm)[,<span class="sc">-</span><span class="dv">1</span>] <span class="co"># -1 removes the column of 1s for the intercept</span></span>
-<span id="cb32-131"><a href="#cb32-131" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(X)</span>
-<span id="cb32-132"><a href="#cb32-132" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-133"><a href="#cb32-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-134"><a href="#cb32-134" aria-hidden="true" tabindex="-1"></a>The data include categorical covariates which R codes as dummy variables (as with ANOVA). Hence we have an indicator variable for whether OME is at its low level and another indicating whether the Noise is incoherent. The intercept is then associated with this baseline group. Ignoring the continuous variables Age and Loud, what are the characteristics of this baseline group?</span>
-<span id="cb32-135"><a href="#cb32-135" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb32-136"><a href="#cb32-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-137"><a href="#cb32-137" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb32-138"><a href="#cb32-138" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb32-139"><a href="#cb32-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-140"><a href="#cb32-140" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Children with low OME exposed to incoherent sound.</span>
-<span id="cb32-141"><a href="#cb32-141" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Children with high OME exposed to incoherent sound.</span>
-<span id="cb32-142"><a href="#cb32-142" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Children with low OME exposed to coherent sound.</span>
-<span id="cb32-143"><a href="#cb32-143" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Children with high OME exposed to coherent sound.</span>
-<span id="cb32-144"><a href="#cb32-144" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb32-145"><a href="#cb32-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-146"><a href="#cb32-146" aria-hidden="true" tabindex="-1"></a>::: {#exr-Logistic-Regression-5}</span>
-<span id="cb32-147"><a href="#cb32-147" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Raftery and Lewis diagnostic**</span><span class="co">]</span>{.column-margin} Now complete the following code (as well as the code from previous questions) to fit the JAGS model with the fairly non-informative priors given. Use three chains with at least 5,000 iterations in each.</span>
-<span id="cb32-148"><a href="#cb32-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-151"><a href="#cb32-151" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-152"><a href="#cb32-152" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5'</span></span>
-<span id="cb32-153"><a href="#cb32-153" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-cap: 'Jags logistic regression model'</span></span>
-<span id="cb32-154"><a href="#cb32-154" aria-hidden="true" tabindex="-1"></a><span class="co">#| attr-source: "id=lst-Logistic-Regression-5 lst-cap='Jags logistic regression model'"</span></span>
-<span id="cb32-155"><a href="#cb32-155" aria-hidden="true" tabindex="-1"></a>mod1_string <span class="ot">=</span> <span class="st">" model {</span></span>
-<span id="cb32-156"><a href="#cb32-156" aria-hidden="true" tabindex="-1"></a><span class="st">    for (i in 1:length(y)) {</span></span>
-<span id="cb32-157"><a href="#cb32-157" aria-hidden="true" tabindex="-1"></a><span class="st">        y[i] ~ dbin(phi[i], n[i])</span></span>
-<span id="cb32-158"><a href="#cb32-158" aria-hidden="true" tabindex="-1"></a><span class="st">        logit(phi[i]) = b0 + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
-<span id="cb32-159"><a href="#cb32-159" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb32-160"><a href="#cb32-160" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
-<span id="cb32-161"><a href="#cb32-161" aria-hidden="true" tabindex="-1"></a><span class="st">    b0 ~ dnorm(0.0, 1.0/5.0^2)</span></span>
-<span id="cb32-162"><a href="#cb32-162" aria-hidden="true" tabindex="-1"></a><span class="st">    for (j in 1:4) {</span></span>
-<span id="cb32-163"><a href="#cb32-163" aria-hidden="true" tabindex="-1"></a><span class="st">        b[j] ~ dnorm(0.0, 1.0/4.0^2)</span></span>
-<span id="cb32-164"><a href="#cb32-164" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb32-165"><a href="#cb32-165" aria-hidden="true" tabindex="-1"></a><span class="st">} "</span></span>
-<span id="cb32-166"><a href="#cb32-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-167"><a href="#cb32-167" aria-hidden="true" tabindex="-1"></a>data_jags <span class="ot">=</span> <span class="fu">as.list</span>(<span class="fu">as.data.frame</span>(X))</span>
-<span id="cb32-168"><a href="#cb32-168" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>y <span class="ot">=</span> dat<span class="sc">$</span>Correct  <span class="co"># &lt;1&gt;</span></span>
-<span id="cb32-169"><a href="#cb32-169" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>n <span class="ot">=</span> dat<span class="sc">$</span>Trials</span>
-<span id="cb32-170"><a href="#cb32-170" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(data_jags)             <span class="co"># &lt;2&gt; </span></span>
-<span id="cb32-171"><a href="#cb32-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-172"><a href="#cb32-172" aria-hidden="true" tabindex="-1"></a>params <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"b0"</span>, <span class="st">"b"</span>)</span>
-<span id="cb32-173"><a href="#cb32-173" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-174"><a href="#cb32-174" aria-hidden="true" tabindex="-1"></a>mod1 <span class="ot">=</span> <span class="fu">jags.model</span>(<span class="fu">textConnection</span>(mod1_string), <span class="at">data=</span>data_jags, <span class="at">n.chains=</span><span class="dv">3</span>)</span>
-<span id="cb32-175"><a href="#cb32-175" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(mod1, <span class="fl">1e3</span>) <span class="co"># &lt;3&gt;</span></span>
-<span id="cb32-176"><a href="#cb32-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-177"><a href="#cb32-177" aria-hidden="true" tabindex="-1"></a>mod1_sim <span class="ot">=</span> <span class="fu">coda.samples</span>(<span class="at">model=</span>mod1, <span class="at">variable.names=</span>params,  <span class="at">n.iter=</span><span class="fl">5e3</span>) <span class="co">#&lt;4&gt;</span></span>
-<span id="cb32-178"><a href="#cb32-178" aria-hidden="true" tabindex="-1"></a>mod1_csim <span class="ot">=</span> <span class="fu">as.mcmc</span>(<span class="fu">do.call</span>(rbind, mod1_sim))</span>
-<span id="cb32-179"><a href="#cb32-179" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-180"><a href="#cb32-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-181"><a href="#cb32-181" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>this will not work if there are missing values in dat (because they would be ignored by model.matrix). Always make sure that the data are accurately pre-processed for JAGS.</span>
-<span id="cb32-182"><a href="#cb32-182" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>ensure all variables have the same number of observations (712).</span>
-<span id="cb32-183"><a href="#cb32-183" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>burn in for 1k iterations</span>
-<span id="cb32-184"><a href="#cb32-184" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>sim at least 5k iterations</span>
-<span id="cb32-185"><a href="#cb32-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-188"><a href="#cb32-188" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-189"><a href="#cb32-189" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5-2'</span></span>
-<span id="cb32-190"><a href="#cb32-190" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: 'Trace plots'</span></span>
-<span id="cb32-191"><a href="#cb32-191" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-subcap:</span></span>
-<span id="cb32-192"><a href="#cb32-192" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[1] trace - age ' </span></span>
-<span id="cb32-193"><a href="#cb32-193" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[1] density - age'</span></span>
-<span id="cb32-194"><a href="#cb32-194" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[2] trace - OME'</span></span>
-<span id="cb32-195"><a href="#cb32-195" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[2] density - OME'</span></span>
-<span id="cb32-196"><a href="#cb32-196" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[3] trace - Loud'</span></span>
-<span id="cb32-197"><a href="#cb32-197" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[3] density - Loud'</span></span>
-<span id="cb32-198"><a href="#cb32-198" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[4] trace - incoherent'</span></span>
-<span id="cb32-199"><a href="#cb32-199" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[4] density - incoherent'</span></span>
-<span id="cb32-200"><a href="#cb32-200" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[0] trace - intercept'</span></span>
-<span id="cb32-201"><a href="#cb32-201" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[0] density - intercept'</span></span>
-<span id="cb32-202"><a href="#cb32-202" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb32-203"><a href="#cb32-203" aria-hidden="true" tabindex="-1"></a><span class="co">#| column: margin</span></span>
-<span id="cb32-204"><a href="#cb32-204" aria-hidden="true" tabindex="-1"></a><span class="co">#| layout-ncol: 2</span></span>
-<span id="cb32-205"><a href="#cb32-205" aria-hidden="true" tabindex="-1"></a><span class="co">#| lightbox: </span></span>
-<span id="cb32-206"><a href="#cb32-206" aria-hidden="true" tabindex="-1"></a><span class="co">#|   group: q4</span></span>
-<span id="cb32-207"><a href="#cb32-207" aria-hidden="true" tabindex="-1"></a><span class="do">## convergence diagnostics</span></span>
-<span id="cb32-208"><a href="#cb32-208" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mod1_sim,<span class="at">auto.layout =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb32-209"><a href="#cb32-209" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-210"><a href="#cb32-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-213"><a href="#cb32-213" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-214"><a href="#cb32-214" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5-3'</span></span>
-<span id="cb32-215"><a href="#cb32-215" aria-hidden="true" tabindex="-1"></a><span class="fu">gelman.diag</span>(mod1_sim)</span>
-<span id="cb32-216"><a href="#cb32-216" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.diag</span>(mod1_sim)</span>
-<span id="cb32-217"><a href="#cb32-217" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-218"><a href="#cb32-218" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-221"><a href="#cb32-221" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-222"><a href="#cb32-222" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5-4'</span></span>
-<span id="cb32-223"><a href="#cb32-223" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: 'MCMC auto-correlation'</span></span>
-<span id="cb32-224"><a href="#cb32-224" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-subcap:</span></span>
-<span id="cb32-225"><a href="#cb32-225" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[1] ac - age ' </span></span>
-<span id="cb32-226"><a href="#cb32-226" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[2] ac - OME'</span></span>
-<span id="cb32-227"><a href="#cb32-227" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[3] ac - loud'</span></span>
-<span id="cb32-228"><a href="#cb32-228" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[4] ac - incoherent'</span></span>
-<span id="cb32-229"><a href="#cb32-229" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[0] ac - intercept'</span></span>
-<span id="cb32-230"><a href="#cb32-230" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb32-231"><a href="#cb32-231" aria-hidden="true" tabindex="-1"></a><span class="co">#| column: margin</span></span>
-<span id="cb32-232"><a href="#cb32-232" aria-hidden="true" tabindex="-1"></a><span class="co">#| layout-ncol: 2</span></span>
-<span id="cb32-233"><a href="#cb32-233" aria-hidden="true" tabindex="-1"></a><span class="co">#| lightbox: </span></span>
-<span id="cb32-234"><a href="#cb32-234" aria-hidden="true" tabindex="-1"></a><span class="co">#|   group: q4</span></span>
-<span id="cb32-235"><a href="#cb32-235" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.plot</span>(mod1_csim,<span class="at">auto.layout =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb32-236"><a href="#cb32-236" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-237"><a href="#cb32-237" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-240"><a href="#cb32-240" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-241"><a href="#cb32-241" aria-hidden="true" tabindex="-1"></a><span class="fu">effectiveSize</span>(mod1_sim)</span>
-<span id="cb32-242"><a href="#cb32-242" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5-5'</span></span>
-<span id="cb32-243"><a href="#cb32-243" aria-hidden="true" tabindex="-1"></a>dic1 <span class="ot">=</span> <span class="fu">dic.samples</span>(mod1, <span class="at">n.iter=</span><span class="fl">1e3</span>) <span class="co">#&lt;1&gt;</span></span>
-<span id="cb32-244"><a href="#cb32-244" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-245"><a href="#cb32-245" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-246"><a href="#cb32-246" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>calculate DIC</span>
-<span id="cb32-247"><a href="#cb32-247" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-248"><a href="#cb32-248" aria-hidden="true" tabindex="-1"></a>Because there are many data points, the MCMC will take some time to run.</span>
-<span id="cb32-249"><a href="#cb32-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-250"><a href="#cb32-250" aria-hidden="true" tabindex="-1"></a>Before analyzing the results, perform some MCMC diagnostic checks. What does the Raftery and Lewis diagnostic <span class="in">`(raftery.diag())`</span> suggest about these chains?</span>
-<span id="cb32-251"><a href="#cb32-251" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb32-252"><a href="#cb32-252" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-253"><a href="#cb32-253" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb32-254"><a href="#cb32-254" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb32-255"><a href="#cb32-255" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-258"><a href="#cb32-258" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-259"><a href="#cb32-259" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"coda"</span>)</span>
-<span id="cb32-260"><a href="#cb32-260" aria-hidden="true" tabindex="-1"></a>(<span class="fu">raftery.diag</span>(mod1))</span>
-<span id="cb32-261"><a href="#cb32-261" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-262"><a href="#cb32-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-263"><a href="#cb32-263" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The dependence factor for many of the variables is large (<span class="sc">\&gt;</span>5.0), indicating weak autocorrelation in the chains. We would not require a large number of iterations to reliably produce 95% probability intervals for the parameters.</span>
-<span id="cb32-264"><a href="#cb32-264" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-265"><a href="#cb32-265" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The scale reduction factor for many variables is large (<span class="sc">\&gt;</span>5.0), indicating that the different chains are exploring the same space. We have used a sufficient burn-in time.</span>
-<span id="cb32-266"><a href="#cb32-266" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-267"><a href="#cb32-267" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> The dependence factor for many of the variables is large ($&gt;5.0$), indicating strong autocorrelation in the chains. We would require a large number of iterations to reliably produce 95% probability intervals for the parameters.</span>
-<span id="cb32-268"><a href="#cb32-268" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-269"><a href="#cb32-269" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The scale reduction factor for many variables is large ($&gt;5.0$), indicating that the different chains are not exploring the same space yet. We need to run a longer burn-in period.</span>
-<span id="cb32-270"><a href="#cb32-270" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-271"><a href="#cb32-271" aria-hidden="true" tabindex="-1"></a>The Raftery and Lewis diagnostic \index{Raftery and Lewis diagnostic} estimates how many iterations of the current chain would be required to reliably estimate the outer quantiles of the posterior.</span>
-<span id="cb32-272"><a href="#cb32-272" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-130"><a href="#cb32-130" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L09-Ex1-5</span></span>
+<span id="cb32-131"><a href="#cb32-131" aria-hidden="true" tabindex="-1"></a>X <span class="ot">=</span> <span class="fu">model.matrix</span>(mod_glm)[,<span class="sc">-</span><span class="dv">1</span>] <span class="co"># -1 removes the column of 1s for the intercept</span></span>
+<span id="cb32-132"><a href="#cb32-132" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(X)</span>
+<span id="cb32-133"><a href="#cb32-133" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-134"><a href="#cb32-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-135"><a href="#cb32-135" aria-hidden="true" tabindex="-1"></a>The data include categorical covariates which R codes as dummy variables (as with ANOVA). Hence we have an indicator variable for whether OME is at its low level and another indicating whether the Noise is incoherent. The intercept is then associated with this baseline group. Ignoring the continuous variables Age and Loud, what are the characteristics of this baseline group?</span>
+<span id="cb32-136"><a href="#cb32-136" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-137"><a href="#cb32-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-138"><a href="#cb32-138" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb32-139"><a href="#cb32-139" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb32-140"><a href="#cb32-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-141"><a href="#cb32-141" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Children with low OME exposed to incoherent sound.</span>
+<span id="cb32-142"><a href="#cb32-142" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Children with high OME exposed to incoherent sound.</span>
+<span id="cb32-143"><a href="#cb32-143" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> Children with low OME exposed to coherent sound.</span>
+<span id="cb32-144"><a href="#cb32-144" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Children with high OME exposed to coherent sound.</span>
+<span id="cb32-145"><a href="#cb32-145" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-146"><a href="#cb32-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-147"><a href="#cb32-147" aria-hidden="true" tabindex="-1"></a>::: {#exr-Logistic-Regression-5}</span>
+<span id="cb32-148"><a href="#cb32-148" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Raftery and Lewis diagnostic**</span><span class="co">]</span>{.column-margin} Now complete the following code (as well as the code from previous questions) to fit the JAGS model with the fairly non-informative priors given. Use three chains with at least 5,000 iterations in each.</span>
+<span id="cb32-149"><a href="#cb32-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-152"><a href="#cb32-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-153"><a href="#cb32-153" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5'</span></span>
+<span id="cb32-154"><a href="#cb32-154" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-cap: 'Jags logistic regression model'</span></span>
+<span id="cb32-155"><a href="#cb32-155" aria-hidden="true" tabindex="-1"></a><span class="co">#| attr-source: "id=lst-Logistic-Regression-5 lst-cap='Jags logistic regression model'"</span></span>
+<span id="cb32-156"><a href="#cb32-156" aria-hidden="true" tabindex="-1"></a>mod1_string <span class="ot">=</span> <span class="st">" model {</span></span>
+<span id="cb32-157"><a href="#cb32-157" aria-hidden="true" tabindex="-1"></a><span class="st">    for (i in 1:length(y)) {</span></span>
+<span id="cb32-158"><a href="#cb32-158" aria-hidden="true" tabindex="-1"></a><span class="st">        y[i] ~ dbin(phi[i], n[i])</span></span>
+<span id="cb32-159"><a href="#cb32-159" aria-hidden="true" tabindex="-1"></a><span class="st">        logit(phi[i]) = b0 + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
+<span id="cb32-160"><a href="#cb32-160" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb32-161"><a href="#cb32-161" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
+<span id="cb32-162"><a href="#cb32-162" aria-hidden="true" tabindex="-1"></a><span class="st">    b0 ~ dnorm(0.0, 1.0/5.0^2)</span></span>
+<span id="cb32-163"><a href="#cb32-163" aria-hidden="true" tabindex="-1"></a><span class="st">    for (j in 1:4) {</span></span>
+<span id="cb32-164"><a href="#cb32-164" aria-hidden="true" tabindex="-1"></a><span class="st">        b[j] ~ dnorm(0.0, 1.0/4.0^2)</span></span>
+<span id="cb32-165"><a href="#cb32-165" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb32-166"><a href="#cb32-166" aria-hidden="true" tabindex="-1"></a><span class="st">} "</span></span>
+<span id="cb32-167"><a href="#cb32-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-168"><a href="#cb32-168" aria-hidden="true" tabindex="-1"></a>data_jags <span class="ot">=</span> <span class="fu">as.list</span>(<span class="fu">as.data.frame</span>(X))</span>
+<span id="cb32-169"><a href="#cb32-169" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>y <span class="ot">=</span> dat<span class="sc">$</span>Correct  <span class="co"># &lt;1&gt;</span></span>
+<span id="cb32-170"><a href="#cb32-170" aria-hidden="true" tabindex="-1"></a>data_jags<span class="sc">$</span>n <span class="ot">=</span> dat<span class="sc">$</span>Trials</span>
+<span id="cb32-171"><a href="#cb32-171" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(data_jags)             <span class="co"># &lt;2&gt; </span></span>
+<span id="cb32-172"><a href="#cb32-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-173"><a href="#cb32-173" aria-hidden="true" tabindex="-1"></a>params <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"b0"</span>, <span class="st">"b"</span>)</span>
+<span id="cb32-174"><a href="#cb32-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-175"><a href="#cb32-175" aria-hidden="true" tabindex="-1"></a>mod1 <span class="ot">=</span> <span class="fu">jags.model</span>(<span class="fu">textConnection</span>(mod1_string), <span class="at">data=</span>data_jags, <span class="at">n.chains=</span><span class="dv">3</span>)</span>
+<span id="cb32-176"><a href="#cb32-176" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(mod1, <span class="fl">1e3</span>) <span class="co"># &lt;3&gt;</span></span>
+<span id="cb32-177"><a href="#cb32-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-178"><a href="#cb32-178" aria-hidden="true" tabindex="-1"></a>mod1_sim <span class="ot">=</span> <span class="fu">coda.samples</span>(<span class="at">model=</span>mod1, <span class="at">variable.names=</span>params,  <span class="at">n.iter=</span><span class="fl">5e3</span>) <span class="co">#&lt;4&gt;</span></span>
+<span id="cb32-179"><a href="#cb32-179" aria-hidden="true" tabindex="-1"></a>mod1_csim <span class="ot">=</span> <span class="fu">as.mcmc</span>(<span class="fu">do.call</span>(rbind, mod1_sim))</span>
+<span id="cb32-180"><a href="#cb32-180" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-181"><a href="#cb32-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-182"><a href="#cb32-182" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>this will not work if there are missing values in dat (because they would be ignored by model.matrix). Always make sure that the data are accurately pre-processed for JAGS.</span>
+<span id="cb32-183"><a href="#cb32-183" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>ensure all variables have the same number of observations (712).</span>
+<span id="cb32-184"><a href="#cb32-184" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>burn in for 1k iterations</span>
+<span id="cb32-185"><a href="#cb32-185" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>sim at least 5k iterations</span>
+<span id="cb32-186"><a href="#cb32-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-189"><a href="#cb32-189" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-190"><a href="#cb32-190" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5-2'</span></span>
+<span id="cb32-191"><a href="#cb32-191" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: 'Trace plots'</span></span>
+<span id="cb32-192"><a href="#cb32-192" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-subcap:</span></span>
+<span id="cb32-193"><a href="#cb32-193" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[1] trace - age ' </span></span>
+<span id="cb32-194"><a href="#cb32-194" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[1] density - age'</span></span>
+<span id="cb32-195"><a href="#cb32-195" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[2] trace - OME'</span></span>
+<span id="cb32-196"><a href="#cb32-196" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[2] density - OME'</span></span>
+<span id="cb32-197"><a href="#cb32-197" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[3] trace - Loud'</span></span>
+<span id="cb32-198"><a href="#cb32-198" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[3] density - Loud'</span></span>
+<span id="cb32-199"><a href="#cb32-199" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[4] trace - incoherent'</span></span>
+<span id="cb32-200"><a href="#cb32-200" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[4] density - incoherent'</span></span>
+<span id="cb32-201"><a href="#cb32-201" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[0] trace - intercept'</span></span>
+<span id="cb32-202"><a href="#cb32-202" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[0] density - intercept'</span></span>
+<span id="cb32-203"><a href="#cb32-203" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb32-204"><a href="#cb32-204" aria-hidden="true" tabindex="-1"></a><span class="co">#| column: margin</span></span>
+<span id="cb32-205"><a href="#cb32-205" aria-hidden="true" tabindex="-1"></a><span class="co">#| layout-ncol: 2</span></span>
+<span id="cb32-206"><a href="#cb32-206" aria-hidden="true" tabindex="-1"></a><span class="co">#| lightbox: </span></span>
+<span id="cb32-207"><a href="#cb32-207" aria-hidden="true" tabindex="-1"></a><span class="co">#|   group: q4</span></span>
+<span id="cb32-208"><a href="#cb32-208" aria-hidden="true" tabindex="-1"></a><span class="do">## convergence diagnostics</span></span>
+<span id="cb32-209"><a href="#cb32-209" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mod1_sim,<span class="at">auto.layout =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb32-210"><a href="#cb32-210" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-211"><a href="#cb32-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-214"><a href="#cb32-214" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-215"><a href="#cb32-215" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5-3'</span></span>
+<span id="cb32-216"><a href="#cb32-216" aria-hidden="true" tabindex="-1"></a><span class="fu">gelman.diag</span>(mod1_sim)</span>
+<span id="cb32-217"><a href="#cb32-217" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.diag</span>(mod1_sim)</span>
+<span id="cb32-218"><a href="#cb32-218" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-219"><a href="#cb32-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-222"><a href="#cb32-222" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-223"><a href="#cb32-223" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5-4'</span></span>
+<span id="cb32-224"><a href="#cb32-224" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: 'MCMC auto-correlation'</span></span>
+<span id="cb32-225"><a href="#cb32-225" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-subcap:</span></span>
+<span id="cb32-226"><a href="#cb32-226" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[1] ac - age ' </span></span>
+<span id="cb32-227"><a href="#cb32-227" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[2] ac - OME'</span></span>
+<span id="cb32-228"><a href="#cb32-228" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[3] ac - loud'</span></span>
+<span id="cb32-229"><a href="#cb32-229" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[4] ac - incoherent'</span></span>
+<span id="cb32-230"><a href="#cb32-230" aria-hidden="true" tabindex="-1"></a><span class="co">#| - 'b[0] ac - intercept'</span></span>
+<span id="cb32-231"><a href="#cb32-231" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb32-232"><a href="#cb32-232" aria-hidden="true" tabindex="-1"></a><span class="co">#| column: margin</span></span>
+<span id="cb32-233"><a href="#cb32-233" aria-hidden="true" tabindex="-1"></a><span class="co">#| layout-ncol: 2</span></span>
+<span id="cb32-234"><a href="#cb32-234" aria-hidden="true" tabindex="-1"></a><span class="co">#| lightbox: </span></span>
+<span id="cb32-235"><a href="#cb32-235" aria-hidden="true" tabindex="-1"></a><span class="co">#|   group: q4</span></span>
+<span id="cb32-236"><a href="#cb32-236" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.plot</span>(mod1_csim,<span class="at">auto.layout =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb32-237"><a href="#cb32-237" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-238"><a href="#cb32-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-241"><a href="#cb32-241" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-242"><a href="#cb32-242" aria-hidden="true" tabindex="-1"></a><span class="fu">effectiveSize</span>(mod1_sim)</span>
+<span id="cb32-243"><a href="#cb32-243" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: 'lst-Logistic-Regression-5-5'</span></span>
+<span id="cb32-244"><a href="#cb32-244" aria-hidden="true" tabindex="-1"></a>dic1 <span class="ot">=</span> <span class="fu">dic.samples</span>(mod1, <span class="at">n.iter=</span><span class="fl">1e3</span>) <span class="co">#&lt;1&gt;</span></span>
+<span id="cb32-245"><a href="#cb32-245" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-246"><a href="#cb32-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-247"><a href="#cb32-247" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>calculate DIC</span>
+<span id="cb32-248"><a href="#cb32-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-249"><a href="#cb32-249" aria-hidden="true" tabindex="-1"></a>Because there are many data points, the MCMC will take some time to run.</span>
+<span id="cb32-250"><a href="#cb32-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-251"><a href="#cb32-251" aria-hidden="true" tabindex="-1"></a>Before analyzing the results, perform some MCMC diagnostic checks. What does the Raftery and Lewis diagnostic <span class="in">`(raftery.diag())`</span> suggest about these chains?</span>
+<span id="cb32-252"><a href="#cb32-252" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-253"><a href="#cb32-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-254"><a href="#cb32-254" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb32-255"><a href="#cb32-255" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb32-256"><a href="#cb32-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-259"><a href="#cb32-259" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-260"><a href="#cb32-260" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L09-Ex1-11</span></span>
+<span id="cb32-261"><a href="#cb32-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-262"><a href="#cb32-262" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"coda"</span>)</span>
+<span id="cb32-263"><a href="#cb32-263" aria-hidden="true" tabindex="-1"></a>(<span class="fu">raftery.diag</span>(mod1))</span>
+<span id="cb32-264"><a href="#cb32-264" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-265"><a href="#cb32-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-266"><a href="#cb32-266" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The dependence factor for many of the variables is large (<span class="sc">\&gt;</span>5.0), indicating weak autocorrelation in the chains. We would not require a large number of iterations to reliably produce 95% probability intervals for the parameters.</span>
+<span id="cb32-267"><a href="#cb32-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-268"><a href="#cb32-268" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The scale reduction factor for many variables is large (<span class="sc">\&gt;</span>5.0), indicating that the different chains are exploring the same space. We have used a sufficient burn-in time.</span>
+<span id="cb32-269"><a href="#cb32-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-270"><a href="#cb32-270" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> The dependence factor for many of the variables is large ($&gt;5.0$), indicating strong autocorrelation in the chains. We would require a large number of iterations to reliably produce 95% probability intervals for the parameters.</span>
+<span id="cb32-271"><a href="#cb32-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-272"><a href="#cb32-272" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The scale reduction factor for many variables is large ($&gt;5.0$), indicating that the different chains are not exploring the same space yet. We need to run a longer burn-in period.</span>
 <span id="cb32-273"><a href="#cb32-273" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-274"><a href="#cb32-274" aria-hidden="true" tabindex="-1"></a>::: {#exr-Logistic-Regression-6}</span>
-<span id="cb32-275"><a href="#cb32-275" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Logistic Regression**</span><span class="co">]</span>{.column-margin} Although <span class="in">`OMElow`</span> is the predictor with weakest statistical association to probability of correct responses, the posterior probability that its coefficient $\beta_2$ is negative is still greater than $0.9$. How do we interpret this (most likely) negative coefficient in the context of our model?</span>
-<span id="cb32-276"><a href="#cb32-276" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb32-277"><a href="#cb32-277" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-278"><a href="#cb32-278" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb32-279"><a href="#cb32-279" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb32-274"><a href="#cb32-274" aria-hidden="true" tabindex="-1"></a>The Raftery and Lewis diagnostic \index{Raftery and Lewis diagnostic} estimates how many iterations of the current chain would be required to reliably estimate the outer quantiles of the posterior.</span>
+<span id="cb32-275"><a href="#cb32-275" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-276"><a href="#cb32-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-277"><a href="#cb32-277" aria-hidden="true" tabindex="-1"></a>::: {#exr-Logistic-Regression-6}</span>
+<span id="cb32-278"><a href="#cb32-278" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Logistic Regression**</span><span class="co">]</span>{.column-margin} Although <span class="in">`OMElow`</span> is the predictor with weakest statistical association to probability of correct responses, the posterior probability that its coefficient $\beta_2$ is negative is still greater than $0.9$. How do we interpret this (most likely) negative coefficient in the context of our model?</span>
+<span id="cb32-279"><a href="#cb32-279" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb32-280"><a href="#cb32-280" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-281"><a href="#cb32-281" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> While holding all other predictors constant, low OME is associated with a decrease of magnitude $∣\beta_2∣$ in the probability of correct responses while high OME is associated with an increase $∣\beta_2∣.$</span>
-<span id="cb32-282"><a href="#cb32-282" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> While holding all other predictors constant, low OME is associated with a higher probability of correct responses than high OME.</span>
-<span id="cb32-283"><a href="#cb32-283" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> While holding all other predictors constant, low OME is associated with a lower probability of correct responses than high OME.</span>
-<span id="cb32-284"><a href="#cb32-284" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> While holding all other predictors constant, low OME is associated with an increase of magnitude $∣\beta_2∣$ in the probability of correct responses while high OME is associated with a decrease of $\beta_2∣$.</span>
-<span id="cb32-285"><a href="#cb32-285" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-286"><a href="#cb32-286" aria-hidden="true" tabindex="-1"></a>Since low <span class="in">`OME`</span> is coded with a one and has a negative coefficient, low <span class="in">`OME`</span> is associated with lower log-odds and consequently lower probability.</span>
-<span id="cb32-287"><a href="#cb32-287" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-288"><a href="#cb32-288" aria-hidden="true" tabindex="-1"></a>It may also be interesting to try a model that includes interaction terms to see if, for example, the effect of low/high OME is different for different Age groups.</span>
-<span id="cb32-289"><a href="#cb32-289" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-281"><a href="#cb32-281" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb32-282"><a href="#cb32-282" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb32-283"><a href="#cb32-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-284"><a href="#cb32-284" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> While holding all other predictors constant, low OME is associated with a decrease of magnitude $∣\beta_2∣$ in the probability of correct responses while high OME is associated with an increase $∣\beta_2∣.$</span>
+<span id="cb32-285"><a href="#cb32-285" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> While holding all other predictors constant, low OME is associated with a higher probability of correct responses than high OME.</span>
+<span id="cb32-286"><a href="#cb32-286" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> While holding all other predictors constant, low OME is associated with a lower probability of correct responses than high OME.</span>
+<span id="cb32-287"><a href="#cb32-287" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> While holding all other predictors constant, low OME is associated with an increase of magnitude $∣\beta_2∣$ in the probability of correct responses while high OME is associated with a decrease of $\beta_2∣$.</span>
+<span id="cb32-288"><a href="#cb32-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-289"><a href="#cb32-289" aria-hidden="true" tabindex="-1"></a>Since low <span class="in">`OME`</span> is coded with a one and has a negative coefficient, low <span class="in">`OME`</span> is associated with lower log-odds and consequently lower probability.</span>
 <span id="cb32-290"><a href="#cb32-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-291"><a href="#cb32-291" aria-hidden="true" tabindex="-1"></a>::: {#exr-Logistic-Regression-7}</span>
-<span id="cb32-292"><a href="#cb32-292" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Logistic Regression**</span><span class="co">]</span>{.column-margin} Using the posterior mean estimates of the model coefficients, create a point estimate of the probability of correct responses for a child of age 60 months, with high OME, using a coherent stimulus of 50 decibels. Round your answer to two decimal places.</span>
+<span id="cb32-291"><a href="#cb32-291" aria-hidden="true" tabindex="-1"></a>It may also be interesting to try a model that includes interaction terms to see if, for example, the effect of low/high OME is different for different Age groups.</span>
+<span id="cb32-292"><a href="#cb32-292" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb32-293"><a href="#cb32-293" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-294"><a href="#cb32-294" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb32-295"><a href="#cb32-295" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Hint:</span></span>
+<span id="cb32-294"><a href="#cb32-294" aria-hidden="true" tabindex="-1"></a>::: {#exr-Logistic-Regression-7}</span>
+<span id="cb32-295"><a href="#cb32-295" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Logistic Regression**</span><span class="co">]</span>{.column-margin} Using the posterior mean estimates of the model coefficients, create a point estimate of the probability of correct responses for a child of age 60 months, with high OME, using a coherent stimulus of 50 decibels. Round your answer to two decimal places.</span>
 <span id="cb32-296"><a href="#cb32-296" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-297"><a href="#cb32-297" aria-hidden="true" tabindex="-1"></a>First calculate the linear part by multiplying the variables by the coefficients and adding them up (call this xb). Once you have that, apply the inverse of the link function to transform it into a probability estimate. Recall that the inverse of the logit transformation is $\phi=\frac{1}{1+e^{−xb}}$.</span>
-<span id="cb32-298"><a href="#cb32-298" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb32-299"><a href="#cb32-299" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb32-300"><a href="#cb32-300" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-301"><a href="#cb32-301" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb32-302"><a href="#cb32-302" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb32-297"><a href="#cb32-297" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb32-298"><a href="#cb32-298" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Hint:</span></span>
+<span id="cb32-299"><a href="#cb32-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-300"><a href="#cb32-300" aria-hidden="true" tabindex="-1"></a>First calculate the linear part by multiplying the variables by the coefficients and adding them up (call this xb). Once you have that, apply the inverse of the link function to transform it into a probability estimate. Recall that the inverse of the logit transformation is $\phi=\frac{1}{1+e^{−xb}}$.</span>
+<span id="cb32-301"><a href="#cb32-301" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-302"><a href="#cb32-302" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb32-303"><a href="#cb32-303" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-306"><a href="#cb32-306" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-307"><a href="#cb32-307" aria-hidden="true" tabindex="-1"></a><span class="co"># logit(phi[i]) = b0 + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
-<span id="cb32-308"><a href="#cb32-308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-309"><a href="#cb32-309" aria-hidden="true" tabindex="-1"></a>A<span class="ot">=</span>X[,<span class="dv">1</span>]<span class="sc">==</span><span class="dv">60</span>  <span class="co"># &lt;1&gt; </span></span>
-<span id="cb32-310"><a href="#cb32-310" aria-hidden="true" tabindex="-1"></a>B<span class="ot">=</span>X[,<span class="dv">2</span>]<span class="sc">==</span><span class="dv">0</span>   <span class="co"># &lt;2&gt;</span></span>
-<span id="cb32-311"><a href="#cb32-311" aria-hidden="true" tabindex="-1"></a>C<span class="ot">=</span>X[,<span class="dv">3</span>]<span class="sc">==</span><span class="dv">50</span>  <span class="co"># &lt;3&gt;</span></span>
-<span id="cb32-312"><a href="#cb32-312" aria-hidden="true" tabindex="-1"></a>D<span class="ot">=</span>X[,<span class="dv">4</span>]<span class="sc">==</span><span class="dv">0</span>   <span class="co"># &lt;4&gt;</span></span>
-<span id="cb32-313"><a href="#cb32-313" aria-hidden="true" tabindex="-1"></a>ABCD <span class="ot">=</span> X[A <span class="sc">&amp;</span> B <span class="sc">&amp;</span> C <span class="sc">&amp;</span> D, <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>)]            <span class="co"># &lt;5&gt;</span></span>
-<span id="cb32-314"><a href="#cb32-314" aria-hidden="true" tabindex="-1"></a>pm_coef <span class="ot">=</span> <span class="fu">colMeans</span>(mod1_csim)                  <span class="co"># &lt;6&gt;</span></span>
-<span id="cb32-315"><a href="#cb32-315" aria-hidden="true" tabindex="-1"></a>pm_Xb <span class="ot">=</span> pm_coef[<span class="st">"b0"</span>] <span class="sc">+</span> ABCD  <span class="sc">%*%</span> pm_coef[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>] <span class="co"># &lt;7&gt;</span></span>
-<span id="cb32-316"><a href="#cb32-316" aria-hidden="true" tabindex="-1"></a>phat <span class="ot">=</span> <span class="fl">1.0</span> <span class="sc">/</span> (<span class="fl">1.0</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>pm_Xb))               <span class="co"># &lt;8&gt;</span></span>
-<span id="cb32-317"><a href="#cb32-317" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(phat)                                     <span class="co"># &lt;9&gt;</span></span>
-<span id="cb32-318"><a href="#cb32-318" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-319"><a href="#cb32-319" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-320"><a href="#cb32-320" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>child of age 60 months</span>
-<span id="cb32-321"><a href="#cb32-321" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>with high OME,\</span>
-<span id="cb32-322"><a href="#cb32-322" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>using a coherent</span>
-<span id="cb32-323"><a href="#cb32-323" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>stimulus of 50 decibels</span>
-<span id="cb32-324"><a href="#cb32-324" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>combining</span>
-<span id="cb32-325"><a href="#cb32-325" aria-hidden="true" tabindex="-1"></a><span class="ss">6.  </span>infer mean for parameters from MCMC samples</span>
-<span id="cb32-326"><a href="#cb32-326" aria-hidden="true" tabindex="-1"></a><span class="ss">7.  </span>multiplying the variables by the coefficients</span>
-<span id="cb32-327"><a href="#cb32-327" aria-hidden="true" tabindex="-1"></a><span class="ss">8.  </span>inverse of the link function to transform</span>
-<span id="cb32-328"><a href="#cb32-328" aria-hidden="true" tabindex="-1"></a><span class="ss">9.  </span>point estimate</span>
-<span id="cb32-329"><a href="#cb32-329" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb32-330"><a href="#cb32-330" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-331"><a href="#cb32-331" aria-hidden="true" tabindex="-1"></a>::: {#exr-Logistic-Regression-8}</span>
-<span id="cb32-332"><a href="#cb32-332" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Logistic Regression**</span><span class="co">]</span>{.column-margin} Use the posterior mean estimates of the model coefficients to create point estimates of the probability of correct responses for each observation in the original data. To do this, follow the steps outlined in the lesson to create a vector of these probabilities called phat (using our notation from this quiz, it would be $\hat\phi$).</span>
-<span id="cb32-333"><a href="#cb32-333" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-334"><a href="#cb32-334" aria-hidden="true" tabindex="-1"></a>Once you have phat, calculate the proportion of in-sample observations that are correctly classified according to the following criterion: the model prediction and observed correct response rate are either both higher than 0.7 or both lower than 0.7. Round your answer to two decimal places.</span>
+<span id="cb32-304"><a href="#cb32-304" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb32-305"><a href="#cb32-305" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb32-306"><a href="#cb32-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-309"><a href="#cb32-309" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-310"><a href="#cb32-310" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L09-Ex1-12</span></span>
+<span id="cb32-311"><a href="#cb32-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-312"><a href="#cb32-312" aria-hidden="true" tabindex="-1"></a><span class="co"># logit(phi[i]) = b0 + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
+<span id="cb32-313"><a href="#cb32-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-314"><a href="#cb32-314" aria-hidden="true" tabindex="-1"></a>A<span class="ot">=</span>X[,<span class="dv">1</span>]<span class="sc">==</span><span class="dv">60</span>  <span class="co"># &lt;1&gt; </span></span>
+<span id="cb32-315"><a href="#cb32-315" aria-hidden="true" tabindex="-1"></a>B<span class="ot">=</span>X[,<span class="dv">2</span>]<span class="sc">==</span><span class="dv">0</span>   <span class="co"># &lt;2&gt;</span></span>
+<span id="cb32-316"><a href="#cb32-316" aria-hidden="true" tabindex="-1"></a>C<span class="ot">=</span>X[,<span class="dv">3</span>]<span class="sc">==</span><span class="dv">50</span>  <span class="co"># &lt;3&gt;</span></span>
+<span id="cb32-317"><a href="#cb32-317" aria-hidden="true" tabindex="-1"></a>D<span class="ot">=</span>X[,<span class="dv">4</span>]<span class="sc">==</span><span class="dv">0</span>   <span class="co"># &lt;4&gt;</span></span>
+<span id="cb32-318"><a href="#cb32-318" aria-hidden="true" tabindex="-1"></a>ABCD <span class="ot">=</span> X[A <span class="sc">&amp;</span> B <span class="sc">&amp;</span> C <span class="sc">&amp;</span> D, <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>)]            <span class="co"># &lt;5&gt;</span></span>
+<span id="cb32-319"><a href="#cb32-319" aria-hidden="true" tabindex="-1"></a>pm_coef <span class="ot">=</span> <span class="fu">colMeans</span>(mod1_csim)                  <span class="co"># &lt;6&gt;</span></span>
+<span id="cb32-320"><a href="#cb32-320" aria-hidden="true" tabindex="-1"></a>pm_Xb <span class="ot">=</span> pm_coef[<span class="st">"b0"</span>] <span class="sc">+</span> ABCD  <span class="sc">%*%</span> pm_coef[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>] <span class="co"># &lt;7&gt;</span></span>
+<span id="cb32-321"><a href="#cb32-321" aria-hidden="true" tabindex="-1"></a>phat <span class="ot">=</span> <span class="fl">1.0</span> <span class="sc">/</span> (<span class="fl">1.0</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>pm_Xb))               <span class="co"># &lt;8&gt;</span></span>
+<span id="cb32-322"><a href="#cb32-322" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(phat)                                     <span class="co"># &lt;9&gt;</span></span>
+<span id="cb32-323"><a href="#cb32-323" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-324"><a href="#cb32-324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-325"><a href="#cb32-325" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>child of age 60 months</span>
+<span id="cb32-326"><a href="#cb32-326" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>with high OME,\</span>
+<span id="cb32-327"><a href="#cb32-327" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>using a coherent</span>
+<span id="cb32-328"><a href="#cb32-328" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>stimulus of 50 decibels</span>
+<span id="cb32-329"><a href="#cb32-329" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>combining</span>
+<span id="cb32-330"><a href="#cb32-330" aria-hidden="true" tabindex="-1"></a><span class="ss">6.  </span>infer mean for parameters from MCMC samples</span>
+<span id="cb32-331"><a href="#cb32-331" aria-hidden="true" tabindex="-1"></a><span class="ss">7.  </span>multiplying the variables by the coefficients</span>
+<span id="cb32-332"><a href="#cb32-332" aria-hidden="true" tabindex="-1"></a><span class="ss">8.  </span>inverse of the link function to transform</span>
+<span id="cb32-333"><a href="#cb32-333" aria-hidden="true" tabindex="-1"></a><span class="ss">9.  </span>point estimate</span>
+<span id="cb32-334"><a href="#cb32-334" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb32-335"><a href="#cb32-335" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-336"><a href="#cb32-336" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb32-337"><a href="#cb32-337" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Hint:</span></span>
+<span id="cb32-336"><a href="#cb32-336" aria-hidden="true" tabindex="-1"></a>::: {#exr-Logistic-Regression-8}</span>
+<span id="cb32-337"><a href="#cb32-337" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**Logistic Regression**</span><span class="co">]</span>{.column-margin} Use the posterior mean estimates of the model coefficients to create point estimates of the probability of correct responses for each observation in the original data. To do this, follow the steps outlined in the lesson to create a vector of these probabilities called phat (using our notation from this quiz, it would be $\hat\phi$).</span>
 <span id="cb32-338"><a href="#cb32-338" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-339"><a href="#cb32-339" aria-hidden="true" tabindex="-1"></a>Use the following code:</span>
+<span id="cb32-339"><a href="#cb32-339" aria-hidden="true" tabindex="-1"></a>Once you have phat, calculate the proportion of in-sample observations that are correctly classified according to the following criterion: the model prediction and observed correct response rate are either both higher than 0.7 or both lower than 0.7. Round your answer to two decimal places.</span>
 <span id="cb32-340"><a href="#cb32-340" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-343"><a href="#cb32-343" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-344"><a href="#cb32-344" aria-hidden="true" tabindex="-1"></a><span class="co"># recall:   logit(phi[i]) = b0 + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
+<span id="cb32-341"><a href="#cb32-341" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb32-342"><a href="#cb32-342" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Hint:</span></span>
+<span id="cb32-343"><a href="#cb32-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-344"><a href="#cb32-344" aria-hidden="true" tabindex="-1"></a>Use the following code:</span>
 <span id="cb32-345"><a href="#cb32-345" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-346"><a href="#cb32-346" aria-hidden="true" tabindex="-1"></a>(<span class="at">pm_coef =</span> <span class="fu">colMeans</span>(mod1_csim))</span>
-<span id="cb32-347"><a href="#cb32-347" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-348"><a href="#cb32-348" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb32-349"><a href="#cb32-349" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb32-350"><a href="#cb32-350" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-351"><a href="#cb32-351" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb32-352"><a href="#cb32-352" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb32-353"><a href="#cb32-353" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-356"><a href="#cb32-356" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb32-357"><a href="#cb32-357" aria-hidden="true" tabindex="-1"></a>pm_Xb <span class="ot">=</span> pm_coef[<span class="st">"b0"</span>] <span class="sc">+</span> X[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>)] <span class="sc">%*%</span> pm_coef[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>]</span>
-<span id="cb32-358"><a href="#cb32-358" aria-hidden="true" tabindex="-1"></a>phat <span class="ot">=</span> <span class="fl">1.0</span> <span class="sc">/</span> (<span class="fl">1.0</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>pm_Xb))</span>
-<span id="cb32-359"><a href="#cb32-359" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(phat)</span>
-<span id="cb32-360"><a href="#cb32-360" aria-hidden="true" tabindex="-1"></a>(<span class="at">tab0.7 =</span> <span class="fu">table</span>(phat <span class="sc">&gt;</span> <span class="fl">0.7</span>, (dat<span class="sc">$</span>Correct <span class="sc">/</span> dat<span class="sc">$</span>Trials) <span class="sc">&gt;</span> <span class="fl">0.7</span>))</span>
-<span id="cb32-361"><a href="#cb32-361" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">diag</span>(tab0<span class="fl">.7</span>)) <span class="sc">/</span> <span class="fu">sum</span>(tab0<span class="fl">.7</span>)</span>
-<span id="cb32-362"><a href="#cb32-362" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb32-363"><a href="#cb32-363" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-364"><a href="#cb32-364" aria-hidden="true" tabindex="-1"></a>0.84</span>
-<span id="cb32-365"><a href="#cb32-365" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-366"><a href="#cb32-366" aria-hidden="true" tabindex="-1"></a>It appears that the accurate cases (high probability of correct responses) are well captured by the model.</span>
-<span id="cb32-367"><a href="#cb32-367" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-368"><a href="#cb32-368" aria-hidden="true" tabindex="-1"></a>In this exercise, we obtained a point estimate of the coefficients and used that to obtain a point estimate of the probabilities. If we want posterior distributions for the probabilities, we could apply the inverse link transformation to each iteration of the coefficients.</span>
-<span id="cb32-369"><a href="#cb32-369" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-348"><a href="#cb32-348" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-349"><a href="#cb32-349" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L09-Ex1-13</span></span>
+<span id="cb32-350"><a href="#cb32-350" aria-hidden="true" tabindex="-1"></a><span class="co"># recall:   logit(phi[i]) = b0 + b[1]*Age[i] + b[2]*OMElow[i] + b[3]*Loud[i] + b[4]*Noiseincoherent[i]</span></span>
+<span id="cb32-351"><a href="#cb32-351" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-352"><a href="#cb32-352" aria-hidden="true" tabindex="-1"></a>(<span class="at">pm_coef =</span> <span class="fu">colMeans</span>(mod1_csim))</span>
+<span id="cb32-353"><a href="#cb32-353" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-354"><a href="#cb32-354" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-355"><a href="#cb32-355" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-356"><a href="#cb32-356" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-357"><a href="#cb32-357" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb32-358"><a href="#cb32-358" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb32-359"><a href="#cb32-359" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-362"><a href="#cb32-362" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-363"><a href="#cb32-363" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L09-Ex1-14</span></span>
+<span id="cb32-364"><a href="#cb32-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-365"><a href="#cb32-365" aria-hidden="true" tabindex="-1"></a>pm_Xb <span class="ot">=</span> pm_coef[<span class="st">"b0"</span>] <span class="sc">+</span> X[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>)] <span class="sc">%*%</span> pm_coef[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>]</span>
+<span id="cb32-366"><a href="#cb32-366" aria-hidden="true" tabindex="-1"></a>phat <span class="ot">=</span> <span class="fl">1.0</span> <span class="sc">/</span> (<span class="fl">1.0</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>pm_Xb))</span>
+<span id="cb32-367"><a href="#cb32-367" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(phat)</span>
+<span id="cb32-368"><a href="#cb32-368" aria-hidden="true" tabindex="-1"></a>(<span class="at">tab0.7 =</span> <span class="fu">table</span>(phat <span class="sc">&gt;</span> <span class="fl">0.7</span>, (dat<span class="sc">$</span>Correct <span class="sc">/</span> dat<span class="sc">$</span>Trials) <span class="sc">&gt;</span> <span class="fl">0.7</span>))</span>
+<span id="cb32-369"><a href="#cb32-369" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">diag</span>(tab0<span class="fl">.7</span>)) <span class="sc">/</span> <span class="fu">sum</span>(tab0<span class="fl">.7</span>)</span>
+<span id="cb32-370"><a href="#cb32-370" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-371"><a href="#cb32-371" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-372"><a href="#cb32-372" aria-hidden="true" tabindex="-1"></a>0.84</span>
+<span id="cb32-373"><a href="#cb32-373" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-374"><a href="#cb32-374" aria-hidden="true" tabindex="-1"></a>It appears that the accurate cases (high probability of correct responses) are well captured by the model.</span>
+<span id="cb32-375"><a href="#cb32-375" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-376"><a href="#cb32-376" aria-hidden="true" tabindex="-1"></a>In this exercise, we obtained a point estimate of the coefficients and used that to obtain a point estimate of the probabilities. If we want posterior distributions for the probabilities, we could apply the inverse link transformation to each iteration of the coefficients.</span>
+<span id="cb32-377"><a href="#cb32-377" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

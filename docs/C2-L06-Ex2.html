@@ -1172,95 +1172,83 @@ x_i \mid \alpha, \beta \overset{\text{iid}}{\sim} \text{Beta}(\alpha, \beta) \, 
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>{<span class="fu">library</span>(<span class="st">"rjags"</span>)}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: coda</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Linked to JAGS 4.3.2</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loaded modules: basemod,bugs</code></pre>
-</div>
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"coda"</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>lg <span class="ot">=</span> <span class="cf">function</span>(mu, n, ybar) {</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  mu2 <span class="ot">=</span> mu<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  n <span class="sc">*</span> (ybar <span class="sc">*</span> mu <span class="sc">-</span> mu2 <span class="sc">/</span> <span class="fl">2.0</span>) <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> mu2)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>mh <span class="ot">=</span> <span class="cf">function</span>(n, ybar, n_iter, mu_init, cand_sd) {</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Random-Walk Metropolis-Hastings algorithm</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="do">## step 1, initialize</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  mu_out <span class="ot">=</span> <span class="fu">numeric</span>(n_iter)</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  accpt <span class="ot">=</span> <span class="dv">0</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  mu_now <span class="ot">=</span> mu_init</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  lg_now <span class="ot">=</span> <span class="fu">lg</span>(<span class="at">mu=</span>mu_now, <span class="at">n=</span>n, <span class="at">ybar=</span>ybar)</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="do">## step 2, iterate</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_iter) {</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2a</span></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    mu_cand <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">mean=</span>mu_now, <span class="at">sd=</span>cand_sd) <span class="co"># draw a candidate</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2b</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    lg_cand <span class="ot">=</span> <span class="fu">lg</span>(<span class="at">mu=</span>mu_cand, <span class="at">n=</span>n, <span class="at">ybar=</span>ybar) <span class="co"># evaluate log of g with the candidate</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    lalpha <span class="ot">=</span> lg_cand <span class="sc">-</span> lg_now <span class="co"># log of acceptance ratio</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    alpha <span class="ot">=</span> <span class="fu">exp</span>(lalpha)</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2c</span></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    u <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">1</span>) <span class="co"># draw a uniform variable which will be less than alpha with probability min(1, alpha)</span></span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (u <span class="sc">&lt;</span> alpha) { <span class="co"># then accept the candidate</span></span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>      mu_now <span class="ot">=</span> mu_cand</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>      accpt <span class="ot">=</span> accpt <span class="sc">+</span> <span class="dv">1</span> <span class="co"># to keep track of acceptance</span></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>      lg_now <span class="ot">=</span> lg_cand</span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="do">## collect results</span></span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    mu_out[i] <span class="ot">=</span> mu_now <span class="co"># save this iteration's value of mu</span></span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="do">## return a list of output</span></span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">mu=</span>mu_out, <span class="at">accpt=</span>accpt<span class="sc">/</span>n_iter)</span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">1.2</span>, <span class="fl">1.4</span>, <span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.9</span>, <span class="fl">2.3</span>, <span class="fl">1.0</span>, <span class="fl">0.1</span>, <span class="fl">1.3</span>, <span class="fl">1.9</span>)</span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="co">#hist(y, freq=FALSE, xlim=c(-1.0, 3.0)) # histogram of the data</span></span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a><span class="co">#curve(dt(x=x, df=1), lty=2, add=TRUE) # prior for mu</span></span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="co">#points(y, rep(0,n), pch=1) # individual data points</span></span>
-<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a><span class="co">#points(ybar, 0, pch=19) # sample mean</span></span>
-<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a><span class="co">#set.seed(43) # set the random seed for reproducibility</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>{<span class="fu">library</span>(<span class="st">"rjags"</span>)}</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"coda"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>lg <span class="ot">=</span> <span class="cf">function</span>(mu, n, ybar) {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  mu2 <span class="ot">=</span> mu<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  n <span class="sc">*</span> (ybar <span class="sc">*</span> mu <span class="sc">-</span> mu2 <span class="sc">/</span> <span class="fl">2.0</span>) <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> mu2)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>mh <span class="ot">=</span> <span class="cf">function</span>(n, ybar, n_iter, mu_init, cand_sd) {</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Random-Walk Metropolis-Hastings algorithm</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="do">## step 1, initialize</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  mu_out <span class="ot">=</span> <span class="fu">numeric</span>(n_iter)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  accpt <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  mu_now <span class="ot">=</span> mu_init</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  lg_now <span class="ot">=</span> <span class="fu">lg</span>(<span class="at">mu=</span>mu_now, <span class="at">n=</span>n, <span class="at">ybar=</span>ybar)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="do">## step 2, iterate</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_iter) {</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2a</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    mu_cand <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">mean=</span>mu_now, <span class="at">sd=</span>cand_sd) <span class="co"># draw a candidate</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2b</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    lg_cand <span class="ot">=</span> <span class="fu">lg</span>(<span class="at">mu=</span>mu_cand, <span class="at">n=</span>n, <span class="at">ybar=</span>ybar) <span class="co"># evaluate log of g with the candidate</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    lalpha <span class="ot">=</span> lg_cand <span class="sc">-</span> lg_now <span class="co"># log of acceptance ratio</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    alpha <span class="ot">=</span> <span class="fu">exp</span>(lalpha)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2c</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    u <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">1</span>) <span class="co"># draw a uniform variable which will be less than alpha with probability min(1, alpha)</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (u <span class="sc">&lt;</span> alpha) { <span class="co"># then accept the candidate</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>      mu_now <span class="ot">=</span> mu_cand</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>      accpt <span class="ot">=</span> accpt <span class="sc">+</span> <span class="dv">1</span> <span class="co"># to keep track of acceptance</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>      lg_now <span class="ot">=</span> lg_cand</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="do">## collect results</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    mu_out[i] <span class="ot">=</span> mu_now <span class="co"># save this iteration's value of mu</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  <span class="do">## return a list of output</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">mu=</span>mu_out, <span class="at">accpt=</span>accpt<span class="sc">/</span>n_iter)</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">1.2</span>, <span class="fl">1.4</span>, <span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.9</span>, <span class="fl">2.3</span>, <span class="fl">1.0</span>, <span class="fl">0.1</span>, <span class="fl">1.3</span>, <span class="fl">1.9</span>)</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="co">#hist(y, freq=FALSE, xlim=c(-1.0, 3.0)) # histogram of the data</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="co">#curve(dt(x=x, df=1), lty=2, add=TRUE) # prior for mu</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="co">#points(y, rep(0,n), pch=1) # individual data points</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="co">#points(ybar, 0, pch=19) # sample mean</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="co">#set.seed(43) # set the random seed for reproducibility</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sds <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">1.5</span>,<span class="fl">3.0</span>,<span class="fl">4.0</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.2</span>, <span class="sc">-</span><span class="fl">1.5</span>, <span class="sc">-</span><span class="fl">5.3</span>, <span class="fl">0.3</span>, <span class="sc">-</span><span class="fl">0.8</span>, <span class="sc">-</span><span class="fl">2.2</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (sd <span class="cf">in</span> sds){</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  post <span class="ot">=</span> <span class="fu">mh</span>(<span class="at">n=</span>n, <span class="at">ybar=</span>ybar, <span class="at">n_iter=</span><span class="fl">1e3</span>, <span class="at">mu_init=</span><span class="fl">0.0</span>, <span class="at">cand_sd=</span>sd)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">#str(post)</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">#traceplot(as.mcmc(post$mu))</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">c</span>(sd,<span class="st">":"</span>,post<span class="sc">$</span>accpt,<span class="st">'mu'</span>,<span class="st">":"</span>,<span class="fu">mean</span>(post<span class="sc">$</span>mu)))</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>sds <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">1.5</span>,<span class="fl">3.0</span>,<span class="fl">4.0</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.2</span>, <span class="sc">-</span><span class="fl">1.5</span>, <span class="sc">-</span><span class="fl">5.3</span>, <span class="fl">0.3</span>, <span class="sc">-</span><span class="fl">0.8</span>, <span class="sc">-</span><span class="fl">2.2</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (sd <span class="cf">in</span> sds){</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  post <span class="ot">=</span> <span class="fu">mh</span>(<span class="at">n=</span>n, <span class="at">ybar=</span>ybar, <span class="at">n_iter=</span><span class="fl">1e3</span>, <span class="at">mu_init=</span><span class="fl">0.0</span>, <span class="at">cand_sd=</span>sd)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">#str(post)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">#traceplot(as.mcmc(post$mu))</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">c</span>(sd,<span class="st">":"</span>,post<span class="sc">$</span>accpt,<span class="st">'mu'</span>,<span class="st">":"</span>,<span class="fu">mean</span>(post<span class="sc">$</span>mu)))</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "0.5"               ":"                 "0.654"            
-[4] "mu"                ":"                 "-1.49126394287704"
-[1] "1.5"               ":"                 "0.316"            
-[4] "mu"                ":"                 "-1.49090741085431"
-[1] "3"                 ":"                 "0.156"            
-[4] "mu"                ":"                 "-1.43986445517579"
-[1] "4"                 ":"                 "0.141"            
-[4] "mu"                ":"                 "-1.43066531942217"</code></pre>
+<pre><code>[1] "0.5"               ":"                 "0.637"            
+[4] "mu"                ":"                 "-1.46236382073726"
+[1] "1.5"               ":"                 "0.314"            
+[4] "mu"                ":"                 "-1.45027695850878"
+[1] "3"                 ":"                 "0.157"            
+[4] "mu"                ":"                 "-1.44774621405117"
+[1] "4"                 ":"                 "0.144"            
+[4] "mu"                ":"                 "-1.42083746164812"</code></pre>
 </div>
 </div>
 <div id="exr-mhh-4" class="theorem exercise page-columns page-full">
@@ -1798,187 +1786,189 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb8" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## Honnors Homework on M-H algorithm</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} For Questions @exr-mhh-1 through @exr-mhh-3, consider the following model for data that take on values between 0 and 1:</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>x_i \mid \alpha, \beta \overset{\text{iid}}{\sim} \text{Beta}(\alpha, \beta) \, , \quad i = 1, \ldots, n\, , <span class="sc">\\</span> \alpha \sim \text{Gamma}(a, b) \, , <span class="sc">\\</span> \beta \sim \text{Gamma}(r, s)</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>where $α$ and $β$ are independent a-priori.</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-1}</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} Which of the following gives the *full conditional density* for $α$ up to proportionality?</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $p( \alpha \mid \beta, x) \propto \frac{ \Gamma(\alpha + \beta)^n }{ \Gamma(\alpha)^n } \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha - 1} \alpha^{a-1} e^{-b\alpha} I_{(0 &lt; \alpha &lt; 1)}$</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> $p( \alpha \mid \beta, x) \propto \frac{ \Gamma(\alpha + \beta)^n }{ \Gamma(\alpha)^n } \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha - 1} \alpha^{a-1} e^{-b\alpha} I_{(\alpha &gt; 0)}$</span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $p( \alpha \mid \beta, x) \propto \frac{ \Gamma(\alpha + \beta)^n }{ \Gamma(\alpha)^n \Gamma(\beta)^n } \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha - 1} \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n (1-x_i) \right</span><span class="co">]</span>^{\beta - 1} \alpha^{a-1} e^{-b\alpha} \beta^{r-1} e^{-s\beta} I_{(0 &lt; \alpha &lt; 1)} I_{(0 &lt; \beta &lt; 1)}$</span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $p( \alpha \mid \beta, x) \propto \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha - 1} \alpha^{a-1} e^{-b\alpha} I_{(\alpha &gt; 0)}$</span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>When we treat the data $x$ and $β$ as known constants, the full joint distribution of all quantities $x$, $α$, and $β$ is proportional to this expression when reinterpreted as a function of $α$.</span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>To solve this one I had a couple of challenges:</span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>First I needed to understand what the full conditional means (I worked that out in the previous homework)</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Next that all the answers look like a likelihood times a prior</span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Next I needed to remember that this requires reinterpreting the likelihood $p(x\mid\alpha,\beta)$ as $p(\alpha\mid\beta,x)$.</span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>For the solution I multiplied the likelihood for $\text{Beta}(x|\alpha,\beta)^n$ with the prior $\text{Gamma}(\alpha|a,b)$ then canceled any term in the product that did not have $\alpha$. This was tricky since my reference for Gamma had $x$, $\alpha$ and $\beta$ and without substituting $x=\alpha$, $\alpha=a$ and $\beta=b$ which is counter intuitive I got wrong answers.</span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Finally I had to decide on two options for the indicator. The question talks about restricting the data to values from 0 to 1 but the Likelihood and prior allow values from $\mathbb{R}^+$. I picked the latter since the restriction was for the data and not the parameters.</span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-2}</span>
-<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} Suppose we want posterior samples for α from the model in @exr-mhh-1. What is our best option?</span>
-<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> The full conditional for α is not proportional to any common probability distribution, and the marginal posterior for β is not any easier, so we will have to resort to a Metropolis-Hastings sampler.</span>
-<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The joint posterior for α and β is a common probability distribution which we can sample directly. Thus we can draw Monte Carlo samples for both parameters and keep the samples for α.</span>
-<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The full conditional for α is proportional to a common distribution which we can sample directly, so we can draw from that.</span>
-<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The full conditional for α is not a proper distribution (it doesn't integrate to 1), so we cannot sample from it.</span>
-<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>Another option is to approximate the posterior distribution for α by considering a set of discrete values such as $0.1,0.2, \ldots, 0.9$ etc. You could use a discrete uniform prior, or discrete prior probabilities proportional to the beta prior evaluated at these specific values. Either way, the full conditional distribution for α looks like the discrete version of Bayes' theorem, which is easy to compute.</span>
-<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-3}</span>
-<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} If we elect to use a Metropolis-Hastings algorithm to draw posterior samples for $α$, the Metropolis-Hastings candidate acceptance ratio is computed using the full conditional for $α$ as</span>
-<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>\frac{ \Gamma(\alpha)^n \Gamma(\alpha^*+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*} {\alpha^*}^{a-1} e^{-b\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* &gt; 0} } {  \Gamma(\alpha^*)^n \Gamma(\alpha+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha} {\alpha}^{a-1} e^{-b\alpha} q(\alpha | \alpha^*) I_{\alpha &gt; 0} }</span>
-<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>where $α^∗$ is a candidate value drawn from proposal distribution $q(α^∗\midα)$. Suppose that instead of the full conditional for $α$, we use the full joint posterior distribution of $α$ and $β$ and simply plug in the current (or known) value of $β$. What is the Metropolis-Hastings ratio in this case?</span>
-<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $\frac{{\alpha^*}^{a-1} e^{-b\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* &gt; 0} } { {\alpha}^{a-1} e^{-b\alpha} q(\alpha | \alpha^*) I_{\alpha &gt; 0} }$</span>
-<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> $\frac{ \Gamma(\alpha)^n \Gamma(\alpha^*+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*} {\alpha^*}^{a-1} e^{-b\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* &gt; 0} } { \Gamma(\alpha^*)^n \Gamma(\alpha+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha} {\alpha}^{a-1} e^{-b\alpha} q(\alpha | \alpha^*) I_{\alpha &gt; 0} }$</span>
-<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $\frac{ \Gamma(\alpha)^n \Gamma(\alpha^*+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* &gt; 0} } { \Gamma(\alpha^*)^n \Gamma(\alpha+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha} q(\alpha | \alpha^*) I_{\alpha &gt; 0} }$</span>
-<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $\frac{ \Gamma(\alpha^* + \beta)^n \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha^*- 1} \left[ \prod_{i=1}^n (1-x_i) \right]^{\beta - 1} {\alpha^*}^{a-1} e^{-b\alpha^*} \beta^{r-1} e^{-s\beta} q(\alpha | \alpha^*) I_{(0 &lt; \alpha^*)} I_{(0 &lt; \beta )} }{ \Gamma(\alpha^*)^n \Gamma(\beta)^n q(\alpha^* | \alpha) }$</span>
-<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a>All of the terms involving only β are identical in the numerator and denominator, and thus cancel out. The acceptance ratio is the same whether we use the full joint posterior or the full conditional in a Gibbs sampler.</span>
-<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>For Questions 4 and 5, re-run the Metropolis-Hastings algorithm from Lesson 4 to draw posterior samples from the model for mean company personnel growth for six new companies: (-0.2, -1.5, -5.3, 0.3, -0.8, -2.2). Use the same prior as in the lesson.</span>
-<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>{<span class="fu">library</span>(<span class="st">"rjags"</span>)}</span>
-<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"coda"</span>)</span>
-<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>lg <span class="ot">=</span> <span class="cf">function</span>(mu, n, ybar) {</span>
-<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>  mu2 <span class="ot">=</span> mu<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>  n <span class="sc">*</span> (ybar <span class="sc">*</span> mu <span class="sc">-</span> mu2 <span class="sc">/</span> <span class="fl">2.0</span>) <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> mu2)</span>
-<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>mh <span class="ot">=</span> <span class="cf">function</span>(n, ybar, n_iter, mu_init, cand_sd) {</span>
-<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Random-Walk Metropolis-Hastings algorithm</span></span>
-<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a>  <span class="do">## step 1, initialize</span></span>
-<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a>  mu_out <span class="ot">=</span> <span class="fu">numeric</span>(n_iter)</span>
-<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a>  accpt <span class="ot">=</span> <span class="dv">0</span></span>
-<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a>  mu_now <span class="ot">=</span> mu_init</span>
-<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a>  lg_now <span class="ot">=</span> <span class="fu">lg</span>(<span class="at">mu=</span>mu_now, <span class="at">n=</span>n, <span class="at">ybar=</span>ybar)</span>
-<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a>  <span class="do">## step 2, iterate</span></span>
-<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_iter) {</span>
-<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2a</span></span>
-<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>    mu_cand <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">mean=</span>mu_now, <span class="at">sd=</span>cand_sd) <span class="co"># draw a candidate</span></span>
-<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2b</span></span>
-<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>    lg_cand <span class="ot">=</span> <span class="fu">lg</span>(<span class="at">mu=</span>mu_cand, <span class="at">n=</span>n, <span class="at">ybar=</span>ybar) <span class="co"># evaluate log of g with the candidate</span></span>
-<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>    lalpha <span class="ot">=</span> lg_cand <span class="sc">-</span> lg_now <span class="co"># log of acceptance ratio</span></span>
-<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a>    alpha <span class="ot">=</span> <span class="fu">exp</span>(lalpha)</span>
-<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2c</span></span>
-<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>    u <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">1</span>) <span class="co"># draw a uniform variable which will be less than alpha with probability min(1, alpha)</span></span>
-<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (u <span class="sc">&lt;</span> alpha) { <span class="co"># then accept the candidate</span></span>
-<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a>      mu_now <span class="ot">=</span> mu_cand</span>
-<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a>      accpt <span class="ot">=</span> accpt <span class="sc">+</span> <span class="dv">1</span> <span class="co"># to keep track of acceptance</span></span>
-<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a>      lg_now <span class="ot">=</span> lg_cand</span>
-<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a>    <span class="do">## collect results</span></span>
-<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a>    mu_out[i] <span class="ot">=</span> mu_now <span class="co"># save this iteration's value of mu</span></span>
-<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a>  <span class="do">## return a list of output</span></span>
-<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">mu=</span>mu_out, <span class="at">accpt=</span>accpt<span class="sc">/</span>n_iter)</span>
-<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">1.2</span>, <span class="fl">1.4</span>, <span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.9</span>, <span class="fl">2.3</span>, <span class="fl">1.0</span>, <span class="fl">0.1</span>, <span class="fl">1.3</span>, <span class="fl">1.9</span>)</span>
-<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
-<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
-<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a><span class="co">#hist(y, freq=FALSE, xlim=c(-1.0, 3.0)) # histogram of the data</span></span>
-<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a><span class="co">#curve(dt(x=x, df=1), lty=2, add=TRUE) # prior for mu</span></span>
-<span id="cb8-136"><a href="#cb8-136" aria-hidden="true" tabindex="-1"></a><span class="co">#points(y, rep(0,n), pch=1) # individual data points</span></span>
-<span id="cb8-137"><a href="#cb8-137" aria-hidden="true" tabindex="-1"></a><span class="co">#points(ybar, 0, pch=19) # sample mean</span></span>
-<span id="cb8-138"><a href="#cb8-138" aria-hidden="true" tabindex="-1"></a><span class="co">#set.seed(43) # set the random seed for reproducibility</span></span>
-<span id="cb8-139"><a href="#cb8-139" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-140"><a href="#cb8-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-143"><a href="#cb8-143" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb8-144"><a href="#cb8-144" aria-hidden="true" tabindex="-1"></a>sds <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">1.5</span>,<span class="fl">3.0</span>,<span class="fl">4.0</span>)</span>
-<span id="cb8-145"><a href="#cb8-145" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.2</span>, <span class="sc">-</span><span class="fl">1.5</span>, <span class="sc">-</span><span class="fl">5.3</span>, <span class="fl">0.3</span>, <span class="sc">-</span><span class="fl">0.8</span>, <span class="sc">-</span><span class="fl">2.2</span>)</span>
-<span id="cb8-146"><a href="#cb8-146" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
-<span id="cb8-147"><a href="#cb8-147" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
-<span id="cb8-148"><a href="#cb8-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-149"><a href="#cb8-149" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (sd <span class="cf">in</span> sds){</span>
-<span id="cb8-150"><a href="#cb8-150" aria-hidden="true" tabindex="-1"></a>  post <span class="ot">=</span> <span class="fu">mh</span>(<span class="at">n=</span>n, <span class="at">ybar=</span>ybar, <span class="at">n_iter=</span><span class="fl">1e3</span>, <span class="at">mu_init=</span><span class="fl">0.0</span>, <span class="at">cand_sd=</span>sd)</span>
-<span id="cb8-151"><a href="#cb8-151" aria-hidden="true" tabindex="-1"></a>  <span class="co">#str(post)</span></span>
-<span id="cb8-152"><a href="#cb8-152" aria-hidden="true" tabindex="-1"></a>  <span class="co">#traceplot(as.mcmc(post$mu))</span></span>
-<span id="cb8-153"><a href="#cb8-153" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">c</span>(sd,<span class="st">":"</span>,post<span class="sc">$</span>accpt,<span class="st">'mu'</span>,<span class="st">":"</span>,<span class="fu">mean</span>(post<span class="sc">$</span>mu)))</span>
-<span id="cb8-154"><a href="#cb8-154" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb8-155"><a href="#cb8-155" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-156"><a href="#cb8-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-157"><a href="#cb8-157" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-4}</span>
-<span id="cb8-158"><a href="#cb8-158" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} Below are four possible values for the standard deviation of the normal proposal distribution in the algorithm. Which one yields the best sampling results?</span>
-<span id="cb8-159"><a href="#cb8-159" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-160"><a href="#cb8-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-161"><a href="#cb8-161" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb8-162"><a href="#cb8-162" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb8-163"><a href="#cb8-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-164"><a href="#cb8-164" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> 0.5</span>
-<span id="cb8-165"><a href="#cb8-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-166"><a href="#cb8-166" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> 1.5</span>
-<span id="cb8-167"><a href="#cb8-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-168"><a href="#cb8-168" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> 3.0</span>
-<span id="cb8-169"><a href="#cb8-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-170"><a href="#cb8-170" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> 4.0</span>
-<span id="cb8-171"><a href="#cb8-171" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-172"><a href="#cb8-172" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-173"><a href="#cb8-173" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-5}</span>
-<span id="cb8-174"><a href="#cb8-174" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} Report the posterior mean point estimate for μ, the mean growth, using these six data points. Round your answer to two decimal places.</span>
-<span id="cb8-175"><a href="#cb8-175" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb8-176"><a href="#cb8-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-177"><a href="#cb8-177" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
-<span id="cb8-178"><a href="#cb8-178" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
-<span id="cb8-179"><a href="#cb8-179" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-180"><a href="#cb8-180" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb8-181"><a href="#cb8-181" aria-hidden="true" tabindex="-1"></a>-1.46</span>
-<span id="cb8-182"><a href="#cb8-182" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb8-183"><a href="#cb8-183" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-184"><a href="#cb8-184" aria-hidden="true" tabindex="-1"></a>The sample mean of the six points is -1.62. Clearly the prior has some influence on this estimate.</span>
-<span id="cb8-185"><a href="#cb8-185" aria-hidden="true" tabindex="-1"></a>:::</span>
+<div class="sourceCode" id="cb4" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## Honnors Homework on M-H algorithm</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} For Questions @exr-mhh-1 through @exr-mhh-3, consider the following model for data that take on values between 0 and 1:</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>x_i \mid \alpha, \beta \overset{\text{iid}}{\sim} \text{Beta}(\alpha, \beta) \, , \quad i = 1, \ldots, n\, , <span class="sc">\\</span> \alpha \sim \text{Gamma}(a, b) \, , <span class="sc">\\</span> \beta \sim \text{Gamma}(r, s)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>where $α$ and $β$ are independent a-priori.</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-1}</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} Which of the following gives the *full conditional density* for $α$ up to proportionality?</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $p( \alpha \mid \beta, x) \propto \frac{ \Gamma(\alpha + \beta)^n }{ \Gamma(\alpha)^n } \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha - 1} \alpha^{a-1} e^{-b\alpha} I_{(0 &lt; \alpha &lt; 1)}$</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> $p( \alpha \mid \beta, x) \propto \frac{ \Gamma(\alpha + \beta)^n }{ \Gamma(\alpha)^n } \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha - 1} \alpha^{a-1} e^{-b\alpha} I_{(\alpha &gt; 0)}$</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $p( \alpha \mid \beta, x) \propto \frac{ \Gamma(\alpha + \beta)^n }{ \Gamma(\alpha)^n \Gamma(\beta)^n } \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha - 1} \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n (1-x_i) \right</span><span class="co">]</span>^{\beta - 1} \alpha^{a-1} e^{-b\alpha} \beta^{r-1} e^{-s\beta} I_{(0 &lt; \alpha &lt; 1)} I_{(0 &lt; \beta &lt; 1)}$</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $p( \alpha \mid \beta, x) \propto \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha - 1} \alpha^{a-1} e^{-b\alpha} I_{(\alpha &gt; 0)}$</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>When we treat the data $x$ and $β$ as known constants, the full joint distribution of all quantities $x$, $α$, and $β$ is proportional to this expression when reinterpreted as a function of $α$.</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>To solve this one I had a couple of challenges:</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>First I needed to understand what the full conditional means (I worked that out in the previous homework)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Next that all the answers look like a likelihood times a prior</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Next I needed to remember that this requires reinterpreting the likelihood $p(x\mid\alpha,\beta)$ as $p(\alpha\mid\beta,x)$.</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>For the solution I multiplied the likelihood for $\text{Beta}(x|\alpha,\beta)^n$ with the prior $\text{Gamma}(\alpha|a,b)$ then canceled any term in the product that did not have $\alpha$. This was tricky since my reference for Gamma had $x$, $\alpha$ and $\beta$ and without substituting $x=\alpha$, $\alpha=a$ and $\beta=b$ which is counter intuitive I got wrong answers.</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Finally I had to decide on two options for the indicator. The question talks about restricting the data to values from 0 to 1 but the Likelihood and prior allow values from $\mathbb{R}^+$. I picked the latter since the restriction was for the data and not the parameters.</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-2}</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} Suppose we want posterior samples for α from the model in @exr-mhh-1. What is our best option?</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> The full conditional for α is not proportional to any common probability distribution, and the marginal posterior for β is not any easier, so we will have to resort to a Metropolis-Hastings sampler.</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The joint posterior for α and β is a common probability distribution which we can sample directly. Thus we can draw Monte Carlo samples for both parameters and keep the samples for α.</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The full conditional for α is proportional to a common distribution which we can sample directly, so we can draw from that.</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> The full conditional for α is not a proper distribution (it doesn't integrate to 1), so we cannot sample from it.</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>Another option is to approximate the posterior distribution for α by considering a set of discrete values such as $0.1,0.2, \ldots, 0.9$ etc. You could use a discrete uniform prior, or discrete prior probabilities proportional to the beta prior evaluated at these specific values. Either way, the full conditional distribution for α looks like the discrete version of Bayes' theorem, which is easy to compute.</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-3}</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} If we elect to use a Metropolis-Hastings algorithm to draw posterior samples for $α$, the Metropolis-Hastings candidate acceptance ratio is computed using the full conditional for $α$ as</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>\frac{ \Gamma(\alpha)^n \Gamma(\alpha^*+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*} {\alpha^*}^{a-1} e^{-b\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* &gt; 0} } {  \Gamma(\alpha^*)^n \Gamma(\alpha+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha} {\alpha}^{a-1} e^{-b\alpha} q(\alpha | \alpha^*) I_{\alpha &gt; 0} }</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>where $α^∗$ is a candidate value drawn from proposal distribution $q(α^∗\midα)$. Suppose that instead of the full conditional for $α$, we use the full joint posterior distribution of $α$ and $β$ and simply plug in the current (or known) value of $β$. What is the Metropolis-Hastings ratio in this case?</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $\frac{{\alpha^*}^{a-1} e^{-b\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* &gt; 0} } { {\alpha}^{a-1} e^{-b\alpha} q(\alpha | \alpha^*) I_{\alpha &gt; 0} }$</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> $\frac{ \Gamma(\alpha)^n \Gamma(\alpha^*+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*} {\alpha^*}^{a-1} e^{-b\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* &gt; 0} } { \Gamma(\alpha^*)^n \Gamma(\alpha+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha} {\alpha}^{a-1} e^{-b\alpha} q(\alpha | \alpha^*) I_{\alpha &gt; 0} }$</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $\frac{ \Gamma(\alpha)^n \Gamma(\alpha^*+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha^*} q(\alpha^* | \alpha) I_{\alpha^* &gt; 0} } { \Gamma(\alpha^*)^n \Gamma(\alpha+\beta)^n \left[ \prod_{i=1}^n x_i \right]^{\alpha} q(\alpha | \alpha^*) I_{\alpha &gt; 0} }$</span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> $\frac{ \Gamma(\alpha^* + \beta)^n \left<span class="co">[</span><span class="ot"> \prod_{i=1}^n x_i \right</span><span class="co">]</span>^{\alpha^*- 1} \left[ \prod_{i=1}^n (1-x_i) \right]^{\beta - 1} {\alpha^*}^{a-1} e^{-b\alpha^*} \beta^{r-1} e^{-s\beta} q(\alpha | \alpha^*) I_{(0 &lt; \alpha^*)} I_{(0 &lt; \beta )} }{ \Gamma(\alpha^*)^n \Gamma(\beta)^n q(\alpha^* | \alpha) }$</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>All of the terms involving only β are identical in the numerator and denominator, and thus cancel out. The acceptance ratio is the same whether we use the full joint posterior or the full conditional in a Gibbs sampler.</span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>For Questions 4 and 5, re-run the Metropolis-Hastings algorithm from Lesson 4 to draw posterior samples from the model for mean company personnel growth for six new companies: (-0.2, -1.5, -5.3, 0.3, -0.8, -2.2). Use the same prior as in the lesson.</span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L06-Ex2-1</span></span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>{<span class="fu">library</span>(<span class="st">"rjags"</span>)}</span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"coda"</span>)</span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>lg <span class="ot">=</span> <span class="cf">function</span>(mu, n, ybar) {</span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>  mu2 <span class="ot">=</span> mu<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>  n <span class="sc">*</span> (ybar <span class="sc">*</span> mu <span class="sc">-</span> mu2 <span class="sc">/</span> <span class="fl">2.0</span>) <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> mu2)</span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>mh <span class="ot">=</span> <span class="cf">function</span>(n, ybar, n_iter, mu_init, cand_sd) {</span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Random-Walk Metropolis-Hastings algorithm</span></span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>  <span class="do">## step 1, initialize</span></span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>  mu_out <span class="ot">=</span> <span class="fu">numeric</span>(n_iter)</span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>  accpt <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>  mu_now <span class="ot">=</span> mu_init</span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>  lg_now <span class="ot">=</span> <span class="fu">lg</span>(<span class="at">mu=</span>mu_now, <span class="at">n=</span>n, <span class="at">ybar=</span>ybar)</span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>  <span class="do">## step 2, iterate</span></span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_iter) {</span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2a</span></span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a>    mu_cand <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">mean=</span>mu_now, <span class="at">sd=</span>cand_sd) <span class="co"># draw a candidate</span></span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2b</span></span>
+<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a>    lg_cand <span class="ot">=</span> <span class="fu">lg</span>(<span class="at">mu=</span>mu_cand, <span class="at">n=</span>n, <span class="at">ybar=</span>ybar) <span class="co"># evaluate log of g with the candidate</span></span>
+<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a>    lalpha <span class="ot">=</span> lg_cand <span class="sc">-</span> lg_now <span class="co"># log of acceptance ratio</span></span>
+<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>    alpha <span class="ot">=</span> <span class="fu">exp</span>(lalpha)</span>
+<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a>    <span class="do">## step 2c</span></span>
+<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a>    u <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">1</span>) <span class="co"># draw a uniform variable which will be less than alpha with probability min(1, alpha)</span></span>
+<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (u <span class="sc">&lt;</span> alpha) { <span class="co"># then accept the candidate</span></span>
+<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>      mu_now <span class="ot">=</span> mu_cand</span>
+<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a>      accpt <span class="ot">=</span> accpt <span class="sc">+</span> <span class="dv">1</span> <span class="co"># to keep track of acceptance</span></span>
+<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a>      lg_now <span class="ot">=</span> lg_cand</span>
+<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a>    <span class="do">## collect results</span></span>
+<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a>    mu_out[i] <span class="ot">=</span> mu_now <span class="co"># save this iteration's value of mu</span></span>
+<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a>  <span class="do">## return a list of output</span></span>
+<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">mu=</span>mu_out, <span class="at">accpt=</span>accpt<span class="sc">/</span>n_iter)</span>
+<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">1.2</span>, <span class="fl">1.4</span>, <span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.9</span>, <span class="fl">2.3</span>, <span class="fl">1.0</span>, <span class="fl">0.1</span>, <span class="fl">1.3</span>, <span class="fl">1.9</span>)</span>
+<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
+<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
+<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a><span class="co">#hist(y, freq=FALSE, xlim=c(-1.0, 3.0)) # histogram of the data</span></span>
+<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a><span class="co">#curve(dt(x=x, df=1), lty=2, add=TRUE) # prior for mu</span></span>
+<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a><span class="co">#points(y, rep(0,n), pch=1) # individual data points</span></span>
+<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a><span class="co">#points(ybar, 0, pch=19) # sample mean</span></span>
+<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a><span class="co">#set.seed(43) # set the random seed for reproducibility</span></span>
+<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L06-Ex2-2</span></span>
+<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a>sds <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">1.5</span>,<span class="fl">3.0</span>,<span class="fl">4.0</span>)</span>
+<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.2</span>, <span class="sc">-</span><span class="fl">1.5</span>, <span class="sc">-</span><span class="fl">5.3</span>, <span class="fl">0.3</span>, <span class="sc">-</span><span class="fl">0.8</span>, <span class="sc">-</span><span class="fl">2.2</span>)</span>
+<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
+<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
+<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (sd <span class="cf">in</span> sds){</span>
+<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a>  post <span class="ot">=</span> <span class="fu">mh</span>(<span class="at">n=</span>n, <span class="at">ybar=</span>ybar, <span class="at">n_iter=</span><span class="fl">1e3</span>, <span class="at">mu_init=</span><span class="fl">0.0</span>, <span class="at">cand_sd=</span>sd)</span>
+<span id="cb4-153"><a href="#cb4-153" aria-hidden="true" tabindex="-1"></a>  <span class="co">#str(post)</span></span>
+<span id="cb4-154"><a href="#cb4-154" aria-hidden="true" tabindex="-1"></a>  <span class="co">#traceplot(as.mcmc(post$mu))</span></span>
+<span id="cb4-155"><a href="#cb4-155" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">c</span>(sd,<span class="st">":"</span>,post<span class="sc">$</span>accpt,<span class="st">'mu'</span>,<span class="st">":"</span>,<span class="fu">mean</span>(post<span class="sc">$</span>mu)))</span>
+<span id="cb4-156"><a href="#cb4-156" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-157"><a href="#cb4-157" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-158"><a href="#cb4-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-159"><a href="#cb4-159" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-4}</span>
+<span id="cb4-160"><a href="#cb4-160" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} Below are four possible values for the standard deviation of the normal proposal distribution in the algorithm. Which one yields the best sampling results?</span>
+<span id="cb4-161"><a href="#cb4-161" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-162"><a href="#cb4-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-163"><a href="#cb4-163" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb4-164"><a href="#cb4-164" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb4-165"><a href="#cb4-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-166"><a href="#cb4-166" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> 0.5</span>
+<span id="cb4-167"><a href="#cb4-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-168"><a href="#cb4-168" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> 1.5</span>
+<span id="cb4-169"><a href="#cb4-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-170"><a href="#cb4-170" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> 3.0</span>
+<span id="cb4-171"><a href="#cb4-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-172"><a href="#cb4-172" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[ ]</span> 4.0</span>
+<span id="cb4-173"><a href="#cb4-173" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-174"><a href="#cb4-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-175"><a href="#cb4-175" aria-hidden="true" tabindex="-1"></a>::: {#exr-mhh-5}</span>
+<span id="cb4-176"><a href="#cb4-176" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">M-H</span><span class="co">]</span>{.column-margin} Report the posterior mean point estimate for μ, the mean growth, using these six data points. Round your answer to two decimal places.</span>
+<span id="cb4-177"><a href="#cb4-177" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-178"><a href="#cb4-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-179"><a href="#cb4-179" aria-hidden="true" tabindex="-1"></a>::: {.solution .callout-tip collapse="true"}</span>
+<span id="cb4-180"><a href="#cb4-180" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Solution:</span></span>
+<span id="cb4-181"><a href="#cb4-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-182"><a href="#cb4-182" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-183"><a href="#cb4-183" aria-hidden="true" tabindex="-1"></a>-1.46</span>
+<span id="cb4-184"><a href="#cb4-184" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-185"><a href="#cb4-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-186"><a href="#cb4-186" aria-hidden="true" tabindex="-1"></a>The sample mean of the six points is -1.62. Clearly the prior has some influence on this estimate.</span>
+<span id="cb4-187"><a href="#cb4-187" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
