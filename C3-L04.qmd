@@ -1,219 +1,370 @@
 ---
-title : 'Applications of Mixture Models'
+title : 'M4L1 - MCMC for Mixture Models'
 subtitle : 'Bayesian Statistics: Mixture Models'
 categories:
   - Bayesian Statistics
 keywords:
   - Mixture Models
-  - Kernel Density Estimation
-  - Mixture Density Estimation
-  - Clustering
-  - Classification
+  - Maximum Likelihood Estimation
   - notes
 ---
 
-## Density Estimation
+# MCMC algorithm for Mixture Models
 
-### Density Estimation using Mixture Models
+Markov chain Monte Carlo (MCMC) algorithm are typically used to perform Bayesian inference in complex models. 
+In MCMC algorithms we repeatedly sample from the full conditional distributions of each block of parameters given fixed values for the rest. 
+After an appropriate burn-in period, they generate samples that are dependent but identically distributed according to the posterior distribution of interest.
 
-![Density Estimation using Mixture Models](images/c3l04-ss-01-density-estimation-using-mixture-models.png){.column-margin width="200px"}
+## Markov Chain Monte Carlo algorithms part 1
+
+![MCMC - Priors of convenience](images/c3l3-ss-01-mcmc-part1.png){.column-margin width="200px"}
+
+
+![MCMC - Complete data Likelihood](images/c3l3-ss-02-mcmc-part1.png){.column-margin width="200px"}
+
+
+::: {.callout-tip}
+## Notation
+
+1. under tildes signify a vector or collection.
+2. $\{i:c_i=l\}$ mean the sum over the indices for a specific component $k$. We are regrouping the rows by their components
+3. The double product mean we are iterating over the data rows times their likelihoods. (as usual)
+4. The indicator in the exponent mean we are only taking one term per row which is picked using the component for which the latent indicator is true.
+
+:::
 
 
 
+The model takes the form :
+$$
+f(x\mid \theta) = \sum_{k=1}^K w_k g(x \mid \theta_k)
+$$ {#eq-mixture-model}
 
-#### KDE
+The model is defined by the parameters $\theta = (\theta_1, \ldots, \theta_K)$ and the weights $w = (w_1, \ldots, w_K)$.
 
-- the typical method for estimating the density of a random variable is to use a kernel density estimator (KDE)
-- the KDE is a non-parametric method that estimates the density of a random variable by averaging the contributions of a set of kernel functions centered at each data point
+In the Bayesian setting we also need priors for the weights and the parameters of each components.
 
 $$
-X_1, \ldots, X_n \sim f(x)
-$$
+(w_1, \ldots, w_K) \sim Dirichlet(\alpha_1, \ldots, \alpha_K) \qquad \mathbb{E}[w_k] = \frac{\alpha_k}{\sum_{k=1}^K \alpha_k}
+$$ {#eq-parameter-prior}
+
+also if we use $a_1 = a_2 = ... a_k=1$ we end up with a uniform prior on the simplex.
+
+- $\tilde{\theta}_k$ if they admit a conjugate prior, we can use the conjugate prior for the parameters of the component $k$. Even though it won't be conjugate for the whole model, it will be conjugate for the component $k$, at least given the sampling scheme outlined in [@eq-complete-data-likelihood-sampling-scheme].
 
 $$
-\tilde{f}(x) = \frac{1}{n} \sum_{i=1}^n \frac{1}{h}  g \left (\frac{\|X - X_i\|}{h}\right )
-$$ {#eq-kde-definition-for-density-estimation}
+\mathbb{P}r(w) = \frac{\Gamma(\sum_{k=1}^K \alpha_k)}{\prod_{k=1}^K \Gamma(\alpha_k)} \prod_{k=1}^K w_k^{\alpha_k - 1} \qquad \sum_{k=1}^K w_k = 1
+$$ {#eq-dirichlet-prior}
 
-\index{bandwidth} \index{kernel function}
-where $h$ is the bandwidth of the kernel and $g$ is a kernel function. The kernel function is a non-negative function that integrates to 1 and is symmetric around 0. 
+To develop a MCMC algorithm for mixture models we will use the hierarchical representation of the likelihood,
 
-\index{Gaussian function}
-For example, the Gaussian kernel is given by:
-$$
-g(x) = \frac{1}{\sqrt{2\pi}} e^{-\frac{x^2}{2}}
-$$ {#eq-gaussian-kernel}
-
-giving us:
+Complete data likelihood:
 
 $$
-\tilde{f}(x) = \frac{1}{n} \sum_{i=1}^n \frac{1}{h}  \frac{1}{\sqrt{2\pi}} e^{-\frac{|X - X_i|^2}{2h^2}}
-$$ {#eq-kde}
+\begin{aligned}
+ \mathbb{P}r(\mathbf{x}, \mathbf{c}, \mid \mathbf{\omega}, \mathbf{\theta})  &= \prod_{i=1}^n \prod_{k=1}^K (\omega_k\ g_k(x_i \mid \theta_k))^{\mathbb{1}(c_i = k)} &
+\\& = \left[\prod_{k=1}^K \prod_{\{i:c=k\}}^n g_k(x_i \mid \theta_k)\right] && \left [\prod_{k=1}^n \omega_{k}^{\sum \mathbb{1}(c_i = k)}\right ] 
+\\& = \mathbb{P}r(\mathbf{x} \mid \mathbf{c}, \mathbf{\omega}, \mathbf{\theta}) && \mathbb{P}r(\mathbf{c} \mid \mathbf{\omega}, \mathbf{\theta}) 
+\\& = \mathbb{P}r(\mathbf{x} \mid \mathbf{c}, \mathbf{\theta}) && \mathbb{P}r(\mathbf{c} \mid \mathbf{\omega}) 
+\end{aligned}
+$$ {#eq-complete-data-likelihood-sampling-scheme}
 
-#### Mixture of K components
+The logic in this derivation is that we can rewrite the complete data likelihood as a product of two terms where we separate the weight from the other parameters. 
 
-- a mixture of K components is a parametric method that estimates the density of a random variable by averaging the contributions of K kernel functions, each centered at a different location and with a different scale
-- the mixture model is given by:
+::: {.callout-warning collapse="true"}
+## Unclear !? {.unnumbered .unlisted}
+
+I'm not sure this is 100% correct, we seem to be trying to write out the fact that each component is conditionally independent given the weights and the component parameters.
+This step from the first line to the second line is based on regrouping the terms in the product based on component $k$.
+
+Another issue now that I've made an effort to clarify the notation is that the selection of the term in the product is based on picking the kernel from just one component. 
+But it seems that we don't know how to infer which component the data point belongs to.
+:::
+
+
+In the third line we reinterpreting :
+
+- the left product in line 2 as a product of the likelihoods of the data if we know given their component, weights and parameters.
+- the right product in line 2 as the distribution of the indicators given the weights and parameters.
+
+In the last line we remove $\omega$ on from the left term based on independence. And we remove $\theta$ from the right term based on independence.
+
+
+::: {.callout-note collapse="true"}
+## Video transcript {.unnumbered .unlisted}
+
+In previous lectures, we discussed the expectation maximization algorithm for fitting mixture models. In this lecture, we are going to discuss Markov Chain Monte Carlo for Bayesian inference in mixture models.
+
+So we're going to move from frequentist inference which we were interested only on finding the point estimate for the parameters in the model to a situation in which we are going to try to explore a full posterior distribution for those parameters. So recall that the mixture model we are working with is going to take the form or the density of that mixture model, is going to take the form of f of x is the sum over k components of weight multiplied by the components in the mixture. Those components are indexed by this parameter theta k, and we may have components that are all belong to the same family or that they belong to different families. If we are going to do Bayesian inference for this model, we need to compliment this density that is going to give us the likelihood with priors on the unknown parameters. In particular, we're going to need priors for the weights, and we are going to need priors for the data suitcase. What is typically done in these situations is to use a priors of convenience.
+ 
+Where are those players of convenience? Well, first for the weights remember that we have a constraint that the sum of the weights needs to be equal to one.
+ 
+Obviously each one of them individually needs to be between zero and one. So a natural prior for that type of parameters is a Dirichlet prior and that is precisely what we are going to use. So we're going to assume that the prior for the vector that includes all these weights just follows a Dirichlet distribution, with parameters a1 all the way to a_k. Just as a quick reminder they expected value of each one of these parameters individually is just given by the corresponding a divided by the sum of the a's. So in other words, the values of the a's just construals a prior what is the relative size of the different weights. In particular if you make them all the same, then you are saying that a prior you believe that all the weights are the same. We also know that as a special case if you make a1 equal to a2 all the way equal to ak and in particular equal to one then we just have the uniform distribution on the simplex.
+
+Which is actually one of the typical choices used for the hyperparameters when fearing mixture models. Now, this is our priori of convenience for the omegas and we will see that in addition to having a very nice interpretation it will also allow us to do computation in a very straight forward manner. Now, the other set of priors that we need is the priors for the data case. What is typically done here is that if they admit a conjugate prior under gk then that prior is used.
+
+The reason for that is that even though for the full mixture this conjugate prior on the $g_k1$ conjugate for the full model it will be conditionally conjugate under our sampling scheme that we will derive in a minute. So it will make computation for the parameters theta k much simpler if we can find that conjugate prior under theta k. After we have set up priors for the model the next thing that we need to do before deriving our Gibbs sampler is to write down the complete data likelihood in a slightly more convenient way. If you remember the complete data likelihood that we used extensively for deriving the EM Algorithm has the form of the distribution of the data in all those indicators CSU either just tells you which component you belong to conditional on the weight, and all the Thetas is just going to take the form of a double product. So the product over the observations followed by the product over the components of omega sub k g sub k of x sub y given Theta k raised to the indicator function of ci equals to k. In other words, rather than write the complete sum that we had before, we replaced that completes sum by a product where each one of the terms is now raised to this indicator function that just depends on whether the component was generated, the observation was generated by the k component in the mixture. This complete data likelihood that we use extensively can now be written in a couple of different ways, and one that is going to be particularly helpful for us involves breaking this expression into two pieces, one that has to do with their omega's, and one that has to do with g's. So let me start with a piece that starts with the g's. The way in which I'm going to do it is first I'm going to reverse the order of this products. So I am going to consider first the product over the components. Next I'm going to consider the product over the observations. But before I write exploration explicitly, let me interpret this expression up here a little bit. So what we're doing here with this double product or one way to think about what we're doing with a double product is to think about computing a bunch of terms that are in here in particular in this piece, that can be positioned onto a matrix where one dimension corresponds to the index i, and the second dimension corresponds to the index k. The entries of this matrix are just g of x i given theta k. So different combinations of i and different combinations of k gives you the values that you are going to put into this matrix. Now, what is this important? Because if you think about what they indicator or function up here is doing is it's telling you well you need to compute the whole matrix but you're actually not going to use the full matrix, you are just going to pick a few elements of it, and in particular you are going to pick one element in each row according to what the value of ci case. So for example, if the first observation belongs to the second component you'd be picking this value, second observation the first component you will pick this value, third observation with third component here and so on. So the values of the ci can be interpreted as giving you a way to select elements in this matrix, and in particular one per row. So another way to write the product over all the observations is used to think about grouping rows together according to which column is being selected. In particular, for example, we could put all the observations that have the first column being selected together, then all the observations that have the second column being selected together and so on. One way to write that mathematically is to say that we're going to do a product over the i's but grouped together according to the value of k. Then we can get rid of the indicator and the numerator and write this as g sub k, xi given theta sub k. So this is one piece of this expression up here or one way to rewrite this expression up here or one piece of it that involves the g subcase. Of course we have a second piece that involves the omegas, that second piece that involves the omegas we can write as the product. Again, I'm going to consider the product over the case first. Then for a given k, omega k is exactly the same argument for all of them. So I can just write omega k and the product of omega k to the indicators just becomes omega k raised to the sum of the indicators.
+ 
+Well, once I have written the expression in this way, I can essentially think about this piece as being the distribution of the observations if I knew the indicators, the omegas, and the Thetas. It so happens that this expression in particular doesn't depend on the omegas. So for this model this is the same as p of x given c and the theta. In this expression here you can interpret as the distribution of the c's given the omegas and the theta's. Again, in the particular structure of this model this happens to just depend on the weights omega. So we know that the product of these two quantities is just by the total law of probability the expression that we wanted in the beginning that is the distribution of the Theta and indicators together. So this particular form for the distribution is going to be particularly useful in terms of deriving the posterior distribution that we need for the Gibbs sampler. One last observation that I want to make that will be useful in the future is that if you think about what is the form of this piece down here the distribution or the Indicators even the weights, what you have is a form that resembles the kernel of multinomial distribution. So this is similar to the kernel of a multinomial.
+
+In particular, it's not only similar but it's proportional to it. So it will be particularly useful in terms of deriving the algorithm using the fact that this looks like a multinomial distribution.
+
+:::
+
+
+## Markov Chain Monte Carlo algorithms part 2
+
+![posterior distribution - weights](images/c3l3-ss-03-mcmc-part2.png){.column-margin width="200px"}
+
+
+
+
+![posterior distribution - components](images/c3l3-ss-04-mcmc-part2.png){.column-margin width="200px"}
+
+
+
+
+![posterior distribution - parameters](images/c3l3-ss-05-mcmc-part2.png){.column-margin width="200px"}
+
+
+
+Now that we have a structure for the likelihood function that we and the prior distributions for all of our parameters, we can can derive the posterior distribution for our model.
+
+So we want to write down the joint posterior distribution. In that joint posterior distribution includes, the weights and the parameters of the components, but it also involves the vector of indicators C, that we have introduced to simplify the structure of the likelihood, and by definition, this quantity is proportional to the distribution of the data, given all the parameters, multiplied by the distribution of the missing data parameters, given Omega and Theta, multiplied by the prior distribution on the parameters, multiplied by the prior distribution on the base.
 
 $$
-X_1, \ldots, X_n \sim f(x) = \sum_{k=1}^K w_k g(x \mid \hat{\theta}_k)
-$$ {#eq-mixture-density-estimation}
+\mathbb{P}r(c, \theta, \omega \mid x) \propto \left \{ \prod_{i=1}^n \mathbb{P}r(x | c, \theta, \omega) \right \} \left \{ \prod_{i=1}^n\prod_{k=1}^K \mathbb{P}r(c \mid \omega, \theta) \right \}\ \mathbb{P}r(\omega)\ \mathbb{P}r(\theta)
+$$ {#eq-posterior-distribution}
 
-where $w_k$ is the weight of the $k$-th component, $\hat{\theta}_k$ is the location and scale of the $k$-th component, and $g(x \mid \hat{\theta}_k)$ is the kernel function centered at $\hat{\theta}_k$. The weights are non-negative and sum to 1.
+Each of the full conditional distributions can be derived from this joint posterior by retaining the terms that involve the parameter of interest, and recognizing the product of the selected terms as the kernel of a known family of distributions.
 
-Example: a location mixture of K Gaussian distributions is given by:
+
+::: {.callout-note collapse="true"}
+## Video transcript {.unnumbered .unlisted}
+
+Now that we have a clear structure for the likelihood function that we will be using and we have prior distributions for all of our parameters, we can proceed to derive the posterior distribution that we will be working with. 
+
+So we want to write down the joint posterior distribution. In that joint posterior distribution includes, of course, the weights and the parameters of the components, but it also involves the vector of indicators C, that we have introduced to simplify the structure of the likelihood, and by definition, this quantity is proportional to the distribution of the data, given all the parameters, multiplied by the distribution of the missing data parameters, given Omega and Theta, multiplied by the prior distribution on the parameters, multiplied by the prior distribution on the base. 
+
+So this is the general expression, the general form, for that posterior distribution. 
+Now, we have already seen what the form of the different terms is. 
+In particular, this joint distribution of the data can be written as a double product. 
+First-order components, and then over the groups of observations that belong to each one of those components of $g_k$ $x_i$, given $\theta_k$. So that is the first piece that we're interested in. The second piece, we have already seen also how to write it down. 
+This is going to be the product from k equals one, to capital k of Omega_k. 
+Some of these indicators of C_i is equal to k from one to n. This is our second piece. 
+Then we discussed using a Dirichlet distribution for this. So ignoring some proportionality constants, this becomes the product from k equals one to capital k of Omega_k raised to the a_k minus 1. 
+That's this piece. 
+Then finally, we're going to have another product. 
+So typically, we use independent priors for each one of the data case. 
+As I said, we'll typically try to pick them so that they are conjugate to this kernel, $g_k()$, but for now, I'm going to write it in general form by writing this as $p_k(\theta_k)$, and that's what the last term in the expression is. So we have written down a full expression for this. 
+Now, it should be more or less clear how we need to proceed. 
+So we need full conditionals for all the parameters in the model. 
+In particular, we are going to need a full conditional for Omega, given all the other parameters, we're going to need a full conditional for each one of the C_is given the rest of the parameters, and we're going to need a full conditional for each one of the data case, given the rest of the parameters. 
+
+So to derive these full conditionals, what we will do is we will pick particular pieces from this expressions to retain and to construct this
+particular four conditionals. 
+Let's proceed now to derive each one of the four conditionals that we need to derive a Gibbs sampler or a Markov Chain Monte Carlo algorithm for this problem.
+Let's just start with the full posterior distribution for the weights, and please note that we're going to work with all the weights as a block, so we're going to try to sample them all together, and rather than looking at each one of them at a time. o this full conditional distribution is made up of the terms in this full posterior distribution that involves Omega k, and if you look at this expression carefully, you will see that this piece doesn't depend on Omega k anyway, and that this piece doesn't depend on any of the Omega case either, so it's just this two pieces in the middle that we need to consider. 
+Furthermore, the two pieces are very similar, so both in both products over K of the weight raised to some power, so we can actually combine the two expressions together and just write them as the product from one to capital k of Omega _k raised to the sum of
+these indicator functions, plus a_k minus 1. This looks exactly like
+the prior that we used, except that now, we have updated parameters. 
+So I could write this as the product of Omega_k raised to the a_k, call them stars, minus one, where a_k a star, is just the original a_k plus the sum from one to n of the indicators of C_i equals to k. So just doing this little change, makes it very clear that the form of the posterior is exactly the same form as the prior. 
+In other words, this a conditionally conjugate prior for our problem, and that just means that Omega is going to be distributed as a Dirichlet, given all the other parameters, but with this updated parameters, a_1 star all the way to a_k star, and this is very interesting because essentially, a posteriori, we know that the expected value of Omega given all the other parameters, so this is the expected value of the full conditional. This is not expected value of the marginal posterior, but this is the expected value of the full conditional
+that is going to be a_k star divided by the sum from L equals
+one to k of a sub L, a star, but this is just a_k plus the sum from one
+to n of these indicators, c_i equals to k, divided by n plus the sum from L equals one to capital K of the a_l. N just comes from the fact that if I sum over all the components, then the sum of those values
+is going to be n. 
+So this is just the number of observations that are currently assigned to the case component, and if the values of a, k are small, then this is just roughly speaking. 
+So approximately, the proportion of observations in component K. 
+This has a very nice analogy with the computations that we did in the EM algorithm. 
+
+If you remember the way in which we computed the weights in that case, or the MLE for the weights, was by essentially computing a quantity that could also be interpreted as, roughly speaking, the proportion of observations in that step of the algorithm that were assigned to that component. 
+So this provides a mirror image to what we did with the EM algorithm, but that has a Bayesian flavor rather than a frequentist flavor. Let's continue now with the full conditional posterior distribution for the indicators, for the c_is. I'm interested in the probability that c_i is equal to K given the data. As before, this is going to be proportional to just the terms in this large product
+that depends on c_i, and if you look at it carefully, c_i only appears in this
+two terms of the product. These have nothing to do with c_i. In particular, it appears in a single term within this really large product and in a single term within this product. 
+So the term that depends on C surviving equal to K in here is Omega_k. The term that depends on
+c_i equal to k in here, it's just g_k of x_i given Theta, and this is true for
+every k from one to capital K. 
+Remember that c_i is a discrete
+random variable, taking values between one and k because it indicates which component generated the observation. 
+So if I want to get rid of the proportionality sign and actually being able to write what the probability is, I just need to normalize this by dividing over the sum of these quantities over k. 
+So that means that p of c_i equals to k, given all the other parameters, is equal to Omega_k, g_k, x_i, given Theta_k, divided by the sum from l equals one to capital k of Omega l, g_l of x_i, given Theta_l. 
+If you look at this expression carefully, you will realize that it is very similar to the expression that we used when computing in the EM algorithm, the weights associated which is one of the observations. 
+In fact, it is the same expression, and this is just what we called in the EM algorithm, V_ik. Finally, let's consider the full conditional posterior distribution for the data case. 
+So we need p of Theta k given all the other parameters in the model. 
+Again, we just pick from this whole product the terms that have to do with Theta k, in this case, it is the two in the middle that do
+not depend on it, and within this big expression, we just have a few terms
+that contain Theta k, and those correspond to the observations that are currently assigned to that particular component. 
+So this expression is proportional to the product over the i's that have been assigned to the kth component of g_k, x_i Theta k, and among this product, again, there is a single term that belongs to Theta k. 
+So the form of the full conditional posterior distribution for the parameter Theta
+k is simply this. 
+Now, without a specific choice of G and P, it is hard to further simplify this expression. 
+But what I do want to note here is that if this prior p_k is conjugate to this kernel g_k, then we typically know what family this posterior
+distribution will belong to, and that will make computation much simpler because
+you will typically be able to sample from that full posterior conditional distribution in using a direct sampler. 
+This will become a little bit more clear once we do an example with mixture models, which is what we're going to do next.
+
+:::
+
+
+## MCMC for location mixtures of normals Part 1
+
+
+![location mixture of Normals - priors](images/c3l3-ss-06-mcmc-for-location-mixtures-of-normals-part-1.png){.column-margin width="200px"}
+
+
+
+![location mixture of Normals - marginals ](images/c3l3-ss-07-mcmc-for-location-mixtures-of-normals-part-1.png){.column-margin width="200px"}
+
+
+
+![location mixture of Normals weights](images/c3l3-ss-08-mcmc-for-location-mixtures-of-normals-part-1.png){.column-margin width="200px"}
+
+
+
+![location mixture of Normals - components](images/c3l3-ss-09-mcmc-for-location-mixtures-of-normals-part-1.png){.column-margin width="200px"}
+
+
+
+![location mixture of Normals - $\sigma^2$](images/c3l3-ss-10-mcmc-for-location-mixtures-of-normals-part-1.png){.column-margin width="200px"}
+
+
+
+
+as in the previous module we derive the full conditional distributions for the mixture of two univariate normals.
+
 
 $$
-X_1, \ldots, X_n \sim \hat{f}(x) = \sum_{k=1}^K \hat{w}_k \frac{1}{\sqrt{2\pi}\hat{\sigma}} \exp^{-\frac{(x - \hat{\mu}_k)^2}{2\hat{\sigma}^2}}
-$$ {#eq-mixture-density-estimation-gaussian-location}
+f(x | ω, μ1, μ2, σ) = \omega \frac{1}{\sqrt{2\pi\sigma}} \exp\left\{-\frac{(x - \mu_1)^2}{2\sigma^2}\right\} + (1- \omega) \frac{1}{\sqrt{2\pi\sigma}} \exp\left\{-\frac{(x - \mu_2)^2}{2\sigma^2}\right\}
+$$
 
-where $\hat{w}_k$ is the weight of the $k$-th component, $\hat{\mu}_k$ is the mean of the $k$-th component, and $\hat{\sigma}$ is the standard deviation of the $k$-th component.
+we use a beta distribution with $a_1=1$ and $a_2=1$ for $\omega$
+which corresponds to a uniform distribution and is a special case of a Dirichlet for $K=2$.
 
-we can see the the two methods are quite similar, but the mixture model is more flexible and can capture more complex shapes in the data. 
+$\mu_k \sim N(\eta,\tau^2)$
 
-- The KDE is a special case of the mixture model where all the components have the same scale and location.
-- KDE needs as many components as the number of data points, while the mixture model can have fewer components.
-- KDE uses a fixed bandwidth, 
-- MDE can adaptively choose the bandwidth for each component. In fact we have a weight for each component and a scale parameter that controls the width of the kernel function. 
-- MDE tends to use less components and the weights tend to be 1/K
+inverse gamma for \sigma^2 with shape parameter a and scale parameter b.
 
-The above model can be improved by:
+an empirical approach to priors:
 
-1. using a scale-location mixture model, where the scale and location of each component are estimated from the data.
+In the absence of real prior information we typically employ the observed data to guide the selection of the hyperparameter $η$, $τ^2$, $d$ and $q$, in an approach that is reminiscent of empirical Bayes. In particular, we attempt to make the means of the different component lie in the same support of the observed data, so we take $η$ to be  approximately equal the mean (or median) of the observations, and $τ^2$ to be roughly equal to their variance. Similarly, for the prior on the variance $σ^2$ we set $d = 2$ (which implies that $E(σ^2) = q$ and an infinite prior variance) and $q$ to be roughly equal to the variance of the observations. [Posteriors are often not very sensitive to changes on the prior means that remain within an order of magnitude of the values suggested above.]{.mark}
+
+::: {.callout-note collapse="true"}
+
+## Overthinking the priors
+
+It seems that since this is a hierarchical model, we set the priors for different components from shared hyper-priors. This way the parameters can also be inferred and we can reduce the number of parameters we need to estimate !
+
+:::
+
+## MCMC for location mixtures of normals Part 2
+
+![location mixture of Normals $\mu$](images/c3l3-ss-11-mcmc-for-location-mixtures-of-normals-part-2.png){.column-margin width="200px"}
 
 
-### Density Estimation Example
 
-\index{galaxies dataset}
-We use the galaxies dataset to illustrate the differences between the two methods.
+![location mixture of Normals $\mu$ continued 1](images/c3l3-ss-12-mcmc-for-location-mixtures-of-normals-part-2.png){.column-margin width="200px"}
 
-The galaxies dataset contains the velocities of 82 galaxies in the Virgo cluster. 
-The data is available in the MASS package.
 
-### Sample code for Density Estimation Problem
+
+![location mixture of Normals $\mu$ continued 2](images/c3l3-ss-13-mcmc-for-location-mixtures-of-normals-part-2.png){.column-margin width="200px"}
+
+
+
+
+## MCMC Example 1
 
 ```{r}
-#| label: "lbl-density-estimation-example"
+#| label: lbl-mcmc-setup
 
+#### Example of an MCMC algorithm for fitting a location mixture of 2 Gaussian components
+#### The algorithm is tested using simulated data
 
-## Using mixture models for density estimation in the galaxies dataset
-## Compare kernel density estimation, and estimates from mixtures of KK=6
-## components obtained using both frequentist and Bayesian procedures
+## Clear the environment and load required libraries
 rm(list=ls())
-
-### Loading data and setting up global variables
-library(MASS)
 library(MCMCpack)
-data(galaxies)
-KK = 6          # Based on the description of the dataset
-x  = galaxies
-n  = length(x)
-set.seed(781209)
+set.seed(81196)  # So that results are reproducible
+```
+```{r}
+#| label: lbl-mcmc-generate-data
+## Generate data from a mixture with 2 components
+KK         = 2
+w.true     = 0.6  # True weights associated with the components
+mu.true    = rep(0, KK)
+mu.true[1] = 0   # True mean for the first component
+mu.true[2] = 5   # True mean for the second component
+sigma.true = 1   # True standard deviation of all components
+n          = 120         # Number of observations to be generated
+cc.true = sample(1:KK, n, replace=T, prob=c(w.true,1-w.true))
+x  = rep(0, n)
+for(i in 1:n){
+  x[i] = rnorm(1, mu.true[cc.true[i]], sigma.true)
+}
+```
 
-### First, compute the "Maximum Likelihood" density estimate associated with a location mixture of 6 Gaussian distributions using the EM algorithm
+```{r}
+#| label: fig-mcmc-true-density
+#| fig-cap: "True density and data points"
+
+# Plot the true density
+par(mfrow=c(1,1))
+xx.true = seq(-8,11,length=200)
+yy.true = w.true*dnorm(xx.true, mu.true[1], sigma.true) + 
+  (1-w.true)*dnorm(xx.true, mu.true[2], sigma.true) 
+plot(xx.true, yy.true, type="l", xlab="x", ylab="True density", lwd=2)
+points(x, rep(0,n), col=cc.true)
+```
+
+```{r}
+#| label: lbl-mcmc-algorithm
+
 ## Initialize the parameters
-w     = rep(1,KK)/KK
-mu    = rnorm(KK, mean(x), sd(x))
-sigma = sd(x)/KK
+w     = 1/2                         #Assign equal weight to each component to start with
+mu    = rnorm(KK, mean(x), sd(x))   #Random cluster centers randomly spread over the support of the data
+sigma = sd(x)                       #Initial standard deviation
 
-epsilon = 0.000001
-s       = 0
-sw      = FALSE
-KL      = -Inf
-KL.out  = NULL
+# Plot the initial guess for the density
+xx = seq(-8,11,length=200)
+yy = w*dnorm(xx, mu[1], sigma) + (1-w)*dnorm(xx, mu[2], sigma)
+plot(xx, yy, type="l", ylim=c(0, max(yy)), xlab="x", 
+     ylab="Initial density", lwd=2)
+points(x, rep(0,n), col=cc.true)
 
-while(!sw){
-  ## E step
-  v = array(0, dim=c(n,KK))
-  for(k in 1:KK){
-    v[,k] = log(w[k]) + dnorm(x, mu[k], sigma,log=TRUE)  
-  }
-  for(i in 1:n){
-    v[i,] = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,])))
-  }
-  
-  ## M step
-  # Weights
-  w = apply(v,2,mean)
-  mu = rep(0, KK)
-  for(k in 1:KK){
-    for(i in 1:n){
-      mu[k]    = mu[k] + v[i,k]*x[i]
-    }
-    mu[k] = mu[k]/sum(v[,k])
-  }
-  # Standard deviations
-  sigma = 0
-  for(i in 1:n){
-    for(k in 1:KK){
-      sigma = sigma + v[i,k]*(x[i] - mu[k])^2
-    }
-  }
-  sigma = sqrt(sigma/sum(v))
-  
-  ##Check convergence
-  KLn = 0
-  for(i in 1:n){
-    for(k in 1:KK){
-      KLn = KLn + v[i,k]*(log(w[k]) + dnorm(x[i], mu[k], sigma, log=TRUE))
-    }
-  }
-  if(abs(KLn-KL)/abs(KLn)<epsilon){
-    sw=TRUE
-  }
-  KL = KLn
-  KL.out = c(KL.out, KL)
-  s = s + 1
-  print(paste(s, KLn))
-}
-xx  = seq(5000,37000,length=300)
-nxx = length(xx)
-density.EM = rep(0, nxx)
-for(s in 1:nxx){
-  for(k in 1:KK){
-    density.EM[s] = density.EM[s] + w[k]*dnorm(xx[s], mu[k], sigma)
-  }
-}
-
-### Get a "Bayesian" kernel density estimator based on the same location mixture of 6 normals
-## Priors set up using an "empirical Bayes" approach
-aa  = rep(1,KK)  
-eta = mean(x)    
-tau = sqrt(var(x))
+## The actual MCMC algorithm starts here
+# Priors
+aa  = rep(1,KK)  # Uniform prior on w
+eta = 0          # Mean 0 for the prior on mu_k
+tau = 5          # Standard deviation 5 on the prior for mu_l
 dd  = 2
-qq  = var(x)/KK
+qq  = 1
 
-## Initialize the parameters
-w     = rep(1,KK)/KK
-mu    = rnorm(KK, mean(x), sd(x))
-sigma = sd(x)/KK
-cc    = sample(1:KK, n, replace=T, prob=w)
+# Number of iterations of the sampler
+rrr   = 6000
+burn  = 1000
 
-## Number of iterations of the sampler
-rrr   = 12000
-burn  = 2000
 
-## Storing the samples
+# Storing the samples
 cc.out    = array(0, dim=c(rrr, n))
-w.out     = array(0, dim=c(rrr, KK))
+w.out     = rep(0, rrr)
 mu.out    = array(0, dim=c(rrr, KK))
 sigma.out = rep(0, rrr)
 logpost   = rep(0, rrr)
 
-
+# MCMC iterations
 for(s in 1:rrr){
   # Sample the indicators
+  cc = rep(0,n)
   for(i in 1:n){
     v = rep(0,KK)
-    for(k in 1:KK){
-      v[k] = log(w[k]) + dnorm(x[i], mu[k], sigma, log=TRUE)  #Compute the log of the weights
-    }
+    v[1] = log(w) + dnorm(x[i], mu[1], sigma, log=TRUE)  #Compute the log of the weights
+    v[2] = log(1-w) + dnorm(x[i], mu[2], sigma, log=TRUE)  #Compute the log of the weights
     v = exp(v - max(v))/sum(exp(v - max(v)))
     cc[i] = sample(1:KK, 1, replace=TRUE, prob=v)
   }
   
   # Sample the weights
-  w = as.vector(rdirichlet(1, aa + tabulate(cc, nbins=KK)))
-  
+  w = rbeta(1, aa[1] + sum(cc==1), aa[2] + sum(cc==2))
+
   # Sample the means
   for(k in 1:KK){
     nk    = sum(cc==k)
@@ -222,729 +373,308 @@ for(s in 1:rrr){
     mu.hat  = tau2.hat*(xsumk/sigma^2 + eta/tau^2)
     mu[k]   = rnorm(1, mu.hat, sqrt(tau2.hat))
   }
-  
+
   # Sample the variances
   dd.star = dd + n/2
   qq.star = qq + sum((x - mu[cc])^2)/2
-  sigma = sqrt(1/rgamma(1, dd.star, qq.star))
-  
+  sigma = sqrt(rinvgamma(1, dd.star, qq.star))
+
   # Store samples
   cc.out[s,]   = cc
-  w.out[s,]    = w
+  w.out[s]     = w
   mu.out[s,]   = mu
   sigma.out[s] = sigma
+
+
+  # Compute the log posterior
   for(i in 1:n){
-    logpost[s] = logpost[s] + log(w[cc[i]]) + dnorm(x[i], mu[cc[i]], sigma, log=TRUE)
+    if(cc[i]==1){
+      logpost[s] = logpost[s] + log(w) + dnorm(x[i], mu[1], sigma, log=TRUE)
+    }else{
+      logpost[s] = logpost[s] + log(1-w) + dnorm(x[i], mu[2], sigma, log=TRUE)
+    }
   }
-  logpost[s] = logpost[s] + log(ddirichlet(w, aa))
+
+  logpost[s] = logpost[s] + dbeta(w, aa[1], aa[2],log = T)
   for(k in 1:KK){
-    logpost[s] = logpost[s] + dnorm(mu[k], eta, tau, log=TRUE)
+    logpost[s] = logpost[s] + dnorm(mu[k], eta, tau, log = T)
   }
-  logpost[s] = logpost[s] + dgamma(1/sigma^2, dd, qq, log=TRUE) - 4*log(sigma)
+
+  logpost[s] = logpost[s] + log(dinvgamma(sigma^2, dd, 1/qq))
+  
+  # print s every 500 iterations
   if(s/500==floor(s/500)){
     print(paste("s =",s))
   }
 }
+```
 
-## Compute the samples of the density over a dense grid
-density.mcmc = array(0, dim=c(rrr-burn,length(xx)))
+```{r}
+#| label: fig-mcmc-plot-logpost
+#| fig-cap: "Log posterior distribution for various samples"
+
+## Plot the logposterior distribution for various samples
+par(mfrow=c(1,1))
+par(mar=c(4,4,1,1)+0.1)
+plot(logpost, type="l", xlab="Iterations", ylab="Log posterior")
+
+xx = seq(-8,11,length=200)
+density.posterior = array(0, dim=c(rrr-burn,length(xx)))
 for(s in 1:(rrr-burn)){
-    for(k in 1:KK){
-        density.mcmc[s,] = density.mcmc[s,] + w.out[s+burn,k]*dnorm(xx,mu.out[s+burn,k],sigma.out[s+burn])
-    }
+  density.posterior[s,] = density.posterior[s,] + w.out[s+burn]*dnorm(xx,mu.out[s+burn,1],sigma.out[s+burn]) +
+                                                  (1-w.out[s+burn])*dnorm(xx,mu.out[s+burn,2],sigma.out[s+burn])
 }
-density.mcmc.m = apply(density.mcmc , 2, mean)
-
-## Plot Bayesian estimate with pointwise credible bands along with kernel density estimate and frequentist point estimate
-colscale = c("black", "blue", "red")
-yy = density(x)
-density.mcmc.lq = apply(density.mcmc, 2, quantile, 0.025)
-density.mcmc.uq = apply(density.mcmc, 2, quantile, 0.975)
-plot(xx, density.mcmc.m, type="n",ylim=c(0,max(density.mcmc.uq)),xlab="Velocity", ylab="Density")
-polygon(c(xx,rev(xx)), c(density.mcmc.lq, rev(density.mcmc.uq)), col="grey", border="grey")
-lines(xx, density.mcmc.m, col=colscale[1], lwd=2)
-lines(xx, density.EM, col=colscale[2], lty=2, lwd=2)
-lines(yy, col=colscale[3], lty=3, lwd=2)
-points(x, rep(0,n))
-legend(27000, 0.00017, c("KDE","EM","MCMC"), col=colscale[c(3,2,1)], lty=c(3,2,1), lwd=2, bty="n")
-
 ```
 
+```{r}
+#| label: fig-mcmc-plot-density
+#| fig-cap: "Posterior density estimate"
+## report the posterior mean and 95% credible interval
+density.posterior.m = apply(density.posterior , 2, mean)
+density.posterior.lq = apply(density.posterior, 2, quantile, 0.025)
+density.posterior.uq = apply(density.posterior, 2, quantile, 0.975)
 
-## Clustering
+## Plot the posterior density estimate
+par(mfrow=c(1,1))
+par(mar=c(4,4,1,1)+0.1)
+plot(xx, density.posterior.m, type="n",ylim=c(0,max(density.posterior.uq)), xlab="x", ylab="Density")
+polygon(c(xx,rev(xx)), c(density.posterior.lq, rev(density.posterior.uq)), col="grey", border="grey")
+lines(xx, density.posterior.m, lwd=2)
+points(x, rep(0,n), col=cc.true)
+```
 
-\index{clustering}
+## Sample code for MCMC example 1
 
-### Mixture Models for Clustering
+## MCMC Example 2
 
-
-### Clustering example
+## Sample code for MCMC example 2
 
 ```{r}
-## Using mixture models for clustering in the iris dataset
-## Compare k-means clustering and a location and scale mixture model with K normals
+#| label: lbl-mcmc-example-2
+#| 
+#### Example of an MCMC algorithm for fitting a mixtures of K p-variate Gaussian components
+#### The algorithm is tested using simulated data
 
-### Loading data and setting up global variables
+## Clear the environment and load required libraries
 rm(list=ls())
-library(mclust)
 library(mvtnorm)
+library(ellipse)
+library(MCMCpack)
 
-### Defining a custom function to create pair plots
-### This is an alternative to the R function pairs() that allows for 
-### more flexibility. In particular, it allows us to use text to label 
-### the points
-pairs2 = function(x, col="black", pch=16, labels=NULL, names = colnames(x)){
-  n = dim(x)[1]
-  p = dim(x)[2]
-  par(mfrow=c(p,p))
-  for(k in 1:p){
-    for(l in 1:p){
-      if(k!=l){
-        par(mar=c(3,3,1,1)+0.1)
-        plot(x[,k], x[,l], type="n", xlab="", ylab="")
-        if(is.null(labels)){
-          points(x[,k], x[,l], pch=pch, col=col)
-        }else{
-          text(x[,k], x[,l], labels=labels, col=col)
-        }
-      }else{
-        plot(seq(0,5), seq(0,5), type="n", xlab="", ylab="", axes=FALSE)
-        text(2.5,2.5,names[k], cex=1.2)
-      }
-    }
-  }
+## Generate data from a mixture with 3 components
+KK      = 3
+p       = 2
+w.true = c(0.5,0.3,0.2)  # True weights associated with the components
+mu.true     = array(0, dim=c(KK,p))
+mu.true[1,] = c(0,0)   #True mean for the first component
+mu.true[2,] = c(5,5)   #True mean for the second component
+mu.true[3,] = c(-3,7)   #True mean for the third component
+Sigma.true      = array(0, dim=c(KK,p,p))
+Sigma.true[1,,] = matrix(c(1,0,0,1),p,p)   #True variance for the first component
+Sigma.true[2,,] = matrix(c(2,0.9,0.9,1),p,p)   #True variance for the second component
+Sigma.true[3,,] = matrix(c(1,-0.9,-0.9,4),p,p)   #True variance for the third component
+set.seed(63252)    #Keep seed the same so that we can reproduce results
+n  = 120
+cc.true = sample(1:3, n, replace=T, prob=w.true)
+x  = array(0, dim=c(n,p))
+for(i in 1:n){
+  x[i,] = rmvnorm(1, mu.true[cc.true[i],], Sigma.true[cc.true[i],,])
 }
 
-## Setup data
-data(iris)
-x       = as.matrix(iris[,-5])
-n       = dim(x)[1]
-p       = dim(x)[2]       # Number of features
-KK      = 3
-epsilon = 0.0000001
 par(mfrow=c(1,1))
-par(mar=c(4,4,1,1))
-colscale = c("black","blue","red")
-shortnam  = c("s","c","g")
-pairs2(x, col=colscale[iris[,5]], labels=shortnam[as.numeric(iris[,5])])
-
-
-# Initialize the parameters of the algorithm
-set.seed(63252)
-numruns = 15
-v.sum   = array(0, dim=c(numruns, n, KK))
-QQ.sum  = rep(0, numruns)
-
-for(ss in 1:numruns){
-  w   = rep(1,KK)/KK  #Assign equal weight to each component to start with
-  mu  = rmvnorm(KK, apply(x,2,mean), 3*var(x))   #Cluster centers randomly spread over the support of the data
-  Sigma      = array(0, dim=c(KK,p,p))  #Initial variances are assumed to be the same
-  Sigma[1,,] = var(x)
-  Sigma[2,,] = var(x)
-  Sigma[3,,] = var(x)
-  
-  sw     = FALSE
-  QQ     = -Inf
-  QQ.out = NULL
-  s      = 0
-  
-  while(!sw){
-    ## E step
-    v = array(0, dim=c(n,KK))
-    for(k in 1:KK){  #Compute the log of the weights
-      v[,k] = log(w[k]) + mvtnorm::dmvnorm(x, mu[k,], Sigma[k,,], log=TRUE) 
-    }
-    for(i in 1:n){
-      v[i,] = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,])))  #Go from logs to actual weights in a numerically stable manner
-    }
-    
-    ## M step
-    w = apply(v,2,mean)
-    mu = matrix(0, nrow=KK, ncol=p)
-    for(k in 1:KK){
-      for(i in 1:n){
-        mu[k,]    = mu[k,] + v[i,k]*x[i,]
-      }
-      mu[k,] = mu[k,]/sum(v[,k])
-    }
-    Sigma = array(0,dim=c(KK, p, p))
-    for(k in 1:KK){
-      for(i in 1:n){
-        Sigma[k,,] = Sigma[k,,] + v[i,k]*(x[i,] - mu[k,])%*%t(x[i,] - mu[k,])
-      }
-      Sigma[k,,] = Sigma[k,,]/sum(v[,k])
-    }
-    
-    ##Check convergence
-    QQn = 0
-    for(i in 1:n){
-      for(k in 1:KK){
-        QQn = QQn + v[i,k]*(log(w[k]) + mvtnorm::dmvnorm(x[i,],mu[k,],Sigma[k,,],log=TRUE))
-      }
-    }
-    if(abs(QQn-QQ)/abs(QQn)<epsilon){
-      sw=TRUE
-    }
-    QQ = QQn
-    QQ.out = c(QQ.out, QQ)
-    s = s + 1
-  }
-  
-  v.sum[ss,,] = v
-  QQ.sum[ss]  = QQ.out[s]
-  print(paste("ss =", ss))
+plot(x[,1], x[,2], col=cc.true, xlab=expression(x[1]), ylab=expression(x[2]), type="n")
+text(x[,1], x[,2], seq(1,n), col=cc.true, cex=0.6)
+for(k in 1:KK){
+  lines(ellipse(x=Sigma.true[k,,], centre=mu.true[k,], level=0.50), col="grey", lty=2)
+  lines(ellipse(x=Sigma.true[k,,], centre=mu.true[k,], level=0.82), col="grey", lty=2)
+  lines(ellipse(x=Sigma.true[k,,], centre=mu.true[k,], level=0.95), col="grey", lty=2)
 }
-
-## Cluster reconstruction under the mixture model
-cc = apply(v.sum[which.max(QQ.sum),,], 1 ,which.max)
-colscale = c("black","blue","red")
-pairs2(x, col=colscale[cc], labels=cc)
-ARImle = adjustedRandIndex(cc, as.numeric(iris[,5]))  # Higher values indicate larger agreement
-
-## Cluster reconstruction under the K-means algorithm
-irisCluster <- kmeans(x, 3, nstart = numruns)
-colscale = c("black","blue","red")
-pairs2(x, col=colscale[irisCluster$cluster], labels=irisCluster$cluster)
-ARIkmeans = adjustedRandIndex(irisCluster$cluster, as.numeric(iris[,5]))
-
-```
-
-## Classification
-
-Classification is a supervised learning problem where we want to predict the class of a new observation based on its features.
-
-According to the instructor the main difference from clustering is that in classification we have a training set. I would think the main difference is that we have labels for some of the data, while in clustering we do not have labels at all.
-
-The fact that we have labels and a training set means we should know how many classes we have and we can use these labels to train a model and use it to predict the class of a new observation.
-
-The instructor mentions Support Vector Machines (SVM), logistic regression and linear discriminant analysis (LDA) as familiar examples of classification methods. These and a number of others are covered in [@james2013introduction]. We will focus on Naive Bayes classifiers as it is the most similar to mixture models and the EM algorithm which we have seen earlier
-
-### Mixture Models and naive Bayes classifiers
-
-![K-means clustering](images/c3l4-ss-04-classification-overview.png){.column-margin width="200px"}
-
-
-![K-means clustering](images/c3l4-ss-05-classification-naive-bayes.png){.column-margin width="200px"}
-
-
-![Mixture Models for Clustering](images/c3l4-ss-06-classification-mixtures.png){.column-margin width="200px"}
-
-
-#### Naive Bayes classifiers
-
-The idea of Naive Bayes classifiers is that we want to know what is the probability that observation i belongs to class k and we can obtain this using Bayes' theorem by computing the prior probability that an observation is in that class. This is just the frequency of the class multiplied by the density of that class and divided by the sum over the classes of the same expression.
-
-$$
-\mathbb{P}r(x_i \in \text{class}_k) = \frac{w_k \cdot g_k(x_i|\theta_k)}{\sum_{j=1}^K w_j \cdot g_j(x_i|\theta_j)}
-$$ {#eq-bayes-classifier}
-
-where $w_k$ is the prior probability of class k, $g_k(x_i|\theta_k)$ is the density of class k, and $\theta_k$ is the parameter of class k.
-
-with 
-
-$$
-\tilde{c}_i = \arg \max_k \mathbb{P}r(x_i \in \text{class}_k)\ for \; i=n+1,\ldots,n+m
-$$
-
-The naive Bayes classifier assumes that the features are conditionally independent given the class. This means that the density of class k can be written as the product of the densities of each feature given the class:
-$$
-g_k(x_i|\theta_k) = \prod_{l=1}^p g_{kl}(x_{il}|\theta_{kl})
-$$
-
-where $g_{kl}(x_{il}|\theta_{kl})$ is the density of feature l given class k and $\theta_{kl}$ is the parameter of feature l given class k. This means that we can estimate the density of each feature separately and then multiply them together to get the density of the class.
-
-
-This is a very strong assumption and is not true in general. However, it works well in practice and is often used in text classification problems where the features are the words in the text.
-
-The naive Bayes classifier is a special case of the mixture model where the components are the classes and the densities are the product of the densities of each feature given the class. This means that we can use the EM algorithm to estimate the parameters of the model in the same way as we did for the mixture model. The only difference is that we need to estimate the densities of each feature separately and then multiply them together to get the density of the class.
-
-
-::: {.callout-note collapse="true"} 
-
-## Video Transcript
-
-The last class of problems for which mixture models are very useful is classification problems.  If you come from the machine learning literature, you will call this supervised classification to contrast, again, unsupervised classification that I called clustering before. The goal in supervised classification is to start with a training set and use the information in a training set to determine the classes or the labels of a second group of observations that you call the test set. So you start with a training set that contains known labels classes. You also have a test set that has unknown labels, and you want to use this information to make predictions about the test set labels. For example, you may want to decide whether a person suffers from a disease or not based on a set of medical tests, maybe P medical tests, and you have gone out and measured those tests in a number of individuals. So you know those individuals whether they are sick or they are not sick. Based on that training set that is labeled where you know what the real quality
-of the individuals is, then you go out and
-you are going to pick just a random person that comes into your medical appointment, and based on the
-results of the test, now you want to decide
-if that individual suffers from the disease or not. So the presence of the
-training set is really what distinguishes
-clustering problems from classification problems. In clustering problems, we
-don't have a training set. We don't have anything
-that gives us a hint about how the
-classes look like. We're trying to do the process of dividing the observations into groups in some sense blindly. That's why it's sometimes called unsupervised classification
-because you can think that the training set provides supervision in how you
-do the classification. In typical supervised classification
-problems on the other hand, you do have that training set. You do have that group of labeled observations
-that can help you make decisions about how the new groups
-will look like. So in some sense, supervised classification
-is a simpler problem than unsupervised
-classification because of the presence of
-the training set. Now, there are a number of classification
-procedures out there. This is a fairly common
-problem in the literature. You may be familiar with things like support vector machines or logistic regression
-for classification. I want to discuss today the similarities between
-using mixture models for classification and
-some techniques such as linear discriminant analysis, and in particular with Naive Bayes classifiers. The idea of Naive Bayes
-classifiers is very simple. So if you want to know what
-is the probability that observation i belongs to class k, you can typically obtain
-that by just using Bayes' theorem by computing the prior probability that an observation is in that class. That is typically
-just the frequency of the class multiplied by the density of that class and divided by the sum over the classes
-of the same expression. Now, again, this should
-be very familiar. This quantity here is
-essentially what we used both in the EM
-algorithm to compute the [inaudible] case and in the MCMC algorithm if you are fitting a mixture model from a Bayesian perspective to sample the class labels C sub x. So in other words, it's clear just from writing the expression
-from Naive Bayes that there should be a very
-close relationship between doing Naive Bayes
-and doing mixture models. In fact, you can cast Naive Bayes
-classifiers as just as a special case of mixture models. Let's discuss Naive
-Bayes classifiers where we use Gaussian kernels
-for the classification. Let's enter this a
-little bit of notation. So remember that we have both a test set and
-a training set. So let's call X_1 up to
-X_n my training set, and let's call X_n plus 1 up
-to X_n plus m the test set. In other words, we have n observations in
-the training set, we have m observations in the test set and we just
-group the observations together so that the
-first n in the sample are the training and
-last m are the test. In addition to this, because the training
-set is labeled, we're going to have C_1
-up to C_n are known, but C_1 or C_n plus
-1 up to C_m plus n are unknown and we
-want to protect them. Let's write a Naive
-Bayes classifier that uses Gaussian kernels, and we're going to use the more general Gaussian
-kernels that we can. So in that case, the probability
-that observation i belongs to class k, it's going to be
-equal to Omega_k 1 over the square root 2 Pi to the p. Remember that we're working
-with P variate normal. So we can have P features
-for each individual, determinant of Sigma_k to the minus one 1/2
-X of minus one 1/2 X_i minus Mu k transpose sigma sub k
-inverse X_i minus Mu k, divided by the sum over the components of
-exactly the same expression. This has to be l, minus Mu sub l transpose
-sigma l inverse X_i minus Mu l. So this is just Bayes theorem as we have written multiple
-times in this course. So what you do is, you need this expression
-only for the training set because for the test
-set you already know what class you are in. So what you typically do is
-a two-step process in which you get Mu k hat and Sigma hat sub k are estimated from the training set. You could do different things, but it's very fairly
-common to just fit a multivariate Gaussian to each one of the components. So your Cs, your labels divide your
-training set into groups. For each one of those groups, you fit one different
-normal and that gives you Sigma and Mu. Similarly, for Omega k, you want to get an
-estimate for Omega k, and the natural thing to do
-is to just use the frequency, the fraction of the observations in the training set that belong to each one
-of the classes. Once you have those, then you classify
-new observations as by letting C_i be equal to the org max
-of that probability. Where the probabilities
-are computed by plugging in these maximum
-likelihood estimators in this formula up here. As I said, this is done
-for n plus 1 all the way to n plus m. So you don't need to do this
-for the training set, the training set
-you know the labels and you use those labels to compute the MLEs that
-get plugged into this. Now, with additional
-observations in those MLEs, you can decide what are
-the classes for them. So this is what a naive
-Bayes classifier based on Gaussian distributions for each one of the classes
-would look like. Now, this is exactly the same as the EM algorithm that we have discussed in the
-past for mixture models, if we make a couple of assumptions or if we incorporate a couple of assumptions
-into the algorithm. So let's write down that next. We can recast the
-algorithms that we just saw for naive Bayes
-classifier based on Gaussian kernels
-in the context of the EM algorithm that we have been discussing
-for mixtures. That is very easy, we're going to think, again, about an E-step and an M-step, and we're going to add an additional post-processing
-step, if you will. In our E-step, if you remember, what we did in the
-past was to compute the indicators for the variables. So that is our variables V_i,k that corresponds to the weights that are associated with each
-one of the components. What we're going to do
-in this case is we're going to define the V_i,k in a very simple fashion
-rather than doing it using Bayes theorem. Because we actually know what observations
-or what components are generating each of the observations in the training set, we can call V_i,k
-just one or zero if C_i is equal to k
-and zero otherwise, for all the observations
-that go from one to n. In other words, this is for the training set. Once we have defined
-our E-step in this way, we're going to have an
-M-step where we compute Mu sub k and Omega sub k. To put it in the same way that we
-did with the EM algorithm, this is going to have a
-very particular shape. It's going to have the sum
-from one to n of V_i,k X_i divided by the sum from one to n of V_i,k. In a similar expression
-for my matrix Sigma, Sigma is going to be Sigma sub k, it's going to be
-one over the sum of the V_i,k from one to n, sum from one to n of V_i,k X_i minus Mu k, X_i minus Mu k transpose. These are expressions that we
-have seen in the past when filling mixtures of
-multivariate Gaussians to data. This is just a fancy way, so casting it in terms of
-the E-step and the M-step, it's just a fancy way to say, I know what my assignments are, for sure, because this
-is a training set. So this is just computing the average of the
-observations that are in category K because, in this case, these are
-either zeros or ones. Similarly, here, this is just the variance
-covariance matrix of the observations that
-are in component K, but it's written in
-a fancy way using this V_i,k as indicators. Then, we have a post-processing. It's in the
-post-processing step where the test set comes into play. So for now, we have only used the training set for
-our calculations. In the post-processing step, what we do is we
-allocate C_i based on the arc max over K of the posterior distribution
-of the class allocations. So that is probability that X_i belongs to class K. So this is just another way to write the algorithms
-as we had before, that is very simple in the
-context of [inaudible]. So why did I go through the
-trouble of expressing this in this complicated manner when I had a very simple
-description before? Well, because now you can try to generalize this from
-this supervised setting where you
-completely break apart the estimation
-of the parameters that only uses the training set and the classification that
-only uses the test set. You can actually try to
-combine information from both, and it should be
-clear that if you have training sets that are just very small
-compared to the test set, the estimates that you get
-for Mu and Sigma will be very bad because they will be based on very few observations,
-very few data points. So if you could somehow use some of the information
-that you are recovering by doing the
-classification to help you estimate what
-Mu and Sigma are, they'll probably give you more robust, stronger algorithm. How to do that should be
-relatively straightforward once you think about
-it in this context. For the observations
-to the training set, we have the value of the V_i,k, but we could add an estimate of the
-value of the V_i,k for the observations in the test
-set to this calculation. We already know how to do that. So we're going to turn the
-algorithm iterative now. So these guys are always going to be defined in this way because
-I know the C's, but these guys are refined at every iteration
-of the algorithm. I'll just make this essentially
-equal to the probability that X_i belongs to class K given the current
-parameters of the model, so given the current Omegas, the current Mus, and
-the current Sigmas. Then, I can extend my sums to
-m down here and down here. Now, what I'm doing is, for the observations that I
-know what class they are in, these weights are
-either zeros or ones. For the ones that I don't know but I'm trying to classify, they will be some number
-between zero and one, and I'm just going to do a weighted average so you
-can think about this, again, as a weighted average of the information that
-I know for sure, and the information that
-I'm recovering about Mu and Sigma from the
-classification. So again, this now becomes
-an iterative algorithm, so I need to think about
-t plus 1, t plus 1, t plus 1, t plus 1, t plus 1, t plus 1, and t plus 1. So I have turned what was just a two-step algorithm that doesn't require
-any iteration, I turned it into an iterative
-algorithm that uses the whole sample to estimate the parameters
-of the classes. This is sometimes called
-a semi-supervised; I don't necessarily like
-the term very much. But this is sometimes called
-a semi-supervised algorithm, in the sense that it's
-not completely supervised because of the addition of this information
-and the fact that now, the sums go up to m.
-But it's also not fully unsupervised because
-I'm using the information, I'm using this piece
-up here that has information where I
-know their true labels. Once the algorithm converges, I'm still going to do the post-processing
-step that is to go from this V_i,k's that I computed here for the test set to generate what are the
-labels for those observations.
-
-:::
-
-
-### LDA and the EM algorithm
-
-![LDA](images/c3l4-ss-08-lda.png){.column-margin width="200px"}
-
-
-![LDA](images/c3l4-ss-09-lda.png){.column-margin width="200px"}
-
-
-It is important to understand the connection between using mixture models for classification and other procedures that are commonly used out there for classification. One example of those procedures that has a strong connection is linear discriminant analysis and also  to quadratic discriminant analysis.
-
-To illustrate that connection, we start with a very simple mixture model. 
-
-So let's start with a mixture model of the form, 
-
-$$
-f(x) = \sum_{k=1}^2 \omega_k \frac{1}{\sqrt{2\pi}} \frac{1}{\sqrt{\text{det}(\Sigma)}} e^{-\frac{1}{2}(x - \mu_k)^T \Sigma^{-1} (x - \mu_k)}.
-$$
-
-::: {.callout-note collapse="true"}
-
-## Video Transcript
-
-It is important to understand the connection between using mixture models for classification and other procedures that are commonly used out there for classification. One example of those procedures that has a strong connection is linear discriminant analysis. 
-And also, by the way, quadratic discriminant analysis.  But let's start with linear discriminant analysis. 
-
-And to illustrate that connection, let's start with a very simple mixture model. 
-
-So let's start with a mixture model of the form, $f(x) =$ the sum from 1 to 2. 
-So I'm going to be working only with two components of omega k, 1 over the square root 2pi to the p determinant of sigma to the -1 half, x- 1 half, x, mu sub k, transpose sigma inverse, x- mu sub k. 
-So this is two-component mixture with locations bearing with a component, but the same variance-covariance matrix for the two components that I have in the mixture. 
-
-And let's think about how the procedure would look like if we were to do Naive Bayes classification using this mixture. 
-If I follow the unsupervised example that I have discussed before, the probability that I put observation i in class, 1, say, I only have two classes. 
-
-So as you see again, consider one of them and the other one is just 1- the numbers that I get here. 
-It's going to be equal. 
-
-And I'm going to expand this in all its glory. 
-It's going to be a little bit long. So it's going to be omega 1, 1 over the square root 2pi to the p determinant of sigma to the- 1 half, x of- 1 half, x- mu k transpose sigma inverse x- mu k. 
-And in the denominator, we're going to have the same expression first. 
-And then we're going to have omega 2, that is just 1- omega 1 but 2pi to the p determinant of sigma to the- 1 half x- 1 half x- mu 2, sigma inverse x- mu 2. 
-Okay, and we know that the probability that xi belongs to class 1 is exactly the same expression but replacing mu, 1 which is what should be up here, replacing mu1 with mu2. 
-
-So, in the post processing step, we are going to assign C sub i = 1 if and only if the probability that xi belongs to class 1 is greater than the probability that xi belongs to class 2. 
-And because the two expressions are the same in the denominator, the only thing that
-changes is the numerator, then this happens if and only if omega 1, 1 over the square root 2pi to the p determinant sigma to the- 1 half x- 1 half, X- mu1 transpose sigma inverse x- mu1, Is greater than omega 2, 1 over the square root 2pi to the p determinant of sigma to the- 1 half x of- 1 half x- mu2, sigma inverse x- mu2. 
-So probability of class 1 greater than probability of class 2 only if this quantity is greater than the same thing but evaluated for the second component in the mixture. 
-So let's do a little bit of algebra and
-let's try to simplify this expression a little bit and we will see that that simplification leads to a very nice expression that matches exactly what you get out of linear discriminant analysis. 
-So now we want to simplify this expression that corresponds to the situation where we're going to label an observation coming from class 1, and we want to make it much more compact. 
-So a few things that we can observe. So one of them is we have 1 over square root 2pi to the p on both sides, so we can cancel that. 
-The other thing that we observe is that we have the determinant of the variance-covariance matrix on both sides. 
-And because we're assuming that the two components have the same variance- covariance matrix, we can again just simplify both terms on either side. 
-And the next thing that I'm going to do is I'm going to move all the omegas to one side and bring all the terms with the exponentials to the other side. 
-If I do that, I'm going to end up on the left hand side with the exponent of- 1 half, X- mu1 transpose sigma inverse x- mu1. 
-And then this term came to the other side in the denominator, but that just means that when it goes into the exponential, I need to change all to reverse signs. So it's going to be- x- mu2 transpose sigma inverse x- mu2. 
-So that's the expression once you move this to the denominator and combine the two exponentials. 
-And this needs to be greater than omega 2 divided by omega 1. Now, some further simplifications. I can take the logarithm on both sides and I can multiply by -2 on both sides, and I end up with an expression that looks like x- mu 1 transpose sigma inverse x- mu1- x- mu 2 transpose sigma inverse x- mu 2 has to be less than, because I'm going to end up multiplying by a -2. 
-So less than -2 log of omega 2 divided by omega 1. 
-So now we have this difference of two quadratic forms needs to be less than a certain constant that depends on what are my prior weights for each one of the two components. 
-Now, to finish simplifying this, we need to expand these two squares, which is pretty straightforward. 
-So first we're going to have x sigma inverse x transpose sigma inverse x. 
-This is just a square. So it's going to be 2 times x transpose sigma inverse mu1. 
-And finally, $\mu_1$ transpose sigma inverse $\mu_1$. 
-And then we need to subtract a similar expression but using mu2 for it turns. 
-So it's going to be x transpose sigma inverse x. 
-It's going to be +, in this case, 2x transpose sigma inverse mu2. 
-And finally, again,- mu2 transpose sigma inverse mu2, and all of these needs to be less than -2 log of omega 2, Divided by omega 1. 
-So you can see that the expressions are relatively straightforward. 
-
-And one of the things that is very nice, and it's a consequence of having the same variance-covariance matrix for each one of the components, is that now this quadratic term of the data is going to cancel out. 
-And so, we can just basically learn together a couple of terms. So we can write, 2 times, X transpose sigma inverse multiplied by mu2- mu1. 
-So I'm taking this term and combining it with this term. So, the term here and the term here. 
-
-And then I'm going to say that this has to be less than -2 times log of omega 2 divided by omega 1, and I'm going to move this two terms to the right. 
-So,+ mu2 transpose sigma inverse mu2- mu1 transpose sigma inverse mu1. 
-So this is actually quite a bit of simplification and it's a very interesting one. 
-Because you can think about this, Thing on the right hand side, just call this T for threshold. 
-So this is your sum threshold and that threshold is basically computed based on the training data. 
-So if I know the classes of some observations, I can get what the means for each one of the classes are, I can estimate the common sigma, and I can estimate the relative frequencies. 
-And with that, I can obtain a stress score from the training set. 
-And I can think about this matrix product as sum vector a. 
-The form of this simplified expression is very interesting. 
-You can see that the right-hand side, all this expression in the box, it's just a threshold that can be easily computed from the training set. 
-We can estimate the weight and we can estimate the mean and the covariance of the two components. 
-And then, this product of the variance-covariance or the inverse of the variance-covariance matrix times the difference of the means corresponds to a vector a that can also be computed from the training set. 
-So essentially, the decision of whether we classify an observation in class 1 or class 2 is going to depend on whether a linear combination, and that's what x transpose times a is, is just a linear combination of the values of x. 
-So whether this linear combination of the values of x is greater than a given threshold or not. 
-In other words, what we're doing, In a setting where we only have two variables, for example, x1 and x2, the linear combination of
-the entries is just a line on the plane. 
-So this product just corresponds to a line. 
-And by deciding whether we are above
-the line or below the line, we're just saying that one of the regions corresponds to class, 2, and
-the other region corresponds to class 1. 
-So this is the reason why the procedure is called linear discriminant analysis because it uses a straight line to decide whether observations should be classified in class 1 and class 2. 
-Now, there are some more interesting things that you can do. 
-For example, you don't have to assume that the sigmas are the same, you could assume that the sigmas are different. 
-If you were to do that, then you'd be in a situation that is analogous to this one with the main difference being that now these terms here wouldn't necessarily simplify. 
-But then, you can rearrange terms in such a way that now, you're going to have a quadratic form of x being less than a certain threshold. And in that case, you're separating hyperplane. 
-Instead of being a hyperplane or line, it's going to be a quadratic form. 
-And that is the reason why when you're doing Naive Bayes and you're working with kernels that are Gaussian and have different variance-covariance matrices, you call the procedure quadratic discriminant analysis. 
-Because it uses a quadratic form, a parabola or something like that to separate the two classes that you're working with. 
-The nice thing about thinking about this classification procedures in the context of mixture models is again, thinking about ways in which you can generalize and address the shortcomings of the procedure. 
-It's clear that the main issue with classification procedures based on Gaussians is that data in the real world sometimes doesn't look like multivariate Gaussian distributions. 
-So one possible extension is to instead of considering the density, this ps here to be a single Gaussian, you can kind of use mixtures a second time and borrow some ideas from when we did density estimation. 
-And say well, I'm going to have a mixture and each component of that mixture is in turn a second mixture that may have a few components. 
-And that may allow for the shape of the clusters to be much more general, and that's what we call mixture discriminant analysis. 
-As before, if you instead of doing the Algorithm and the simple maximum likelihood estimation that I described before, you instead use Bayesian estimators for your process, then you will have Bayesian equivalent of linear discriminant analysis and quadratic discriminant analysis. 
-So it is very useful to think about your statistical methods in the context of mixture models for the purpose of both generalizing and understanding the shortcomings of what you're doing.
-
-:::
-
-### Linear and quadratic discriminant analysis in the context of Mixture Models
-
-### Classification example
-
-This video discusses the code in the next section.
-
-::: {.callout-note collapse="true"}
-
-## Video Transcript
-
-I'm going to illustrate now to use of mixture models for classification using the wind dataset. 
-Unlike the previous datasets that we work with, this one is not included in R by default. 
-So the two files that you need wind training and wind tests are available on the website, make sure that you download them and that you have them in the right directory for R to read them. 
-And in this case, I made sure that I change the directory where I'm looking at before I start working with this, and that I put my files in there. 
-
-Okay, so the wind dataset is an interesting one, it's a series of measurements for different varieties of wine. 
-They come from three different cultivars, and for each particular variety of wine. 
-They did a chemical analysis and measure 13 different variables that have to do with different chemical components present in the world. 
-So we have a label set where we know which samples from which of the three cultivars. 
-And now we want to use the information that we clean out of that to classify to decide a series of new wines to assign them to the cultivar
-that we think they come from. 
-We actually do know the truth for the test set, so we will actually first do the predictions we'll act as if we don't know what the cultivar of the test set is. And then we will compare the predictions that we're making against the truth, as a way to tell how well the algorithm is to it, okay. 
-So the first thing that we need to do is load our dataset as I said, you need to make sure that the two files are in the directory where you're working. 
-So make sure of that, remember that we called n the sample size of the training set and m the training size the size of the test set. 
-So I'm just calling the variables that way, and I'm going to use mixture of normals mixture of multivariate normals by location and scale. So I'm going to use a method that is essentially equivalent to doing quadratic discriminant analysis. 
-And, I want to run the Algorithm that I discussed on the board, but in a situation which we assume that we're going to work with semi-supervised learning. 
-In other words, I went around the Version of the algorithm in which we're going to use all the observation both in the training and the test set, to learn the parameters of the classes. 
-So it's going to be an iterative algorithm. 
-So we know in advance as we have three classes because we have three cultivars. 
-B in this case is going to be 13 because there are 13 features that were measured on each wine. 
-So if you come down here, you can see that B 13, we can try to do a graph of the data. 
-In this case the graph is not going to be terribly readable because there are so many variables, but it may still provide a little bit of intuition. 
-So the variables that are measured things like alcohol, the ash, the alkalinity, the level of magnesium, the hue that has to do with
-how dark the wine is, proline. 
-So you can see here where the variables are there are measured, and even though the graph is not very readable at least you can see that the classes do not fully overlap. 
-So we do have some hope that we may be able to do classification in the problem. 
-That's pretty much the main thing that you can say out of this graph here, okay. 
-So, as I said before mixture of models with different components, different variances and different means for each component its normal
-component in the mixture. Same type of standard initialization that we have done before. 
-And we're going to do the E and the M step here, remember that for the observations in the training set. 
-We know the class, so the value of B are either 0 or 1, and because we do the calculation first in the log scale, then we do either 0 or minus infinity. 
-So 0 corresponds to probability of 1 and minus infinity corresponds to a probability of 0 in the log scale. 
-And then for the observations in the test set, we have just a regular way in which we compute the probability that the observation comes from each class. 
-And once we have done this then we subtract, we do as we have always done subtract maximums and then re-standardize. 
-So this is how the ES step gets adapted in the case of semisupervised classification. 
-And then the structure of the m-step is exactly the same structure of the regular Algorithm. 
-So we compute means and variances for each one of the components as weighted averages of the different quantities. 
-We check conversions in the standard way, in which we have been checking convergence. 
-And finally once everything is done, we will get a classification, so let's run it for this dataset. 
-It runs actually quite quickly, we have only 12 iterations and we have converged. 
-Now what the Algorithm gives gave us is just the B values, that is the probability that an observation comes from a given class. 
-Now, we typically are going to want to convert those peas into Cs and as we saw on the board, that is done by just selecting the class that has the highest probability. 
-
-So if we do that for our training set in this case, and if you look at the indexes here, they run from n + 1 to n + m, which means that we're looking at test set. 
-If we just get what is the maximum we can see that the first block of observations is assigned to component two.
-Most of this block is assigned to component two except for this guy here, and then the the remaining block of observation is assigned to components three. 
-So now how does that compare with the truth? So we can actually go into winder test, and the first column of that file contains the true labels, and we can say that it matches actually pretty well. 
-So the ones all match, the twos match except for one guy, the one we had kind of identified before, and the threes all match together. 
-And we can actually if you just want to have a summary of how many errors you make. 
-You can do a little comparison like this, and you can find that there is only a single error in the classification that the algorithm does. 
-
-Now let's compare that with just using quadratic discriminant analysis and linear discriminant analysis. 
-The way they are implemented in R, so QDA and LDA are the two functions that you will need, they are part of the mass package. 
-So, We first feed the QDA model and then we that fitted model to predict the classes. 
-And now if we see what the regular QDA does is it's going to give me this long list of probabilities for the test set. 
-And we can turn those into labels and in particular we can see how many errors we're making in the prediction. 
-And you can see that we make a single mistake, which is actually not the mistake that we had made before. 
-So if we just look at this one here and we compare it against the, Classification that our algorithm did, and we compared it against the truth. 
-
-We see that our algorithm makes a mistake in this observation and QDA does not, and instead the error is somewhere else in this sample. 
-It's basically here, so you can see that the QDA classifies this as two, when the reality is that it's a three. 
-So our results are not identical to QDA even though our method is asymptotically going to be equivalent to QDA but they
-don't give us exactly the same result, but they give us very similar accuracy. 
-Interestingly if you run LDA and you try to look at how many errors you have in that case, you will see that LDA in this case has no errors, even though it's a simpler more restrictive classification procedure. 
-So this can happen, so it's a relatively large sample, so a single a difference in a single error is not a very large difference. 
-So, hopefully this illustrates how classification or how measurements can be used for classification in a real life setting.
-
-:::
-
-### Sample EM algorithm for classification problems
-
-```{r}
-#| label: lbl-em-algorithm-classification-sample
-
-
-## Using mixture models for classification in the wine dataset
-## Compare linear and quadratic discriminant analysis and a 
-##   (semi-supervised) location and scale mixture model with K normals
-## Comparing only against the EM algorithm
-
-# Semi-supervised, quadratic discriminant analysis 
-### Loading data and setting up global variables
-library(MASS)
-library(mvtnorm)
-wine.training = read.table("data/wine_training.txt", sep=",", header=TRUE)
-wine.test = read.table("data/wine_test.txt", sep=",", header=TRUE)
-n = dim(wine.training)[1]  # Size of the training set
-m = dim(wine.test)[1]      # Size of the test set
-x = rbind(as.matrix(wine.training[,-1]), as.matrix(wine.test[,-1]))   # Create dataset of observations, first n belong to the training set, and the rest belong to the test set
-p       = dim(x)[2]              # Number of features
-KK      = 3
-epsilon = 0.00001
-
-par(mfrow=c(1,1))
-par(mar=c(2,2,2,2)+0.1)
-colscale = c("black","red","blue")
-pairs(wine.training[,-1], col=colscale[wine.training[,1]], pch=wine.training[,1])
-
-
-# Initialize the parameters of the algorithm
-set.seed(63252)
-w   = rep(1,KK)/KK  #Assign equal weight to each component to start with
-mu  = rmvnorm(KK, apply(x,2,mean), var(x))   #Cluster centers randomly spread over the support of the data
+title(main="Data + True Components")
+
+## Initialize the parameters
+w          = rep(1,KK)/KK  #Assign equal weight to each component to start with
+mu         = rmvnorm(KK, apply(x,2,mean), var(x))   #RandomCluster centers randomly spread over the support of the data
 Sigma      = array(0, dim=c(KK,p,p))  #Initial variances are assumed to be the same
 Sigma[1,,] = var(x)/KK  
 Sigma[2,,] = var(x)/KK
 Sigma[3,,] = var(x)/KK
+cc         = sample(1:KK, n, replace=TRUE, prob=w)
 
-sw     = FALSE
-KL     = -Inf
-KL.out = NULL
-s      = 0
+par(mfrow=c(1,1))
+plot(x[,1], x[,2], col=cc.true, xlab=expression(x[1]), ylab=expression(x[2]))
+for(k in 1:KK){
+  lines(ellipse(x=Sigma[k,,], centre=mu[k,], level=0.50), col="grey", lty=2, lwd=2)
+  lines(ellipse(x=Sigma[k,,], centre=mu[k,], level=0.82), col="grey", lty=2, lwd=2)
+  lines(ellipse(x=Sigma[k,,], centre=mu[k,], level=0.95), col="grey", lty=2, lwd=2)
+}
+title(main="Initial estimate + Observations")
 
-while(!sw){
-  ## E step
-  v = array(0, dim=c(n+m,KK))
-  for(k in 1:KK){  #Compute the log of the weights
-    v[1:n,k] = ifelse(wine.training[,1]==k,0,-Inf)  # Training set
-    v[(n+1):(n+m),k] = log(w[k]) + mvtnorm::dmvnorm(x[(n+1):(n+m),], mu[k,], Sigma[k,,],log=TRUE)  # Test set
-  }
-  for(i in 1:(n+m)){
-    v[i,] = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,])))  #Go from logs to actual weights in a numerically stable manner
-  }
-  
-  ## M step
-  w = apply(v,2,mean)
-  mu = matrix(0, nrow=KK, ncol=p)
-  for(k in 1:KK){
-    for(i in 1:(n+m)){
-      mu[k,]    = mu[k,] + v[i,k]*x[i,]
-    }
-    mu[k,] = mu[k,]/sum(v[,k])
-  }
-  Sigma = array(0,dim=c(KK,p,p))
-  for(k in 1:KK){
-    for(i in 1:(n+m)){
-      Sigma[k,,] = Sigma[k,,] + v[i,k]*(x[i,] - mu[k,])%*%t(x[i,] - mu[k,])
-    }
-    Sigma[k,,] = Sigma[k,,]/sum(v[,k])
-  }
-  
-  ##Check convergence
-  KLn = 0
-  for(i in 1:(n+m)){
+# Priors
+aa = rep(1, KK)
+dd = apply(x,2,mean)
+DD = 10*var(x)
+nu = p
+SS = var(x)/3
+
+# Number of iteration of the sampler
+rrr = 1000
+
+# Storing the samples
+cc.out    = array(0, dim=c(rrr, n))
+w.out     = array(0, dim=c(rrr, KK))
+mu.out    = array(0, dim=c(rrr, KK, p))
+Sigma.out = array(0, dim=c(rrr, KK, p, p))
+logpost   = rep(0, rrr)
+
+for(s in 1:rrr){
+  # Sample the indicators
+  for(i in 1:n){
+    v = rep(0,KK)
     for(k in 1:KK){
-      KLn = KLn + v[i,k]*(log(w[k]) + mvtnorm::dmvnorm(x[i,],mu[k,],Sigma[k,,],log=TRUE))
+      v[k] = log(w[k]) + mvtnorm::dmvnorm(x[i,], mu[k,], Sigma[k,,], log=TRUE)  #Compute the log of the weights
     }
+    v = exp(v - max(v))/sum(exp(v - max(v)))
+    cc[i] = sample(1:KK, 1, replace=TRUE, prob=v)
   }
-  if(abs(KLn-KL)/abs(KLn)<epsilon){
-    sw=TRUE
+  
+  # Sample the weights
+  w = as.vector(rdirichlet(1, aa + tabulate(cc)))
+  
+  # Sample the means
+  DD.st = matrix(0, nrow=p, ncol=p)
+  for(k in 1:KK){
+    mk    = sum(cc==k)
+    xsumk = apply(x[cc==k,], 2, sum)
+    DD.st = solve(mk*solve(Sigma[k,,]) + solve(DD))
+    dd.st = DD.st%*%(solve(Sigma[k,,])%*%xsumk + solve(DD)%*%dd)
+    mu[k,] = as.vector(rmvnorm(1,dd.st,DD.st))
   }
-  KL = KLn
-  KL.out = c(KL.out, KL)
-  s = s + 1
-  print(paste(s, KLn))
+  
+  # Sample the variances
+  xcensumk = array(0, dim=c(KK,p,p))
+  for(i in 1:n){
+    xcensumk[cc[i],,] = xcensumk[cc[i],,] + (x[i,] - mu[cc[i],])%*%t(x[i,] - mu[cc[i],])
+  }
+  for(k in 1:KK){
+    Sigma[k,,] = riwish(nu + sum(cc==k), SS + xcensumk[k,,])
+  }
+  
+  # Store samples
+  cc.out[s,]      = cc
+  w.out[s,]       = w
+  mu.out[s,,]     = mu
+  Sigma.out[s,,,] = Sigma
+  for(i in 1:n){
+    logpost[s] = logpost[s] + log(w[cc[i]]) + mvtnorm::dmvnorm(x[i,], mu[cc[i],], Sigma[cc[i],,], log=TRUE)
+  }
+  logpost[s] = logpost[s] + ddirichlet(w, aa)
+  for(k in 1:KK){
+    logpost[s] = logpost[s] + mvtnorm::dmvnorm(mu[k,], dd, DD, log=TRUE)
+    logpost[s] = logpost[s] + log(diwish(Sigma[k,,], nu, SS))
+  }
+  
+  if(s/250==floor(s/250)){
+    print(paste("s = ", s))
+  }  
 }
 
-## Predicted labels
-apply(v, 1, which.max)[(n+1):(n+m)]
-## True labels
-wine.test[,1]
-## Comparison
-apply(v, 1, which.max)[(n+1):(n+m)] == wine.test[,1]
-sum(!(apply(v, 1, which.max)[(n+1):(n+m)] == wine.test[,1])) # One error
+## Plot the logposterior distribution for various samples
+par(mfrow=c(1,1))
+par(mar=c(4,4,1,1)+0.1)
+plot(logpost, type="l", xlab="Iterations", ylab="Log posterior")
 
-# Using the qda and lda functions in R
-# qda
-modqda = qda(grouping=wine.training[,1], x=wine.training[,-1], method="mle")
-ccpredqda = predict(modqda,newdata=wine.test[,-1])
-sum(!(ccpredqda$class == wine.test[,1])) # One error
-
-# lda
-modlda = lda(grouping=wine.training[,1], x=wine.training[,-1], method="mle")
-ccpredlda = predict(modlda,newdata=wine.test[,-1])
-sum(!(ccpredlda$class == wine.test[,1])) # No errors!!!
+## Plot the density estimate for the last iteration of the MCMC
+par(mfrow=c(1,1))
+par(mar=c(4,4,2,1)+0.1)
+plot(x[,1], x[,2], col=cc.true, main=paste("s =",s,"   logpost =", round(logpost[s],4)), xlab=expression(x[1]), ylab=expression(x[2]))
+for(k in 1:KK){
+  lines(ellipse(x=Sigma[k,,], centre=mu[k,], level=0.50), col="grey", lty=2, lwd=2)
+  lines(ellipse(x=Sigma[k,,], centre=mu[k,], level=0.82), col="grey", lty=2, lwd=2)
+  lines(ellipse(x=Sigma[k,,], centre=mu[k,], level=0.95), col="grey", lty=2, lwd=2)
+}
 ```
 
+## Practice Graded Assignment: The MCMC algorithm for zero-inflated mixtures
 
-## Advanced Density Estimation and Classification
+```{r}
+#| label: mcmc_zero_inflated
 
+rm(list=ls())
+library(MCMCpack)
+set.seed(81196)  # So that results are reproducible
 
-### Practice Graded Assignment: The EM algorithm and density estimation
+# Data loading
 
+x <- read.csv("./data/nestsize.csv")[[1]]
+n <- length(x)
 
-### Honors Peer-graded Assignment: MCMC algorithms and density estimation
+# The actual MCMC algorithm starts here
 
+## MCMC iterations of the sampler
 
-### Honors Peer-graded Assignment: MCMC algorithms and density estimation
+iterations <- 6000
+burn <- 1000
 
+## Initialize the parameters
 
-### Honors Peer-graded Assignment: Classification
+cc         = rep(2, n)
+cc[x == 0] = sample(1:2, sum(x == 0), replace = TRUE, prob = c(0.5, 0.5))
 
+## Priors
+
+aa = c(1, 1)  # Uniform prior on w
+w     = 0.2 # fewer zeros
+lambda = mean(x[x > 0])  # Initial lambda from nonzero data
+
+# Storing the samples
+w.out      = rep(0, iterations)
+cc.out     = array(0, dim=c(iterations, n))
+lambda.out = array(0, dim=c(iterations, n))
+
+# logpost    = rep(0, iterations)
+# MCMC iterations
+
+for (s in 1:iterations) {
+
+  # Sample latent indicators c_i
+
+  cc = numeric(n)
+  for (i in 1:n) {
+    if (x[i] == 0) {
+      logp1 = log(w)
+      logp2 = log(1 - w) + dpois(0, lambda, log=TRUE)
+      probs = exp(c(logp1, logp2) - max(logp1, logp2))
+      probs = probs / sum(probs)
+      cc[i] = sample(1:2, 1, prob = probs)
+    } else {
+      cc[i] = 2
+    }
+  }
+
+  # Sample the weights
+
+  w = rbeta(1, aa[1] + sum(cc==1), aa[2] + sum(cc==2))
+  lambda = rgamma(1, shape = 1 + sum(x[cc == 2]), rate = 1 + sum(cc == 2))
+
+  # Store samples
+
+  w.out[s] =  w
+  lambda.out[s]  = lambda
+  cc.out[s,] = cc
+
+}
+
+# Posterior summaries
+
+w.post = w.out[-(1:burn)]
+lambda.post = lambda.out[-(1:burn)]
+cat("Posterior mean of w:", mean(w.post), "\n")
+cat("Posterior mean of lambda:", mean(lambda.post), "\n")
+
+```
+
+## Honors Peer-graded Assignment: Markov chain Monte Carlo algorithms for Mixture Models
+
+```{r}
+
+```

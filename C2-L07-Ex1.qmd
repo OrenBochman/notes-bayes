@@ -1,18 +1,33 @@
-## HW on Linear Regression Model Part 1
+---
+title: "HW on Linear Regression Model Part 1"
+subtitle: "Bayesian Statistics: From Concept to Data Analysis"
+categories:
+  - Bayesian Statistics
+keywords:
+  - Conditional Probability
+  - Bayes' Law
+  - Homework
+---
 
 ::: {#exr-linear-reggression-part1-1}
 [Linear Regression]{.column-margin} 
 
-In a normal linear regression model with $E(y_i)=β_0+β_1x_{1,i}+β_2x_{2,i}+β_3x_{3,i}$, which of the following gives the correct interpretation of $β_2$?
+In a normal linear regression model with 
+
+$$
+E(y_i)=\beta_0+\beta_1x_{1,i}+\beta_2x_{2,i}+\beta_3x_{3,i}
+$$
+
+which of the following gives the correct interpretation of $\beta_2$?
 :::
 
 ::: {.solution .callout-tip collapse="true"}
 #### Solution:
 
--   [ ] While holding $x_{2,i}$ constant, the expectation of $y_{i}$ is $β_{2}$.
--   [ ] While holding $x_{1,i}$ and $x{3,i}$ constant, a one unit change in $x_{2,i}$ results in a $β_2$ change in $y_i$.
--   [x] While holding $x_{1,i}$ and $x_{3,i}$ constant, a one unit change in $x_{2,i}$ results in a $β_2$ change in the expectation of $y_i$.
--   [ ] When $x_{2,i}=0$, a one unit change in $x_{1,i}$ and $x_{3,i}$ results in a $β_2$ in $y_i$.
+-   [ ] While holding $x_{2,i}$ constant, the expectation of $y_{i}$ is $\beta_{2}$.
+-   [ ] While holding $x_{1,i}$ and $x{3,i}$ constant, a one unit change in $x_{2,i}$ results in a $\beta_2$ change in $y_i$.
+-   [x] While holding $x_{1,i}$ and $x_{3,i}$ constant, a one unit change in $x_{2,i}$ results in a $\beta_2$ change in the expectation of $y_i$.
+-   [ ] When $x_{2,i}=0$, a one unit change in $x_{1,i}$ and $x_{3,i}$ results in a $\beta_2$ in $y_i$.
 
 This is how much the expected response increases when we increase $x2,i$ by $1.0$ while controlling for the other predictors.
 :::
@@ -127,7 +142,7 @@ Proper MCMC algorithms come with a theoretical guarantee of eventual convergence
 -   [ ] Yes, it represents expected expenditures in a state with average income, average percent youth, and average percent urban.
 -   [ ] No, there must be something wrong with the model because expenditures can never be negative.
 -   [ ] No, this model should not have an intercept term at all.
--   [x] No, it represents expected expenditures in a state with 0 average income, 0 percent youth, and 0 percent urban which doesn't exist.
+-   [x] No, it represents expected expenditures in a state with 0 average income, 0 % youth, and 0 % urban which doesn't exist.
 
 Although this parameter is **not very interpretable** in this particular example, **it is necessary** to the model.
 
@@ -140,7 +155,7 @@ Although this parameter is **not very interpretable** in this particular example
 Use the code below to fit a linear regression model to the Anscombe data in JAGS. You will need to finish setting up and running the model.
 
 ```{r}
-#| label: exr-linear-regression-part1-6
+#| label: exr-linear-regression-part1-6-1
 #| warning: FALSE
 library("rjags")
 
@@ -178,20 +193,31 @@ mod_sim = coda.samples(model=mod, variable.names=params,  n.iter=10000)
 
 gelman.diag(mod_sim)
 
+
 autocorr.diag(mod_sim)
 
 #autocorr.plot(mod_sim)
 # we should combine the chains before running this plot
+```
 
+```{r}
+#| label: fig-linear-regression-part1-6-2
 mod_csim = do.call(rbind, mod_sim) # combine multiple chains
-autocorr.plot(mod_csim)
+#autocorr.plot(mod_csim)
+nvar <- ncol(as.matrix(mod_csim))
+par(mfrow = c(nvar, 1))
+par(oma = c(1, 1, 1, 1), mar = c(2, 2, 2, 1))  # tight margins
+autocorr.plot(mod_csim, ask = FALSE, auto.layout = FALSE)
+```
 
+```{r}
+#| label: fig-linear-regression-part1-6-3
 par(mar = c(2.5, 1, 2.5, 1))
 plot(mod_sim)
+```
 
-par(mar = c(2.5, 1, 2.5, 1))
-plot(mod_sim)
-
+```{r}
+#| label: C2-L07-Ex1-6-4
 effectiveSize(mod_sim)
 
 summary(mod_sim)

@@ -10,14 +10,13 @@ this is a preliminary document. Some of the details should be copied from the no
    - Write out the math in latex, and add it to the notes. LLM can speed this up ideas by a certain [Gilles Castel](https://castel.dev/post/lecture-notes-1/)
    - If the material is challenging, I will watch the video again and improve the notes.
    - If this is still not enough, I will grab the transcript. Unfortunately the instructors speak out random latex they lecture. This makes following their transcript challenging and makes translating these transcripts next to impossible. However the following process is what I do
-    - use this regex `\\. \.\n` to split it into lines
-    - look at lines that don't start with a capital letter and unsplit those.
-    - use `[]{.mark}` to highlight important bits.
-    - if possible use delimiters the math using a`$` sign. This is a generally  waste of time but with an LLM a few edits get things done quickly.
-    - The transcripts are later useful for creating a podcaset of the lessons using a tool like [podcastgen](https://huggingface.co/spaces/saq1b/podcastgen) or  Notebooklm() etc.
-
-   - It seems prudent to review the transcript and highlight the bits that are important. Unfortunately the instructors read out the math as they teach. This makes extracting these details quite difficult. I find that in such cases it helps to start with the transcript, write out the math in latex and then put the important non math bits in the notes. This is rather laborious but it my process at this time. It lets me review the math in depth and fill in any gaps in the derivations.
-1. Transcripts should be added via an import directive to reduce the size of the source files.
+     - use this regex `\\. \.\n` to split it into lines
+     - look at lines that don't start with a capital letter and unsplit those.
+     - use `[]{.mark}` to highlight important bits.
+     - if possible use delimiters the math using a`$` sign. This is a generally  waste of time but with an LLM a few edits get things done quickly.
+     - The transcripts are later useful for creating a podcast of the lessons using a tool like [podcastgen](https://huggingface.co/spaces/saq1b/podcastgen) or  Notebooklm() etc.
+     - Two more points. often in this process I will recall something that I have read in the past, or gain some intuition about the topic and include it in the notes. The other case though is that the instructor in Coursera etc are brilliant researchers, but they may not be the best explainers for a specific topic. They may have learned tons of theory or other courses and this material may be just a special case of that. Let's just say that they are  looking down from the top of the mountain and we are still at a point where all we see are foothills and snow and a voice in  the wilderness saying "be inspired and rise to the top". In realty  though we can't do that so it  helps to look for better way to flatten the learning curve. When I was young and I would look for a book in the University library. There was always one that no matter how hard the class was that made things very clear. (And many that made things very very confusing). The confusing ones had their allure but the clear ones were worth the time to read through. Today though we have access to many more instructors via the internet. It it 10 to 100 times easier to find a better explanation of a topic online than it is to find and to read through a book, particularly as a big part of new mathematics is the initial absorption of new concepts, notation and the new structure of the formalism. Once you have those down, it becomes easier to understand -- and a video walking you through is a better medium for this than a book. Particularly if the interlocutor feels these concepts are his friends and the formalism is just a means to expressing certain intuitions.
+     - Transcripts should be added via an import directive to reduce the size of the source files, particularly if you use an llm as a copilot to assist you.
 
 ## Goals
 
@@ -46,6 +45,23 @@ This course uses R and python code as well as latex and quarto.
 ## Code
 
 - Code assignments should be tested via pytest or R testthat.
-- MCMCM can be approxiate so these test need to allow for some tolerance.
+- MCMC can be approximate so these test need to allow for some tolerance.
 - Code section should have comments extracted to an annotation list below the code block.
 
+## Bug fixes
+
+There were many show stoppers developing this repo. I can't remember them all, but I think I stated document a bunch of them. Most were related to MCMC diagnostics taking too much space.
+
+```r
+#| label: fig-linear-regression-part1-6-2
+mod_csim = do.call(rbind, mod_sim) # combine multiple chains
+#autocorr.plot(mod_csim)
+nvar <- ncol(as.matrix(mod_csim))
+par(mfrow = c(nvar, 1))
+par(oma = c(1, 1, 1, 1), mar = c(2, 2, 2, 1))  # tight margins
+autocorr.plot(mod_csim, ask = FALSE, auto.layout = FALSE) # <1>
+```
+
+1. this failed due to the plot being too large. The other lines tried to fix it, but without auto.layout = FALSE R ignored these efforts and kept giving the same issue. The most annoying issue it that it worked in preview but not in render.
+
+The fix is basically to stack the correlation plots vertically.

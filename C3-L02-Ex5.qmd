@@ -1,0 +1,90 @@
+---
+title : 'HW - Simulation of Poisson mixture model'
+subtitle : 'Bayesian Statistics: Mixture Models'
+categories:
+  - Bayesian Statistics
+keywords:
+  - Mixture Models
+  - Homework
+---
+
+## HW - Simulation of Poisson mixture model
+
+
+::: {.callout-note}
+### Instructions
+
+```r
+# Generate n observations from a mixture of two Gaussian 
+# distributions
+n     = 50           # Size of the sample to be generated
+w     = c(0.6, 0.4)  # Weights
+mu    = c(0, 5)      # Means
+sigma = c(1, 2)      # Standard deviations
+cc    = sample(1:2, n, replace=T, prob=w)
+x     = rnorm(n, mu[cc], sigma[cc])
+    
+# Plot f(x) along with the observations 
+# just sampled
+xx = seq(-5, 12, length=200)
+yy = w[1]*dnorm(xx, mu[1], sigma[1]) + 
+     w[2]*dnorm(xx, mu[2], sigma[2])
+par(mar=c(4,4,1,1)+0.1)
+plot(xx, yy, type="l", ylab="Density", xlab="x", las=1, lwd=2)
+points(x, y=rep(0,n), pch=1)  
+```
+
+- Modify the code above to sample 200 random numbers from a mixture of 3 Poisson distributions with means 1, 2 and 6 and weights 0.7, 0.2 and 0.1, respectively, 
+- generate a barplot with the empirical frequencies of all the integers included in the sample.
+:::
+
+```{r}
+#| label: fig-poisson-mix
+# Generate n observations from a mixture of three poisson distributions
+set.seed(452)
+
+
+# n     = 50
+n = 200                # sample size
+# w     = c(0.6, 0.4)  # Weights
+w = c(0.7,0.2,0.1)     # weights
+# mu    = c(0, 5)      # Means
+# sigma = c(1, 2)      # Standard deviations
+lambda = c(1,2,6)      # lambda params (mean,variation)
+
+
+
+#cc    = sample(1:2, n, replace=T, prob=w)
+ac     = sample(1:length(w),n, replace=T, prob=w) # sample the active component
+#x     = rnorm(n, mu[cc], sigma[cc])
+x      = rpois(n,lambda=lambda[ac])                # simulate an ac mixture component n time
+
+
+#First converting the vector x into a factor while ensuring that any integer between 0 and the maximum in the sample are valid factors avoids the issue of ignoring zero counts or x=0.
+
+#empfreq = table(factor(x, levels=seq(0, max(x))))/n
+empirical_feqs = table(factor(x, levels=seq(0, max(x)))) # tabulate samples into a counts
+empirical_dist = empirical_feqs /n # convert frequencies to probabilities
+```
+
+Plot the empirical distribution
+
+```{r}
+#| label: fig-poisson-mix-1
+#| fig-cap: "Empirical distribution for Poisson mixture"
+par(mar=c(4,4,1,1) + 0.1)
+#barplot(empfreq)
+barplot(empirical_dist,xlab="counts",ylab="probability",main="Empirical distribution for Poisson mixture")
+
+```
+
+
+
+```{r}
+#| label: fig-poisson-mix-2
+empirical_feqs = table( factor(x, levels=seq(0, max(x)))) # tabulate samples into counts
+empirical_dist = empirical_feqs /n # convert frequencies to probabilities
+
+barplot(empirical_dist,xlab="counts",ylab="probability",main="Empirical poisson mixture")
+
+```

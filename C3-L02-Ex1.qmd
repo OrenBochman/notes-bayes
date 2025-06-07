@@ -1,5 +1,5 @@
 ---
-title : 'The EM algorithm for Zero-Inflated Mixtures'
+title : 'HW - The likelihood function'
 subtitle : 'Bayesian Statistics: Mixture Models'
 categories:
   - Bayesian Statistics
@@ -8,151 +8,33 @@ keywords:
   - Homework
 ---
 
-## HW - Simulation of Poisson mixture model
 
-In the lessons we mentioned that Zero-Inflated Poisson (ZIP) models arises naturally in biology when analyzing nest size data since many birds fail to mate or lay eggs. As such they will have zero eggs in their nests.  In this exercise, we will use the EM algorithm to fit a ZIP model to a dataset of nest sizes.
-
-::: {.callout-note}
-### Instructions
-
-- A biologist is interest in characterizing the number of eggs laid by a particular bird species.  To do this, they sample  
-n=300n, nests on a site in Southern California.  The observations are contained in the attached file data/nestsize.csv:
-
-- generate a barplot with the empirical frequencies of all the integers included in the sample.
-
-As you can see, the Poisson distribution underestimates the number of empty nests in the data, and overestimates the number of nests with either 1 or 2 eggs.  To address this, you are asked to modify the implementation of the EM algorithm contained in the Reading "Sample code for EM example 1" so that you can fit a mixture between a point mass at zero and a Poisson distribution (we call this a "zero-inflated Poisson" distribution):
-
+Consider a random sample $(3.5,9.7,8.2,6.4,7.1)$ composed of $n=5$ observations form the mixture with density:$$
+f(x)=w\lambda_1 e^{-\lambda_1 x} + (1-w)\lambda_2 e^{-\lambda_2 x}
 $$
-f(x) = w \delta_0(x) + (1-w) \frac{e^{-\lambda} \lambda^x}{x!}, \quad x \in \{0, 1, 2, \ldots\}
-$$ {#eq-zip-mixture}
 
-where $w$ is the weight associated with the point mass at zero, $\lambda$ is the parameter of the Poisson distribution, and $\delta_0(x)$ represents the degenerate distribution placing all of its mass at zero.  
+What is the complete-data likelihood associated with the indicator vector 
+$(1,1,2,1,2)$
 
-- You then should run your algorithm with the data contained in nestsize.csv and report the values of the estimates that you obtained, rounded to two decimal places.
-​
-
-:::
-
-::: {.callout-note}
-### Grading overview
-
-The code you generate should follow the same structure as "Sample code for EM example 1".  Peer reviewers will be asked to check whether the different pieces of code have been adequately modified to reflect the fact that 
-
-1. you provided a reasonable initial point for you algorithm,
-2. the observation-specific weights $v_i,k$ are computed correctly (E step),
-3. the formulas for the maximum of the Q functions are correct (M step),
-4. the converge check is correct, and
-5. the numerical values that you obtain are correct.  
-
-To simplify the peer-review process, assume that component 1 corresponds to the point mass at zero, while component 2 corresponds to the Poisson distribution.
-
-There are two things that make this problem more challenging than the ones we have used for illustrations so far:  
-
-1. the two components in the mixture belong to different families, and 
-2. each component has a very different support.  
-
-keep these two circumstances in mind when working on your answer.
-
-:::
+- [ ] $w^{(1-w)^4} \lambda_1 e^{-22.7 \lambda_1} \lambda_2^4 e^{-11.3\lambda_2}$
+- [ ] $w^3(1-w)^2 \lambda_1^2 e^{-15.3\lambda_1} \lambda_2^3 e^{-19.6\lambda_2}$
+- [x] $w^3(1-w)^2 \lambda_1^3 e^{-19.6\lambda_1} \lambda_2^2 e^{-15.3\lambda_2}$
 
 
-```{r}
-#| label: lbl-load-data
-# Load the nest size data
 
-rm(list=ls())
-set.seed(81196)    # So that results are reproducible (same simulated data every time)
+2. Consider a random sample $(3.5,9.7,7.1)$ composed of $n=3$ observations form the mixture with density:
+$$
+f(x)=w\lambda_1 e^{-\lambda_1 x} + (1-w)\lambda_2 e^{-\lambda_2 x}
+$$
 
-nestsize <- read.csv("data/nestsize.csv",header=FALSE)
-colnames(nestsize) <- c("n")
-x <- nestsize$n
-n <- length(x) # Number of observations
-# how many rows in the data
-nrow(nestsize)
-# how many zeros in x
-sum(x==0)
-# almost half of the data is zeros!
+The observed-data likelihood $L_{O}(w,\lambda_1,\lambda_2;x)$ for this sample is given by the product
 
-par(mfrow=c(1,1))
-xx.true = seq(0, max(x), by=1)
-hist(x, breaks=seq(0, max(x), by=1), freq=FALSE, xlab="Number of eggs", ylab="Density", main="Empirical distribution of nest sizes")
-```
+$$\begin{align*}
+& \left\{ w\lambda_1 e^{-\lambda_1 3.5} + (1-w)\lambda_2 e^{-\lambda_2 3.5} \right\} \\
+\times &\left\{ w\lambda_1 e^{-\lambda_1 9.7} + (1-w)\lambda_2 e^{-\lambda_2 9.7} \right\} \\
+\times &\left\{ w\lambda_1 e^{-\lambda_1 7.1} + (1-w)\lambda_2 e^{-\lambda_2 7.1} \right\}
+\end{align*}
+$$  
 
-
-```{r}
-#| label: lbl-zip-mix-1
-#| warnings: true
-#| errors: false
-
-# EM algorithm for fitting a ZIP
-
-## Run the actual EM algorithm
-## Initialize the parameters
-KK         = 2                     # Number of components
-w     = 1/2                        # equal weights                     #Initial standard deviation
-
-lambda = mean(x) # initial guess for the mean
-
-s  = 0
-sw = FALSE
-QQ = -Inf
-QQ.out = NULL
-epsilon = 10^(-5)
-
-while(!sw){ ## run until convergence switch becomes TRUE
-  ## E step
-  v = array(0, dim=c(n,KK))
-  for(i in 1:n){
-    if (x[i] == 0){
-      # if the observation is zero it may be due to either component so we assign each a value based on the weights * pdf
-      v[i,1] = w * 1 # delta is 1 at zero
-      v[i,2] = (1-w) * dpois(x[i], lambda) # the weight for the second component
-      v[i,] = v[i,]/sum(v[i,]) # normalize 
-    } else {
-      v[i,1] = 0
-      v[i,2] = 1
-      # normalized
-    }
-  }
-  
-  ## M step
-  # Weights
-  w = mean(v[,1]) 
-  # parameters
-  lambda = sum(x)/sum(v[,2]) # normalize
-  
-  ##Check convergence
-  ## QQn is the new value of the Q function
-  ## QQ is the old value of the Q function
-  QQn = 0
-  for(i in 1:n){
-    if(x[i] == 0){
-      # log is used to avoid numerical underflow
-      QQn = QQn + v[i,1]*log(w) + v[i,2]*(log(1-w) + dpois(x[i], lambda, log=TRUE))
-    }else{
-      QQn = QQn + v[i,2]*(log(1-w) + dpois(x[i], lambda, log=TRUE))
-    }
-  }
-  if(abs(QQn-QQ)/abs(QQn)<epsilon){
-    sw=TRUE
-  }
-  QQ = QQn
-
-  QQ.out = c(QQ.out, QQ)
-  s = s + 1
-  print(paste(s, QQn))
-  
-
-}
-```
-
-
-```{r}
-#| label: lbl-mle-estimates
-
-# w
-# lambda
-
-cat("w = ", round(w, 2), "\n")
-cat("lambda = ", round(lambda, 2), "\n")
-```
+- [x] yes
+- [ ] no

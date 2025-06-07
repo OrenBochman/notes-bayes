@@ -1,33 +1,26 @@
 ---
-title : 'The MCMC algorithm for Zero-Inflated Mixtures'
+title : 'The EM algorithm for Zero-Inflated Mixtures'
 subtitle : 'Bayesian Statistics: Mixture Models'
 categories:
   - Bayesian Statistics
 keywords:
   - Mixture Models
   - Homework
-  - Zero-Inflated Data
-  - Zero-Inflated Poisson
-  - MCMC
 ---
 
 ## HW - Simulation of Poisson mixture model
 
-In the lessons we mentioned that Zero-Inflated Poisson (ZIP) models arises naturally in biology when analyzing nest size data since many birds fail to mate or lay eggs. As such they will have zero eggs in their nests.  
-
-Poisson tends to underestimate the number of empty nests in the data, and overestimate the number of nests with either 1 or 2 eggs. Negative binomial can mitigate this problem by adding a tunable parameter to control for the dispersion of count data, however, it isn't necessarily a good fix for zero-inflated data.
-
-In this exercise, we will use the EM algorithm to fit a ZIP mixture model to a dataset of nest sizes.
+In the lessons we mentioned that Zero-Inflated Poisson (ZIP) models arises naturally in biology when analyzing nest size data since many birds fail to mate or lay eggs. As such they will have zero eggs in their nests.  In this exercise, we will use the EM algorithm to fit a ZIP model to a dataset of nest sizes.
 
 ::: {.callout-note}
 ### Instructions
 
-- A biologist is interest in characterizing the number of eggs laid by a particular bird species. To do this, they sample  
-n=300n, nests on a site in Southern California.  The observations are contained in the attached file `data/nestsize.csv`
+- A biologist is interest in characterizing the number of eggs laid by a particular bird species.  To do this, they sample  
+n=300n, nests on a site in Southern California.  The observations are contained in the attached file data/nestsize.csv:
 
-- Generate a barplot with the empirical frequencies of all the integers included in the sample.
+- generate a barplot with the empirical frequencies of all the integers included in the sample.
 
-As you can see, the Poisson distribution underestimates the number of empty nests in the data, and overestimates the number of nests with either 1 or 2 eggs. To address this, you are asked to modify the implementation of the EM algorithm contained in the Reading "Sample code for EM example 1" so that you can fit a mixture between a point mass at zero and a Poisson distribution (we call this a "Zero-Inflated Poisson" distribution)
+As you can see, the Poisson distribution underestimates the number of empty nests in the data, and overestimates the number of nests with either 1 or 2 eggs.  To address this, you are asked to modify the implementation of the EM algorithm contained in the Reading "Sample code for EM example 1" so that you can fit a mixture between a point mass at zero and a Poisson distribution (we call this a "zero-inflated Poisson" distribution):
 
 $$
 f(x) = w \delta_0(x) + (1-w) \frac{e^{-\lambda} \lambda^x}{x!}, \quad x \in \{0, 1, 2, \ldots\}
@@ -35,7 +28,7 @@ $$ {#eq-zip-mixture}
 
 where $w$ is the weight associated with the point mass at zero, $\lambda$ is the parameter of the Poisson distribution, and $\delta_0(x)$ represents the degenerate distribution placing all of its mass at zero.  
 
-- You then should run your algorithm with the data contained in `nestsize.csv` and report the values of the estimates that you obtained, rounded to two decimal places.
+- You then should run your algorithm with the data contained in nestsize.csv and report the values of the estimates that you obtained, rounded to two decimal places.
 ​
 
 :::
@@ -47,7 +40,7 @@ The code you generate should follow the same structure as "Sample code for EM ex
 
 1. you provided a reasonable initial point for you algorithm,
 2. the observation-specific weights $v_i,k$ are computed correctly (E step),
-3. the formulas for the maximum of the $Q$ functions are correct (M step),
+3. the formulas for the maximum of the Q functions are correct (M step),
 4. the converge check is correct, and
 5. the numerical values that you obtain are correct.  
 
@@ -63,187 +56,11 @@ keep these two circumstances in mind when working on your answer.
 :::
 
 
-## Full conditional distributions
-
-
-The full conditional distributions for the indicators of the ZIP model are given by:
-
-$$
-\Pr(c_i = 1 \mid \cdots) \propto \begin{cases} w & x_i=0 \\ 0 & \mbox{otherwise} \end{cases}
-$$ {#eq-zip-mixture-fc-c1}
-
-$$
-\Pr(c_i = 2 \mid \cdots) \propto \begin{cases} (1-w) \frac{\lambda^{x_i} e^{-\lambda}}{x_i!} & x_i=0 \\ 1 & \mbox{otherwise} \end{cases}
-$$ {#eq-zip-mixture-fc-c2}
-
-where $c_i$ is the latent indicator for observation $i$, and $x_i$ is the observed data. 
-
-The full conditional distributions for the weights are given by:
-$$
-\omega \mid \cdots \sim \mbox{Beta}\left(m(\mathbf{c})+1, n-m(\mathbf{c})+1\right)
-$$ {#eq-zip-mixture-fc-w}
-
-where $m(\mathbf{c})$ is the number of observations with $c_i=1$.
-
-Is the full conditional for the rate $\gamma$
-
-$$
-\lambda \mid \cdots \sim \mbox{Gamma}\left( 1 + \sum_{i : c_i = 2} x_i , 1 + n-m(\mathbf{c}) \right)
-$$ {#eq-zip-mixture-fc-lambda}
-
-where $m(\mathbf{c})$ is the number of observations with $c_i=2$.
-
-
-:::{.callout-note collapse="true"}
-
-## Sample code for MCMC example 1
-
-```{r}
-#| label: lbl-sample-code-for-MCMC-example-1
-#### Example of an MCMC algorithm for fitting a location mixture of 2 Gaussian components
-#### The algorithm is tested using simulated data
-
-## Clear the environment and load required libraries
-rm(list=ls())
-library(MCMCpack)
-set.seed(81196)  # So that results are reproducible
-
-## Generate data from a mixture with 2 components
-KK         = 2
-w.true     = 0.6  # True weights associated with the components
-mu.true    = rep(0, KK)
-mu.true[1] = 0   # True mean for the first component
-mu.true[2] = 5   # True mean for the second component
-sigma.true = 1   # True standard deviation of all components
-n          = 120         # Number of observations to be generated
-cc.true = sample(1:KK, n, replace=T, prob=c(w.true,1-w.true))
-x  = rep(0, n)
-for(i in 1:n){
-  x[i] = rnorm(1, mu.true[cc.true[i]], sigma.true)
-}
-
-# Plot the true density
-par(mfrow=c(1,1))
-xx.true = seq(-8,11,length=200)
-yy.true = w.true*dnorm(xx.true, mu.true[1], sigma.true) + 
-  (1-w.true)*dnorm(xx.true, mu.true[2], sigma.true) 
-plot(xx.true, yy.true, type="l", xlab="x", ylab="True density", lwd=2)
-points(x, rep(0,n), col=cc.true)
-
-## Initialize the parameters
-w     = 1/2                         #Assign equal weight to each component to start with
-mu    = rnorm(KK, mean(x), sd(x))   #Random cluster centers randomly spread over the support of the data
-sigma = sd(x)                       #Initial standard deviation
-
-# Plot the initial guess for the density
-xx = seq(-8,11,length=200)
-yy = w*dnorm(xx, mu[1], sigma) + (1-w)*dnorm(xx, mu[2], sigma)
-plot(xx, yy, type="l", ylim=c(0, max(yy)), xlab="x", 
-     ylab="Initial density", lwd=2)
-points(x, rep(0,n), col=cc.true)
-
-## The actual MCMC algorithm starts here
-# Priors
-aa  = rep(1,KK)  # Uniform prior on w
-eta = 0          # Mean 0 for the prior on mu_k
-tau = 5          # Standard deviation 5 on the prior for mu_l
-dd  = 2
-qq  = 1
-
-# Number of iterations of the sampler
-rrr   = 6000
-burn  = 1000
-
-
-# Storing the samples
-cc.out    = array(0, dim=c(rrr, n))
-w.out     = rep(0, rrr)
-mu.out    = array(0, dim=c(rrr, KK))
-sigma.out = rep(0, rrr)
-logpost   = rep(0, rrr)
-
-# MCMC iterations
-for(s in 1:rrr){
-  # Sample the indicators
-  cc = rep(0,n)
-  for(i in 1:n){
-    v = rep(0,KK)
-    v[1] = log(w) + dnorm(x[i], mu[1], sigma, log=TRUE)  #Compute the log of the weights
-    v[2] = log(1-w) + dnorm(x[i], mu[2], sigma, log=TRUE)  #Compute the log of the weights
-    v = exp(v - max(v))/sum(exp(v - max(v)))
-    cc[i] = sample(1:KK, 1, replace=TRUE, prob=v)
-  }
-  
-  # Sample the weights
-  w = rbeta(1, aa[1] + sum(cc==1), aa[2] + sum(cc==2))
-
-  # Sample the means
-  for(k in 1:KK){
-    nk    = sum(cc==k)
-    xsumk = sum(x[cc==k])
-    tau2.hat = 1/(nk/sigma^2 + 1/tau^2)
-    mu.hat  = tau2.hat*(xsumk/sigma^2 + eta/tau^2)
-    mu[k]   = rnorm(1, mu.hat, sqrt(tau2.hat))
-  }
-
-  # Sample the variances
-  dd.star = dd + n/2
-  qq.star = qq + sum((x - mu[cc])^2)/2
-  sigma = sqrt(rinvgamma(1, dd.star, qq.star))
-
-  # Store samples
-  cc.out[s,]   = cc
-  w.out[s]     = w
-  mu.out[s,]   = mu
-  sigma.out[s] = sigma
-  for(i in 1:n){
-    if(cc[i]==1){
-      logpost[s] = logpost[s] + log(w) + dnorm(x[i], mu[1], sigma, log=TRUE)
-    }else{
-      logpost[s] = logpost[s] + log(1-w) + dnorm(x[i], mu[2], sigma, log=TRUE)
-    }
-  }
-  logpost[s] = logpost[s] + dbeta(w, aa[1], aa[2],log = T)
-  for(k in 1:KK){
-    logpost[s] = logpost[s] + dnorm(mu[k], eta, tau, log = T)
-  }
-  logpost[s] = logpost[s] + log(dinvgamma(sigma^2, dd, 1/qq))
-  if(s/500==floor(s/500)){
-    print(paste("s =",s))
-  }
-}
-
-## Plot the logposterior distribution for various samples
-par(mfrow=c(1,1))
-par(mar=c(4,4,1,1)+0.1)
-plot(logpost, type="l", xlab="Iterations", ylab="Log posterior")
-
-xx = seq(-8,11,length=200)
-density.posterior = array(0, dim=c(rrr-burn,length(xx)))
-for(s in 1:(rrr-burn)){
-  density.posterior[s,] = density.posterior[s,] + w.out[s+burn]*dnorm(xx,mu.out[s+burn,1],sigma.out[s+burn]) +
-                                                  (1-w.out[s+burn])*dnorm(xx,mu.out[s+burn,2],sigma.out[s+burn])
-}
-density.posterior.m = apply(density.posterior , 2, mean)
-density.posterior.lq = apply(density.posterior, 2, quantile, 0.025)
-density.posterior.uq = apply(density.posterior, 2, quantile, 0.975)
-par(mfrow=c(1,1))
-par(mar=c(4,4,1,1)+0.1)
-plot(xx, density.posterior.m, type="n",ylim=c(0,max(density.posterior.uq)), xlab="x", ylab="Density")
-polygon(c(xx,rev(xx)), c(density.posterior.lq, rev(density.posterior.uq)), col="grey", border="grey")
-lines(xx, density.posterior.m, lwd=2)
-points(x, rep(0,n), col=cc.true)
-```
-:::
-
-## My Solution code
-
 ```{r}
 #| label: lbl-load-data
 # Load the nest size data
 
 rm(list=ls())
-library(MCMCpack)
 set.seed(81196)    # So that results are reproducible (same simulated data every time)
 
 nestsize <- read.csv("data/nestsize.csv",header=FALSE)
@@ -264,79 +81,78 @@ hist(x, breaks=seq(0, max(x), by=1), freq=FALSE, xlab="Number of eggs", ylab="De
 
 ```{r}
 #| label: lbl-zip-mix-1
+#| warnings: true
+#| errors: false
 
-# MCMC algorithm for fitting a ZIP
-# The actual MCMC algorithm starts here
+# EM algorithm for fitting a ZIP
 
-## MCMC iterations of the sampler
-
-iterations <- 6000
-burn       <- 1000
-
+## Run the actual EM algorithm
 ## Initialize the parameters
-cc         = rep(2, n)
-cc[x == 0] = sample(1:2, sum(x == 0), replace = TRUE, prob = c(0.5, 0.5))
-cc[x != 0] = 2
+KK         = 2                     # Number of components
+w     = 1/2                        # equal weights                     #Initial standard deviation
 
-## Priors
-aa     = c(1, 1)        # Uniform prior on w
-alpha = 1
-beta = 1
-lambda = mean(x[x > 0]) # Initial lambda from nonzero data
-#lambda = mean(x) # Initial lambda from all data
-w      = 0.5            # fewer zeros
+lambda = mean(x) # initial guess for the mean
 
-# Storing the samples
-w.out      = numeric(iterations)
-cc.out     = array(0, dim=c(iterations, n))
-lambda.out = numeric(iterations)
+s  = 0
+sw = FALSE
+QQ = -Inf
+QQ.out = NULL
+epsilon = 10^(-5)
 
-
-#logpost    = rep(0, iterations)
-
-# MCMC iterations
-
-for (s in 1:iterations) {
-  # Sample latent indicators c_i
-  cc = numeric(n)
-  # Full conditional for cc
+while(!sw){ ## run until convergence switch becomes TRUE
+  ## E step
+  v = array(0, dim=c(n,KK))
   for(i in 1:n){
-    v = rep(0,2)
-    if(x[i]==0){
-      v[1] = log(w)
-      v[2] = log(1-w) + dpois(x[i], lambda, log=TRUE)
-      v    = exp(v - max(v))/sum(exp(v - max(v)))
-    }else{
-      v[1] = 0
-      v[2] = 1
+    if (x[i] == 0){
+      # if the observation is zero it may be due to either component so we assign each a value based on the weights * pdf
+      v[i,1] = w * 1 # delta is 1 at zero
+      v[i,2] = (1-w) * dpois(x[i], lambda) # the weight for the second component
+      v[i,] = v[i,]/sum(v[i,]) # normalize 
+    } else {
+      v[i,1] = 0
+      v[i,2] = 1
+      # normalized
     }
-    cc[i] = sample(1:2, 1, replace=TRUE, prob=v)
   }
- 
-  # Sample the weights
-  # Full conditional for w
-  w = rbeta(1, 1+sum(cc==1), 1+n-sum(cc==1))  
-  lambda = rgamma(1, shape= sum(x[cc==2]) + 1, rate= sum(cc==2) + 1)
-  #lambda = rgamma(1, shape = 1 + sum(x[cc == 2]), rate = 1 + sum(cc == 2))
+  
+  ## M step
+  # Weights
+  w = mean(v[,1]) 
+  # parameters
+  lambda = sum(x)/sum(v[,2]) # normalize
+  
+  ##Check convergence
+  ## QQn is the new value of the Q function
+  ## QQ is the old value of the Q function
+  QQn = 0
+  for(i in 1:n){
+    if(x[i] == 0){
+      # log is used to avoid numerical underflow
+      QQn = QQn + v[i,1]*log(w) + v[i,2]*(log(1-w) + dpois(x[i], lambda, log=TRUE))
+    }else{
+      QQn = QQn + v[i,2]*(log(1-w) + dpois(x[i], lambda, log=TRUE))
+    }
+  }
+  if(abs(QQn-QQ)/abs(QQn)<epsilon){
+    sw=TRUE
+  }
+  QQ = QQn
 
-  # Store samples
-  w.out[s] =  w
-  lambda.out[s]  = lambda
-  cc.out[s,] = cc
+  QQ.out = c(QQ.out, QQ)
+  s = s + 1
+  print(paste(s, QQn))
+  
+
 }
 ```
 
 
 ```{r}
-#| label: lbl-posterior-means
+#| label: lbl-mle-estimates
 
+# w
+# lambda
 
-# Posterior summaries
-w.post = w.out[-(1:burn)]
-lambda.post = lambda.out[-(1:burn)]
-
-cat("Posterior mean of w:", round(mean(w.post),2), "\n")
-cat("Posterior mean of lambda:", round(mean(lambda.post),2),"\n")
-
+cat("w = ", round(w, 2), "\n")
+cat("lambda = ", round(lambda, 2), "\n")
 ```
-
