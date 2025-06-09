@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.11">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Oren Bochman">
+
+<title>Mixture Models</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="mixture-math_files/libs/clipboard/clipboard.min.js"></script>
+<script src="mixture-math_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="mixture-math_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="mixture-math_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="mixture-math_files/libs/quarto-html/popper.min.js"></script>
+<script src="mixture-math_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="mixture-math_files/libs/quarto-html/anchor.min.js"></script>
+<link href="mixture-math_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="mixture-math_files/libs/quarto-html/quarto-syntax-highlighting-09b140d2d032adf2aedb8b099be3ee13.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="mixture-math_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="mixture-math_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="mixture-math_files/libs/bootstrap/bootstrap-068d5c994a6974d0eba00eca07de929a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Mixture Models</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Oren Bochman </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="basic-concepts" class="level2">
+<h2 class="anchored" data-anchor-id="basic-concepts">1. Basic Concepts:</h2>
+<section id="definition-of-a-finite-mixture-model" class="level3">
+<h3 class="anchored" data-anchor-id="definition-of-a-finite-mixture-model">1.1 Definition of a finite mixture model</h3>
+<ol type="1">
+<li>Mixture Model (CDF):</li>
+</ol>
+<p><span id="eq-mixture-cdf"><span class="math display">\[
+F(x) = \sum_{k=1}^K \omega_k G_k(x)
+\tag{1}\]</span></span></p>
+<p>where <span class="math inline">\(G_k(x)\)</span> is the CDF of the <span class="math inline">\(k\)</span>-th component distribution and <span class="math inline">\(\omega_k\)</span> is the weight for the <span class="math inline">\(k\)</span>-th component.</p>
+<ol start="2" type="1">
+<li>Mixture Model (PDF/PMF):</li>
+</ol>
+<p><span id="eq-mixture-pdf"><span class="math display">\[
+f(x) = \sum_{k=1}^K \omega_k g_k(x)
+\tag{2}\]</span></span></p>
+<p>where <span class="math inline">\(g_k(x)\)</span> is the PDF/PMF of the <span class="math inline">\(k\)</span>-th component distribution and <span class="math inline">\(\omega_k\)</span> is the weight for the <span class="math inline">\(k\)</span>-th component.</p>
+<ol start="3" type="1">
+<li>Example: Exponential Mixture CDF:</li>
+</ol>
+<p><span id="eq-exponential-mixture-cdf"><span class="math display">\[
+F(x) = \omega_1 \left(1 - \exp\left\{\frac{x}{\theta_1}\right\}\right)
+     + \omega_2 \left(1 - \exp\left\{\frac{x}{\theta_2}\right\}\right)
+     + \omega_3 \left(1 - \exp\left\{\frac{x}{\theta_3}\right\}\right)
+\tag{3}\]</span></span></p>
+<ol start="4" type="1">
+<li>Example: Exponential Mixture PDF:</li>
+</ol>
+<p><span id="eq-exponential-mixture-pdf"><span class="math display">\[
+f(x) = \frac{\omega_1}{\theta_1} \exp\left\{\frac{x}{\theta_1}\right\}
+    + \frac{\omega_2}{\theta_2} \exp\left\{\frac{x}{\theta_2}\right\}
+    + \frac{\omega_3}{\theta_3} \exp\left\{\frac{x}{\theta_3}\right\}
+\tag{4}\]</span></span></p>
+<ol start="5" type="1">
+<li>Gamma Mixture PDF:</li>
+</ol>
+<p><span id="eq-gamma-mixture-pdf"><span class="math display">\[
+f(x) =
+\begin{cases}
+    \omega \frac{x^{\nu_1-1}}{\Gamma(\nu_1)\lambda_1^{\nu_1}}\ \exp \left\{\frac{x}{\lambda_1}\right\}
+    + (1-\omega) \frac{x^{\nu_2-1}}{\Gamma(\nu_2)\lambda_2^{\nu_2}}\ \exp \left\{\frac{x}{\lambda_2}\right\} &amp; x &gt; 0 \\
+    0 &amp; \text{otherwise}
+\end{cases}
+\tag{5}\]</span></span></p>
+<ol start="6" type="1">
+<li>Mean and Variance of a Mixture:</li>
+</ol>
+<p><span id="eq-mixture-mean"><span class="math display">\[
+\mathbb{E}_F(X) = \sum_{k=1}^K \omega_k \mathbb{E}_{G_k}[X]
+\tag{6}\]</span></span></p>
+<p><span id="eq-mixture-variance"><span class="math display">\[
+\begin{aligned}
+\mathbb{V}ar_F(X) &amp; = \mathbb{E}_F(X^2) - \{\mathbb{E}_F(X)\}^2 \\
+&amp; = \sum_{k=1}^K \omega_k \left\{ \mathbb{E}_{G_k}(X^2) \right\} - \left\{ \sum_{k=1}^K \omega_k \mathbb{E}_{G_k}(X) \right\}^2 \\
+&amp; = \sum_{k=1}^K \omega_k \left\{ \mathbb{V}ar_{G_k}(X) + [\mathbb{E}_{G_k}(X)]^2 \right\} - \left\{ \sum_{k=1}^K \omega_k \mathbb{E}_{G_k}(X) \right\}^2
+\end{aligned}
+\tag{7}\]</span></span></p>
+<p><span id="eq-3apns4"><span class="math display">\[
+\begin{aligned}
+\text{Test}
+\end{aligned}
+\tag{8}\]</span></span></p>
+<ol start="7" type="1">
+<li>Special Case (Component means zero):</li>
+</ol>
+<p><span id="eq-mixture-variance-zero-mean"><span class="math display">\[
+\mathbb{V}ar_F(X) = \sum_{k=1}^K \omega_k \mathbb{V}ar_{G_k}(X)
+\tag{9}\]</span></span></p>
+</section>
+<section id="why-finite-mixture-models" class="level3">
+<h3 class="anchored" data-anchor-id="why-finite-mixture-models">1.2 Why finite mixture models?</h3>
+<p>Finite mixtures of distributions within a single family provide a lot of flexibility. For example, a mixture of Gaussian distributions can have a bimodal density.</p>
+<ol start="8" type="1">
+<li>Example: Bimodal Mixture:</li>
+</ol>
+<p><span id="eq-bimodal-mixture"><span class="math display">\[
+f(x) = 0.6 \frac{1}{\sqrt{2\pi}} \exp\left\{ -\frac{1}{2}x^2 \right\}
+     + 0.4 \frac{1}{\sqrt{2\pi}\sqrt{2}} \exp\left\{ -\frac{1}{2}\frac{(x-5)^2}{4} \right\}
+\tag{10}\]</span></span></p>
+<ol start="9" type="1">
+<li>Example: Skewed Unimodal Mixture:</li>
+</ol>
+<p><span id="eq-skewed-unimodal-mixture"><span class="math display">\[
+f(x) = 0.55 \frac{1}{\sqrt{2\pi}\sqrt{2}} \exp\left\{ -\frac{1}{2} \frac{x^2}{2} \right\}
+    + 0.45 \frac{1}{\sqrt{2\pi} 2} \exp\left\{ -\frac{1}{2}\left(\frac{x-3}{2}\right)^2 \right\}
+\tag{11}\]</span></span></p>
+<ol start="10" type="1">
+<li>Example: Symmetric Heavy-tailed Mixture:</li>
+</ol>
+<p><span id="eq-symmetric-heavy-tailed-mixture"><span class="math display">\[
+f(x) = 0.4 \frac{1}{\sqrt{2\pi}\sqrt{2}} \exp\left\{ -\frac{1}{2} \frac{x^2}{2} \right\}
+    + 0.4 \frac{1}{\sqrt{2\pi} 4} \exp\left\{ -\frac{1}{2} \frac{x^2}{16} \right\}
+    + 0.2 \frac{1}{\sqrt{2\pi} \sqrt{20}} \exp\left\{ -\frac{1}{2} \frac{x^2}{20} \right\}
+\tag{12}\]</span></span></p>
+<ol start="11" type="1">
+<li>Zero-inflated Negative Binomial PMF:</li>
+</ol>
+<p><span id="eq-zero-inflated-negative-binomial-pmf"><span class="math display">\[
+\mathbb{P}r(x) =
+\begin{cases}
+    \omega_1 + (1-\omega_1)\theta^r &amp; x=0 \\
+    (1-\omega_1) \binom{x+r-1}{x} \theta^r (1-\theta)^x &amp; x&gt;1
+\end{cases}
+\tag{13}\]</span></span></p>
+<ol start="12" type="1">
+<li>Regular Negative Binomial PMF:</li>
+</ol>
+<p><span id="eq-regular-negative-binomial-pmf"><span class="math display">\[
+p^*(x) = \binom{x+r-1}{x} \theta^r (1-\theta)^x
+\tag{14}\]</span></span></p>
+<ol start="13" type="1">
+<li>Zero-inflated Log-Gaussian PDF:</li>
+</ol>
+<p><span id="eq-zero-inflated-log-gaussian-pdf"><span class="math display">\[
+f(x) =
+\begin{cases}
+    \omega_1 \delta_0(x) + (1-\omega_1)\frac{1}{\sqrt{2\pi}\sigma x}\exp\left\{ -\frac{(\ln x - \mu)^2}{2\sigma^2} \right\} &amp; x &gt; 0 \\
+    0 &amp; \text{otherwise}
+\end{cases}
+\tag{15}\]</span></span></p>
+<p>where <span class="math inline">\(\delta_0(x)\)</span> is the Dirac delta function at <span class="math inline">\(x=0\)</span>.</p>
+</section>
+<section id="hierarchical-representation-of-finite-mixtures" class="level3">
+<h3 class="anchored" data-anchor-id="hierarchical-representation-of-finite-mixtures">1.3 hierarchical representation of finite mixtures</h3>
+<ol start="14" type="1">
+<li>Mixture Model (Hierarchical):</li>
+</ol>
+<p><span id="eq-hierarchical-mixture"><span class="math display">\[
+X \mid c \sim G_c, \quad \mathbb{P}r(c = k) = \omega_k
+\tag{16}\]</span></span></p>
+<p>where <span class="math inline">\(G_c\)</span> is the distribution of the <span class="math inline">\(k\)</span>-th component and <span class="math inline">\(\omega_k\)</span> is the weight for the <span class="math inline">\(k\)</span>-th component.</p>
+</section>
+<section id="the-likelihood-function-for-mixture-models" class="level3">
+<h3 class="anchored" data-anchor-id="the-likelihood-function-for-mixture-models">1.4 The likelihood function for mixture models</h3>
+<ol start="15" type="1">
+<li>Observed-data Likelihood for a mixture Model</li>
+</ol>
+<p><span id="eq-observed-data-likelihood"><span class="math display">\[
+L_O(\theta, \omega; x) \propto \mathbb{P}r(x \mid \theta, \omega) = \prod_{i=1}^n \sum_{k=1}^K \omega_k g_k(x_i \mid \theta_k)
+\tag{17}\]</span></span></p>
+<p>where <span class="math inline">\(g_k(x_i \mid \theta_k)\)</span> is the PDF/PMF of the <span class="math inline">\(k\)</span>-th component distribution evaluated at <span class="math inline">\(x_i\)</span> with parameter <span class="math inline">\(\theta_k\)</span>.</p>
+<ol start="16" type="1">
+<li>Mixture Model (Likelihood, complete-data):</li>
+</ol>
+<p><span id="eq-complete-data-likelihood"><span class="math display">\[
+L(\theta, \omega; x, c) = \mathbb{P}r(x, c \mid \theta, \omega) = \prod_{i=1}^n \prod_{k=1}^K [\omega_k g_k(x_i \mid \theta_k)]^{1(c_i = k)}
+\tag{18}\]</span></span></p>
+<p>where <span class="math inline">\(1(c_i = k)\)</span> is an indicator function that is 1 if <span class="math inline">\(c_i = k\)</span> and 0 otherwise.</p>
+<ol start="17" type="1">
+<li>Alternative complete-data likelihood decomposition:</li>
+</ol>
+<p><span id="eq-complete-data-likelihood-decomposition"><span class="math display">\[
+\mathbb{P}r(x, c \mid \theta, \omega) = \mathbb{P}r(x \mid c, \theta) \mathbb{P}r(c \mid \omega)
+\tag{19}\]</span></span></p>
+<p>with</p>
+<p><span id="eq-complete-data-likelihood-x"><span class="math display">\[
+\mathbb{P}r(x \mid c, \theta) = \prod_{i=1}^n g_{c_i}(x_i \mid \theta_{c_i})
+\tag{20}\]</span></span></p>
+<p><span id="eq-complete-data-likelihood-c"><span class="math display">\[
+\mathbb{P}r(c \mid \omega) = \prod_{k=1}^K \omega_k^{\sum_{i=1}^n 1(c_i = k)}
+\tag{21}\]</span></span></p>
+<p>where <span class="math inline">\(1(c_i = k)\)</span> is an indicator function that is 1 if <span class="math inline">\(c_i = k\)</span> and 0 otherwise.</p>
+</section>
+<section id="parameter-identifiability" class="level3">
+<h3 class="anchored" data-anchor-id="parameter-identifiability">1.5 parameter identifiability</h3>
+<p>Label switching</p>
+<p>TODO : missing formula</p>
+<p><span id="eq-parameter-identifiability-mix1"><span class="math display">\[
+f(x) = ...
+\tag{22}\]</span></span></p>
+<p>TODO : missing formula</p>
+<p><span id="eq-parameter-identifiability-mix2"><span class="math display">\[
+f(x) = ...
+\tag{23}\]</span></span></p>
+<p>Number of components</p>
+<p><span id="eq-parameter-identifiability-mix3"><span class="math display">\[
+f(x) = ...
+\tag{24}\]</span></span></p>
+</section>
+</section>
+<section id="maximum-likelihood-estimation-for-mixture-models" class="level2">
+<h2 class="anchored" data-anchor-id="maximum-likelihood-estimation-for-mixture-models">2. Maximum Likelihood Estimation For Mixture Models:</h2>
+<ol start="18" type="1">
+<li>Maximum Likelihood Estimator (MLE) for Mixture:</li>
+</ol>
+<p><span id="eq-max-observed-data-likelihood"><span class="math display">\[
+(\hat{\omega}, \hat{\theta}) = \arg\max_{\omega, \theta} \prod_{i=1}^n \sum_{k=1}^K \omega_k g_k(x_i \mid \theta_k)
+\tag{25}\]</span></span></p>
+<p>where <span class="math inline">\(\hat{\omega}\)</span> and <span class="math inline">\(\hat{\theta}\)</span> are the MLEs for the weights and parameters of the mixture components, respectively.</p>
+<section id="em-algorithm-for-mixture-models" class="level3">
+<h3 class="anchored" data-anchor-id="em-algorithm-for-mixture-models">2.1 EM Algorithm for Mixture Models:</h3>
+<ol start="19" type="1">
+<li>EM algorithm Set Q-function in E step:</li>
+</ol>
+<p>E step:</p>
+<p><span id="eq-em-Q-function"><span class="math display">\[
+Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x) = \mathbb{E}_{c \mid \omega^{(t)}, \theta^{(t)}, x} [\log \mathbb{P}r(x, c \mid \omega, \theta)]
+\tag{26}\]</span></span></p>
+<p>where <span class="math inline">\(Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x)\)</span> is the expected complete-data log-likelihood given the current estimates of the parameters <span class="math inline">\(\omega^{(t)}\)</span> and <span class="math inline">\(\theta^{(t)}\)</span> and the observed data <span class="math inline">\(x\)</span>.</p>
+<ol start="19" type="1">
+<li>EM algorithm Set parameters in M step:</li>
+</ol>
+<p><span id="eq-em-m-step"><span class="math display">\[
+(\hat{\omega}^{(t+1)}, \hat{\theta}^{(t+1)}) = \arg\max_{\omega, \theta} Q(\omega, \theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)}, y)   
+\tag{27}\]</span></span></p>
+<p>where <span class="math inline">\((\hat{\omega}^{(t+1)}, \hat{\theta}^{(t+1)})\)</span> are the updated estimates of the parameters after the M step.</p>
+<!-- missing em stuff here -->
+<p><span id="eq-conditional-independence-of-components"><span class="math display">\[
+\mathbb{P}r(c_i = k \mid \omega, \theta, x) = \frac{\omega_k g_k(x_i \mid \theta_k)}{\sum_{l=1}^K \omega_l g_l(x_i \mid \theta_l)} = v_{i,k}(\omega, \theta)
+\tag{28}\]</span></span></p>
+<p>where <span class="math inline">\(v_{i,k}(\omega, \theta)\)</span> is the posterior probability of the <span class="math inline">\(k\)</span>-th component given the observed data <span class="math inline">\(x_i\)</span> and the current estimates of the parameters <span class="math inline">\(\omega\)</span> and <span class="math inline">\(\theta\)</span>.</p>
+<p>and <span class="math inline">\((\hat{\omega}^{(t+1)}, \hat{\theta}^{(t+1)})\)</span> are the updated estimates of the parameters after the M step.</p>
+<p>Also, remember that:</p>
+<p><span id="eq-em-m-step"><span class="math display">\[
+\mathbb{P}r(x, c | \theta, \omega) =
+\prod_{i=1}^n
+\prod_{k=1}^K
+[\omega_k g_k(x_i | \theta_k)]^{\mathbb{1}(c_i=k)}
+\tag{29}\]</span></span></p>
+<p>The value of <span class="math inline">\(v_{i,k}(\omega, \theta)\)</span> can be interpreted as the probability that observation <span class="math inline">\(i\)</span> was generated from component <span class="math inline">\(k\)</span> if we assume that the true parameters of the mixture model are <span class="math inline">\(\omega\)</span> and <span class="math inline">\(\theta\)</span>.</p>
+<!-- missing em stuff here -->
+<p><span id="eq-conditional-independence-of-components"><span class="math display">\[
+\mathbb{P}r(c_i = k \mid \omega, \theta, x) = \frac{\omega_k g_k(x_i \mid \theta_k)}{\sum_{l=1}^K \omega_l g_l(x_i \mid \theta_l)} = v_{i,k}(\omega, \theta)
+\tag{30}\]</span></span></p>
+<p>where <span class="math inline">\(v_{i,k}(\omega, \theta)\)</span> is the posterior probability of the <span class="math inline">\(k\)</span>-th component given the observed data <span class="math inline">\(x_i\)</span> and the current estimates of the parameters <span class="math inline">\(\omega\)</span> and <span class="math inline">\(\theta\)</span>.</p>
+<p>which implies that</p>
+<p><span id="eq-log-likelihood"><span class="math display">\[
+\log \mathbb{P}r(x_i,c \mid \theta, \omega) = \sum_{n=1}^N \sum_{k=1}^K \mathbb{1}(c_i=k) [\log(\omega_k) + \log(g_k(x_i \mid \theta_k))]
+\tag{31}\]</span></span></p>
+<p>where <span class="math inline">\(\mathbb{1}(c_i=k)\)</span> is an indicator function that is 1 if <span class="math inline">\(c_i = k\)</span> and 0 otherwise.</p>
+<p>Hence</p>
+<p><span id="eq-em-Q-function"><span class="math display">\[
+Q(\omega, \theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)}, x) = \sum_{i=1}^n \sum_{k=1}^K v_{i,k} \mathbb{E}_{c \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)}, x} \left [\mathbb{1}_{(c_i=k)} \log(\omega_k) + \log(g_k(x_i \mid \theta_k))\right]
+\tag{32}\]</span></span></p>
+<p>where <span class="math inline">\(v_{i,k}(\omega^{(t)}, \theta^{(t)})\)</span> is the posterior probability of the <span class="math inline">\(k\)</span>-th component given the observed data <span class="math inline">\(x_i\)</span> and the current estimates of the parameters <span class="math inline">\(\omega^{(t)}\)</span> and <span class="math inline">\(\theta^{(t)}\)</span>.</p>
+<p>and therefore <span id="eq-em-Q-function"><span class="math display">\[
+Q(\omega, \theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)}, x) = \sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)}\left(\hat{\omega}^{(t)}, \hat{\theta}^{(t)}\right) [\log(\omega_k) + \log(g_k(x_i \mid \theta_k))]
+\tag{33}\]</span></span></p>
+<p>where <span class="math inline">\(v_{i,k}(\hat{\omega}^{(t)}, \hat{\theta}^{(t)})\)</span> is the posterior probability of the <span class="math inline">\(k\)</span>-th component given the observed data <span class="math inline">\(x_i\)</span> and the current estimates of the parameters <span class="math inline">\(\hat{\omega}^{(t)}\)</span> and <span class="math inline">\(\hat{\theta}^{(t)}\)</span>.</p>
+<p>(Remember that the term that is constant with respect to c can come out of the expectation, and that the expected value of an indicator function is just the probability of the event inside the indicator).</p>
+<p>Hence, roughly speaking, we can see that the Q function is in this case equivalent to a weighted average of the log likelihoods associated with each of the components in the mixture.</p>
+</section>
+</section>
+<section id="the-em-algorithm-for-a-location-mixture-of-two-gaussians" class="level2">
+<h2 class="anchored" data-anchor-id="the-em-algorithm-for-a-location-mixture-of-two-gaussians">2.2 The EM algorithm for a Location Mixture of Two Gaussians</h2>
+<p><span id="eq-gaussian-location-mixture"><span class="math display">\[
+f(x\mid \omega, \mu_1,\mu_2, \sigma) = \omega \frac{1}{\sqrt{2\pi}\sigma^2} \exp\left\{ -\frac{(x - \mu_1)^2}{2\sigma^2} \right\} + (1-\omega) \frac{1}{\sqrt{2\pi}\sigma^2} \exp\left\{ -\frac{(x - \mu_2)^2}{2\sigma^2} \right\}
+\tag{34}\]</span></span></p>
+<p>where <span class="math inline">\(\omega_1\)</span> and <span class="math inline">\(\omega_2\)</span> are the weights of the two components, <span class="math inline">\(\mu_1\)</span> and <span class="math inline">\(\mu_2\)</span> are the means of the two components, and <span class="math inline">\(\sigma^2\)</span> is the common variance.</p>
+<p>The expected weights are:</p>
+<p><span id="eq-location-mixture-weights"><span class="math display">\[
+v^{(t+1)}_{i,1} =v^{(t+1)}_{i,1} \left (\hat{\omega}^{(t)},\hat{\mu}^{(t)},\hat{\sigma}^{(t)}\right)=\frac{\hat{\omega}^{(t)}_1 \frac{1}{\sqrt{2\pi}\hat{\sigma}^{(t)}} \exp\left\{ -\frac{(x_i - \hat{\mu}^{(t)}_1)^2}{2\hat{\sigma}^{(t)}} \right\}}{\sum_{k=1}^K \hat{\omega}^{(t)}_k \frac{1}{\sqrt{2\pi}\hat{\sigma}^{(t)}} \exp\left\{ -\frac{(x_i - \hat{\mu}^{(t)}_k)^2}{2\hat{\sigma}^{(t)}} \right\}}
+\tag{35}\]</span></span></p>
+<p>and</p>
+<p><span class="math display">\[
+v^{(t+1)}_{i,2} = 1 - v^{(t+1)}_{i,1}
+\]</span></p>
+<p>Therefore, the Q function is</p>
+<p><span id="eq-Q-function"><span class="math display">\[
+\begin{aligned}
+Q(\omega, \mu_1, \mu_2, \sigma \mid \hat{\omega}^{(t)}, \hat{\mu}^{(t)}_1,\hat{\mu}^{(t)}_2, \hat{\sigma}^{(t)}, x) = \sum_{i=1}^n &amp; v_{i,1}^{(t+1)} \left [\log(\omega) - \frac{1}{2} \log(2\pi) - \log(\sigma) - \frac{(x_i - \mu_1)^2}{2\sigma^2}\right ] \\
++ &amp; v_{i,2}^{(t+1)} \left [\log(1-\omega) - \frac{1}{2} \log(2\pi) - \log(\sigma) - \frac{(x_i - \mu_2)^2}{2\sigma^2}\right]
+\end{aligned}
+\tag{36}\]</span></span></p>
+<p>where <span class="math inline">\(v_{i,1}^{(t+1)}\)</span> and <span class="math inline">\(v_{i,2}^{(t+1)}\)</span> are the posterior probabilities of the first and second components given the observed data <span class="math inline">\(x_i\)</span> and the current estimates of the parameters <span class="math inline">\(\hat{\omega}^{(t)}\)</span>, <span class="math inline">\(\hat{\mu}^{(t)}_1\)</span>, <span class="math inline">\(\hat{\mu}^{(t)}_2\)</span>, and <span class="math inline">\(\hat{\sigma}^{(t)}\)</span>.</p>
+<p>The Q function is a function of the parameters <span class="math inline">\(\omega\)</span>, <span class="math inline">\(\mu_1\)</span>, <span class="math inline">\(\mu_2\)</span>, and <span class="math inline">\(\sigma\)</span> and is used to update the estimates of these parameters in the M step of the EM algorithm.</p>
+<p>to maximize Q we compute its partial derivatives with respect to <span class="math inline">\(\omega\)</span>, <span class="math inline">\(\mu_k\)</span>, and <span class="math inline">\(\sigma\)</span> and set them equal to zero. The partial derivative with respect to <span class="math inline">\(\omega\)</span> is:</p>
+<p><span id="eq-partial-derivative-of-Q-wrt-omega"><span class="math display">\[
+\frac{\partial Q}{\partial \omega} = \sum_{i=1}^n \left [\frac{v_{i,1}^{(t+1)}}{\omega} - \frac{v_{i,2}^{(t+1)}}{1-\omega} \right ] = 0
+\tag{37}\]</span></span></p>
+<p><span id="eq-partial-derivative-of-Q-wrt-mu"><span class="math display">\[
+\frac{\partial Q}{\partial \mu_k} = \sum_{i=1}^n v_{i,k}^{(t+1)} \frac{1}{\sigma^2} (x_i - \mu_k) = 0
+\tag{38}\]</span></span></p>
+<p><span id="eq-partial-derivative-of-Q-wrt-sigma"><span class="math display">\[
+\frac{\partial Q}{\partial \sigma} = \sum_{i=1}^n \left [\frac{v_{i,1}^{(t+1)}}{\sigma} - \frac{(x_i - \mu_1)^2}{\sigma^3} + \frac{v_{i,2}^{(t+1)}}{\sigma} - \frac{(x_i - \mu_2)^2}{\sigma^3} \right ] = 0
+\tag{39}\]</span></span></p>
+<p>By setting (<a href="#eq-partial-derivative-of-Q-wrt-omega" class="quarto-xref">Equation&nbsp;37</a>) equal to zero we get:</p>
+<p><span id="eq-omega-update"><span class="math display">\[
+\begin{aligned}
+&amp;\left \{ \sum_{i=1}^n v_{i,2}^{(t+1)} \right \}  \omega^{(t+1)} &amp; = &amp;
+\left \{ \sum_{i=1}^n v_{i,1}^{(t+1)} \right \} \left (1 - \omega^{(t+1)}\right)
+\\ \implies &amp; \left \{ \sum_{i=1}^n v_{i,1}^{(t+1)} \right \} &amp; = &amp;
+\left \{ \sum_{i=1}^n v_{i,1}^{(t+1)} + \sum_{i=1}^n v_{i,2}^{(t+1)} \right \} \omega^{(t+1)}
+\\ \implies &amp; \omega^{(t+1)} &amp; = &amp; \frac{\sum_{i=1}^n v_{i,1}^{(t+1)}}{\sum_{i=1}^n v_{i,1}^{(t+1)} + v_{i,2}^{(t+1)}}
+\\ &amp;  &amp;= &amp; \frac{1}{n} \sum_{i=1}^n v_{i,1}^{(t+1)}
+\end{aligned}
+\tag{40}\]</span></span></p>
+<p>where <span class="math inline">\(\omega^{(t+1)}\)</span> is the updated estimate of the weight for the first component after the M step.</p>
+<p>where we used the fact that <span class="math inline">\(\sum_{i=1}^n v_{i,1}^{(t+1)} + \sum_{i=1}^n v_{i,2}^{(t+1)} = n\)</span>.</p>
+<p>This means that the new estimate of <span class="math inline">\(\omega\)</span> is the average of the posterior probabilities of the first component over all observations.</p>
+<p>by setting (<a href="#eq-partial-derivative-of-Q-wrt-mu" class="quarto-xref">Equation&nbsp;38</a>) equal to zero we get:</p>
+<p><span id="eq-em-solving-for-mu"><span class="math display">\[\begin{aligned}
+            &amp;&amp; 0 &amp;&amp; = &amp; \sum_{i=1}^n v_{i,k}^{(t+1)} (x_i - \mu_k)
+\\ \implies &amp;&amp; \sum_{i=1}^n v_{i,k}^{(t+1)} x_i &amp;&amp; = &amp; \sum_{i=1}^n v_{i,k}^{(t+1)} \mu_k
+\\ \implies &amp;&amp; \mu_k^{(t+1)} &amp;&amp; = &amp; \frac{\sum_{i=1}^n v_{i,k}^{(t+1)} x_i}{\sum_{i=1}^n v_{i,k}^{(t+1)}}
+\end{aligned}
+\tag{41}\]</span></span></p>
+<p>where we used the fact that <span class="math inline">\(\sum_{i=1}^n v_{i,k}^{(t+1)} = n\)</span>.</p>
+<p>Note that the partial estimator for μk is a weighted average of the xis, with the weight associated with observation i being proportional to the probability that such observation was generated by component k. Again, if the components are well separated and values of vi,k are all close to either 0 or 1, this weighted average is roughly the average of the observations coming from component k</p>
+<p>Finally, making the same argument for the partial derivative with respect to σ, we get:</p>
+<p><span id="eq-em-solving-for-sigma"><span class="math display">\[
+\begin{aligned}
+&amp;
+    \sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)} &amp;=&amp; \left ( \frac {1}{\sigma^{(t+1)}} \right ) ^ 2  \sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)} (x_i - \mu_k^{(t+1)})^2
+\\ \implies &amp;
+\sigma^{(t+1)} &amp;=&amp; \sqrt{\frac{\sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)} (x_i - \mu_k^{(t+1)})^2}{\sum_{i=1}^n \sum_{k=1}^K v_{i,k}^{(t+1)}}}
+\end{aligned}
+\tag{42}\]</span></span></p>
+<section id="general-location-and-scale-mixtures-of-p-variate-gaussian-distributions" class="level3">
+<h3 class="anchored" data-anchor-id="general-location-and-scale-mixtures-of-p-variate-gaussian-distributions">2.3 general location and scale mixtures of p-variate gaussian distributions</h3>
+<p><span id="eq-general-location-scale-mixture"><span class="math display">\[
+f(x) =
+\sum_{k=1}^K
+\omega_k
+\left( \frac{1}{(2\pi)} \right) ^\frac{q}{2}
+|\Sigma_k|-\frac{1}{2} \exp
+\left\{
+(x - \theta_k)^T \Sigma_k^{-1}(x - \theta_k)
+\right\}
+\tag{43}\]</span></span></p>
+<p>where <span class="math inline">\(\theta_k\)</span> is the mean of the <span class="math inline">\(k\)</span>-th component, <span class="math inline">\(\Sigma_k\)</span> is the covariance matrix of the <span class="math inline">\(k\)</span>-th component, and <span class="math inline">\(\omega_k\)</span> is the weight for the <span class="math inline">\(k\)</span>-th component. <span id="eq-em-p-variate-mixture-parameters"><span class="math display">\[
+\begin{aligned}
+v_{i,k}^{(t+1)} &amp;= \frac{\omega_k^{(t)} |\Sigma_k^{(t)}|^{-1/2} \exp\left\{-\frac{1}{2}(x_i - \mu_k^{(t)})^T [\Sigma_k^{(t)}]^{-1}(x_i - \mu_k^{(t)})\right\}}{\sum_{l=1}^K \omega_l^{(t)} |\Sigma_l^{(t)}|^{-1/2} \exp\left\{-\frac{1}{2}(x_i - \mu_l^{(t)})^T [\Sigma_l^{(t)}]^{-1}(x_i - \mu_l^{(t)})\right\}} \\
+\omega_k^{(t+1)} &amp;= \frac{\sum_{i=1}^n v_{i,k}^{(t+1)}}{\sum_{i=1}^n \sum_{l=1}^K v_{i,l}^{(t+1)}} \\
+\mu_k^{(t+1)} &amp;= \frac{\sum_{i=1}^n v_{i,k}^{(t+1)} x_i}{\sum_{i=1}^n v_{i,k}^{(t+1)}} \\
+\Sigma_k^{(t+1)} &amp;= \frac{\sum_{i=1}^n v_{i,k}^{(t+1)} (x_i - \mu_k^{(t+1)}) (x_i - \mu_k^{(t+1)})^T}{\sum_{i=1}^n v_{i,k}^{(t+1)}}
+\end{aligned}
+\tag{44}\]</span></span></p>
+<p>where <span class="math inline">\(v_{i,k}^{(t+1)}\)</span> is the posterior probability of the <span class="math inline">\(k\)</span>-th component given the observed data <span class="math inline">\(x_i\)</span> and the current estimates of the parameters <span class="math inline">\(\omega^{(t)}\)</span>, <span class="math inline">\(\mu^{(t)}\)</span>, and <span class="math inline">\(\Sigma^{(t)}\)</span>.</p>
+</section>
+</section>
+<section id="mcmc" class="level2">
+<h2 class="anchored" data-anchor-id="mcmc">3. MCMC</h2>
+<p><span id="eq-mcmc-mixture"><span class="math display">\[
+f(x) = \sum_{k=1}^K \omega_k g_k(x | \theta_k)
+\tag{45}\]</span></span></p>
+<p>where <span class="math inline">\(g_k(x \mid \theta_k)\)</span> is the PDF/PMF of the <span class="math inline">\(k\)</span>-th component distribution evaluated at <span class="math inline">\(x\)</span> with parameter <span class="math inline">\(\theta_k\)</span>.</p>
+<p><span id="eq-dirichlet-prior"><span class="math display">\[
+\mathbb{P}r(\omega) \;=\;
+\frac{\Gamma \bigl ( \sum_{k=1}^K a_k \bigr ) }{\prod_{k=1}^K \Gamma(a_k)}
+\prod_{k=1}^K \omega_k^{\,a_k-1},
+\quad
+\sum_{k=1}^K \omega_k = 1
+\tag{46}\]</span></span></p>
+<section id="markov-chain-monte-carlo-algorithms-for-mixture-mod-" class="level3">
+<h3 class="anchored" data-anchor-id="markov-chain-monte-carlo-algorithms-for-mixture-mod-">3.1 Markov chain monte carlo algorithms for mixture mod-</h3>
+<p>els</p>
+<p><span id="eq-pxc-given-theta-omega"><span class="math display">\[
+\mathbb{P}r(x, c \mid \theta, \omega) = \mathbb{P}r(x \mid c, \theta)\ \mathbb{P}r(c \mid \omega)
+\tag{47}\]</span></span></p>
+<p>where</p>
+<p><span id="eq-px-given-c-theta"><span class="math display">\[
+\mathbb{P}r(x \mid c, \theta) = \prod_{i=1}^n g_{c_i}(x_i \mid \theta_{c_i})
+\tag{48}\]</span></span></p>
+<p>and</p>
+<p><span id="eq-pc-given-omega"><span class="math display">\[
+\mathbb{P}r(c \mid \omega) = \prod_{i=1}^n \prod_{k=1}^K
+\omega_k ^{\mathbb{1}(c_i = k)} =
+\prod_{k=1}^K \omega_k^{\sum_{i=1}^n \mathbb{1}(c_i = k)}
+\tag{49}\]</span></span></p>
+<p>where <span class="math inline">\(1(c_i = k)\)</span> is an indicator function that is 1 if <span class="math inline">\(c_i = k\)</span> and 0 otherwise.</p>
+<ol start="21" type="1">
+<li>Joint posterior (with latent labels)</li>
+</ol>
+<p><span id="eq-joint-posterior"><span class="math display">\[
+\mathbb{P}r(c,\theta,\omega \mid x)
+\;\propto\;
+\Bigl(\prod_{i=1}^n g_{c_i}(x_i\mid \theta_{c_i})\Bigr)
+\Bigl(\prod_{k=1}^K \omega_k^{\sum_{i=1}^n1(c_i=k)}\Bigr)
+\,p(\omega)\,p(\theta)
+\tag{50}\]</span></span></p>
+<p>Each of the full conditional distributions can be derived from this joint posterior by retaining the terms that involve the parameter of interest, and recognizing the product of the selected terms as the kernel of a known family of distributions.</p>
+<ol start="22" type="1">
+<li>Full conditional for <span class="math inline">\(\omega\)</span></li>
+</ol>
+<p><span id="eq-full-cond-omega"><span class="math display">\[
+\mathbb{P}r(\omega \mid c,\theta,x)
+\;\propto\;
+\mathbb{P}r(c \mid \omega) \mathbb{P}r(\omega)
+\;=\;
+\prod_{k=1}^K
+\omega_k^{\,a_k + \sum_{i=1}^n1(c_i=k)\;-\;1}
+\tag{51}\]</span></span></p>
+<p>This clearly corresponds to the kernel of another Dirichlet distribution with updated parameters <span class="math display">\[
+a_k^* = a_k + m_k, \qquad k = 1, \ldots, K,
+\]</span></p>
+<p>where <span class="math inline">\(m_k = \sum_{i=1}^n 1(c_i = k)\)</span> is the number of observations in component <span class="math inline">\(k\)</span>.</p>
+<p>Full conditional for each component <span class="math inline">\(c_i\)</span></p>
+<p><span id="eq-fullcond-ci-1"><span class="math display">\[
+\mathbb{P}r(c_i \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x) \propto \mathbb{P}r(x_i \mid c_i,\theta_k) \mathbb{P}r(c_i \mid \omega)
+\tag{52}\]</span></span></p>
+<p>hence</p>
+<p><span id="eq-fullcond-ci-2"><span class="math display">\[
+\mathbb{P}r(c_i = k \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x)
+\;=\;
+\frac{\omega_k\,g_k(x_i\mid \theta_k)}
+     {\sum_{l=1}^K \omega_l\,g_l(x_i\mid \theta_l)}
+\tag{53}\]</span></span></p>
+<p>Note the similarity with the formula for the expected weights <span class="math inline">\(v_{i,k}\)</span> in the EM algorithm.)</p>
+<p>Full conditional for component parameters <span class="math inline">\(\theta_k\)</span></p>
+<p><span id="eq-fullcond-theta_k"><span class="math display">\[
+\mathbb{P}r(\theta_k \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x)
+\;\propto\;
+\mathbb{P}r(\theta_k \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x)
+\prod_{i:c_i=k} \mathbb{P}r(x_i\mid \theta_k)
+\tag{54}\]</span></span></p>
+<p>In the most common case in which the priors for <span class="math inline">\(\theta_k\)</span> are independent this is simply:</p>
+<p><span id="eq-fullcond-theta_k-indep"><span class="math display">\[
+\mathbb{P}r(\theta_k \mid c,\theta_1,\ldots,\theta_{k-1},\omega,x)
+\;\propto\;
+\mathbb{P}r(\theta_k) \prod_{i:c_i=k} \mathbb{P}r(x_i\mid \theta_k)
+\tag{55}\]</span></span></p>
+</section>
+<section id="the-mcmc-algorithm-for-a-location-mixture-of-two-gaussian-distributions" class="level3">
+<h3 class="anchored" data-anchor-id="the-mcmc-algorithm-for-a-location-mixture-of-two-gaussian-distributions">3.2 The MCMC algorithm for a location mixture of two gaussian distributions</h3>
+<p><span id="eq-mcmc-location-mixture"><span class="math display">\[
+f(x \mid \omega, \mu_1, \mu_2, \sigma) = \omega \frac{1}{\sqrt{2\pi}\sigma^2} \exp\left\{ -\frac{(x - \mu_1)^2}{2\sigma^2} \right\} + (1-\omega) \frac{1}{\sqrt{2\pi}\sigma^2} \exp\left\{ -\frac{(x - \mu_2)^2}{2\sigma^2} \right\}
+\tag{56}\]</span></span></p>
+<ol start="25" type="1">
+<li>Gaussian prior for means <span class="math inline">\(\mu\_k\)</span></li>
+</ol>
+<p><span id="eq-prior-muk"><span class="math display">\[
+\mathbb{P}r(\mu_k)
+=\frac{1}{\sqrt{2\pi\tau^2}}
+\exp\!\Bigl\{-\tfrac{(\mu_k-\eta)^2}{2\tau^2}\Bigr\}
+\tag{57}\]</span></span></p>
+<ol start="26" type="1">
+<li>Inverse-Gamma prior for variance <span class="math inline">\(\sigma^2\)</span>:</li>
+</ol>
+<p>with shape parameter <span class="math inline">\(a\)</span> and scale parameter <span class="math inline">\(b\)</span> for <span class="math inline">\(\sigma\)</span></p>
+<p><span id="eq-prior-sigma2"><span class="math display">\[
+\mathbb{P}r(\sigma^2)
+=\frac{1}{b^a\Gamma(a)}
+(\sigma^2)^{-\,d-1}
+\exp\!\Bigl\{-\tfrac{q}{\sigma^2}\Bigr\}
+\tag{58}\]</span></span></p>
+$$
+<span class="math display">\[\begin{aligned}
+\mathbb{P}r(\mu_k \mid c, \mu_1, \ldots, \mu_{k-1}, \mu_{k+1}, \ldots, \mu_K, \omega, x)
+&amp; \;\propto\;
+\exp\Biggl\{
+-\frac{(\mu_k - \eta)^2}{2\tau^2}
+\Biggr\} \prod_{i:c_i=k}
+\exp\Biggl\{
+-\frac{(x_i - \mu_k)^2}{2\sigma^2}
+\Biggr\}
+\\ &amp; \;\propto\;
+\exp\Biggl\{
+-\frac{1}{2}
+\Biggl[ m_k \frac{1}{\sigma^2} - 2 \frac{\mu_k \sum_{i:c_i=k} x_i}{\sigma^2} + \frac{\mu_k}{\tau^2} - 2 \frac{\mu_k\eta}{\tau^2} \Biggr] \Biggr\}
+\\ &amp; \;\propto\;
+\exp\Biggl\{
+-\frac{1}{2}
+\Biggl[ \frac{m_k}{\sigma^2} + \frac{1}{\tau^2} \Biggr] \Biggl[ \mu_k - \frac{\sigma^2 \sum_{i:c_i=k} x_i + \frac{\eta}{\tau^2} }{\mu_k + \frac{m_k}{\sigma^2}+ \frac{1}{\tau^2}} \Biggr] \Biggr\}
+
+\end{aligned}\]</span>
+<p>$$ {#eq-fullcond-mu_k}</p>
+<p>which is just the kernel of a normal distribution with updated mean</p>
+<p><span id="eq-eta-k-star"><span class="math display">\[
+\eta_k^* = \frac{\frac{1}{\sigma^2}\sum_{i:c_i=k} x_i + \frac{\eta}{\tau^2}}{ \frac{m_k}{\sigma^2}+ \frac{1}{\tau^2}u^2}
+\tag{59}\]</span></span></p>
+<p>and updated standard deviation</p>
+<p><span id="eq-post-muk"><span class="math display">\[
+\tau_k^*=\Bigl[ \frac{m_k}{\sigma^2}+ \frac{1}{\tau^2} \Bigr]^{-1/2}
+\tag{60}\]</span></span></p>
+<p>finaly</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb{P}r(\sigma^2 | c, \mu, \omega, x)
+&amp;\propto
+\Biggl(\frac{1}{\sigma^2}\Biggr)^{d+1}
+\exp\Biggl\{
+− q
+\sigma^2
+\Biggr\}
+\Biggl(\frac{1}{\sigma^2}\Biggr)^{n/2}
+\exp\Biggl\{
+− \frac{1}{2\sigma^2}
+\sum_{i=1}^{n}(x_i − \mu_{c_i})^2
+\Biggr\}
+\\&amp;=
+\Biggl(\frac{1}{\sigma^2}\Biggr)^{n/2+d+1}
+\exp\Biggl\{
+− \frac{1}{\sigma^2}
+\Biggl[ \frac{1}{2} \sum_{i=1}^{n}(x_i − \mu_{c_i})^2
++ q
+\Biggr]
+\Biggr\}
+\end{aligned}
+\]</span></p>
+<p>which is the kernel of another inverse Gamma distribution with shape d∗ =n/2 + d and rate parameter</p>
+<p><span id="eq-post-sigma2"><span class="math display">\[
+q^*=\tfrac12\sum_{i=1}^n(x_i-\mu_{c_i})^2 + q
+\tag{61}\]</span></span></p>
+</section>
+<section id="general-location-and-scale-mixtures-of-p-variate-gaus-" class="level3">
+<h3 class="anchored" data-anchor-id="general-location-and-scale-mixtures-of-p-variate-gaus-">3.3 general location and scale mixtures of p-variate gaus-</h3>
+<p>sian distributions</p>
+<ol start="29" type="1">
+<li>General <span class="math inline">\(q\)</span>-variate Gaussian mixture</li>
+</ol>
+<p><span id="eq-post-sigma2"><span class="math display">\[
+\sigma^2 \;\sim\;\mathrm{InvGamma}\bigl(d^*,\,q^*\bigr),
+\quad
+d^*=\tfrac{n}{2}+d,
+\quad
+q^*=\tfrac12\sum_{i=1}^n(x_i-\mu_{c_i})^2 + q
+\tag{62}\]</span></span></p>
+<p><span id="eq-multivariate-mixture"><span class="math display">\[
+f(x)
+=\sum_{k=1}^K
+\omega_k\,
+\frac{1}{(2\pi)^{q/2}\,\lvert\Sigma_k\rvert^{1/2}}\,
+\exp\!\Bigl\{-\tfrac12(x-\mu_k)^\top\Sigma_k^{-1}(x-\mu_k)\Bigr\}
+\tag{63}\]</span></span></p>
+<ol start="30" type="1">
+<li>Posterior for multivariate <span class="math inline">\(\mu\_k\)</span></li>
+</ol>
+<p><span id="eq-post-multivariate-mu"><span class="math display">\[
+\mu_k \;\sim\; N\bigl(b_k^*,\,B_k^*\bigr),
+\quad
+B_k^*=\bigl(B^{-1}+m_k\,\Sigma_k^{-1}\bigr)^{-1},
+\quad
+b_k^*=B_k^*\bigl(B^{-1}b + \Sigma_k^{-1}\sum_{i:c_i=k}x_i\bigr)
+\tag{64}\]</span></span></p>
+<ol start="31" type="1">
+<li>Posterior for multivariate <span class="math inline">\(\Sigma\_k\)</span></li>
+</ol>
+<p><span id="eq-post-multivariate-sigma"><span class="math display">\[
+\Sigma_k \;\sim\;\mathrm{InvWishart}\bigl(\nu^*,\,S^*\bigr),
+\quad
+\nu^*=\nu + m_k,
+\quad
+S^*=S + \sum_{i:c_i=k}(x_i-\mu_k)(x_i-\mu_k)^\top
+\tag{65}\]</span></span></p>
+</section>
+</section>
+<section id="applications-of-mixture-models" class="level2">
+<h2 class="anchored" data-anchor-id="applications-of-mixture-models">4. Applications of Mixture Models</h2>
+<section id="density-estimation" class="level3">
+<h3 class="anchored" data-anchor-id="density-estimation">4.1 density estimation</h3>
+<ol start="32" type="1">
+<li>Kernel density estimator (general form)</li>
+</ol>
+<p><span id="eq-kde-general"><span class="math display">\[
+\tilde f(x)
+=\frac{1}{n}\sum_{i=1}^n\frac{1}{h}\,
+g \Bigl(\tfrac{\|x-x_i \| }{h}\Bigr)
+\tag{66}\]</span></span></p>
+<ol start="33" type="1">
+<li>Gaussian kernel density estimator</li>
+</ol>
+<p><span id="eq-kde-gaussian"><span class="math display">\[
+\tilde f(x)
+=\sum_{i=1}^n\frac{1}{n}\,
+\tfrac{1}{\sqrt{2\pi\,}h}\,
+\exp\!\Bigl\{-\tfrac{1}{2}\left(\dfrac{x-x_i}{h}\right)^2\Bigr\}
+\tag{67}\]</span></span></p>
+<p>In order to understand the relationship between kernel density estimation and mixture models it is useful to contrast (8) with the density estimate <span class="math display">\[
+\hat f(x) = \sum_{k=1}^K \hat{\omega}_k \frac{1}{\sqrt{2\pi} \hat{\sigma}} \exp\Biggl\{-\frac{1}{2\hat{\sigma}^2}(x - \hat{\mu}_k)^2\Biggr\}
+\]</span></p>
+<p>obtained by plugging-in the maximum likelihood estimates of the parameters, <span class="math inline">\(\hat{\omega}_1, . . . , \hat{\omega}_K, \hat{\mu}_1, . . . , \hat{\mu}_K\)</span> and <span class="math inline">\(\hat{\sigma}\)</span> of a location mixture of K univariate Gaussian distributions.</p>
+</section>
+<section id="clustering-unsupervised-classification" class="level3">
+<h3 class="anchored" data-anchor-id="clustering-unsupervised-classification">4.2 clustering (unsupervised classification</h3>
+<p><span id="eq-clustering"><span class="math display">\[
+f(x) = \sum_{k=1}^K \frac{1}{K} \left(\frac{1}{\sqrt{2\pi\sigma}} \right)^p \exp\left\{-\frac{1}{2\sigma^2} (x − \mu_k)^T (x − \mu_k)\right\}
+\tag{68}\]</span></span></p>
+</section>
+<section id="supervised-classification" class="level3">
+<h3 class="anchored" data-anchor-id="supervised-classification">4.3 (supervised) classification</h3>
+</section>
+</section>
+<section id="practical-considerations" class="level2">
+<h2 class="anchored" data-anchor-id="practical-considerations">5. Practical Considerations</h2>
+<section id="ensuring-numerical-stability-when-computing-class-probabilities" class="level3">
+<h3 class="anchored" data-anchor-id="ensuring-numerical-stability-when-computing-class-probabilities">5.1 Ensuring numerical stability when computing class probabilities</h3>
+<p><span id="eq-zk-sum"><span class="math display">\[
+\begin{aligned}
+\frac{z_k}{\sum_{l=1}^K z_l} &amp;= \frac{\exp\{ \log z_k \}}{\sum_{l=1}^K \exp\left\{ \log z_l \right\}} &amp;&amp;  \text{(exp and log are inverse
+functions)}\\
+&amp;= \frac{\exp\{ -b \}\exp\{ \log z_k \}}{\exp\{ -b \}\sum_{l=1}^K \exp\left\{ \log z_l \right\}} &amp;&amp; \text{(multiply and divide by
+the same quantity)} \ e^{-b} \\
+&amp;= \frac{\exp\left\{ \log z_k - b \right\}}{\sum_{l=1}^K \exp\left\{ \log z_l - b \right\}} \\
+\end{aligned}
+\tag{69}\]</span></span></p>
+<p>Although (11) is valid for any b, it should be clear that some values will work better than others for the purpose of avoiding a 0/0 calculation. In particular, we are interested in choosing a value b that makes at least one of the terms in the denominator different from zero after exponentiation. One such choice is <span class="math inline">\(b=\max_{l=1,\ldots,K} \log z_l\)</span>, which gives us</p>
+<p><span class="math display">\[
+\sum_{l=1}^K \exp\left\{ \log z_l - \max_{l=1,\ldots,K} \log z_l \right\} = 1 + \sum_{l:l \neq l^*} \exp\left\{ \log z_l - \max_{l=1,\ldots,K} \log z_l \right\}
+\]</span></p>
+<p>One key advantage of this choice is that all the terms in the sum are less or equal than one, which ensures that we do not overflow when computing <span class="math inline">\(\exp\left\{ \log z_l - \max_{l=1,\ldots,K} \log z_l \right\}\)</span>.</p>
+</section>
+<section id="numerical-consequences-of-multimodality" class="level3">
+<h3 class="anchored" data-anchor-id="numerical-consequences-of-multimodality">5.2 numerical consequences of multimodality</h3>
+<p>no math in this section</p>
+</section>
+<section id="selecting-the-number-components" class="level3">
+<h3 class="anchored" data-anchor-id="selecting-the-number-components">5.3 selecting the number components</h3>
+<p><span class="math display">\[
+\text{BIC} = -2 \ell(\hat{\theta}) + p \log(n)
+\]</span></p>
+<p>where <span class="math inline">\(\ell(\hat{\theta})\)</span> is the maximized log-likelihood, <span class="math inline">\(p\)</span> is number of free parameters, <span class="math inline">\(n\)</span> is sample size.</p>
+</section>
+<section id="fully-bayesian-inference-on-the-number-of-components" class="level3">
+<h3 class="anchored" data-anchor-id="fully-bayesian-inference-on-the-number-of-components">5.4 fully Bayesian inference on the number of components</h3>
+<p><span class="math display">\[
+f(x) = \sum_{k=1}^K \omega_k g_k(x | \theta_k) + \sum_{k=K+1}^K 0g_k(x | \theta_k)
+\]</span></p>
+<p><span class="math display">\[
+(\omega_1, \ldots, \omega_K) \sim Dirichlet( \frac{1}{K}, \ldots , \frac{1}{K} )
+\]</span></p>
+<p>where K is the number of components in the mixture model.</p>
+<p><span id="eq-expected-K"><span class="math display">\[
+\mathbb{E}(K^*)=\sum_{i=1}^m \frac{\alpha}{\alpha + i - 1} \approx \frac{\alpha \log(n + \alpha -1) }{\alpha}
+\tag{70}\]</span></span></p>
+<p>where <span class="math inline">\(\alpha\)</span> is the concentration parameter of the Dirichlet process prior, <span class="math inline">\(n\)</span> is the number of observations, and <span class="math inline">\(K^*\)</span> is the number of components in the mixture model.</p>
+</section>
+<section id="fully-bayesian-inference-on-the-partition-structure" class="level3">
+<h3 class="anchored" data-anchor-id="fully-bayesian-inference-on-the-partition-structure">5.5 fully Bayesian inference on the partition structure</h3>
+<p>Extracting formulas from <strong>Section 4.2 (“Clustering (unsupervised classification)”) to the end</strong> of <em>mixturemodels (2).pdf</em>:</p>
+<hr>
+</section>
+</section>
+<section id="section-4.2-clustering-unsupervised-classification-formulas" class="level2">
+<h2 class="anchored" data-anchor-id="section-4.2-clustering-unsupervised-classification-formulas">Section 4.2: Clustering (Unsupervised Classification) — Formulas</h2>
+<section id="hard-assignment-mode-assignment-for-em" class="level3">
+<h3 class="anchored" data-anchor-id="hard-assignment-mode-assignment-for-em">1. Hard assignment (mode assignment for EM):</h3>
+<p><span class="math display">\[
+\hat{c}_i = \arg\max_k \hat{v}_{i,k}
+\]</span></p>
+<p>where <span class="math inline">\(\hat{v}_{i,k}\)</span> are the final iteration weights.</p>
+<hr>
+</section>
+<section id="posterior-probability-of-cluster-assignment-bayesian-approach" class="level3">
+<h3 class="anchored" data-anchor-id="posterior-probability-of-cluster-assignment-bayesian-approach">2. Posterior Probability of Cluster Assignment (Bayesian approach):</h3>
+<p><span class="math display">\[
+\mathbb{P}r(c_i = k \mid x, \text{rest}) = v_{i,k}
+\]</span></p>
+<p>where <span class="math inline">\(v_{i,k}\)</span> is as defined in the EM/MCMC steps (probability that observation <span class="math inline">\(i\)</span> comes from component <span class="math inline">\(k\)</span>).</p>
+<hr>
+</section>
+</section>
+<section id="section-4.3-supervised-classification" class="level2">
+<h2 class="anchored" data-anchor-id="section-4.3-supervised-classification">Section 4.3: (Supervised) Classification</h2>
+<section id="posterior-probability-of-class-membership-ldaqdamixture-discriminant-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="posterior-probability-of-class-membership-ldaqdamixture-discriminant-analysis">3. Posterior probability of class membership (LDA/QDA/Mixture discriminant analysis):</h3>
+<p><span class="math display">\[
+\mathbb{P}r(Y = k \mid X = x) = \frac{\pi_k f_k(x)}{\sum_{l=1}^K \pi_l f_l(x)}
+\]</span></p>
+<p>where <span class="math inline">\(\pi_k\)</span> is prior class probability, <span class="math inline">\(f_k(x)\)</span> is the class-conditional density for class <span class="math inline">\(k\)</span>.</p>
+<hr>
+</section>
+<section id="for-a-mixture-model" class="level3">
+<h3 class="anchored" data-anchor-id="for-a-mixture-model">4. For a mixture model:</h3>
+<p><span class="math display">\[
+f_k(x) = \sum_{j=1}^{M_k} w_{k,j} g_{k,j}(x)
+\]</span></p>
+<p>where each class-conditional density can itself be a mixture (with weights <span class="math inline">\(w_{k,j}\)</span> and kernels <span class="math inline">\(g_{k,j}(x)\)</span>).</p>
+<hr>
+</section>
+<section id="posterior-probability-for-classification-under-mixture-model" class="level3">
+<h3 class="anchored" data-anchor-id="posterior-probability-for-classification-under-mixture-model">5. Posterior probability for classification under mixture model:</h3>
+<p><span class="math display">\[
+\mathbb{P}r(Y = k \mid X = x) = \frac{\pi_k \sum_{j=1}^{M_k} w_{k,j} g_{k,j}(x)}{\sum_{l=1}^K \pi_l \sum_{j=1}^{M_l} w_{l,j} g_{l,j}(x)}
+\]</span></p>
+<hr>
+</section>
+</section>
+<section id="section-5-practical-considerations" class="level2">
+<h2 class="anchored" data-anchor-id="section-5-practical-considerations">Section 5: Practical Considerations</h2>
+<section id="log-sum-exp-trick-for-numerical-stability" class="level3">
+<h3 class="anchored" data-anchor-id="log-sum-exp-trick-for-numerical-stability">6. Log-sum-exp trick (for numerical stability):</h3>
+<p><span class="math display">\[
+\log \left( \sum_{k=1}^K e^{a_k} \right) = a_{k^*} + \log \left( \sum_{k=1}^K e^{a_k - a_{k^*}} \right)
+\]</span></p>
+<p>where <span class="math inline">\(a_{k^*} = \max\{a_1, \ldots, a_K\}\)</span>.</p>
+<hr>
+</section>
+<section id="bayesian-information-criterion-bic" class="level3">
+<h3 class="anchored" data-anchor-id="bayesian-information-criterion-bic">7. Bayesian Information Criterion (BIC):</h3>
+<p><span class="math display">\[
+\text{BIC} = -2 \ell(\hat{\theta}) + p \log(n)
+\]</span></p>
+<p>where <span class="math inline">\(\ell(\hat{\theta})\)</span> is the maximized log-likelihood, <span class="math inline">\(p\)</span> is number of free parameters, <span class="math inline">\(n\)</span> is sample size.</p>
+<hr>
+</section>
+<section id="dirichlet-process-partition-probability" class="level3">
+<h3 class="anchored" data-anchor-id="dirichlet-process-partition-probability">8. Dirichlet process partition probability:</h3>
+<p><span class="math display">\[
+\mathbb{P}r(c_1, \ldots, c_n) = \frac{\alpha^K \prod_{k=1}^K (n_k - 1)!}{\prod_{j=1}^n (\alpha + j - 1)}
+\]</span></p>
+<p>where <span class="math inline">\(K\)</span> is number of clusters, <span class="math inline">\(n_k\)</span> is number of points in cluster <span class="math inline">\(k\)</span>, <span class="math inline">\(\alpha\)</span> is the concentration parameter.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
