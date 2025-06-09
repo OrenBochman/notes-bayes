@@ -1,5 +1,5 @@
 ---
-title: "M4L11 -Hierarchical modeling"
+title: "Hierarchical modeling - M4L11"
 subtitle: "Bayesian Statistics: Techniques and Models"
 description: "An overview of hierarchical modeling in the context of Bayesian statistics."
 categories:
@@ -18,12 +18,220 @@ keywords:
 
 ## Introduction to Hierarchical modeling
 
-![Introduction to Hierarchical modeling](images/c2l11-ss-01-Hierarchical-modeling.png){.column-margin width="200px"}
+![Introduction to Hierarchical modeling](images/c2l11-ss-01-Hierarchical-modeling.png){#fig-s10-hmodeling .column-margin width="200px" group="slides"}
+
+::: {.callout-tip}
+## What about correlated data?
+
+While the section shown the presence of correlation within groups I wonder if we really need the iid assumptions below, particularly as we are told in [@McElreath2020Rethinking] that hierarchical models can handle correlated **data**.
+:::
+
+Throughout the last few lessons, we have assumed that all the observations were independent. But more often than not this is too strong an assumption to make about our data. There is often a natural grouping to our data points which leads us to believe that some observation pairs should be more similar to each other than to others.
+
+Let's look at an example. In the previous course, we talked about using a Poisson model for counting chocolate chips in cookies.
+
+\index{chocolate chip cookies}
+Let's suppose that you own a company that produces chocolate chip cookies. 
+In an experiment, you're going to produce 150 test cookies. 
+Let's say you'll do 30 from your location and then 30 from four other factory locations.
+So let's write this as 30 from each of 5 locations. 
+We're going to assume that all the locations use the same recipe when they make their chocolate chip cookies.
+[Should we expect a cookie from your location, location one, to be more similar to another cookie from your batch than to a cookie from another locations' batch?]{.column-margin}
+I'd say probably.
+
+There's a natural grouping to the cookies. We can account for the likely differences between cookies in your Poisson model by making it a hierarchical model.
+
+The original fully independent mode for model for Poisson, the number of chips in the cookies would have looked like this. 
+
+$$
+N=150 \quad \text{number of cookies}
+$$
+
+$$ 
+B=30 \quad \text{from each locations}
+$$
 
 
-## Normal hierarchical model
+Let's call this the fully independent model. 
 
-Handout: [Normal hierarchical model](handouts/c2l11-correlation-hierarhcical-normal-model.pdf)
+$$
+y_i \mid \lambda \stackrel{iid}{\sim} \mathrm{Pois}(\lambda) \qquad i=1, \ldots, N \quad \text {(independent model)}
+$$ {#eq-indep-model}
+
+where $\lambda$ is the expected number of chips per cookie.
+
+$$
+\begin{aligned}
+y_i \mid l_i, \lambda_{l_i}  &\stackrel{iid}{\sim} \mathrm{Pois}(\lambda_{l_i}) & i=1, \ldots, N \\
+\lambda_{l_i} |\alpha, \beta &\sim \mathrm{Gamma}(\alpha, \beta) & l_i = 1, \ldots, B \\
+\alpha  &\sim \mathrm{Prior}(\alpha) & \text {(hyperparameters)} \\
+\beta  &\sim \mathrm{Prior}(\beta) & \text {(hyperparameters)}
+\end{aligned}  
+\quad \text {(location dependant model)}
+$$
+
+
+
+## Correlations within the Normal hierarchical model (Reading)
+
+This section is based on the handout titled [Correlation from hierarchical models](handouts/c2l11-correlation-hierarchical-normal-model.pdf) which deep dives into aspects of correlated quantities within hierarchical models by considering the special case of a Normal model. 
+
+
+
+### Correlated data
+
+In the supplementary material from Module 2, we introduced covariance and correlation.
+
+Recall that [covariance between two random variables is defined as:]{.mark}
+
+$$
+\sigma_{xy} = \mathbb{C}ov(X,Y) = \mathbb{E}[(X − \mu_x)(Y − \mu_y)]
+$$
+
+where:
+
+- $\mu_x = \mathbb{E}(X)$ and 
+- $\mu_y = \mathbb{E}(Y)$. 
+
+And that [Correlation between X and Y is defined as:]{.mark}
+$$
+\rho_{xy} = \mathbb{C}or(X,Y) = \frac{\mathbb{C}ov(X,Y)}{\sqrt{\mathbb{V}ar(X) \cdot \mathbb{V}ar(Y)}} = \frac{\sigma_{xy}}{\sqrt{\sigma^2_x \cdot \sigma^2_y}}.
+$$
+
+Correlation measures the strength of linear relationship between two variables. Covariance has a useful mathematical property which we will use below. 
+
+If $a, b, c, d$ are constants, and $X,Y$ are random variables then
+
+$$
+\begin{aligned}
+\mathbb{C}ov(a + bX, c + dY) &= \mathbb{C}ov(a, c) + \mathbb{C}ov(a, dY) + \mathbb{C}ov(bX, c) + \mathbb{C}ov(bX, dY) \\
+ &= \mathbb{C}ov(a,c) + \mathbb{C}ov(a,dY ) + \mathbb{C}ov(bX,c) + \mathbb{C}ov(bX,dY ) \\
+&= 0 + 0 + 0 + b \cdot \mathbb{C}ov(X,Y ) \cdot d \\
+&= b \cdot d \cdot \sigma_{xy} ,
+\end{aligned}
+$$
+
+where the 0 terms are due to the fact that constants do not co-vary with anything.
+
+In the examples from this lesson, we use hierarchical models when the data were grouped in some way, so that two observations from the same group were assumed to be more similar than two observations from different groups. [We would therefore expect two observations from the same group to be correlated.]{.mark} It turns out that hierarchical models do correlate such variables, as we will demonstrate with a normal hierarchical model.
+
+### Normal hierarchical model
+
+Suppose our data come from a normal distribution, where each group has its own mean.
+
+In the second stage, we assume that all the group means come from a common normal
+distribution.
+
+Let's write this hierarchical model. We $y_{i,j}$ denote the $i$ th observation in group $j$, with mean $\theta_j$. Thus we get:
+$$
+\begin{aligned}
+y_{i,j} \mid \theta_j &\stackrel{iid}{\sim} \mathcal{N}(\theta_j, \sigma^2) \\
+\theta_j &\stackrel{iid}{\sim} \mathcal{N}(\mu, \tau^2)
+\end{aligned}
+$$
+
+where $\sigma^2$, $\tau^2$, and $\mu$ are known constants. To get the marginal distribution of $y_{i,j}$ only, we must compute:
+
+$$
+\begin{aligned}
+\mathbb{P}r(y_{i,j}) &= \int \mathbb{P}r(y_{i,j}, \theta_j) d\theta_j \\
+&= \int \mathbb{P}r(y_{i,j} \mid \theta_j) \mathbb{P}r(\theta_j) d\theta_j
+\end{aligned}
+$$
+
+With normally distributed variables, it is often easier to work with the following equivalent formulation of the model
+
+$$
+\begin{aligned}
+\theta_j &= \mu + \nu_j, & \nu_j &\stackrel{iid}{\sim} \mathcal{N}(0, \tau^2) \\
+y_{i,j} &= \theta_j + \epsilon_{i,j}, & \epsilon_{i,j} &\stackrel{iid}{\sim} \mathcal{N}(0, \sigma^2)
+\end{aligned}
+$$
+
+with all $\nu_j$ and $\epsilon_{i,j}$ independent. This allows us to substitute $\theta_j$ into the expression for $y_{i,j}$ to get
+$$
+y_{i,j} = \mu + \nu_j + \epsilon_{i,j}.
+$$
+
+One nice property of normal random variables is that if $X$ and $Y$ are both normally distributed (correlated or uncorrelated), then the new variable $X + Y$ will also be normally distributed. Hence $\mathbb{P}r(y_{i,j})$ is a normal distribution with mean
+
+$$
+\begin{aligned}
+\mathbb{E}(y_{i,j}) &= \mathbb{E}(\mu + \nu_j + \epsilon_{i,j}) \\
+&= E(\mu) + E(\nu_j) + E(\epsilon_{i,j}) \\
+&= \mu + 0 + 0 \\
+&= \mu
+\end{aligned}
+$$
+
+and variance
+
+$$
+\begin{aligned}
+\mathbb{V}ar(y_{i,j}) =& \mathbb{V}ar(\mu + \nu_j + \epsilon_{i,j} ) \\
+=& \mathbb{C}ov(\mu + \nu_j + \epsilon_{i,j} , \mu + \nu_j + \epsilon_{i,j} ) \\
+=& \mathbb{C}ov(\mu,\mu) + \mathbb{C}ov(\nu_j ,\nu_j ) + \mathbb{C}ov(\epsilon_{i,j} ,\epsilon_{i,j} ) \\
+ &          + 2 \cdot \mathbb{C}ov(\mu,\nu_j ) + 2 \cdot \mathbb{C}ov(\mu,\epsilon_{i,j} ) \\
+ &          + 2 \cdot \mathbb{C}ov(\nu_j ,\epsilon_{i,j} ) \\
+=& 0 + \mathbb{V}ar(\nu_j ) + \mathbb{V}ar(\epsilon_{i,j} ) + 0 + 0 + 0 &&& \text{(since } \nu_j \text{ and } \epsilon_{i,j} \text{ are independent)} \\
+=& \tau^2 + \sigma^2 .
+\end{aligned}
+$$
+
+Now, we want to show that observations in the same group are correlated under this
+hierarchical model. 
+
+Let's take, for example, observations 1 and 2 from group $j, y_{1,j}$ and $y_{2,j}$.
+It does not matter which two you select, as long as they are from the same group. We know that $\mathbb{V}ar(y_{1,j}) = \mathbb{V}ar(y_{2,j}) = \tau^2 + \sigma^2$. What about their covariance?
+
+$$
+\begin{aligned}
+\mathbb{C}ov(y_{1,j},y_{2,j}) &= \mathbb{C}ov(\mu + \nu_j + \epsilon_{2,j}, \mu + \nu_j + \epsilon_{2,j}) \\
+&= \mathbb{C}ov(\mu,\mu) + \mathbb{C}ov(\nu_j,\nu_j) 
+                         + \mathbb{C}ov(\epsilon_{1,j},\epsilon_{2,j}) 
+                         + 2 \cdot \mathbb{C}ov(\mu,\nu_j)
+                         + \mathbb{C}ov(\mu,\epsilon_{1,j}) 
+                         + \mathbb{C}ov(\mu,\epsilon_{2,j}) 
+                         + \mathbb{C}ov(\nu_j,\epsilon_{1,j}) 
+                         + \mathbb{C}ov(\nu_j,\epsilon_{2,j}) \\
+&= 0 + \mathbb{V}ar(\nu_j) + 0 
+                           + 2 \cdot 0 
+                           + 0 + 0 + 0 
+                           + 0 \qquad \text{(as } \epsilon_{1,j} \text{ and } \epsilon_{2,j} \text{ are independent)}
+&= \tau^2
+\end{aligned}
+$$
+
+which gives us correlation:
+
+$$
+\begin{aligned}
+\mathbb{C}or(y_{1,j},y_{2,j}) &= \mathbb{C}ov(y_{1,j},y_{2,j})/\sqrt{\mathbb{V}ar(y_{1,j}) \cdot \mathbb{V}ar(y_{2,j})} \\
+&= \tau^2/\sqrt{(\tau^2 + \sigma^2) \cdot (\tau^2 + \sigma^2)} \\
+&= \tau^2/\sqrt{(\tau^2 + \sigma^2) \cdot (\tau^2 + \sigma^2)} \\
+&= \tau^2/\sqrt{(\tau^2 + \sigma^2)^2} \\
+&= \frac{\tau^2}{\tau^2 + \sigma^2}.
+\end{aligned}
+$$
+
+Finally, let's check the covariance between observations in different groups. Let’s take observation $i$ from groups 1 and 2 (again, our choices do not matter), $y_{i,1}$ and $y_{i,2}$. 
+Their covariance is
+
+$$
+\begin{aligned}
+\mathbb{C}ov(y_{i,1},y_{i,2}) &= \mathbb{C}ov(\mu + \nu_1 + \epsilon_{i,1}, \mu + \nu_2 + \epsilon_{i,2}) \\
+&= \mathbb{C}ov(\mu,\mu) + \mathbb{C}ov(\nu_1,\nu_2) + \mathbb{C}ov(\epsilon_{i,1},\epsilon_{i,2}) \\
+&\quad + \mathbb{C}ov(\mu,\nu_1) + \mathbb{C}ov(\mu,\nu_2) + \mathbb{C}ov(\mu,\epsilon_{i,1}) + \mathbb{C}ov(\mu,\epsilon_{i,2}) \\
+&\quad + \mathbb{C}ov(\nu_1,\epsilon_{i,1}) + \mathbb{C}ov(\nu_2,\epsilon_{i,2}) \\
+&= 0 + 0 + 0 + 0 + 0 + 0 + 0 + 0 + 0 \qquad \text{(as all } \epsilon \text{ and } \nu \text{ are independent)} \\
+&= 0,
+\end{aligned}
+$$
+
+which obviously yields correlation 0.
+
+[Thus, we have demonstrated that observations from the same group are correlated while observations from different groups are uncorrelated in the marginal distribution for observations.]{.mark}
+
 
 ## Applications of hierarchical modeling
 

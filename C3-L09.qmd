@@ -1,6 +1,6 @@
 ---
-title : 'M5L9 - Determining the number of components'
-subtitle : 'Bayesian Statistics: Mixture Models - Numbber'
+title : 'Determining the number of components - M5L9'
+subtitle : 'Bayesian Statistics: Mixture Models'
 categories:
   - Bayesian Statistics
 keywords:
@@ -21,10 +21,10 @@ So far we considered the number of components in the mixture model as a known an
 
 ## Bayesian Information Criteria - BIC (Video) {#sec-BIC} 
 
-![BIC](images/c3l5-ss-03-BIC.png){.column-margin width="200px"}
+![BIC](images/c3l5-ss-03-BIC.png){#fig-slide03-BIC .column-margin width="200px"}
 
 
-![BIC](images/c3l5-ss-04-BIC.png){.column-margin width="200px"}
+![BIC](images/c3l5-ss-04-BIC.png){#fig-slide04-BIC .column-margin width="200px"}
 
 
 We can consider the choice of the number of components in a mixture model as a model selection problem. In this context, we have a collection of J models, each with a different number of components. The goal is to select the model that best fits with the evidence/data while avoiding overfitting.
@@ -49,52 +49,53 @@ $$
 r_k = K - 1 + \sum_{k=1}^K \dim(\theta_k)
 $$
 
-~~### HW Bayesian Information Criteria (BIC)~~
-
-### Bayesian Information Criteria Example (Video)
+## Bayesian Information Criteria Example (Video)
 
 This is a walkthrough of the code in the next section.
 
-### Sample code: Bayesian Information Criteria (Reading)
+## Sample code: Bayesian Information Criteria (Reading)
+
+\index{BIC}
+\index{dataset, galaxies}
+
+This code sample illustrates the use of **BIC** to estimate the number of components of a Mixture Model using the galaxies dataset
+
 
 ```{r}
 #| label: lst-bayesian-information-criteria
-
-## Illustrating the use of BIC to estimate the number of components of a Mixture Model
+#| lst-label: lst-bayesian-information-criteria
+#| lst-cap: "Illustrating the use of BIC to estimate the number of components of a Mixture Model using the galaxies dataset"
 ## using the galaxies dataset
-rm(list=ls())
+rm(list=ls())    # <1>
+library(MASS)    # <2>
+data(galaxies)   # <2>
+x  = galaxies    # <3>
+n  = length(x)   # <3>
+set.seed(781209) # <4>
 
-### Loading data and setting up global variables
-library(MASS)
-data(galaxies)
-x  = galaxies
-n  = length(x)
-set.seed(781209)
+KKmax = 20              # <5>
+BIC   = rep(0, KKmax-1) # <6>
 
-KKmax = 20
-BIC   = rep(0, KKmax-1)
+w.sum  = vector("list", KKmax-1) # <7> 
+mu.sum = vector("list", KKmax-1) # <8> 
+sigma.sum = rep(0, KKmax-1)      # <9> 
 
-w.sum  = vector("list", KKmax-1)
-mu.sum = vector("list", KKmax-1)
-sigma.sum = rep(0, KKmax-1)
-
-for(KK in 2:KKmax){
+for(KK in 2:KKmax){ # <10>
   ### First, compute the "Maximum Likelihood" density estimate 
   ### associated with a location mixture of 6 Gaussian distributions 
-  ### using the EM algorithm
-  ## Initialize the parameters
-  w     = rep(1,KK)/KK
-  mu    = rnorm(KK, mean(x), sd(x))
-  sigma = sd(x)/KK
+  ### using the EM algorithm <11>
+  w     = rep(1,KK)/KK               # <12>
+  mu    = rnorm(KK, mean(x), sd(x))  # <12>
+  sigma = sd(x)/KK                   # <12>
   
-  epsilon = 0.000001
-  s       = 0
-  sw      = FALSE
-  KL      = -Inf
-  KL.out  = NULL
+  epsilon = 0.000001                 # <13>
+  s       = 0                        # <13>
+  sw      = FALSE                    # <13>
+  KL      = -Inf                     # <13>
+  KL.out  = NULL                     # <13>
   
-  while(!sw){
-    ## E step
+  while(!sw){  # <14>
+    # E-step <15>
     v = array(0, dim=c(n,KK))
     for(k in 1:KK){
       v[,k] = log(w[k]) + dnorm(x, mu[k], sigma,log=TRUE)  
@@ -103,27 +104,27 @@ for(KK in 2:KKmax){
       v[i,] = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,])))
     }
     
-    ## M step
-    # Weights
+    ## M step <16>
+    # Weights <17>
     w = apply(v,2,mean)
     mu = rep(0, KK)
-    for(k in 1:KK){
-      for(i in 1:n){
-        mu[k]    = mu[k] + v[i,k]*x[i]
+    for(k in 1:KK){ # <18>
+      for(i in 1:n){ # <19>
+        mu[k]    = mu[k] + v[i,k]*x[i] #<20>
       }
-      mu[k] = mu[k]/sum(v[,k])
+      mu[k] = mu[k]/sum(v[,k]) # <21>
     }
-    # Standard deviations
+    # Standard deviations <22>
     sigma = 0
-    for(i in 1:n){
-      for(k in 1:KK){
+    for(i in 1:n){ # <23>
+      for(k in 1:KK){ # <24>
         sigma = sigma + v[i,k]*(x[i] - mu[k])^2
       }
     }
-    sigma = sqrt(sigma/sum(v))
+    sigma = sqrt(sigma/sum(v)) # <25>
     
-    ##Check convergence
-    KLn = 0
+    ##Check convergence <26>
+        KLn = 0
     for(i in 1:n){
       for(k in 1:KK){
         KLn = KLn + v[i,k]*(log(w[k]) + 
@@ -205,49 +206,77 @@ points(x, rep(0,n))
 legend(26000, 0.00022, c("K = 6","K = 7","K = 8"), 
        lty=c(1,2,3), col=c("black","red","blue"), bty="n")
 
+```
 
-## What happens with the variance (bandwidth) as K increases
+1. Clear the environment
+2. Loading data
+3. Setting up global variables
+4. Setting a random seed for reproducibility
+5. Setting the maximum number of components to consider
+6. Initializing the BIC vector to store the BIC values for each number of components
+7. Initializing list to store the weights for each number of components
+8. Initializing list to store the means for each number of components
+9. Initializing vector to store the standard deviations for each number of components
+10. Looping over the number of components from 2 to KKmax
+11. Fitting a mixture model using the EM algorithm for each number of components
+12. Initializing the parameters of the mixture model
+13. Initializing the convergence criteria
+14. Running the EM algorithm until convergence
+15. E-step: computing the responsibilities for each component
+16. M-step: updating the weights, means, and standard deviations
+17. Checking convergence of the EM algorithm
+
+```{r}
+#| label: fig-bayesian-information-criteria-variance
+#| fig-cap: "What happens with the variance (bandwidth) as K increases"
 par(mar=c(4,4,1,1) + 0.1)
 plot(seq(2,KKmax), sigma.sum, type="l", xlab="K", 
      ylab=expression(hat(sigma)), lwd=2)
 abline(v=6, lty=3)
 ```
 
+
+
 ### Estimating the number of components in Bayesian settings (Video)
 
-The BIC has the term Bayesian in its name, but it is not a Bayesian method. It is a frequentist method that uses the likelihood of the model and the number of parameters to estimate the number of components. In contrast, Bayesian methods use the posterior distribution of the model parameters to estimate the number of components.
+[Is BIC Bayesian?]{.column-margin}
+
+\index{Bayesian Information Criteria}
+
+The **BIC** has the term *Bayesian* in its name, but it is not considered a Bayesian method. It is considered a frequentist method that uses the likelihood of the model and the number of parameters to estimate the number of components. In contrast, Bayesian methods use the posterior distribution of the model parameters to estimate the number of components.
 
 So what we want is to have a posterior estimate of the number of components. We can do this by using a Dirichlet process prior on the weights of the mixture model. The Dirichlet process is a nonparametric prior that allows for an infinite number of components, but only a finite number of them will be used in the posterior distribution.
 
 
 ### Bayesian Information Criteria (BIC) for Mixture Models
-![Estimating the number of components](images/c3l5-ss-05-estimating-number-of-components.png){.column-margin width="200px"}
+
+![Estimating the number of components](images/c3l5-ss-05-estimating-number-of-components.png){#fig-s05-bayesian-information-criteria-variance .column-margin width="200px"}
 
 
-![Estimating the number of components](images/c3l5-ss-06-estimating-number-of-components.png){.column-margin width="200px"}
+![Estimating the number of components](images/c3l5-ss-06-estimating-number-of-components.png){#fig-s06-bayesian-information-criteria-variance .column-margin width="200px"}
 
 
 - K= maximum number of components
 - K* = number of components that really generated the model
 
 $$
-K<<K*$
+K<<K*
 $$
 
 so far we used 
 
 $$
-\tilde{w} \sim Dir(1, \ldots ,1) = U(0,1)
+\tilde{w} \sim \mathrm{Dir}(1, \ldots ,1) = U(0,1)
 $$ {#eq-dirichlet-prior-uniform}
 
 but this won't work because the number of weights in the prior increases with K and has increasing influence on the posterior.  We need to use a prior that reduces the influence on the posterior as K increase like:
 $$
-\tilde{w} \sim Dir(\alpha/K, \ldots, \alpha/K)
+\tilde{w} \sim \mathrm{Dir}(\alpha/K, \ldots, \alpha/K)
 $$  {#eq-dirichlet-prior-diminishing-influence}
 
 where $\alpha$ is a hyperparameter that controls the strength of the prior. The larger the value of $\alpha$, the more influence the prior has on the posterior distribution.
 
-if $(w_1,…,w_K)∼Dir(α/K,…,α/K)$, then the expected number of occupied components is given by:
+if $(w_1,\ldots,w_K) \sim \mathrm{Dir}(\alpha/K,\ldots,\alpha/K)$, then the expected number of occupied components is given by:
 
 $$
 \begin{aligned}

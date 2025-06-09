@@ -1,5 +1,5 @@
 ---
-title: "HW on Linear Regression Model Part 1"
+title: "Homework on Linear Regression Model Part 1 - M2L5HW1"
 subtitle: "Bayesian Statistics: From Concept to Data Analysis"
 categories:
   - Bayesian Statistics
@@ -8,6 +8,17 @@ keywords:
   - Bayes' Law
   - Homework
 ---
+
+::::: {.content-visible unless-profile="HC"}
+
+::: {.callout-caution}
+Section omitted to comply with the Honor Code
+:::
+
+:::::
+
+::::: {.content-hidden unless-profile="HC"} 
+
 
 ::: {#exr-linear-reggression-part1-1}
 [Linear Regression]{.column-margin} 
@@ -22,7 +33,7 @@ which of the following gives the correct interpretation of $\beta_2$?
 :::
 
 ::: {.solution .callout-tip collapse="true"}
-#### Solution:
+## Solution:
 
 -   [ ] While holding $x_{2,i}$ constant, the expectation of $y_{i}$ is $\beta_{2}$.
 -   [ ] While holding $x_{1,i}$ and $x{3,i}$ constant, a one unit change in $x_{2,i}$ results in a $\beta_2$ change in $y_i$.
@@ -39,7 +50,7 @@ Which of the following model specifications for $E(y_i)$ is not a valid linear m
 :::
 
 ::: {.solution .callout-tip collapse="true"}
-#### Solution:
+## Solution:
 
 -   [ ] $\beta_0 + \beta_1 x_{1,i} + \beta_2 ( x_{1,i} / x_{2,i} )$
 -   [ ] $\beta_0 + \beta_1 \sin( 2 \pi x_{1,i}) + \beta_2 x_{2,i}$
@@ -49,8 +60,12 @@ Which of the following model specifications for $E(y_i)$ is not a valid linear m
 This model is not linear in the coefficients. We are free to transform the predictors and the response, but the model itself must be linear.
 :::
 
+
 ::: {#exr-linear-reggression-part1-3}
-[Linear Regression]{.column-margin} Consider the Anscombe data set in R which can be accessed with the following code:
+[Linear Regression]{.column-margin} 
+Consider the Anscombe data set in R which can be accessed with the following code:
+\index{dataset, Anscombe}
+
 
 ```{r}
 #| label: C2-L07-Ex1-1
@@ -74,8 +89,9 @@ pairs(Anscombe)  # scatter plots for each pair of variables
 Suppose we are interested in relating per-capita education expenditures to the other three variables. Which variable appears to have the strongest linear relationship with per-capita education expenditures?
 :::
 
+
 ::: {.solution .callout-tip collapse="true"}
-#### Solution:
+## Solution
 
 -   [ ] Proportion of population that is urban
 -   [ ] None of these variables appears to have a linear relationship with education expenditures.
@@ -85,6 +101,7 @@ Suppose we are interested in relating per-capita education expenditures to the o
 It appears that increases in income generally co-occur with increases in education expenditures.
 :::
 
+
 ::: {#exr-linear-reggression-part1-4}
 [Linear Regression]{.column-margin} 
 
@@ -92,6 +109,7 @@ Fit a reference (non-informative) Bayesian linear model to the Anscombe data wit
 
 What is the posterior mean estimate of the intercept in this model? Round your answer to one decimal place.
 :::
+
 
 ```{r}
 #| label: C2-L07-Ex1-4
@@ -123,7 +141,7 @@ for (i in 1:6) {
 ```
 
 ::: {.solution .callout-tip collapse="true"}
-#### Solution:
+## Solution:
 
 $$
 -286.84
@@ -132,12 +150,14 @@ $$
 Proper MCMC algorithms come with a theoretical guarantee of eventual convergence to the target distribution. Chains with very high autocorrelation may require an impractical number of iterations, but it is worth checking to see if a longer chain yields acceptable results.
 :::
 
+
 ::: {#exr-linear-reggression-part1-5}
 [Linear Regression]{.column-margin} In our reference analysis of the Anscombe data, the intercept is estimated to be negative. Does this parameter have a meaningful interpretation?
 :::
 
+
 ::: {.solution .callout-tip collapse="true"}
-#### Solution:
+## Solution:
 
 -   [ ] Yes, it represents expected expenditures in a state with average income, average percent youth, and average percent urban.
 -   [ ] No, there must be something wrong with the model because expenditures can never be negative.
@@ -148,6 +168,7 @@ Although this parameter is **not very interpretable** in this particular example
 
 [One strategy for making the intercept more interpretable would be to subtract the averages of the predictors from their values (i.e., $x_{1,i}^∗=(x_{1,i}−\bar{x}_1)$ ). Then the intercept would represent expected expenditures in a state with average income, average percent youth, and average percent urban.]{.mark}
 :::
+
 
 ::: {#exr-linear-reggression-part1-6}
 [Linear Regression]{.column-margin} 
@@ -162,7 +183,7 @@ library("rjags")
 mod_string = " model {
     for (i in 1:length(education)) {
         education[i] ~ dnorm(mu[i], prec) # <1>
-        mu[i] = b0 + b[1] * income[i] + b[2] * young[i] + b[3] * urban[i] # <2
+        mu[i] = b0 + b[1] * income[i] + b[2] * young[i] + b[3] * urban[i] # <2>
     }
     
     b0 ~ dnorm(0.0, 1.0 / 1.0e6) # <3>
@@ -199,6 +220,12 @@ autocorr.diag(mod_sim)
 #autocorr.plot(mod_sim)
 # we should combine the chains before running this plot
 ```
+1. the likelihood, here `perc` is the variance of the normal distribution.
+2. the linear part of the model
+2. Prior for the intercept.
+3. Priors for the coefficients.
+4. Initial guess of variance based on overall variance of education variable. 
+   Uses low prior effective sample size. Technically, this is not a true 'prior', but it is not very informative.
 
 ```{r}
 #| label: fig-linear-regression-part1-6-2
@@ -223,20 +250,15 @@ effectiveSize(mod_sim)
 summary(mod_sim)
 ```
 
-1. the likelihood, here `perc` is the variance of the normal distribution.
-2. the linear part of the model
-2. Prior for the intercept.
-3. Priors for the coefficients.
-4. Initial guess of variance based on overall variance of education variable. 
-   Uses low prior effective sample size. Technically, this is not a true 'prior', but it is not very informative.
 
 Before proceeding to inference, we should check our model.
 
 The first step is to check our MCMC chains. Do there appear to be any problems with the chains?
 :::
 
+
 ::: {.solution .callout-tip collapse="true"}
-#### Solution:
+## Solution:
 
 -   [ ] Yes, scale reduction factors are well above 1.0. The chains are not exploring the same distribution.
 -   [ ] Yes, there is very high autocorrelation for sig. We should help the chain for sig by fixing the initial value.
@@ -246,12 +268,14 @@ The first step is to check our MCMC chains. Do there appear to be any problems w
 MCMC algorithms are based on a process guaranteeing convergence to a stationary distribution.
 :::
 
+
 ::: {#exr-linear-reggression-part1-7}
 [Linear Regression]{.column-margin} Which of the following is **not** a condition we can check using a residual plot with predicted values on the x-axis and residuals on the y-axis?
 :::
 
+
 ::: {.solution .callout-tip collapse="true"}
-#### Solution:
+## Solution:
 
 -   [ ] Linearity of the relationship between predictors and the response
 -   [ ] Presence of outliers
@@ -260,6 +284,7 @@ MCMC algorithms are based on a process guaranteeing convergence to a stationary 
 
 One way to check this assumption is by plotting predicted values against the data index. In the Anscombe data, we could check to see if residuals are more similar for states that are geographically close than for states that are not geographically close. If that is true, there may be spatial correlation in the data.
 :::
+
 
 ::: {#exr-linear-reggression-part1-8}
 
@@ -271,12 +296,13 @@ One way to check this assumption is by plotting predicted values against the dat
  
 plot(mod_0,which = 1)
 # here mod_lm is the object saved when you run lm()
-
 ```
+
 :::
 
+
 ::: {.solution .callout-tip collapse="true"}
-#### Solution:
+## Solution:
 
 -   [ ] Yes, the observations appear not to be independent.
 -   [ ] Yes, there is a curved pattern or shape to the residuals, indicating a nonlinear relationship between the variables.
@@ -285,4 +311,7 @@ plot(mod_0,which = 1)
 -   [ ] Yes, there are a few extreme outliers.
 
 There is no obvious pattern to these points besides the variability of the residuals. There are alternative versions of linear models that address this issue, but we will not pursue them in this course.
+
 :::
+
+:::::
