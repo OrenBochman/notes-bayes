@@ -44,32 +44,41 @@ f(\theta \mid y) & = \frac{f(y \mid \theta) f(\theta)}{\int f(y \mid \theta)f(\t
 $$
 
 
-Where we used a trick of recognizing the denominator as a Beta distribution (@eq-beta-pdf) we then manipulate it to take the exact form of Beta. We can then cancel it since the beta density integrates to $1$, we can simplify this as From here we can see that the posterior follows a beta distribution
+Where we used a trick of recognizing the denominator as a *Beta distribution* (@eq-beta-pdf) we then manipulate it to take the exact form of *Beta*. 
+We can then cancel it since the *Beta density* integrates to $1$, we can simplify this as From here we can see that the posterior follows a *Beta distribution*
 
 $$
- \theta | y \sim Beta(\sum{y_i} + 1, n - \sum{y_i} + 1)
- $$
+\theta \mid y \sim \mathrm{Beta}\left (\sum{y_i} + 1, n - \sum{y_i} + 1 \right )
+$$
+
+\index{Fisher, R.A.}
+\index{{Fisher, Ronald Aylmer}| \see{Fisher, R.A.}}
+\index{{Fisher, Ronald}| \see{Fisher, R.A.}}
+\index{Jeffreys, Harold}
+
+![R.A. Fisher](images/bio-rafisher.jpg){#fig-rafisher .column-margin width="200px"} 
 
 ::: {.callout-tip}
-## Historical Note on R.A. Fisher
+## Historical Note on Sir Ronald Aylmer Fisher FRS
 
-![R.A. Fisher](images/bio-rafisher.jpg){#fig-rafisher .column-margin} R.A. Fisher's objection to the Bayesian approach is that "The theory of inverse probability **is founded upon an error, and must be wholly rejected"** [@Fisher1925Statistical] was specifically referring to this example of a"Binomial with a Uniform prior". The gist of it is that the posterior depends on the parametrization of the prior.[@Aldrich2008Fisher]. R.A. Jeffry who corresponded with Fisher went on to develop his eponymous priors which were invariant to reparametrization. Which we will consider in [@sec-jeffreys-prior]
+R.A. Fisher's objection to the Bayesian approach is that "The theory of inverse probability **is founded upon an error, and must be wholly rejected"** [@Fisher1925Statistical] was specifically referring to this example of a "Binomial with a Uniform prior". The gist of it is that the posterior depends on the parametrization of the prior.[@Aldrich2008Fisher]. Sir Harold Jeffreys FRS who corresponded with Fisher went on to develop his eponymous priors which were invariant to reparametrization. Which we will consider in [@sec-jeffreys-prior]
+
 :::
 
-## Conjugate Priors
-
-![Conjugate Priors](images/c1l07-ss-03-conjugate-priors.png){.column-margin width="200px"}
+## Conjugate Priors {#sec-conjugate-beta-priors}
 
 
+![Conjugate Priors](images/c1l07-ss-03-conjugate-priors.png){#fig-s03-conjugate-priors .column-margin width="200px"}
 
 
-The uniform distribution is $Beta(1, 1)$
 
-Any beta distribution is conjugate for the Bernoulli distribution. Any beta prior will give a beta posterior.
+The Uniform distribution is $\mathrm{Beta}(1, 1)$
+
+Any beta distribution is conjugate for the *Bernoulli distribution*. Any *beta prior* will give a *beta posterior*.
 
 $$
 f(\theta) = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)}\theta^{\alpha - 1}(1-\theta)^{\beta -1}\mathbb{I}_{\{\theta \le \theta \le 1\}}
-$$
+$$ 
 
 $$
 f(\theta \mid y) \propto f(y \mid \theta)f(\theta) = \theta^{\sum{y_i}}(1-\theta)^{n - \sum{y_i}}\frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)}\theta^{\alpha - 1}(1 - \theta)^{\beta - 1}\mathbb{I}_{\{\theta \le \theta \le 1\}}
@@ -93,22 +102,24 @@ A family of distributions is referred to as conjugate if when you use a member o
 
 The beta distribution is conjugate for the Bernoulli distribution. It's also conjugate for the binomial distribution. The only difference in the binomial likelihood is that there is a combinatorics term. Since that does not depend on $\theta$, we get the same posterior.
 
+\index{conjugate prior}
 We often use conjugate priors because they make life much simpler, sticking to conjugate families allows us to get closed-form solutions easily.
 
 If the family is flexible enough, then you can find a member of that family that closely represents your beliefs.
 
--   the Uniform distribution can be written as the Beta(1,1) prior.
--   Any Beta prior will give a Beta posterior.
--   Beta is conjugate for Binomial and for Bernoulli
+-   the Uniform distribution can be written as the $\mathrm{Beta}(1,1)$ prior.
+-   Any *Beta prior* will result in a *Beta posterior*.
+-   *Beta* is conjugate for Binomial and for Bernoulli
 
-## Posterior mean and effective sample size
+## Posterior mean and effective sample size {#sec-effective-sample-size}
 
-![Effective Sample Size](images/c1l07-ss-04-effective-sample-size.png){.column-margin width="200px"}
+![Effective Sample Size](images/c1l07-ss-04-effective-sample-size.png){#fig-s04-effective-sample-size .column-margin width="200px"}
 
 
-Returning to the beta posterior model it is clear how both the prior and the data contribute to the posterior.
 
-For a prior $Beta(\alpha,\beta)$ we can say that the **effective sample size** of the prior is 
+Returning to the *Beta* posterior model it is clear how both the prior and the data contribute to the posterior.
+
+For a prior $\mathrm{Beta}(\alpha,\beta)$ we can say that the **effective sample size** of the prior is 
 
 $$
 \alpha + \beta \qquad \text {(ESS)}
@@ -125,19 +136,25 @@ $$
 \\                  &= \frac{\alpha + \beta}{\alpha + \beta + n}\frac{\alpha}{\alpha + \beta} + \frac{n}{\alpha + \beta + n}\frac{\sum{y_i}}{n}
 \\ &= (\text{prior weight} \times \text{prior mean}) + (\text{data weight} \times \text{data mean})
 \end{aligned}
-$$ {#eq-beta-posterior-mean}
+$$ {#eq-beta-posterior-mean-derivation}
 
 i.e. The **posterior mean** is a weighted average of the **prior mean** and the **data mean**.
 
 This effective sample size gives you an idea of how much data you would need to make sure that your prior does not have much influence on your posterior.
 
-If $\alpha + \beta$ is small compared to $n$ then the posterior will largely just be driven by the data. If $\alpha + \beta$ is large relative to $n$ then the posterior will be largely driven by the prior.
+If $\alpha + \beta$ is small compared to $n$ then the posterior will largely just be driven by the data. 
+If $\alpha + \beta$ is large relative to $n$ then the posterior will be largely driven by the prior.
 
-We can make a 95% credible interval using our posterior distribution for $\theta$ . We can find an interval that has $95 \%$ probability of containing $\theta$.
+We can make a 95% credible interval using our posterior distribution for $\theta$ . 
+We can find an interval that has $95 \%$ probability of containing $\theta$.
 
-Using Bayesian Statistics we can do sequential analysis by doing a sequential update every time we get new data. We can get a new posterior, and we just use our previous Posterior as a Prior for doing another update using Bayes' theorem.
+\index{effective sample size}
+\index{sequential analysis}
+Using Bayesian Statistics we can do *sequential analysis* by doing a sequential update every time we get new data. We can get a new posterior, and we just use our previous Posterior as a Prior for doing another update using Bayes' theorem.
 
--   for a Beta prior, its effective sample size is a + b
+![ESS algorithms](images/c1l07-ss-03-ess-paper.jpg){#fig-ess-paper .column-margin width="200px"}
+
+-   for a *Beta prior*, its *effective sample size* is $a + b$
 -   if $n >> \alpha+\beta$ the posterior will be predominantly determined by the prior
 -   if $n << \alpha+\beta$ the posterior will be predominantly determined by the data
 -   the idea of an effective sample size of the prior is a useful concept to work with.
@@ -146,21 +163,38 @@ Using Bayesian Statistics we can do sequential analysis by doing a sequential up
 
     -   Effective Current Sample size (ECSS)
 
-    -   ![ESS algorithms](images/c1l07-ss-03-ess-paper.jpg)
-
     -   with [@morita2008determining] on the left and ECSS on the right
 
-:::: {#exr-prior-elicitation}
+![200 year meteorological record](images/20200324_Global_average_temperature_-_NASA-GISS_HadCrut_NOAA_Japan_BerkeleyE.svg){#fig-200-year-meterological .column-margin width="200px"}
+
+![800K year ice core record](images/EPICA_temperature_plot.svg){#fig-800K-year-ice-core .column-margin width="200px"}
+
+![5M year deep sea record](images/Five_Myr_Climate_Change.png){#fig-five-year-deep-sea .column-margin width="200px"}
+
+::: {#exr-prior-elicitation}
 ## Discussion on Prior elicitation
 
-Suppose we are interested in global temperatures, and that we have a summary measure that represents the average global temperature for each year. Now we could ask "What is the probability that next year will have a higher average global temperature than this year?" What would be your choice of prior and why? Be specific about the distribution and its parameters. You may use any other information that you want to bring into this problem.
+> Suppose we are interested in global temperatures, and that we have a summary measure that represents the average global temperature for each year. 
+> Now we could ask "What is the probability that next year will have a higher average global temperature than this year?" 
+> What would be your choice of prior and why? 
+> Be specific about the distribution and its parameters. 
+> You may use any other information that you want to bring into this problem.
 
-::: solution
+:::
+
+
+::: {.callout-tip collapse="true"}
+## Response {.unnumbered}
+
 It is possible to get historical estimates using:
 
-- meteorological and satellites for the last 200 years. ![200 year meterological record](images/20200324_Global_average_temperature_-_NASA-GISS_HadCrut_NOAA_Japan_BerkeleyE.svg){.column-margin width="200px"}
-- ice cores for the last 800,000 years ![800K year ice core record](images/EPICA_temperature_plot.svg){.column-margin width="200px"}
-- deep sea sediment oxygen 18 isotope fractation for the last 5 million years. ![5M year deep see record](images/Five_Myr_Climate_Change.png){.column-margin} or yearly temperature data from 1850 till today based on meteorological readings. We can also consider Greenland ice core data covering 800,000 years.
+- Meteorological and satellites for the last 200 years. @fig-200-year-meterological
+
+- Ice cores for the last 800,000 years @fig-800K-year-ice-core
+
+- Deep sea sediment oxygen 18 isotope fractation for the last 5 million years. @fig-five-year-deep-sea
+
+or yearly temperature data from 1850 till today based on meteorological readings. We can also consider Greenland ice core data covering 800,000 years.
 
 One simple way is to model the yearly temperature as a random walk
 
@@ -169,8 +203,6 @@ i.e. Each year is a Bernoulli trial where success is the temperature getting war
 I suppose we can use a Binomial prior with parameters for alpha the count of years the temperature increased and N for the total number of years and p the probability the a given year is hotter than the previous.
 
 :::
-
-::::
 
 ## Data Analysis Example in R
 
@@ -211,13 +243,17 @@ plot(theta, dbeta(theta, 8, 4), type = 'l')
 #[1] 0.16113392
 ```
 
-5.  Suppose the first student gets 33 questions right. What is the posterior distribution for $\theta_1$ ? $\mathbb{P}r(\theta > 0.25)$ ? $\mathbb{P}r(\theta > 0.5)$ ? $\mathbb{P}r(\theta > 0.8)$ ? What is the 95% posterior credible interval for $\theta_1$? 
+5.  Suppose the first student gets 33 questions right. 
+What is the posterior distribution for $\theta_1$ ? $\mathbb{P}r(\theta > 0.25)$ ? 
+$\mathbb{P}r(\theta > 0.5)$ ? 
+$\mathbb{P}r(\theta > 0.8)$ ? 
+What is the 95% posterior credible interval for $\theta_1$? 
 
-    $$
-    \text{Posterior} \sim Beta(8 + 33, 4 + 40 - 33) = Beta(41, 11)
-    $$ 
+$$
+\text{Posterior} \sim \mathrm{Beta}(8 + 33, 4 + 40 - 33) = \mathrm{Beta}(41, 11)
+$$
     
-    With a posterior mean of $\frac{41}{41+11} = \frac{41}{52}$
+With a posterior mean of $\frac{41}{41+11} = \frac{41}{52}$
 
 We can plot the posterior distribution with the prior
 
@@ -254,7 +290,7 @@ qbeta(0.975, 41, 11)
 6.  Suppose the second student gets 24 questions right. What is the posterior distribution for $\theta_2$? $\mathbb{P}r(\theta > 0.25)$? $\mathbb{P}r(\theta > 0.5)$? $\mathbb{P}r(\theta > 0.8)$? What is the 95% posterior credible interval for $\theta_2$
 
 $$
-\text{Posterior} \sim Beta(8 + 24, 4 + 40 - 24) = Beta(32, 20)
+\text{Posterior} \sim \mathrm{Beta}(8 + 24, 4 + 40 - 24) = \mathrm{Beta}(32, 20)
 $$
 
 With a posterior mean of $\frac{32}{32+20} = \frac{32}{52}$
