@@ -17,11 +17,14 @@ keywords:
 
 ## Introduction to linear regression {#sec-introduction-to-linear-regression}
 
-![Introduction to linear regression](images/c2l07-ss-01-Linear-Regression.png){.column-margin width="200px"}
+![Introduction to linear regression](images/c2l07-ss-01-Linear-Regression.png){.column-margin width="53mm"}
 
-We discussed linear regression briefly in the previous course. And we fit a few models with non-informative priors. Here, we'll provide a brief review, demonstrate fitting linear regression models in JAGS And discuss a few practical skills that are helpful when fitting linear models in general. \index{regression, linear}
+\index{regression!linear}
+We discussed linear regression briefly in the previous course. And we fit a few models with non-informative priors. Here, we'll provide a brief review, demonstrate fitting linear regression models in JAGS And discuss a few practical skills that are helpful when fitting linear models in general. 
 
-This is not meant to be a comprehensive treatment of **linear models**, which you can find in numerous courses and textbooks. \index{linear model}
+
+\index{linear model}
+This is not meant to be a comprehensive treatment of **linear models**, which you can find in numerous courses and textbooks. 
 
 Linear regression is perhaps the simplest way to relate a continuous response variable to multiple explanatory variables.
 
@@ -39,9 +42,9 @@ This describes the mean, and then we would also add an error, individual term fo
 Equivalently we can write this model for $y_i$ directly as $y_i$ given all of the $x_i$ values, betas and a constant variance $\sigma^2$. Again, $k$ is the number of predictor variables.
 
 $$
-y_i\mid x_i,\beta_i,\sigma^2 \sim N(\beta_0+\beta_1 x_i +\ldots+ \beta_k x_k, \sigma^2)
-\\ \beta_i \sim \mathbb{P}r(\beta_i) 
-\\ \sigma^2 \sim \mathbb{P}r(\sigma^2)
+y_i\mid x_i,\beta_i,\sigma^2 \sim N(\beta_0+\beta_1 x_i +\ldots+ \beta_k x_k, \sigma^2)\\ 
+\beta_i \sim \mathbb{P}r(\beta_i) \\ 
+\sigma^2 \sim \mathbb{P}r(\sigma^2)
 $$ {#eq-linear-regression-normal}
 
 This yields the following graphical model structure.
@@ -117,13 +120,14 @@ $$ {#eq-beta-interpretation}
 That's true for all of the x variables.
 :::
 
+
 ::: {.callout-warning}
 ### Regression assumptions {.unnumbered}
 
 We're going to assume that
 
--   The $y$s are independent of each other, given the $x$s.
--   The $y_i$s have the same variance.
+-   The $y$ s are independent of each other, given the $x$ s.
+-   The $y_i$ s have the same variance.
 -   The residuals are normally distributed with mean 0 and variance $\sigma^2$.
 
 These are actually strong assumptions that are not often not realistic in many situations.
@@ -135,13 +139,14 @@ We'll look at some hierarchical methods in the coming lessons.
 
 ### Priors {#sec-priors}
 
+\index{prior}
 The model is not complete until we add the prior distributions.
 
 So we might say $\beta_0$ comes from its prior.
 
 $\beta_1$ would come from its prior, and so forth for all the $\beta$s. And sigma squared would come from its prior.
 
-The most common choice for prior on the $\beta$s, is a **Normal distribution**. Or we can do a Multivariate normal for all of the betas at once.
+The most common choice for prior on the $\beta$ s, is a **Normal distribution**. Or we can do a Multivariate normal for all of the betas at once.
 
 [This is conditionally conjugate and allows us to do Gibbs sampling.]{.marked}
 
@@ -149,7 +154,11 @@ If we want to be non-informative, we can choose $Normal(0,\sigma^2=1e6)$ priors 
 
 We can also use the *conditionally conjugate* **InverseGamma()** prior for $\sigma^2$ that we're familiar with.
 
-Another common prior for the betas is **Double exponential**, or the **Laplace prior**, or **Laplace distribution**. \index{Double exponential} \index{Laplace prior} \index{Laplace distribution}
+Another common prior for the betas is **Double exponential**, or the **Laplace prior**, or **Laplace distribution**. 
+
+\index{distribution!double exponential} 
+\index{distribution!Laplace}
+\index{prior!Laplace} 
 
 The Laplace prior has this density:
 
@@ -241,13 +250,13 @@ More information is available from:
 
 # Lesson 7.2 Code - Setup & Data {#sec-setup-data}
 
-\index{dataset, Leinhardt} 
+\index{dataset!Leinhardt} 
 As an example of linear regression, we'll look at the  *Leinhardt* data from the `car` package in R.
 
 ```{r}
 #| label: load-data-Leinhardt
 data("Leinhardt")   # <1>
-?Leinhardt         # <2>
+?Leinhardt          # <2>
 head(Leinhardt)     # <3>
 ```
 
@@ -310,12 +319,8 @@ this indicates that we may do better if we do a **log transform** on these two v
 ```{r}
 #| label: fig-log-log-transform
 #| fig-cap: "log log transformed infant mortality vs income"
-
-
 Leinhardt$loginfant = log(Leinhardt$infant) # <1>
 Leinhardt$logincome = log(Leinhardt$income) # <2>
-
-
 plot(loginfant ~ logincome,data=Leinhardt)  # <3>
 ```
 
@@ -328,7 +333,6 @@ Since infant mortality and per capita income are positive and right-skewed quant
 ```{r}
 #| label: fig-log-log-transformed-scaterplot
 #| fig-cap: "log log transformed infant mortality vs income scatterplot"
-
 scatterplot(loginfant ~ logincome,data=Leinhardt) # <1>
 ```
 
@@ -339,11 +343,9 @@ scatterplot(loginfant ~ logincome,data=Leinhardt) # <1>
 #| echo: false
 #| error: false
 #| warning: false
-
 library(ggstatsplot)
 
 Leinhardt$country = row.names(Leinhardt)
-
 
 plt <- ggscatterstats(Leinhardt, x=logincome, y=loginfant,  type = "bayes",  conf.level = 0.95,  bf.prior = 0.707, 
                       # show row name
@@ -565,7 +567,7 @@ resid1 = data1_jags$y - yhat1       # <2>
 plot(resid1) # <3>
 ```
 
-1.  we are evaluating $\\hat{y} = b_0 \times 1 + b_1 \times x_1$ via matrix multiplication of \[1, data1_jags\$log_income\] \*\[b_0,b_1\]
+1.  we are evaluating $\hat{y} = b_0 \times 1 + b_1 \times x_1$ via matrix multiplication of \[1, data1_jags\$log_income\] \*\[b_0,b_1\]
 2.  $res_i = y_i- \hat y = y_i - (b_0 \times 1 + b_1 \times x_{1,i})$
 3.  plots the residual against the data index
 
@@ -815,7 +817,7 @@ effectiveSize(mod3_sim)
 
 ## Compare models using Deviance information criterion (DIC) {#sec-compare-models-using-deviance-information-criterion-dic}
 
-\index{DIC|\see {Deviance information criterion}}
+\index{DIC|see {Deviance information criterion}}
 \index{Deviance information criterion}
 We have now proposed three different models. How do we compare their performance on our data? In the previous course, we discussed estimating parameters in models using the maximum likelihood method. Similarly, we can choose between competing models using the same idea.
 
@@ -848,6 +850,8 @@ The first number is the Monte Carlo estimated posterior mean deviance, which equ
 
 Next, we are given a penalty for the complexity of our model. This penalty is necessary because we can always increase the likelihood of the model by making it more complex to fit the data exactly. We don't want to do this because over-fit models generalize poorly. This penalty is roughly equal to the effective number of parameters in your model. You can see this here. With the first model, we had a variance parameter and two betas, for a total of three parameters. In the second model, we added one more beta for the oil effect.
 
+\index{Deviance information criterion}
+\index{model selection}
 We add these two quantities to get the DIC (the last number). The better-fitting model has a lower DIC value. In this case, the gains we receive in deviance by adding the `is_oil` covariate outweigh the penalty for adding an extra parameter. The final DIC for the second model is lower than for the first, so we would prefer using the second model.
 
 We encourage you to explore different model specifications and compare their fit to the data using DIC. [Wikipedia](https://en.wikipedia.org/wiki/Deviance_information_criterion) provides a good introduction to DIC and we can find more details about the `JAGS` implementation through the `rjags` package documentation by entering `?dic.samples` in the `R` console.
@@ -909,6 +913,8 @@ The blue line is there to aid the eye - it should ideally be relatively close to
 
 ### QQ plot of the residuals {#sec-qq-plot-of-the-residuals}
 
+\index{chart!QQ plot}
+\index{residual analysis}
 This plot shows if residuals are normally distributed. Do residuals follow a straight line well or do they deviate severely?
 
 The regression is valid if the residuals are lined well on the straight dashed line.
@@ -937,6 +943,8 @@ in this case: - most of the points are to the right - the red line is almost fla
 
 ### Cook's Distance {#sec-cooks-distance}
 
+\index{Cook's distance}
+\index{influence measures}
 -   Originally introduced in [@cook1977a] [Cook’s Distance](https://en.wikipedia.org/wiki/Cook%27s_distance) is an estimate of the influence of a data point.
 -   It takes into account both the leverage and residual of each observation.
 -   Cook’s Distance is a summary of how much a regression model changes when the ith observation is removed.
