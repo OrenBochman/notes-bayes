@@ -1,2325 +1,421 @@
 ---
-date: 2024-10-25
-title: "Normal Dynamic Linear Models, Part 1"
+date: 2024-11-03
+title: "The AR(1) process:Maximum likelihood estimation and Bayesian inference M1L3"
 subtitle: Time Series Analysis
-description: "Normal Dynamic Linear Models (NDLMs) are a class of models used for time series analysis that allow for flexible modeling of temporal dependencies."
+description: "This lesson we will define the AR(1) process, Stationarity, ACF, PACF, differencing, smoothing"
 categories: 
-  - Bayesian Statistics
-  - Time Series
+  - coursera 
+  - notes
+  - bayesian statistics
+  - autoregressive models
+  - time series
 keywords: 
-  - Time Series
-  - Filtering
-  - Kalman filtering
-  - Smoothing
-  - NDLM
-  - Normal Dynamic Linear Models
-  - Polynomial Trend Models
-  - Regression Models
-  - Superposition Principle
+  - time series
+  - stationarity
+  - strong stationarity
+  - weak stationarity
+  - lag
+  - autocorrelation function (ACF)
+  - partial autocorrelation function (PACF)
+  - smoothing
+  - trend
+  - seasonality
+  - differencing operator
+  - back shift operator
+  - moving average
+  - AR(1) process
+  - Yule-Walker equations
+  - Durbin-Levinson recursion
   - R code
 fig-caption: Notes about ... Bayesian Statistics
 title-block-banner: images/banner_deep.jpg
+#bibliography: bibliography.bib
+format: 
+    html: 
+        code-fold: true
+        css: styles.css
 ---
 
-<!-- 
-The challenge in taking notes in this courses is that the instructors speak out the maths as they go along. I supply the math but I want to extract the non-math parts and put them in the right place. 
--->
 
-[Normal Dynamic Linear Models (NDLMs) are defined and illustrated in this module using several examples Model building based on the forecast function via the superposition principle is explained. Methods for Bayesian filtering, smoothing and forecasting for NDLMs in the case of known observational variances and known system covariance matrices are discussed and illustrated.]{.mark}.
+## Review of maximum likelihood and Bayesian inference in regression
 
-The Normal Dynamic Linear Model (DLM) is covered  [@prado2023time pp. 117-144]
+### Regression Models: Maximum Likelihood Estimation
 
-:::{.callout-note collapse="true"}
+\index{regression!linear}
+\index{Maximum Likelihood Estimation}
 
-## Learning Objectives {.unnumbered}
+Assume a regression model with the following structure: 
+$$
+y_i = \beta_1x_{i,1} + \ldots + \beta_kx_{i,k} + \epsilon_i,
+$$
 
-- [x] Use R for analysis and forecasting of time series using NDLM (case of known observational and system variances) [\#](#m3g1)
-- [x] Derive the equations to obtain posterior inference and forecasting in the NDLM with known observational and system variances, including the filtering, smoothing and forecasting equations [\#](#m3g2)
-- [x] Apply the NDLM superposition principle and explain the role of the forecast function [\#](#m3g3)
-- [x] Define trend and regression normal DLMs [\#](#m3g4)
-- [x] Explain the general normal dynamic linear model (NDLM) representation [\#](#m3g5)
-
-:::
-
-# The Normal Dynamic Linear Model: Definition, Model classes &  The Superposition Principle
-
-Dynamic Linear Models (DLMs) extend classical linear regression to time-indexed data, introducing dependencies between observations through latent evolving parameters. A Normal DLM (NDLM) assumes Gaussian noise at both observation and system levels, enabling tractable Bayesian inference through the Kalman filter.
-
-While superficially complex, NDLMs are conceptually close to linear regression. Instead of I.I.D. observations indexed by $i$, we index data by time $t$ and allow parameters to evolve with time, resulting in a two-level hierarchical model. At the top level is the observation equation. Below this there is the evolution equation(s) that can be understood as a latent state transition model that can capture trends, periodicity, and regression. The evolution equations can have more than one level however we will see that with some work these are summarized into a matrix form.
-
-To make things simpler this is demonstrated using a white noise process and then a random walk model. What makes the NDLM somewhat different is that that there are two variance elements at two levels, necessitating learning more parameters. Once we cover these to models the instructor walks us though all the bits and pieces of the notation. Later we will see that we can add trends, periodicity, regression components in a more or less systematic way. However we need to pick and choose these components to get a suitable forecast function. This approach require an intimate familiarity with the data generating process to model.
-
-This approach is Bayesian in that we draw our parameters from a multivariate normal and use updating to improve this initial estimate by incorporating the data and we end up with a posterior i.e. we have distributional view of the time series incorporating uncertainties.
-Additionally we have a number of Bayesian quantities that can be derived from the model, such as 
-
-- the **filtering distribution** that estimates the current state $\mathbb{P}r(\theta_t \mid \mathcal{D}_t)$, 
-- the **forecasting distribution** - to predict future observation: $\mathbb{P}r(y_{t+h} \mid \mathcal{D}_t)$, 
-- the **smoothing distribution** - retrospective estimate of past state: $\mathbb{P}r(\theta_t \mid \mathcal{D}_{T})\quad t<T$ and 
-- the **forecast function** when $F_t=F$ and $\mathbf{G}_t=\mathbf{G}$ $f_t(h)=\mathbb{E}[y_{t+h} \mid \mathcal{D}_{T}] = F'G^h \mathbb{E}[\theta_{t} \mid \mathcal{D}_{T}]$ 
-- the usual credible intervals for forecasts and parameter estimates.
-
-However the DLM framework is quite flexible and once you understand it it can ve adapted to support features like seasonality using the superposition principle. NDLMs don't need to be non-stationary time series.
-
-As far as I cen tell NDLMs are just DLM with their errors distributed normally at the different levels.
-
-## NDLM Definition (Video)
-
-![NDLM Motivation](images/m3_0001.png){.column-margin  group="slides" width="53mm"}
-
-
-
-
-![NDLM general form](images/m3_0002.png){.column-margin  group="slides" width="53mm"}
-
-
-
-
-![the forecast function](images/m3_0003.png){.column-margin  group="slides" width="53mm"}
-
-
-
-
-<!--
-::: {.callout-caution collapse="true"}
-
-### Hard to follow :weary:
-
-- I found this video hard to follow. I watched it carefully a number of times and reworked the math and video's transcript. But in the end this and the next two video are more like a summary of the material rather than a motivated development of the models. 
-
-- The text also diverge when it comes to the $F$ in the state space representation equation. In @west2013bayesian it is a matrix and in @prado2023time it is called a vector. In some places it is referenced as a $p \times 1$. As far as I can tell this reflects different state space representation of the model which neither text is particularly clear. 
-- Although we are give a couple of motivational examples the way they generalize to the NDLM is not as clear as in @west2013bayesian but this text is very verbose and covers much more material.
-
-- @west2013bayesian also discusses how the math relates to more common statistical scenarios and how the model can be adapted to these scenarios e.g. replacing the obs. normal distribution with a t-distribution or a mixture of normals to handle outliers. I.e. see NDLMs as a looser framework with the assumptions of independence and normality as guidelines rather than strict assumptions.
-
-In @prado2023time we quickly get a large number of mathematically concise format, that illustrate how NDLMs generalize other time series models. However these examples assume we are sufficiently familiar with this models.
-
-- The NDLM is also a hierarchical model which we have not looked into in much depth in this specialization. This is another missed opportunity to connect to previous material and deepen our understanding. Particularly as the bayesian formulation should be able to overcome the limitations of the frequentist approach where we need to make strong assumptions on IID of the shocks but in a time series local observations often highly correlated.
-
-- NDLM have efficient algorithms for inference and forecasting mostly by using the Kalman filter, again this is not mentioned not is a bayesian formulation presented
-
-- So I guess the main issue is that the vide just lists lots of equations and does not really without providing a good intuition behind the model.
-
-- I hope that with the rest of this and the next lesson we can get a better understanding of the NDLM.
-
-- I ended up skimming through large portions of [@west2013bayesian] which goes into much greater detail on the NDLM. The first and second polynomial models developed, explained and motivation is clearer. The state space representation is not explained but the model is developed in a more coherent way and this is a good starting point for developing a more intuitive understanding of the NDLMs. The notation in this book is also easier to follow.
-
-  - We use $\theta_t$ for the parameters of the vector and \theta_{t,1} and \theta_{t,2} for the first two components of the parameter vector. This continues the convention of greek characters for parameters from the previous courses and many texts. However if the parameters have a clear meaning it much easier to follow math where we use a more descriptive notation and avoid the second subscripts.
-- The state space representation here is omitted. The $F$ vector or matrix is not really motivates as a latent state space representation.
-
-:::
--->
-
-In this module, [we will motivate and develop a class of models suitable for for analyzing and forecasting **non-stationary time series** called  **normal dynamic linear models** . We will talk about Bayesian inference and forecasting within this class of models and describe model building as well]{.mark}. 
-
-### White Noise - A motivating example
-
-Let's begin with a very simple model that has no temporal structure, just a mean value with some variation that is: 
+for $i = 1, \ldots, n$ and $\epsilon_i$ independent random variables with $\epsilon_i \sim N(0, v) \forall i$. This model can be written in matrix form as: 
 
 $$
-y_t = \mu + v_t \qquad v_t \overset{\text{iid}}{\sim}  \mathcal{N}(0, \nu) \qquad  \text{(white noise model)}
-$$ {#eq-white-noise-model}
+y = X \beta + \epsilon, \epsilon \sim N (0, vI), \qquad
+$$
 
 where:
 
-- $y_t$ is the observed time series at time $t$,
-- $\mu$ is the expected value of $y_t$ this is characteristic we are interested in, 
-- $\nu_t$ is a white noise process  as usual iid standard normal N(0,1).
+-   $y = (y_1, \ldots, y_n)′$ is an n-dimensional vector of responses,
+-   $X$ is an n × k matrix containing the explanatory variables,
+-   $\beta = (\beta_1, \ldots, \beta_k)′$ is the k-dimensional vector of regression coefficients,
+-   $\epsilon = (\epsilon_1, \ldots, \epsilon_n)′$ is the n-dimensional vector of errors,
+-   $I$ is an n × n identity matrix.
 
-If we plot this model we might see the following graph:
+If $X$ is a full rank matrix with rank $k$ the maximum likelihood estimator for $\beta$, denoted as $\hat\beta_{MLE}$ is given by:
+
+$$
+\hat\beta_{MLE} = (X′X)^{−1}X′y,
+$$
+
+and the MLE for v is given by
+
+$$
+\hat v_{MLE} = \frac{1}{n} (y − X \hat\beta_{MLE})′(y − X \hat\beta_{MLE})
+$$
+
+$\hat v_{MLE}$ is not an unbiased estimator of v, therefore, the following unbiased estimator of v is typically used:
+
+$$
+s^2 = \frac{1}{n-k}(y − X \hat\beta_{MLE} )′(y − X \hat\beta_{MLE} )
+$$
+
+### Regression Models: Bayesian Inference {#sec-bayes-regression}
+
+Assume once again we have a model with the structure in (1), which results in a likelihood of the form
+
+$$
+\mathbb{P}r(y \mid \beta , v) = \frac{1}{(2\pi v)^{n/2}}\exp \left\{ -\frac{1}{2} (y − X\beta)′(y − X\beta) \right\}
+$$
+
+If a prior of the form 
+
+$$ 
+\mathbb{P}r(\beta, v) \propto \frac{1}{v}
+$$
+
+is used, we obtain that the posterior distribution is given by
+
+$$
+\mathbb{P}r(\beta,v \mid y) \propto \frac{1}{v^{n/2+1}}\exp \left\{ -\frac{1}{2v} (y − X\beta)′(y − X\beta) \right\}
+$$
+
+In addition it can be shown that
+
+-   $(\beta\mid v, y) \sim N (\hat \beta_{MLE} , v(X′X)−1)$
+-   $(v\mid y) \sim \text{IG}((n − k)/2, d/2)$ with
+
+$$
+d = (y − X \hat \beta_{MLE} )′(y − \hat \beta_{MLE} )
+$$
+
+with $k = dim(\beta)$.
+
+Given that $\mathbb{P}r(\beta, v \mid y) = \mathbb{P}r(\beta \mid v, y)p(v \mid y)$ the equations above provide a way to directly sample from the posterior distribution of $\beta$ and $v$ by first sampling v from the inverse-gamma distribution above and then conditioning on this sampled value of v, sampling $\beta$ from the normal distribution above.
+
+## Maximum likelihood estimation in the AR(1) (video) {#sec-mle-ar1}
+
+![slide 1](images/m1_0041.png){.column-margin  group="slides" width="53mm"}
+
+
+
+![slide 2](images/m1_0042.png){.column-margin  group="slides" width="53mm"}
+
+
+
+![slide 3](images/m1_0043.png){.column-margin  group="slides" width="53mm"}
+
+
+
+## R code: MLE for the AR(1), examples (reading)
+
+
+The following code allows you to compute the MLE of the AR coefficient $\psi$, the unbiased estimator of $v$, $s^2$ , and the MLE of v based on a dataset simulated from an AR(1) process and using the conditional likelihood.
 
 ```{r}
-#| label: fig-NDLM-white-noise
-set.seed(123)
-n <- 100
-V <- 1
-mu <- 0
-y <- mu + rnorm(n, 0, V)
-plot(y, type = "l", col = "blue", lwd = 2, xlab = "Time", ylab = "y", main = "Model with no temporal structure")
+#| label: "MLE for AR(1)"
+set.seed(2021)
+phi=0.9 # ar coefficient
+v=1
+sd=sqrt(v) # innovation standard deviation
+T=500 # number of time points
+yt=arima.sim(n = T, model = list(ar = phi), sd = sd) 
+
+## Case 1: Conditional likelihood
+y=as.matrix(yt[2:T]) # response
+X=as.matrix(yt[1:(T-1)]) # design matrix
+phi_MLE=as.numeric((t(X)%*%y)/sum(X^2)) # MLE for phi
+s2=sum((y - phi_MLE*X)^2)/(length(y) - 1) # Unbiased estimate for v 
+v_MLE=s2*(length(y)-1)/(length(y)) # MLE for v
+
+cat("\n MLE of conditional likelihood for phi: ", phi_MLE, "\n",
+    "MLE for the variance v: ", v_MLE, "\n", 
+    "Estimate s2 for the variance v: ", s2, "\n")
+
 ```
 
-For this model the mean of the time series is $\mu$ will be the the expected value of $y_t$, which is $\mu$. And the variance of $y_t$ is $\nu$.
+This code allows you to compute estimates of the AR(1) coefficient and the variance using the `arima` function in R. The first case uses the conditional sum of squares, the second and third cases use the full likelihood with different starting points for the numerical optimization required to compute the MLE with the full likelihood.
 
-$$
-\mathbb{E}[y_t] = \mu \qquad \text{and} \qquad \mathbb{V}ar[y_t] = \nu \qquad
-$$ {#eq-NDLM-mean-variance}
+```{r}
+#| label: "MLE for AR(1) with different methods"
+# Obtaining parameter estimates using the arima function in R
+set.seed(2021)
+phi=0.9 # ar coefficient
+v=1
+sd=sqrt(v) # innovation standard deviation
+T=500 # number of time points
+yt=arima.sim(n = T, model = list(ar = phi), sd = sd) 
+
+#Using conditional sum of squares, equivalent to conditional likelihood 
+arima_CSS=arima(yt,order=c(1,0,0),method="CSS",n.cond=1,include.mean=FALSE)
+cat("AR estimates with conditional sum of squares (CSS) for phi and v:", arima_CSS$coef,arima_CSS$sigma2,
+"\n")
+
+#Uses ML with full likelihood 
+arima_ML=arima(yt,order=c(1,0,0),method="ML",include.mean=FALSE)
+cat("AR estimates with full likelihood for phi and v:", arima_ML$coef,arima_ML$sigma2,
+"\n")
+
+#Default: uses conditional sum of squares to find the starting point for ML and 
+#         then uses ML 
+arima_CSS_ML=arima(yt,order=c(1,0,0),method="CSS-ML",n.cond=1,include.mean=FALSE)
+cat("AR estimates with CSS to find starting point for ML for phi and v:", 
+arima_CSS_ML$coef,arima_CSS_ML$sigma2,"\n")
+```
+
+This code shows you how to compute the MLE for $\psi$ using the full likelihood and the function optimize in R.
+
+```{r}
+#| label: "MLE for AR(1) with full likelihood"
+set.seed(2021)
+phi=0.9 # ar coefficient
+v=1
+sd=sqrt(v) # innovation standard deviation
+T=500 # number of time points
+yt=arima.sim(n = T, model = list(ar = phi), sd = sd) 
+
+## MLE, full likelihood AR(1) with v=1 assumed known 
+# log likelihood function
+log_p <- function(phi, yt){
+  0.5*(log(1-phi^2) - sum((yt[2:T] - phi*yt[1:(T-1)])^2) - yt[1]^2*(1-phi^2))
+}
+
+# Use a built-in optimization method to obtain maximum likelihood estimates
+result =optimize(log_p, c(-1, 1), tol = 0.0001, maximum = TRUE, yt = yt)
+cat("\n MLE of full likelihood for phi: ", result$maximum)
+```
+
+## Bayesian inference in the AR(1)
+
+![inference](images/m1_0051.png){#fig-c2l1-s1-inference .column-margin  group="slides" width="53mm"}
 
 
-### A Random walk model with a slowly changing mean
+## Bayesian inference in the AR(1): Conditional likelihood example (video)
 
-[Next we incorporate some temporal structure, we allow the expected value of the time series, to change over time. To can achieve this, by update the model definition with a $\mu_t$ where the index indicates that it can change at every time step. And let us keep the noise unchanged. i.e. we set it to $\mu_t \in N(0,\nu)$.]{.mark}  
-
-We get the following model:
-
-$$
-y_t = \mu_t + \nu_t \quad \nu_t \overset{\text{iid}}{\sim} N(0, V) \qquad \text{(radom walk model)}
-$$ {#eq-NDLM-model-random-walk}
-
-To complete this we need to also decide how to incorporate the the changes over time in the parameter $\mu_t$. We might consider different options but we should pick the simplest possible to start with. One option is to assume that the expected value of $\mu_t$ is just the expected value of $\mu_{t-1}$ plus some noise. 
-
-We now have that random walk type of structure where $\mu_t$ can be written in terms of $\mu(t-1)$. The expected value of $\mu_t$, we can think of it as $\mu_{t-1} + \text{some noise}$. This error is once again, assumed to be normally distributed random variable centered at zero and with variance $W$. 
-[Another assumption that we have made here is that the $\nu_t$ and $\omega_t$, are also independent of each other]{.mark}. 
-
-putting this together we get:
-
-$$
-\begin{aligned}
-y_t &= \mu_t + \nu_t & \nu_t & \overset{\text{iid}}{\sim}  \mathcal{N}(0, V)  & \text{(Observation eq.)} \\
-\mu_t &= \mu_{t-1} + \omega_t  & \omega_t & \overset{\text{iid}}{\sim}  \mathcal{N}(0, W) & \text{(System/evolution eq.)}
-\end{aligned}
-$$ {#eq-random-walk-model-hierarchical}
+This video walks through the code snippet below and provides examples of how to sample from the posterior distribution of the AR coefficient $\psi$ and the variance $v$ using the conditional likelihood and a reference prior.
 
 
-With this model, what we are assuming is that the mean level of the series is changing over time. 
-Note that this is an example of a **Gaussian or Normal dynamic linear model**. 
+## R Code: AR(1) Bayesian inference, conditional likelihood example (reading)
 
-NDLMs are a two level hierarchical models where :
+```{r}
+#| label: "AR(1) inference, conditional likelihood example"
+#| 
+####################################################
+#####             MLE for AR(1)               ######
+####################################################
+set.seed(2021)
+phi=0.9 # ar coefficient
+sd=1 # innovation standard deviation
+T=200 # number of time points
+yt=arima.sim(n = T, model = list(ar = phi), sd = sd) # sample stationary AR(1) process
 
-1. At the top is an **observation level equation** relating observations y at time t to some time dependent, (hidden) state parameters and some observation level iid distributed error.
-2. The **system evolution level equation** describes the dynamics of parameters over time and incorporates some system iid distributed error.
-3. [These equations have a linear structure, in the sense that the expected value of y at time t is a linear function of the parameters.]{.mark} 
-4. We have the **assumption of normality for the noise terms** in both these equations as well as independence within and between levels. 
+y=as.matrix(yt[2:T]) # response
+X=as.matrix(yt[1:(T-1)]) # design matrix
+phi_MLE=as.numeric((t(X)%*%y)/sum(X^2)) # MLE for phi
+s2=sum((y - phi_MLE*X)^2)/(length(y) - 1) # Unbiased estimate for v
+v_MLE=s2*(length(y)-1)/(length(y)) # MLE for v 
 
-This is our first example. Next we will be discuss the general class of models. Later we will consider how to incorporate different structures into the model, and how to perform Bayesian inference for filtering smoothing and forecasting.
+print(c(phi_MLE,s2))
 
+#######################################################
+######     Posterior inference, AR(1)               ###
+######     Conditional Likelihood + Reference Prior ###
+######     Direct sampling                          ###
+#######################################################
 
-### General form of the NDLM
+n_sample=3000   # posterior sample size
 
-The general class of dynamic linear models can be written as follows:
+## step 1: sample posterior distribution of v from inverse gamma distribution
+v_sample=1/rgamma(n_sample, (T-2)/2, sum((yt[2:T] - phi_MLE*yt[1:(T-1)])^2)/2)
 
-We are going to have two equations. One is the so-called observation equation that relates the observations to the parameters in the model, and the notation we are going to use is as follows.
+## step 2: sample posterior distribution of phi from normal distribution
+phi_sample=rep(0,n_sample)
+for (i in 1:n_sample){
+phi_sample[i]=rnorm(1, mean = phi_MLE, sd=sqrt(v_sample[i]/sum(yt[1:(T-1)]^2)))}
 
-$$\begin{aligned}
-y_t &= \vec{F}_t' \vec{\theta}_t   + \nu_t && \nu_t \overset{\text{iid}}{\sim}  \mathcal{N}(0, V_t) && \text{(obs)} \\
-\vec{\theta}_t &= G_t \vec{\theta}_{t-1} + \vec{\omega}_t && \vec{\omega}_t \overset{\text{iid}}{\sim}  \mathcal{N}(0, W_t) && \text{(system)}
-\end{aligned}
-$$ {#eq-NDLM-general-form}
+## plot histogram of posterior samples of phi and v
+par(mfrow = c(1, 2),mar = c(3, 4, 2, 1), cex.lab = 1.3)
+hist(phi_sample, xlab = bquote(phi), 
+     main = bquote("Posterior for "~phi),xlim=c(0.75,1.05), col='lightblue')
+abline(v = phi, col = 'red')
+hist(v_sample, xlab = bquote(v), col='lightblue', main = bquote("Posterior for "~v))
+abline(v = sd, col = 'red')
 
-Where:
+```
 
-- $y_t$ a univariate observation at time $t$.
-- $\vec{\theta}_t$ the **state vector** is a k-dimensional vector of unknown parameters at time t.
-- $\vec{F_t}$ the **observation operator** a $k*1$-dimensional vector at time t that transforms  the **state parameters** into observations.
-- $\nu_t$ is the observation noise at time t from a Normal distribution with variance $V_t$.
-- $G_t$ the **state evolution operator** is a  $k \times k$ matrix (known)
-- $\omega_t$ the **innovation** or state evolution noise  at time t distributed as $N(0,W_t)$(known)
-- the noise at the observation level and the system level are each iid and mutually iid.
+## Quiz - MLE and Bayesian inference in the AR(1)
 
-We also have the prior distribution for the state vector at time 0:
+Omitted per Coursera honor code
 
-- $\vec{\theta}_0 \sim N(\vec{m}_0,c_0)$ a prior k-dimensional Normal distribution.
-  - $m_0$ the mean in the prior is a k-dimensional vector of means. (known)
-  - $c_0$ is the covariance matrix k by k. (known)
+## Practice Graded Assignment: MLE and Bayesian inference in the AR(1)
 
-::: {.callout-note collapse="true"}
-## Some Thoughts on NDLM the definition {.unnumbered}
+This peer-reviewed activity is highly recommended. It does not figure into your grade for this course, but it does provide you with the opportunity to apply what you've learned in R and prepare you for your data analysis project in week 5.
 
-Q. Why are $F_t$ and $G_t$ a vector and a matrix respectively? 
+1.  Consider the R code below: MLE for the AR(1)
 
-> It may helps to think about $F$ and $G$ as follows:
->
-> $F_t'$ acts as a linear transformation that maps the latent state $\vec{\theta}_t$ into the observation space, of $y$. 
->
-> $G_t$ is a linear transformation that describes how the state vector evolves over time. I like to think about it as a Hidden Markov state transition matrix.
->
-> In other words, $F_t$ takes the current hidden state $\theta_t$ and produces an observation $y_t$, while $G_t$ takes the current state and produces the next state.
+```{r}
+#| label: "lst-ar-1-mle"
+#| lst-label: lst-ar-1-mle
+#| lst-cap: "R Code: MLE for the AR(1) process, conditional likelihood example"
+####################################################
+#####             MLE for AR(1)               ######
+####################################################
+phi=0.9 # ar coefficient
+v=1
+sd=sqrt(v) # innovation standard deviation
+T=500 # number of time points
+yt=arima.sim(n = T, model = list(ar = phi), sd = sd) 
 
-Q. Why is this called a linear model?
+## Case 1: Conditional likelihood
+y=as.matrix(yt[2:T]) # response
+X=as.matrix(yt[1:(T-1)]) # design matrix
+phi_MLE=as.numeric((t(X)%*%y)/sum(X^2)) # MLE for phi
+s2=sum((y - phi_MLE*X)^2)/(length(y) - 1) # Unbiased estimate for v 
+v_MLE=s2*(length(y)-1)/(length(y)) # MLE for v
 
-> This is because both the observation equation is a linear equation that relates the observations to the parameters in the model and the system equation is a linear equation that tells us how the time-varying parameter is going to be changing over time. This is why we call this a linear model.
+cat("\n MLE of conditional likelihood for phi: ", phi_MLE, "\n",
+    "MLE for the variance v: ", v_MLE, "\n", 
+    "Estimate s2 for the variance v: ", s2, "\n")
+```
 
-Q. Why are the noise terms $\nu_t$ and $\omega_t$ assumed to be normally distributed?
+Modify the code above to sample 800 observations from an AR(1) with AR coefficient $\psi = -0.8$ and variance $v = 2$. Plot your simulated data. Obtain the MLE for $\psi$ based on the conditional likelihood and the unbiased estimate $s^2$ for the variance $v$.
 
-> This is a common assumption in time series analysis. It is a convenient assumption that allows us to perform Bayesian inference and forecasting in a very simple way. And this is why we call this a **normal** dynamic linear model.
+2.  Consider the R code below: AR(1) Bayesian inference, conditional likelihood
 
-Q. Isn't this just a hierarchical model?
+```{r}
+#| label: lst-ar-1-inference
+#| lst-label: lst-ar-1-inference
+#| lst-cap: "R Code: AR(1) Bayesian inference, conditional likelihood example"
 
-> Indeed, this is a hierarchical model. We have a model for the observations and a model for the system level. The system level is changing over time and the observations are related to the system level through the observation equation. And so it is possible to extend this model to more complex structures if we wish to do so by adding another level, etc... However adding more levels leads to extra dynamics that are captured in $G$ without changing the overall framework!
+#######################################################
+######     Posterior inference, AR(1)               ###
+######     Conditional Likelihood + Reference Prior ###
+######     Direct sampling                          ###
+#######################################################
 
+n_sample=3000   # posterior sample size
+
+## step 1: sample posterior distribution of v from inverse gamma distribution
+v_sample=1/rgamma(n_sample, (T-2)/2, sum((yt[2:T] - phi_MLE*yt[1:(T-1)])^2)/2)
+
+## step 2: sample posterior distribution of phi from normal distribution
+phi_sample=rep(0,n_sample)
+for (i in 1:n_sample){
+phi_sample[i]=rnorm(1, mean = phi_MLE, sd=sqrt(v_sample[i]/sum(yt[1:(T-1)]^2)))}
+
+## plot histogram of posterior samples of phi and v
+par(mfrow = c(1, 2), mar = c(3, 4, 2, 1), cex.lab = 1.3)
+hist(phi_sample, xlab = bquote(phi), 
+     main = bquote("Posterior for "~phi),xlim=c(0.75,1.05), col='lightblue')
+abline(v = phi, col = 'red')
+hist(v_sample, xlab = bquote(v), col='lightblue', main = bquote("Posterior for "~v))
+abline(v = sd, col = 'red')
+```
+
+Using your simulated data from part 1 modify the code above to summarize your posterior inference for $\psi$ and $v$ based on 5000 samples from the joint posterior distribution of $\psi$ and $v$.
+
+::: {.callout-tip}
+
+#### Grading Criteria
+
+The responses should follow the same template as the sample code provided above but you will submit your code lines in plain text. Peer reviewers will be asked to check whether the different pieces of code have been adequately modified to reflect that :
+
+1.  you generate 800 time points from the AR(1) rather than 500 and plot your simulated data.
+2.  your simulated data is from an AR(1) with AR coefficients $\psi = -0.8$ and variance $v = 2$ rather than AR(1) with AR coefficient $\psi = 0.9$ and variance $v = 1$ and
+3.  you obtain 5000 rather than 3000 samples from the posterior distribution from the new simulated process.
 :::
 
-### Inference in the NDLM
+### Bayesian Inference in the AR(1), : full likelihood example (reading)
 
-In terms of the inference, there are a few different kinds of densities and quantities that we are interested in:
+We consider a prior distribution that assumes that $\phi$ and $v$ are independent:
 
-[Filtering distribution]{.column-margin}  One of the distributions that we are interested in finding is the so-called **filtering distribution**. We may be interested here in finding what is the density of $\theta_t$ *given all the observations that we have up to time* $t$. 
-
-$$
-\mathcal{D}_t= \{\mathcal{D}_0, y_{1:T}\} 
-$$ {#eq-NDLM-filtering-distribution}
-
-We will denote information as $\mathcal{D}_t$. Usually, it is all the information we have at time zero (i.e. our prior), coupled with all the data points I have up to time $t$. 
-
-Here we conditioning on all the observed quantities and the prior information up to time $t$, and I may be interested in just finding what is the distribution for $\theta_t$. This is called filtering.
-
-$$
-\mathbb{P}r(\theta_t \mid \mathcal{D}_t) \qquad \text{filtering distribution}
-$$ {#eq-NDLM-filtering}
-
-
-[forecasting distribution]{.column-margin}  
-
-Another distribution that is very important in time series analysis is the  forecasting distribution.
-We may be interested in the distribution of $y{t+h}$? where we consider $h$ lags into the future and we have all the information $\mathcal{D}_t$, up to time t. 
-We want to do a predictions here
-
-$$
-\mathbb{P}r(y_{t+h} \mid \mathcal{D}_t) \qquad \text{forecasting distribution}
-$$ {#eq-NDLM-forecasting-distribution}
-
-[Smoothing Distribution]{.column-margin} Another important quantity or an important set of distributions is what we call the smoothing distribution. Usually, you have a time series, when you get your data, you observe, I don't know, 300 data points. As you go with the filtering, you are going to start from zero all the way to 300 and you're going to update these filtering distributions as you go and move forward. [We may want instead to revisit the parameter at time 10, for example, given that you now have observed all these 300 observations. In that case, you're interested in densities that are of the form. Let's say that you observe capital T in your process and now you are going to revisit that density for $\theta_t$. This is now in the past. Here we assume that $t<T$. This is called **smoothing**.]{.mark}
-
-
-So you have more observation once you have seen the data. We will talk about how to perform Bayesian inference to obtain all these distributions under this model setting. 
-
-$$
-\mathbb{P}r(\theta_t \mid \mathcal{D}_T)  \qquad t < T \qquad \text{smoothing distribution}
-$$ {#eq-NDLM-smoothing-distribution}
-
-### The forecast function for the NDLM
-
-In addition to all the structure that we described before and all the densities that we are interested in finding, we also have as usual, the so-called *forecast function*, which instead of being the density is just $\mathbb{E}[y(t+h)\mid \mathcal{D}_t]$ i.e. expected value of y at time t given all the information we have before time t. 
-
-$$
-\mathbb{E}[y(t+h)\mid \mathcal(D_t)] = F'_{t+h} G_{t+h} \ldots G_{t+1} \mathbb{E}[\theta_t \mid \mathcal{D}_t]
-$$ {#eq-forecast-function-for-NDLM}
-
-
-This is the form of the forecast function. 
-
-There are particular cases and particular models that we will be discussing in which the $F_t=F$, i.e. constant and also $G_t = G$ is also constant for all t. 
-In these cases, the forecast function can be simplified and written as:
-
-$$
-f_t(h) = \mathbb{E}(y_{t+h} \mid D_t) = F'G^h \mathbb{E}(\theta_t \mid \mathcal{D}_t)
-$$ {#eq-forecast-function-for-NDLM-constant-F-G}
-
-
-One thing that we will learn is that the eigen-structure of this matrix is very important to define the form of the forecast function, and it's very important for model building and for adding components into your model. 
-
-### NDLM short form notation
-
-Finally, just in terms of short notation, we can always write down when we're working with normal dynamic linear models, we may be referring to the model instead of writing the two equations, the system and the observation equation. I can just write all the components that define my model.
-$$ 
-\{F_t, G_t, v_t, W_t\} 
-$$ {#eq-NDLM-model-shothand-notation}
-
-::: {.callout-note collapse="true"}
-## Video Transcript {.unnumbered}
-
-{{< include _C4-L03-T01.qmd >}}
-
-:::
-
-## Polynomial Trend Models (Video)
-
-![first and second order polynomial model](images/m3_0011.png){.column-margin  group="slides" width="53mm"}
-
-
-![p-order polynomial model](images/m3_0012.png){.column-margin  group="slides" width="53mm"}
-
-
-While we haven't talked about the superposition principle yet we start at looking at adding different components to the DLM. 
-
-We might :
-
-  - setting a baseline mean and variance
-  - adding a random walk with its variance
-  - add a trend 
-  - add a regression 
-  - add seasonality
-
-
-Next we want to extend the random walk model to include different types of trends and this will be covered by the polynomial trend models. [These are models that are useful to model linear trends or polynomial trends in your time series. So if you have a data set, where you have an increasing trend, or a decreasing trend, you would use one of those **components** in your model.]{.mark} Also 
-
-### First order polynomial model
-
-The first order model is developed at great detail in chapter In [@west2013bayesian ch. 2]. I don't know what to make of it, isn't this a trivial white noise model?
-
-The math for Bayesian updating is fairly straight forward and must be much more complex with more sophisticated dynamics. So this is used by the authors to introduce their DLM and an 30 pages of the book is dedicated to in depth analysis and Bayesian development of this specific model and different distribution of interests as well as including comparison to other models and a look at the signal to noise ratio in the model.
-
-It is worthwhile pointing out that these models get their name from their forecast function which will takes the general form [@eq-DLM-n-order-polynomial-forecast-function]
-
-The first order polynomial model is a model that is useful to describe linear trends in your time series. 
-If you have a data set where you have an increasing trend or a decreasing trend, you would use one of those components in your model.
-
-So the all those can be incorporated using the general p-order polynomial model, so I will just describe the form of this model.
-
-A first order polynomial is of the form $Ax+B$ where A is the slope and B is the intercept. This is the same random walk model we saw  above.
-
-$$
-\begin{aligned}
-y_t &= \theta_t + \nu_t, \qquad & \nu_t & \overset{\text{iid}}{\sim}  \mathcal{N}(0, V_t) \\
-\theta_t &= \theta_{t-1} + \omega_t, \qquad & \omega_t & \overset{\text{iid}}{\sim}  \mathcal{N}(0, W_t) \\
-&\{1,1,v_t,W_t\} && \text{(short form)} \\
-f_t(h) &= \mathbb{E}[\theta_t \mid \mathcal{D}_t] && \text{(forecast fn)} \\
-\end{aligned} 
-$$ {#eq-DLM-first-order-polynomial-model}
-
-In the observation equation, $\theta_{t}$ is the level of the series at time t and $\nu_t$ is the observation error. In the evolution equation we see the mean for this parameter changing over time as a random walk or a local constant mean with evolution noise $\omega_t$.
-
-[@west2013bayesian §2.1] gives the following representation of the model:
-
-It is useful to think of $\theta_t$ as a smooth function of time $\theta(t)$ with an associated Taylor series representation 
-
-$$
-\theta(t + \delta t) = \theta(t) + \text{higher-order terms}
-$$ {#eq-DLM-taylor-series-representation}
-
-where the higher-order terms are assumed to be zero-mean noise. This is a very important point, because it means that we are not trying to model the higher-order terms explicitly, but rather we are assuming that they are just noise.
-
-with the model simply describing the higher-order terms as zero-mean noise.
-
-This is the genesis of the first-order polynomial DLM: the level model is a locally constant (first-order polynomial) proxy for the underlying evolution.·
-
-We can write it down in short form with the following quadruple/
-
-$$
-\{1, 1, V_t, W_t\} \qquad f_t(h) = \mathbb{E}[\theta_t \mid \mathcal{D}_t] = k_t \ \forall   h>0
-$$ {#eq-DLM-1-order-polynomial-model-short}
-
-
-Next we can write the forecast function $f_t(h)$ of this model using the representation we gave in  [@eq-DLM-1-order-polynomial-model-short].
-
-Again, we're going to have something of the form $F$ transposed $G$ to the power of h and then the expected value of that $\theta_t$ given $\mathcal{D}_t$. $F$ is 1, $G$ is 1, therefore I'm going to end up having just expected value of $\theta_t$ given $\mathcal{D}_t$.
-
-Which depending on the data that you have is you're just going to have something that is a value that depends on $t$ and it doesn't depend on $h$. What this model is telling you is that the forecast function, how you expect to see future values of the series h steps ahead is something that looks like the level that you estimated at time $t$.
-
-### Second order Polynomial model AKA Linear Growth model
-
-[@west2013bayesian §7.1-7.2] gives a detailed analysis of this model.
-
-Now we want to create a model in which captures things that has a linear trend either increasing or decreasing. To do thus we need to have two components in our parameter vector of the state vector. For this we will need two components in our parameter vector of the **state vector**^[the state makes it's appearance]. 
-
-So we have again something that looks like in my observation equation. 
-I'm going to have, 
-I'm going to call it say $\theta_{t,1} \sim  \mathcal{N}(v_t)$, and then I'm going to have say $\theta_{t,1}$ is going to be of the form to $\theta_{t-1,1}$ and there is another component here. The other component enters this equation plus let's call this $\theta_{t-1,2}$. And then I have finally also I need an evolution for the second component of the process which is going to be again having a random walk type of behavior.
-
-$$\begin{aligned}
-  y_t &= \theta_{t,1} + \nu_t \quad &\nu_t &\overset{\text{iid}}{\sim}  \mathcal{N}(0, v_t) \\
-  \theta_{t,1} &= \theta_{t-1,1} + \theta_{t-1,2} + \omega_{t,1} \qquad &\omega_{t,1} &\overset{\text{iid}}{\sim}  \mathcal{N}(0, w_{t,11}) \\
-  \theta_{t,2} &= \theta_{t-1,2} + \omega_{t,2} \qquad &\omega_{t,2} &\overset{\text{iid}}{\sim}  \mathcal{N}(0, w_{t,22})
-\end{aligned}
-$$ {#eq-NDLM-2-order-polynomial-model}
-
-So there are different ways in which you can interpret this two parameters but essentially:
-
-- $\theta_{t-1,1}$ is related to the **baseline** level of the series 
-- $\theta_{t-1,2}$ is related to the **rate of change** of the of the series. 
-
-::: {.callout-tip collapse="true"}
-## Short form DLM notation {.unnumbered}
-
-- Having the short form notation makes the model easier to understand in relation to other DLM models.
-- It will soon be instrumental in communicating the model structure with different software packages.
-
-:::
-
-Next we should summarize this model using the familiar short form DLM representation, which requires a bit of creative algebra.
-
-$$
-\mathbf{\theta}_t = (\theta_{t,1}, \theta_{t,2}) \qquad \{\mathbf{F}, \mathbf{G}, V_t, \mathbf{W}_t\}
-$$
-
-First we collect the two variances for the evolution two components into the vector $\utilde{w}_t$ and then assume that this $w_t$ is Normal. Now this is a bi-variate normal.
-
-$$
-\utilde{\omega}_t = (\omega_{t,1},\omega_{t,2})' \qquad \utilde{\omega}_t \sim  \mathcal{N}(0,W_t)
-$$
-
-So what would be my $F$ and my $G$ in this model? So again my theta vector has two components, thus my $G$, so my $F$ is going to be a two dimensional. We can write down $F$ transposed as the only component that appears at this level is the first component of the vector. 
-I'm going to have 1 and then a zero for $F$ transposed. c.f. [@eq-DLM-2-order-polynomial-model-short-form-simple]
-And then my $G$ here if you think about writing down $\theta_t$ times $G$ say the $t-1 + \omega_t$. Then you have that you're $G$ is going to have this form.
-
-$$
-\begin{aligned}
-\mathbf{F} &= (1,0)' & V_t &= v_t \\
-\mathbf{G} &= 
-\begin{pmatrix} 
-1 & h \\ 
-0 & 1 
-\end{pmatrix} 
-& \mathbf{W}_t &= 
-\begin{pmatrix} 
-w_{t,11} & 0 \\ 
-0 & w_{t,22} 
-\end{pmatrix}
-\end{aligned}
-$$ {#eq-DLM-2-order-polynomial-model-short-form-simple}
-
-this is the form from the video
-$$
-\begin{aligned}
-\mathbf{F} &= (1,0)' & V_t &= v_t \\
-\mathbf{G} &= 
-\begin{pmatrix} 1 & h \\ 
-0 & 1 \end{pmatrix} 
-& \mathbf{W}_t &= 
-\begin{pmatrix} 
-w_{t,11} & w_{t,12} \\ 
-w_{t,21} & w_{t,22} 
-\end{pmatrix}
-\end{aligned}
-$$ {#eq-DLM-2-order-polynomial-model-short-form-complex}
-
-this is the more general form from the handout. Note that in this case we have 
-$w_{t,12}=w_{t,21}$ so there is just one extra parameter.
-
-The lesson videos and the handouts differ in the form $\mathbf{W}_t$. In the lecture we assumed zero covariance but in the handout the covariance was snuck in. This gives us a slightly more general model. The covariance though is symmetric so we get an extra parameter we need to infer and include in the prior. Anyhow I kept the more general form, though in most cases we will keep the off diagonal terms at zero.
-
-So for the first component, I have past values of both components. That's why I have a 1 and 1 here for the second component I only have the past value of the second component. So there is a zero and a 1. So this tells me what is the structure of this second order polynomial. If I think about how to obtain the forecast function for this second order polynomial is going to be very similar to what we did before. So you can write it down as F transposed G to the power of h, expected value of theta t given Dt. Now the expected value is going to be vector also with two components because theta_t is a two dimensional vector. The structure here if you look at what G is G to the power of h going to be a matrix, that is going to look like 1, h, 0 1. When you multiply that matrix time this times this F what you're going to end up having is something that looks like 1 h times this expected value of theta t given Dt. So I can think of two components here, so this gives you a constant on h, this part is not going to depend on h. So I can write this down as k t 11 component multiplied by 1 and then I have another constant, multiplied by h. So you can see what happens now is that your forecast function has the form of a linear polynomial. So it's just a linear function on the number of steps ahead. The slope and the intercept related to that linear function are going to depend on the expected value of, theta_t given the all the information I have up to time t. But essentially is a way to model linear trends. So this is what happens with the second order polynomial model.
-
-As we included linear trends and constant values in the forecast function, we may want to also incorporate other kinds of trends, polynomial trends in the model. So you may want to have a quadratic form, the forecast function or a cubic forecast function as a function of h. 
-
-$$
-\theta_t = (\theta_{t,1}, \theta_{t,2})' \qquad \mathbf{G} = \mathbf{J}_2(1) \qquad \mathbf{E}_2 = (1, 0)'
-$$
-
-$$
-\mathbf{G^h} = 
-\begin{pmatrix} 
-1 & h \\ 
-0 & 1 
-\end{pmatrix}
-$$
-
-$$
-\begin{aligned}
-f_t(h) &= F' G^h \mathbb{E}[\theta_t \mid \mathcal{D}_t] \\
-&= (1,h) \mathbb{E}[\theta_{t}\mid D_t] \\ 
-&= (1,h)(K_{t,0}, K_{t,1})' \\ 
-&= (K_{t,0} + K_{t,1} h)
-\end{aligned}
-$$ {#eq-second-order-poly-prediction-fn}
-
-$$
-\begin{aligned}
-\mathbf{G^h} &= 
-\begin{pmatrix} 
-1 & h \\ 
-0 & 1 
-\end{pmatrix}
-\end{aligned}
-$$ {#eq-second-order-poly-Gh}
-
-### General p-th order polynomial model 
-
-We can consider a so called p-th order polynomial model. This model will have a state-space vector of dimension p and a polynomial of order $p − 1$ forecast function on $h$. The model can be written as
-
-$$
-\{E_p, J_p(1), v_t, W_t\}
-$$
-
-with $F_t = E_p = (1, 0, \ldots, 0)′$ and $G_t = J_p(1)$, with
-
-$$
-J_p(1) = \begin{pmatrix}
-1 & 1 & 0 & \cdots & 0 & 0  \\
-0 & 1 & 1 & \cdots & 0 & 0  \\
-0 & 0 & 1 & \cdots & 0 & 0 \\
-\vdots & \vdots & \vdots & \ddots & \vdots \\
-0 & 0 & 0 & \cdots & 1 & 1 \\
-0 & 0 & 0 & \cdots & 0 & 1
-\end{pmatrix}
-$$ {#eq-Jordan-form-dynamics}
-
-The forecast function is given by
-$$
-f_t(k) = a_{t_0} +  a_{t_1}k + \ldots + a_{t_{n-1}} k^{n-1} \qquad k \in \mathbb{N}
-$$ {#eq-DLM-n-order-polynomial-forecast-function}
-
-where $a_{t_i}$ are the coefficients of the polynomial and $k$ is the number of steps ahead we need in our forecast. There is also an alternative parameterization of this model that leads to the same algebraic form of the forecast function given by $\{Ep, Lp, vt, W t\}$, with
-
-$$
-L_p = \begin{pmatrix}
-1 & 1 & 1 & \cdots & 1 & 1  \\
-0 & 1 & 1 & \cdots & 1 & 1   \\
-0 & 0 & 1 & \cdots & 1 & 1 \\
-\vdots & \vdots & \vdots & \ddots & \vdots \\
-0 & 0 & 0 & \cdots & 1 & 1 \\
-0 & 0 & 0 & \cdots & 0 & 1
-\end{pmatrix}
-$$ {#eq-triangular-form-dynamics}
-
-And in this type of model, the forecast function is going to have order $p-1$. So the parameter vector is going to have dimension $p$. So you're going to have $\theta_t =  \theta_{t1:p}$.
-
-The observation operator $F$ is just a constant and if we write it as a row vector we get $F'$ as a p-dimensional vector with the one in the first entry and zeros everywhere else.
-
-The dynamics  matrix $G$ may be written using either a $J$ Jordan form @eq-Jordan-form-dynamics or as a triangular form @eq-triangular-form-dynamics. These result in different parameterization of this model and we  will talk a little bit about this. 
-
-In the @eq-Jordan-form-dynamics we have a matrix with ones on the diagonal and the super diagonal, the matrix is needs to be $p \times p$ i.e. with dimension $p$ to be compatible with the dimension of the hidden state vector $\theta$. So this matrix $G$ is what we call a Jordan block of dimension p of 1. So here 1 is the number that appears in the diagonal. And then I have a p $I_p$ matrix, I have ones in the upper diagonal part. So this is the form of the model, so once again I have the $F$ the $G$, and the $W_t$. I have my model. 
-
-The forecast function in this case again can be written as $F' G^h \mathbb{E}[\theta_t \mid \mathcal{D}_t]$. And when you simplify times expected value of $\theta_t$, given $D_t$. Once you simplify those functions you get something that is a polynomial of order $p-1$ in $h$. So I just can write this down as $k_t + k_{t,1} h + k_{t, p-1} h^{p-1}$, so that's my forecast function. 
-
-There is an alternative parameterization of this model that has the same $F$ and the same algebraic form of the forecast function, the same form of the forecast function. But instead of using @eq-Jordan-form-dynamics form of the $G$ matrix, it has a @eq-triangular-form-dynamics form that has ones in the diagonal and ones everywhere above the diagonal. So it's an upper triangular matrix with ones in the diagonal and above the diagonal. That's a different parameterization of the same model but it leads to the same general form of the forecast function just with a different parameterization. 
-
-So again, we can consider the way you think about these models?
-
-- What is you think what kind of forecast function makes sense here ? 
-- What is the type of predictions that I expect to have in my model? 
-- If they look like a linear trend, I use a second order polynomial. 
-- If it looks like a quadratic trend in the forecast then I would use 3rd order polynomial model representation.
-
-Note that the third order polynomial model is covered in 
-
-::: {.callout-note collapse="true"}
-## Video Transcript {.unnumbered}
-
-{{< include _C4-L03-T02.qmd >}}
-
-:::
-
-
-## Summary of polynomial trend  models (Reading)
-
-
-### Polynomial Trend Models
-
-#### First-Order Polynomial
-
-$$
-\begin{aligned}
-y_t &= \mu_t + \nu_t, \qquad & \nu_t &\sim  \mathcal{N}(0, v_t) \\
-\mu_t &= \mu_{t-1} + \omega_t, \qquad & \omega_t &\sim  \mathcal{N}(0, w_t)
-\end{aligned}
-$$
-
-In this case, we have:
-
-$\theta_t = \mu_t \quad \forall t$
-
-$$
-F_t = 1 \quad \forall t \qquad G_t = 1 \quad \forall t
-$$
-
-resulting in:
-
-$$
-\{1, 1, v_t, w_t\} \qquad \text{(short notation)}
-$$
-
-The forecast function is:
-
-$$
-f_t(h) = E(\mu_t \mid \mathcal{D}_t) = k_t, \quad \forall h > 0.
-$$
-
-#### Second-Order Polynomial
-
-$$\begin{aligned}
-  y_t &= \theta_{t,1} + \nu_t, \quad &\nu_t &\sim  \mathcal{N}(0, v_t) \\
-  \theta_{t,1} &= \theta_{t-1,1} + \theta_{t-1,2} + \omega_{t,1}, \qquad &\omega_{t,1} &\sim  \mathcal{N}(0, w_{t,11}) \\
-  \theta_{t,2} &= \theta_{t-1,2} + \omega_{t,2}, \qquad &\omega_{t,2} &\sim  \mathcal{N}(0, w_{t,22}),
-\end{aligned}
-$$
-
-where we can also have:
-
-$$
-\mathbb{C}ov(\theta_{t,1}, \theta_{t,2} ) = w_{t,12} = w_{t,21}
-$$
-
-This can be written as a DLM with the state-space vector $\theta_t = (\theta_{t,1}, \theta_{t,2})'$, and 
-
-$$
-\{\mathbf{F}, \mathbf{G}, v_t, \mathbf{W}_t\}  \qquad \text{(short notation)}
-$$ 
-
-with $\mathbf{F} = (1, 0)'$ and 
-
-$$
-\mathbf{G} = 
-\begin{pmatrix}
-1 & 1 \\
-0 & 1
-\end{pmatrix}, \quad \mathbf{W}_t = 
-\begin{pmatrix}
-w_{t,11} & w_{t,12} \\
-w_{t,21} & w_{t,22}
-\end{pmatrix}.
-$$
-
-Note that 
-
-$$
-\mathbf{G}^2 = 
-\begin{pmatrix}
-1 & 2 \\
-0 & 1
-\end{pmatrix}, \quad \mathbf{G}^h = 
-\begin{pmatrix}
-1 & h \\
-0 & 1
-\end{pmatrix},
-$$
-
-and so:
-
-$$
-f_t(h) = (1, h) E(\mathbf{\theta}_t \mid \mathcal{D}_t) = (1, h) (k_{t,0}, k_{t,1})' = (k_{t,0} + h k_{t,1}).
-$$
-
-Here $\mathbf{G} = \mathbf{J}_2(1)$ (see below). 
-
-Also, we denote $\mathbf{E}_2 = (1, 0)'$, and so the short notation for this model is 
-
-$$
-\{E_2, J_2(1), \cdot, \cdot\}
-$$
-
-#### General $p$-th Order Polynomial Model
-
-We can consider a $p$-th order polynomial model. This model will have a state-space vector of dimension $p$ and a polynomial of order $p-1$ forecast function on $h$. The model can be written as 
-
-$$\{E_p, J_p(1), v_t, W_t\}  \qquad \text{(short notation)}
-$$
-
-with $\mathbf{F}_t = \mathbf{E}_p = (1, 0, \dots, 0)'$ and $\mathbf{G}_t = \mathbf{J}_p(1)$, with
-
-$$
-\mathbf{J}_p(1) =
-\begin{pmatrix}
-1 & 1 & 0 & \cdots & 0 & 0 & 0 \\
-0 & 1 & 1 & \cdots & 0 & 0 & 0 \\
-\vdots & \vdots & \ddots & \ddots & & \vdots \\
-0 & 0 & 0 & \cdots & 0 & 1 & 1 \\
-0 & 0 & 0 & \cdots & 0 & 0 & 1
-\end{pmatrix}.
-$$
-
-The forecast function is given by
-
-$$
-f_t(h) = k_{t,0} + k_{t,1} h + \dots + k_{t,p-1} h^{p-1}.
-$$
-
-There is also an alternative parameterization of this model that leads to the same algebraic form of the forecast function, given by $\{E_p, L_p, v_t, W_t\}$, with
-
-$$
-L_p =
-\begin{pmatrix}
-1 & 1 & 1 & \cdots & 1 \\
-0 & 1 & 1 & \cdots & 1 \\
-\vdots & \vdots & \ddots & \ddots & \vdots \\
-0 & 0 & 0 & \cdots & 1
-\end{pmatrix}.
-$$
-
-
-## Regression models (Video)
-
-![Regression models](images/m3_0021.png){.column-margin  group="slides" width="53mm"}
-
-
-### Simple dynamic regression
-
-$$
-\begin{aligned}
-y_t &= \beta_{t,0} + \beta_{t,1}x_t + ν_t \\
-\beta_{t,0} &= \beta_{t−1,0} + \omega_{t,0} \\
-\beta_{t,1} &= \beta_{t−1,1} + \omega_{t,1}
-\end{aligned}
-$$ {#eq-simple-dynamic-regression}
-
-and so $\theta_t = (\beta_t,0, \beta_{t,1})′$, $F_t = (1, x_t)′$ and $G = I_2$. 
-
-This results in a forecast function of the form 
-
-$$
-f_t(h) = k_{t,0} + k_{t,1}x_{t+h}
-$$ {#eq-simple-dynamic-regression-forecast-function}
-
-where $k_{t,0} = \mathbb{E}[\beta_{t,0} \mid \mathcal{D}_t]$ and $k_{t,1} = \mathbb{E}[\beta_{t,1} \mid \mathcal{D}_t]$.
-
-### General dynamic regression
-
-$$
-\begin{aligned}
-y_t &= \beta_{t,0} + \beta_{t,1}x_{t,1} + \ldots \beta_{t,M} x_{t,M} + ν_t \\
-\beta_{t,m} &= \beta_{t−1,m} + \omega_{t,m,} & m = 0 : M.
-\end{aligned}
-$$ {#eq-regression-in-short-form}
-
-Then, $\theta = (\beta_t,0, \ldots , \beta_{t,M} )′$, $F_t = (1, x_{t,1}, \ldots , x_{t,M} )′$ and $G = I_M$ . The forecast
-function is given by
-
-$$
-f_t(h) = k_{t,0} + k_{t,1}x_{t+h,1} + \ldots + k_{t+h,M}x_{t+h,M}
-$$ {#eq-gen-regression-forecast-function}
-
-A particular case is of dynamic regressions is the case of time-varying auto-regressions (TVAR) with
-
-$$
-\begin{aligned}
-y_t &= \varphi_{t,1}y_{t−1} + \varphi_{t,2}y_{t−2} + \ldots + \varphi_{t,p} y_{t−p} + ν_t,\\
-\varphi_{t,m} &= \varphi_{t−1,m} + \omega_{t,m,} & m = 1 : p
-\end{aligned}
-$$ {#eq-tvar}
-
-There is a paper [@prado2000bayesian] on TVAR models that is a good reference for this model.
-
-::: {.callout-note collapse="true"}
-## Video Transcript {.unnumbered}
-
-{{< include _C4-L03-T03.qmd >}}
-
-:::
-
-
-## Summary of Regression Models (Reading)
-
-### Dynamic Regression Models
-
-#### Simple Dynamic Regression
-
 $$
-\begin{aligned}
-  y_t &= \beta_{t,0} + \beta_{t,1} x_t + \nu_t \\
-  \beta_{t,0} &= \beta_{t-1,0} + \omega_{t,0} \\
-  \beta_{t,1} &= \beta_{t-1,1} + \omega_{t,1} 
-\end{aligned}
+\mathbb{P}r(v) \propto \frac{1}{v},
 $$
 
-Thus:
-
-$$
-\theta_t = (\beta_{t,0}, \beta_{t,1})'
-$$
-
-$$
-F_t = (1, x_t)'
-$$ 
-
-and 
-
-$$
-G = I_2
-$$
-
-This results in a forecast function of the form
-
-$$
-f_t(h) = k_{t,0} + k_{t,1} x_{t+h}.
-$$
-
-#### General Dynamic Regression
-
-$$
-\begin{aligned}
-y_t &= \beta_{t,0} + \beta_{t,1} x_{t,1} + \dots + \beta_{t,M} x_{t,M} + \nu_t \\
-\beta_{t,m} &= \beta_{t-1,m} + \omega_{t,m}, \quad &m = 0:M.
-\end{aligned}
-$$ {#eq-general-dynamic-regression}
-
-Then, 
-
-$\theta_t = (\beta_{t,0}, \dots, \beta_{t,M})'$, 
-
-$\mathbf{F}_t = (1, x_{t,1}, \dots, x_{t,M})'$ and 
-
-$\mathbf{G} = \mathbf{I}_M$. 
-
-The forecast function is given by:
-
-$$
-f_t(h) = k_{t,0} + k_{t,1} x_{t+h,1} + \dots + k_{t,M} x_{t+h,M}.
-$$ {#eq-forecast-function-general-dynamic-regression}
-
-A particular case of dynamic regressions is the case of **time-varying autoregressive (TVAR)** with
-[time-varying autoregressive (TVAR)]{.column-margin width="53mm" group="slides"}
-
-$$
-\begin{aligned}
-  y_t &= \phi_{t,1} y_{t-1} + \phi_{t,2} y_{t-2} + \dots + \phi_{t,p} y_{t-p} + \nu_t \\
-  \phi_{t,m} &= \phi_{t-1,m} + \omega_{t,m}, \quad m = 1:p.
-\end{aligned}
-$$
-
-## The superposition principle (Video)
-
-![The superposition principle](images/m3_0031.png){.column-margin  group="slides" width="53mm"}
-
-
-[We can use the superposition principle to build models that have different kinds of components. The main idea is to think about what is the general structure we want for the forecast function and then isolate the different components of the forecast function and think about the classes of dynamic linear models that are represented in each of those components.]{.mark} Each of those components has a class and then we can build the general dynamic linear model with all those pieces together using this principle.
-
-Two references for the Superposition principle are
-
-- [@west2013bayesian §3.1 p. 98]
-- [@prado2023time §4.2.1 p. 136]
-
-::: {#imp-superposition .callout-important}
-
-## Superposition Principle
-
-In the first the author state:
-
-> Conditional independence also features strongly in initial model building and in choosing an appropriate parametrization. For example, the linear superposition principle states that any linear combination of deterministic linear models is a linear model. This extends to a normal linear superposition principle:
->
-> [Any linear combination of independent normal DLMs is a normal DLM.]{.mark} - > -- [@west2013bayesian §3.1 p. 98]
-
-:::
-
-We will illustrate how to do that with an example:
-
-Let's say that we want to create a model here with a forecast function that has a linear trend component. Let's say we have a linear function as a function of the number of steps ahead that you want to consider. Then suppose you also have a covariate here that you want to include in your model as a regression component.
-$$
-f_t(h) = \underbrace{(k_{t,0} + k_{t,1}\; h)}_{\text{linear trend component}} + \underbrace{(k_{t,2}\; x_{t+h})}_{\text{regression component}}
-$$ {#eq-superposition-principle-example}
-
-where:
-
-- $f_t(h)$ is our forecast function.
-- $k_{t,0}$, $k_{t,1}$ and $k_{t,2}$ are just constants (that we index using time $t$ and a second subscript).
-- $x_{t+h}$ is a time dependent regression covariate.
-
-When we look at the forecast function, we can isolate a linear trend and a regression components as indicated.
-Each of these can be set in terms of two forecast functions]{.mark}. I'm going to call the forecast function $f_{1,t}(h)$, this is just the first piece.
-
-$$
-\begin{aligned}
-f_t(h) &= f_{1,t}(h) + f_{2,t}(h) \\
-f_{1,t}(h) &= k_{t,0} + k_{t,1} & \text{(linear trend component)} \\
-f_{2,t}(h) &= k_{t,2}x_{t+h} & \text{(regression component)}
-\end{aligned}
-$$ {#eq-superposition-breaking-it-down}
-
-We know how to represent forecast function $f_{1,t}$ and $f_{2,t}$ in terms of dynamic linear models.
-
-For the linear trend component, $f_{1,t}(h)$ , we have a 2-dimensional state vector, $\theta_t = (\theta_{t,1}, \theta_{t,2})'$, which yields the following DLM shortform:
-
-$$
-\{F_1, G_1, \cdot, \cdot\}  \qquad \text{(short notation)}
-$$ {#eq-superposition-linear-trend-short-form}
-
-- Where we don't explicitly specify the observational and system variances, $V$ and $W$ 
-- The important bit are $F$ and $G$. The forecast function is given by:
-
-$$
-F_{1} = E_2 = (1, 0)'
-$$ {#eq-superposition-F1}
-
-$$
-G_{1} =
-\begin{pmatrix}
-1 & 1 \\
-0 & 1
-\end{pmatrix}
-$$ {#eq-superposition-G1}
-
-for the regression component $f_{2,t}(h)$ we have the following DLM representation:
-
-$$
-\{F_2,t, G_2, \cdot, \cdot\}  \qquad \text{(short notation)}
-$$ {#eq-superposition-regression-short-form}
-
-where we have $F_{2t}$ is $X_t$ and my $G$ is simply going to be 1. This is a one-dimensional vector in terms of the state parameter vector. 
-
-$$
-F_{2,t} = x_{t+h}
-$$ {#eq-superposition-F2}
-
-$$
-G_{2} = 1
-$$ {#eq-superposition-G2}
-
-
-Once we have these, we can assemble them into our final model. $\{F_t, G, \cdot, \cdot\}$
-
-We care more about $F$, $G$, and less about the observational variance and some covariance also for the system where the
-
-F is going to be an F that has, you just concatenate the two Fs. You're going to get 1, 0 and then you're going to put the next component here.
-Again, this one is dependent on time because this component is time dependent and 
-
-The model with forecast function $f_t(h)$ above is a model with a 3-dimensional state vector with 
-
-$$
-F_t = (F_1', F_{2,t})' = (1, 0, x_t)'
-$$ 
-
-Then the G, you can create it just taking a block diagonal structure by concatenating $G_1$ and $G_2$. though formally there must be a better term for this operation.
-
-$$
-G = \text{blockdiag}[G_1, G_2] = 
-\begin{pmatrix}
-1 & 1 & 0 \\
-0 & 1 & 0 \\
-0 & 0 & 1
-\end{pmatrix}.
-$$
-
-
-This gives us the full $G$ dynamics matrix for the model. A model with this $F_t$ and this $G$ that is constant over time will give us this particular forecast function @eq-superposition-principle-example we started with.
-
-We used the superposition principle to build this model. If we need additional components, we will learn how to incorporate seasonal components, regression components, trend components. One  can build a fairly sophisticated model with different structures into this particular model using the superposition principle.
-
-::: {.callout-note collapse="true"}
-## Video Transcript {.unnumbered}
-
-{{< include _C4-L03-T04.qmd >}}
-
-:::
-
-
-## Superposition principle: General case (Reading)
-
-[You can build dynamic models with different components, for example, a trend component plus a regression component, by using the principle of superposition. The idea is to think about the general form of the forecast function you want to have for prediction. You then write that forecast function as a sum of different components where each component corresponds to a class of DLM with its own state-space representation. The final DLM can then be written by combining the pieces of the different components.]{.mark}
-
-For example, suppose you are interested in a model with a forecast function that includes a linear polynomial trend and a single covariate $x_t$, i.e.,
-
-$$
-f_t(h) = k_{t,0} + k_{t,1}h + k_{t,3}x_{t+h}.
-$$
-
-This forecast function can be written as $f_t(h) = f_{1,t}(h) + f_{2,t}(h)$, with
-
-$$
-f_{1,t}(h) = (k_{t,0} + k_{t,1}h), \quad f_{2,t}(h) = k_{t,3}x_{t+h}.
-$$
-
-The first component in the forecast function corresponds to a model with a 2-dimensional state vector, $F_{1,t} = F_1 = (1, 0)'$,
-
-$$
-G_{1,t} = G_1 = 
-\begin{pmatrix}
-1 & 1 \\
-0 & 1
-\end{pmatrix}.
-$$
-
-The second component corresponds to a model with a 1-dimensional state vector, $F_{2,t} = x_t$, $G_{2,t} = G_2 = 1$.
-
-The model with forecast function $f_t(h)$ above is a model with a 3-dimensional state vector with $F_t = (F_1', F_{2,t})' = (1, 0, x_t)'$ and
-
-$$
-G_t = \text{blockdiag}[G_1, G_2] = 
-\begin{pmatrix}
-1 & 1 & 0 \\
-0 & 1 & 0 \\
-0 & 0 & 1
-\end{pmatrix}.
-$$
-
-### General Case
-
-The general case wasn't covered in the video and we didn't have a proper statement of the superposition principle. However, in [@imp-superposition] I extracted the statement of the principle above. This statement clarifies that the principle arises via conditional independence, a tool we also used extensively in the previous course on mixture models. 
-Now let us consider the general case from the handout.
-
-Assume that you have a time series process $y_t$ with a forecast function
-
-$$
-f_t(h) = \sum_{i=1}^{m} f_{i,t}(h),
-$$
-
-where each $f_{i,t}(h)$ is the forecast function of a DLM with representation $\{F_{i,t}, G_{i,t}, v_{i,t}, W_{i,t}\}$.
-
-Then, $f_t(h)$ has a DLM representation $\{F_t, G_t, v_t, W_t\}$ with
-
-$$
-F_t = (F_{1,t}', F_{2,t}', \dots, F_{m,t}')',
-$$
-
-$$
-G_t = \text{blockdiag}[G_{1,t}, \dots, G_{m,t}],
-$$
-
-$$
-v_t = \sum_{i=1}^{m} v_{i,t},
-$$
-
-and
-
-$$
-W_t = \text{blockdiag}[W_{1,t}, \dots, W_{m,t}].
-$$
-
-
-## Quiz: The Normal Dynamic Linear Model
-
-Omitted due to Coursera honor code
-
-
-# Bayesian Inference in the NDLM: Part 1
-
-
-:::: {.content-hidden when-format="pdf"}
-::: {#vid-sean-law .column-margin}
-{{< video https://www.youtube.com/watch?v=0O6dlq6a4rA&ab_channel=SciPy >}}
-
-Sean Law - STUMPY: Modern Time Series Analysis with Matrix Profiles 
-:::
-
-We will now delve into Bayesian inference in the case of the normal dynamic linear model where both the observational variance and the system variance are known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach
-
-
-::: {.callout-note collapse='true'}
-
-### Reality check {.unnumbered}
-
-A large portion of the next video is dedicated to laying the ground for use bayesian inference in the NDLM. I was thinking we will infer $F, G,V, W$ from the data, once we supply a normal prior $\mathcal{N}(M,C)$. But this is not the case. In fact we don't seem to be particularly Bayesian when going about constructing the NDLM model. 
-
- (i.e. filtering smoothing, of the parameters $\theta_t$ given the data and forecasting $y_t$ based on that)
-
-I was initially disappointed that we assume that we know everything I want to infer. This is an open question for the proverbial [Feynman Notebook](./C4-L06.qmd). In reality that is just another problem.
- But that not the process with time series analysis. 
-
-However, at some point I saw a talk about [STUMPY](https://stumpy.readthedocs.io/en/latest/Tutorial_STUMPY_Basics.html) which does many cool time series stuff in python. And the speaker Sean Law talks about all the different Data Science & DSP Mojos `#magicspells` one can use, the nascent issues when comparing lots of times series or even just time series with lots of data. He makes another point that there is `#NoFreeLunch` - each Mojo comes with with its own assumptions and limitations before making the case for using [Matrix Profiles](https://stumpy.readthedocs.io/en/latest/Tutorial_STUMPY_Basics.html).
-
-Prado lays the ground for working with a time series with around 300 data points - i.e. something we can still plot and view on the screen then inspect it. This might unlock for us, the NDLM framework which while flexible requires us to have a detailed form of the the model and its priors. This is easy enough if we deal with a synthetic data set, less so if we have need to analyze an novel time series for which we lack much intuition. Here we will need todo a preliminary exploratory data analysis before we can step in and construct our NDLM.
-
-I suppose they expect that you will use some other non-bayesian tools to do this as we haven't really covered this in her course.
-
-Splitting a TS into trend periods and a stationary residual isn't too tricky in R. Getting the inverse periods is then possible. Doing regression on the residuals is also possible. So if we have done all that we should be able to write down an NDLM based on all that we learned. And this will allow us to do filtering, smoothing and forecasting with error estimates.
-
-:::
-
-## Filtering (Video)
-
-![Derivation for the Prior and Forecast at Time t](images/m3_0041.png){.column-margin  group="slides" width="53mm"}
-
-
-
-
-![Derivation of the Posterior at Time t](images/m3_0042.png){.column-margin  group="slides" width="53mm"}
-
-
-
-
-
-Recall we are working in a Bayesian setting where a NDLM model with a normal prior would like this:
-
-$$
-\begin{aligned}
-  y_t &= F_t' \theta_t + \nu_t & \nu_t &\sim \mathcal{N}(0, v_t) & \text{(observation)} \\
-  \theta_t &= G_t \theta_{t-1} + \omega_t & \omega_t &\sim  \mathcal{N}(0, W_t) & \text{(evolution)} \\
-  & &(\theta_0 \mid \mathcal{D}_0) & \sim  \mathcal{N}(m_0, C_0) & \text{(prior)}
-\end{aligned}
-$$ {#eq-generic-NDLM}
-
-- In the prior  $\mathcal{D}_0$ stands for the information that we have before collecting any data and 
-- We are assuming $\theta_0$ follows a normal distribution with 
-- $m_0$ mean
-- $C_0$ variance covariance matrix.
-
-Since we are doing filtering which is a retrospective analysis, of past states we assume that we know $m_0, C_0, \nu_t, \omega_t, F_t, G_t \qquad \forall t$.
-
-However, there is often great interest in looking back in time in order to get a clearer picture of what happened.
-
-We are interested in performing Bayesian inference in this setting and we talked about different kinds of distributions. 
-
-- One is the **filtering distribution** that allows us to update the distribution of $\theta_t$ as we receive observations and information over time. 
-- The other one is **smoothing equations** that allows us to just revisit the past once we have observed a chunk of data. 
-
-In a Bayesian setting, you have to set *a prior distribution*. [We will work with the prior distribution that is conjugate.]{.mark} 
-
-In this case we have to begin with a distribution at time zero for $\theta_0$. So before we have seen any data at all, I have this prior distribution. 
-
-We also assume a prior distribution of the form:
-
-
-
-$$
-(\theta_{t} \mid \mathcal{D}_{t-1}) \sim \mathcal{N}(m_{t-1}, C_{t-1}).
-$$ {#eq-filtering-assumption-1}
-
-We assume that this the filtering distribution follows this normal distribution based on 
-
-1. the prior in [@eq-generic-NDLM] being conjugate of the normal and  
-2. the linearity of the model in [@eq-generic-NDLM]. 
-
-These result in updates to the model parameters and uncertainty, at each time step, preserving the normal structure from the prior.
-
-Then, we can obtain the following distributions:
-
-1. Prior at Time $t$
-
-  $$
-  (\theta_t \mid \mathcal{D}_{t-1}) \sim  \mathcal{N}(a_t, R_t) \qquad \text{(prior at time t)} \qquad
-  $$ {#eq-prior-at-time-t}
-
-  with 
-
-  $$ \begin{aligned}
-  a_t \doteq& \mathbb{E}[\theta_t \mid \mathcal{D}_{t-1}] =& G_t  \mathbb{E}[G_t \theta_{t-1} \mid \mathcal{D}_{t-1} ] =& G_t m_{t-1} \\
-  R_t \doteq& \mathbb{V}ar[\theta_t \mid \mathcal{D}_{t-1}] =& G_t \mathbb{V}ar[\theta_t \mid \mathcal{D}_{t-1}] =& G_t C_{t-1} G_t' + W_t.
-  \end{aligned}
-  $$ {#eq-derivation-for-a-t-and-R-t}
-
-  Where we simply took the first and second moments of the system equation from [@eq-generic-NDLM] conditioned on our information set $\mathcal{D}_{t-1}$ 
-
-2. One-Step Forecast
-
-  $$
-  (y_t \mid \mathcal{D}_{t-1}) \sim  \mathcal{N}(f_t, q_t) \qquad \text{(one step forecast fn)} \qquad
-  $$ {#eq-one-step-forecast-fn}
-
-  with
-
-  $$\begin{aligned}
-  f_t 
-     & \doteq \mathbb{E}[ y_t \mid \mathcal{D}_{t-1} ]
-     & = F_t' \mathbb{E}[ y_t \mid \mathcal{D}_{t-1} ]
-     & = F_t' a_t \\
-  q_t 
-     & \doteq \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}] 
-     & = F_t' \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}]  
-     & = F_t' R_t F_t + v_t
-  \end{aligned}
-  $$ {#eq-derivation-for-f-t-and-q-t}
-
-  Where we took the first moments on the observation equation conditioned on the information set $\mathcal{D}_t$ and substituted @eq-one-step-forecast-fn 
-
-3. Posterior at Time $t$ 
-
-  $$
-  (\theta_t \mid \mathcal{D}_t) \sim  \mathcal{N}(m_t, C_t)
-  $$ 
-  
-  with
-
-  $$\begin{aligned}
-  m_t &= a_t + R_t F_t q_t^{-1} (y_t - f_t), \\
-  C_t &= R_t - R_t F_t q_t^{-1} F_t' R_t.
-  \end{aligned}
-  $$ {#eq-posterior-at-time-t}
-
-  These can be derived via Normal theory or via the Multivariate Bayes' theorem. The background for both seems to be provided in [@west2013bayesian §17.2.3 p.639]
-
-Now, denoting $e_t = (y_t - f_t)$ and $A_t = R_t F_t q_t^{-1}$, we can rewrite the equations above as:
-
-
-It follows that 
-
-$$
-\begin{pmatrix}Y \\ \theta\end{pmatrix} \sim \mathcal{N}
-\left(
-  \begin{pmatrix}F'a \\ a \end{pmatrix},
-  \begin{pmatrix} F'RF + V & F'R \\ RF & R \end{pmatrix}
-\right)
-$$
-
-Therefore, identifying $Y$ with $X_1$ and $\theta$ with $X_2$ in the partition of $X$ in 17.2.2, we have
-RF R
-)]
-
-Therefore, identifying Y with X1 and θ with X2 in the partition of X in 17.2.2, we have
-$$
-Y \sim \mathcal{N}[F'a, F'RF + V]
-$$
-
-$$
-(\theta \mid Y) \sim \mathcal{N}[m, C],
-$$
-
-where
-
-
-
-$$
-m = a + RF[F′RF + V]−1[Y − F′a]
-$$
-
-and
-$$
-C = R − RF[F′RF + V]−1F′R.
-$$
-
-
 $$
-  \begin{aligned}
-  \theta \mid \mathcal{D}_t &\sim \mathcal{N}(m_t,C_t)\\
-  m_t &\doteq a_t + A_t e_t, \\
-  C_t &\doteq R_t - A_t q_t A_t'
-  \end{aligned}
-$$ {#eq-posterior-distribution}
-
-@eq-derivation-for-a-t-and-R-t , @eq-derivation-for-f-t-and-q-t and @eq-posterior-distribution are often referred to as the [Kalman filtering](https://en.wikipedia.org/wiki/Kalman_filter) equations. 
-
-::: {.callout-note collapse="true"}
-## Video Transcript
-
-{{< include _C4-L03-T05.qmd >}}
-
-:::
-
-## Summary of filtering distributions (Reading)
-
-### Bayesian Inference in NDLM: Known Variances
-
-Consider an NDLM given by:
-
-$$
-\begin{aligned}
-y_t &= F_t' \theta_t + \nu_t, \quad \nu_t \sim  \mathcal{N}(0, v_t), \\
-\theta_t &= G_t \theta_{t-1} + \omega_t, \quad \omega_t \sim  \mathcal{N}(0, W_t), 
-\end{aligned}
-$$ {#eq-generic-NDLM}
-
-with $F_t$, $G_t$, $v_t$, and $W_t$ known. We also assume a prior distribution of the form $(\theta_0 \mid \mathcal{D}_0) \sim  \mathcal{N}(m_0, C_0)$, with $m_0$, $C_0$ known.
-
-#### Filtering
-
-We are interested in finding $\mathbb{P}r(\theta_t \mid \mathcal{D}_t)$ for all $t$. Assume that the posterior at $t-1$ is such that:
-
+\mathbb{P}r(\phi) = \frac{1}{2}, \quad \text{for } \phi \in (-1, 1),
 $$
-(\theta_{t-1} \mid \mathcal{D}_{t-1}) \sim  \mathcal{N}(m_{t-1}, C_{t-1}).
-$$ {#eq-filtering}
-
-Then, we can obtain the following:
 
-1. Prior at Time $t$
+i.e., we assume a Uniform prior for $\phi \in (-1, 1)$. Combining this prior with the full likelihood in the AR(1) case, we obtain the following posterior density:
 
 $$
-(\theta_t \mid \mathcal{D}_{t-1}) \sim  \mathcal{N}(a_t, R_t),
+\mathbb{P}r(\phi, v \mid y_{1:T}) \propto \frac{(1 - \phi^2)^{1/2} }{v^{T/2 + 1}} \exp\left(-\frac{Q^*(\phi)}{2v}\right), \quad -1 < \phi < 1,
 $$
 
 with
 
 $$
-a_t = G_t m_{t-1} \qquad R_t = G_t C_{t-1} G_t' + W_t.
+Q^*(\phi) = y_1^2(1 - \phi^2) + \sum_{t=2}^{T} (y_t - \phi y_{t-1})^2.
 $$
 
-2. One-Step Forecast
+It is not possible to get a closed-form expression for this posterior or to perform direct simulation. Therefore, we use simulation-based Markov Chain Monte Carlo (MCMC) methods to obtain samples from the posterior distribution.
+
+### Transformation of $\phi$
+
+We first consider the following transformation on $\phi$:
 
 $$
-(y_t \mid D_{t-1}) \sim  \mathcal{N}(f_t, q_t),
+\eta = \log\left(\frac{1 - \phi}{\phi + 1}\right),
 $$
 
-with
+so that $\eta \in (-\infty, \infty)$. The inverse transformation on $\eta$ is:
 
 $$
-f_t = F_t' a_t, \quad q_t = F_t' R_t F_t + v_t.
+\phi = \frac{1 - \exp(\eta)}{1 + \exp(\eta)}.
 $$
 
-3. Posterior at Time $t: (\theta_t \mid \mathcal{D}_t) \sim  \mathcal{N}(m_t, C_t)$ with
-
-$$\begin{aligned}
-m_t &= a_t + R_t F_t q_t^{-1} (y_t - f_t), \\
-C_t &= R_t - R_t F_t q_t^{-1} F_t' R_t.
-\end{aligned}
-$$
-
-Now, denoting $e_t = (y_t - f_t)$ and $A_t = R_t F_t q_t^{-1}$, we can rewrite the equations above as:
-
-$$\begin{aligned}
-m_t &= a_t + A_t e_t, \\
-C_t &= R_t - A_t q_t A_t'
-\end{aligned}
-$$
-
-## Rcode Filtering in the NDLM: Example (Reading)
-
-```{r}
-#| label: lst-filtering-in-the-NDLM
-
-#################################################
-##### Univariate DLM: Known, constant variances
-#################################################
-set_up_dlm_matrices <- function(FF, GG, VV, WW){
-  return(list(FF=FF, GG=GG, VV=VV, WW=WW))
-}
-
-set_up_initial_states <- function(m0, C0){
-  return(list(m0=m0, C0=C0))
-}
-
-### forward update equations ###
-forward_filter <- function(data, matrices, initial_states){
-  ## retrieve dataset
-  y_t <- data$y_t
-  T <- length(y_t)
-  
-  ## retrieve a set of quadruples 
-  # FF, GG, VV, WW are scalar
-  FF <- matrices$FF  
-  GG <- matrices$GG
-  VV <- matrices$VV
-  WW <- matrices$WW
-  
-  ## retrieve initial states
-  m0 <- initial_states$m0
-  C0 <- initial_states$C0
-  
-  ## create placeholder for results
-  d <- dim(GG)[1]
-  at <- matrix(NA, nrow=T, ncol=d)
-  Rt <- array(NA, dim=c(d, d, T))
-  ft <- numeric(T)
-  Qt <- numeric(T)
-  mt <- matrix(NA, nrow=T, ncol=d)
-  Ct <- array(NA, dim=c(d, d, T))
-  et <- numeric(T)
-  
-  for(i in 1:T){
-    # moments of priors at t
-    if(i == 1){
-      at[i, ] <- GG %*% t(m0)
-      Rt[, , i] <- GG %*% C0 %*% t(GG) + WW
-      Rt[, , i] <- 0.5*Rt[, , i]+0.5*t(Rt[, , i])
-    }else{
-      at[i, ] <- GG %*% t(mt[i-1, , drop=FALSE])
-      Rt[, , i] <- GG %*% Ct[, , i-1] %*% t(GG) + WW
-      Rt[, , i] <- 0.5*Rt[, , i]+0.5*t(Rt[, , i])
-    }
-    
-    # moments of one-step forecast:
-    ft[i] <- t(FF) %*% (at[i, ]) 
-    Qt[i] <- t(FF) %*% Rt[, , i] %*% FF + VV
-    
-    # moments of posterior at t:
-    At <- Rt[, , i] %*% FF / Qt[i]
-    et[i] <- y_t[i] - ft[i]
-    mt[i, ] <- at[i, ] + t(At) * et[i]
-    Ct[, , i] <- Rt[, , i] - Qt[i] * At %*% t(At)
-    Ct[, , i] <- 0.5*Ct[, , i]+ 0.5*t(Ct[, , i])
-  }
-  cat("Forward filtering is completed!") # indicator of completion
-  return(list(mt = mt, Ct = Ct, at = at, Rt = 
-                Rt, ft = ft, Qt = Qt))
-}
-
-forecast_function <- function(posterior_states, k, matrices){
-  
-  ## retrieve matrices
-  FF <- matrices$FF
-  GG <- matrices$GG
-  WW <- matrices$WW
-  VV <- matrices$VV
-  mt <- posterior_states$mt
-  Ct <- posterior_states$Ct
-  
-  ## set up matrices
-  T <- dim(mt)[1] # time points
-  d <- dim(mt)[2] # dimension of state-space parameter vector
-  
-  ## placeholder for results
-  at <- matrix(NA, nrow = k, ncol = d)
-  Rt <- array(NA, dim=c(d, d, k))
-  ft <- numeric(k)
-  Qt <- numeric(k)
-  
-  
-  for(i in 1:k){
-    ## moments of state distribution
-    if(i == 1){
-      at[i, ] <- GG %*% t(mt[T, , drop=FALSE])
-      Rt[, , i] <- GG %*% Ct[, , T] %*% t(GG) + WW
-      Rt[, , i] <- 0.5*Rt[, , i]+0.5*t(Rt[, , i])
-    }else{
-      at[i, ] <- GG %*% t(at[i-1, , drop=FALSE])
-      Rt[, , i] <- GG %*% Rt[, , i-1] %*% t(GG) + WW
-      Rt[, , i] <- 0.5*Rt[, , i]+0.5*t(Rt[, , i])
-    }
-    
-    ## moments of forecast distribution
-    ft[i] <- t(FF) %*% t(at[i, , drop=FALSE])
-    Qt[i] <- t(FF) %*% Rt[, , i] %*% FF + VV
-  }
-  cat("Forecasting is completed!") # indicator of completion
-  return(list(at=at, Rt=Rt, ft=ft, Qt=Qt))
-}
-
-## obtain 95% credible interval
-get_credible_interval <- function(mu, sigma2, 
-                          quantile = c(0.025, 0.975)){
-  z_quantile <- qnorm(quantile)
-  bound <- matrix(0, nrow=length(mu), ncol=2)
-  bound[, 1] <- mu + 
-    z_quantile[1]*sqrt(as.numeric(sigma2)) # lower bound
-  bound[, 2] <- mu + 
-    z_quantile[2]*sqrt(as.numeric(sigma2)) # upper bound
-  return(bound)
-}
-
-####################### Example: Lake Huron Data ######################
-plot(LakeHuron,main="Lake Huron Data",
-     ylab="level in feet") # Total of 98 observations 
-k=4
-T=length(LakeHuron)-k # We take the first 94 observations 
-                      # only as our data
-ts_data=LakeHuron[1:T]
-ts_validation_data <- LakeHuron[(T+1):98]
-
-data <- list(y_t = ts_data)
-
-# First order polynomial model 
-
-## set up the DLM matrices 
-FF <- as.matrix(1)
-GG <- as.matrix(1)
-VV <- as.matrix(1)
-WW <- as.matrix(1)
-m0 <- as.matrix(570)
-C0 <- as.matrix(1e4)
-
-## wrap up all matrices and initial values
-matrices <- set_up_dlm_matrices(FF, GG, VV, WW)
-initial_states <- set_up_initial_states(m0, C0)
-
-## filtering
-results_filtered <- forward_filter(data, matrices, 
-                                   initial_states)
-names(results_filtered)
-
-ci_filtered <- get_credible_interval(results_filtered$mt, 
-                                     results_filtered$Ct)
-
-## forecasting 
-results_forecast <- forecast_function(results_filtered,k, 
-                                      matrices)
-ci_forecast <- get_credible_interval(results_forecast$ft, 
-                                     results_forecast$Qt)
-
-index=seq(1875, 1972, length.out = length(LakeHuron))
-index_filt=index[1:T]
-index_forecast=index[(T+1):98]
-
-plot(index, LakeHuron, ylab = "level", 
-     main = "Lake Huron Level",type='l',
-     xlab="time",lty=3,ylim=c(574,584))
-points(index,LakeHuron,pch=20)
-
-lines(index_filt, results_filtered$mt, type='l',
-      col='red',lwd=2)
-lines(index_filt, ci_filtered[, 1], type='l', 
-      col='red', lty=2)
-lines(index_filt, ci_filtered[, 2], type='l', col='red', lty=2)
-
-
-lines(index_forecast, results_forecast$ft, type='l',
-      col='green',lwd=2)
-lines(index_forecast, ci_forecast[, 1], type='l',
-      col='green', lty=2)
-lines(index_forecast, ci_forecast[, 2], type='l',
-      col='green', lty=2)
-
-legend('bottomleft', legend=c("filtered","forecast"),
-       col = c("red", "green"), lty=c(1, 1))
-
-#Now consider a 100 times smaller signal to noise ratio 
-VV <- as.matrix(1)
-WW <- as.matrix(0.01)
-matrices_2 <- set_up_dlm_matrices(FF,GG, VV, WW)
-
-## filtering
-results_filtered_2 <- forward_filter(data, matrices_2, 
-                                     initial_states)
-ci_filtered_2 <- get_credible_interval(results_filtered_2$mt, 
-                                       results_filtered_2$Ct)
-
-results_forecast_2 <- forecast_function(results_filtered_2, 
-                             length(ts_validation_data), 
-                             matrices_2)
-ci_forecast_2 <- get_credible_interval(results_forecast_2$ft, 
-                                       results_forecast_2$Qt)
-
-
-plot(index, LakeHuron, ylab = "level", 
-     main = "Lake Huron Level",type='l',
-     xlab="time",lty=3,ylim=c(574,584))
-points(index,LakeHuron,pch=20)
-
-lines(index_filt, results_filtered_2$mt, type='l', 
-      col='magenta',lwd=2)
-lines(index_filt, ci_filtered_2[, 1], type='l', 
-      col='magenta', lty=2)
-lines(index_filt, ci_filtered_2[, 2], type='l', 
-      col='magenta', lty=2)
-
-lines(index_forecast, results_forecast_2$ft, type='l', 
-      col='green',lwd=2)
-lines(index_forecast, ci_forecast_2[, 1], type='l', 
-      col='green', lty=2)
-lines(index_forecast, ci_forecast_2[, 2], type='l', 
-      col='green', lty=2)
-
-legend('bottomleft', legend=c("filtered","forecast"),
-       col = c("magenta", "green"), lty=c(1, 1))
-
-plot(index_filt,results_filtered$mt,type='l',col='red',lwd=2,
-     ylim=c(574,584),ylab="level")
-lines(index_filt,results_filtered_2$mt,col='magenta',lwd=2)
-points(index,LakeHuron,pch=20)
-lines(index,LakeHuron,lty=2)
-```
-
-## Smoothing and forecasting (Video)
-
-![Smoothing](images/m3_0051.png){.column-margin group="slides" width="53mm"}
-
-
-
-
-![Forecasting](images/m3_0052.png){.column-margin group="slides" width="53mm"}
-
-
-
-
-We now discuss the **smoothing equations** for the case of the NDLM, where we are assuming that the variance at the *observation level* $\nu_t$ and the covariance matrix at the *system level* $\mathbf{W}_t$ are both known.
-
-$$ \begin{aligned}
-y_t &= \mathbf{F}_t' \mathbf{\theta}_t + \nu_t, &\nu_t &\sim \mathcal{N} (0, v_t), & \text{(observation)} \\
-\mathbf{\theta}_t & = \mathbf{G}_t \mathbf{\theta}_{t-1} + \mathbf{\omega}_t, &\mathbf{\omega}_t & \sim \mathcal{N} (0, \mathbf{W}_t), & \text{(evolution)} \\
-&\{ \mathbf{F}_t, \mathbf{G}_t, v_t, \mathbf{W}_t \}  &(\mathbf{\omega}_0 \mid \mathcal{D}_0) & \sim \mathcal{N}(\mathbf{m}_0, \mathbf{C}_0) & \text{(prior)}
-\end{aligned}
-$$ {#eq-inference-NDLM}
-
-with $F_t$, $G_t$, $v_t$, $W_t$, $m_0$ and $C_0$ known.
-
-We have discussed the filtering equations, i.e. the process for obtaining the distributions of $\theta_t \mid \mathcal{D}_t$, as we collect observations over time, called filtering. 
-
-We do this by updating the distribution of $\theta_t$ given the data we have collected step by step, as we move forward in time - updating the from the prior distribution.
-
-Now we will discuss what happens when we do smoothing, meaning when we revisit the distributions of $\theta_t$, given now that we have received a set of observations.
-
-#### Smoothing
-
-For $t < T$, we have that:
+Writing down the posterior density for $\eta$ and $v$, we obtain
 
 $$
-(\theta_t \mid D_T) \sim  \mathcal{N}(a_T(t - T), R_T(t - T)),
+\mathbb{P}r(\eta, v \mid y_{1:T}) \propto\frac{ (1 - \phi^2)^{1/2} }{v^{T/2 + 1}} \exp\left(-\frac{Q^*(\phi)}{2v}\right) \cdot \frac{2 \exp(\eta)}{(1 + \exp(\eta))^2},
 $$
 
-where
+with $\phi$ written as a function of $\eta$. We proceed to obtain samples from this posterior distribution using the MCMC algorithm outlined below. Once we have obtained $M$ samples from $\eta$ and $v$ after convergence, we can use the inverse transformation above to obtain posterior samples for $\phi$.
+
+### MCMC Algorithm: Bayesian Inference for AR(1), Full Likelihood
+
+**Algorithm**:
+
+1.  Initialize $\eta^{(0)}$ and $\beta^{(0)}$.
+2.  For $m$ in $1:M$ do:
+    -   Sample $v^{(m)} \sim \text{IG}\left(\frac{T}{2}, \frac{Q^*(\phi^{(m-1)})}{2}\right)$.
+    -   Sample $\eta^{(m)}$ using Metropolis-Hastings:
+        1.  Sample $\eta^* \sim N(\eta^{(m-1)}, c)$, where $c$ is a tuning parameter.
+        2.  Compute the importance ratio:
 
 $$
-a_T(t - T) = m_t - B_t [a_{t+1} - a_T(t - T + 1)],
+        r = \frac{p(\eta^*, v^{(m)} \mid y_{1:T})}{p(\eta^{(m-1)}, v^{(m)} \mid y_{1:T})}.
 $$
 
-$$
-R_T(t - T) = C_t - B_t [R_{t+1} - R_T(t - T + 1)] B_t',
-$$
-
-for $t = (T - 1), (T - 2), \dots, 0$, with $B_t = C_t G_t' R_{t+1}^{-1}$, and $a_T(0) = m_T$, $R_T(0) = C_T$. Here $a_t$, $m_t$, $R_t$, and $C_t$ are obtained using the filtering equations as explained before.
-
-#### Forecasting
-
-For $h \geq 0$, it is possible to show that:
+ 3. Set: 
 
 $$
-(\theta_{t+h} \mid D_t) \sim  \mathcal{N}(a_t(h), R_t(h)),
+        \eta^{(m)} =
+        \begin{cases}
+        \eta^* & \text{with probability } \min(r, 1), \\
+        \eta^{(m-1)} & \text{otherwise}.
+        \end{cases}
 $$
 
-$$
-(y_{t+h} \mid D_t) \sim  \mathcal{N}(f_t(h), q_t(h)),
-$$
-
-with
-
-$$
-a_t(h) = G_{t+h} a_t(h - 1),
-$$
-
-$$
-R_t(h) = G_{t+h} R_t(h - 1) G_{t+h}' + W_{t+h},
-$$
-
-$$
-f_t(h) = F_{t+h}' a_t(h),
-$$
-
-$$
-q_t(h) = F_{t+h}' R_t(h) F_{t+h} + v_{t+h},
-$$
-
-and
-
-$$
-a_t(0) = m_t, \quad R_t(0) = C_t.
-$$
-
-::: {.callout-note collapse="true"}
-
-## Video Transcript
-
-{{< include _C4-L03-T06.qmd >}}
-
-:::
-
-
-## Summary of the smoothing and forecasting distributions (reading)
-
-<!-- start -->
-
-### Bayesian Inference in NDLM: Known Variances {#sec-inference-NDLM}
-
-Consider the NDLM given by:
-
-$$ \begin{aligned}
-y_t &= \mathbf{F}_t' \mathbf{\theta}_t + \nu_t, &\nu_t &\sim \mathcal{N} (0, v_t), \\
-\mathbf{\theta}_t &= \mathbf{G}_t \mathbf{\theta}_{t-1} + \mathbf{\omega}_t, &\mathbf{\omega}_t &\sim \mathcal{N} (0, \mathbf{W}_t), \\
-&\{ \mathbf{F}_t, \mathbf{G}_t, v_t, \mathbf{W}_t \}  &(\mathbf{\omega}_0 \mid \mathcal{D}_0) &\sim  \mathcal{N}(\mathbf{m}_0, \mathbf{C}_0)
-\end{aligned}
-$$ {#eq-inference-NDLM}
-
-with $F_t$, $G_t$, $v_t$, and $W_t$ known. 
-
-We also assume a prior distribution of the form 
-$(\theta_0 \mid D_0) \sim  \mathcal{N}(m_0, C_0)$, with $m_0$ and $C_0$ known.
-
-#### Smoothing
-
-For $t < T$, we have that:
-
-$$
-(\theta_t \mid D_T) \sim  \mathcal{N}(a_T(t - T), R_T(t - T)),
-$$
-
-where
-
-$$
-a_T(t - T) = m_t - B_t [a_{t+1} - a_T(t - T + 1)],
-$$
-
-$$
-R_T(t - T) = C_t - B_t [R_{t+1} - R_T(t - T + 1)] B_t',
-$$
-
-for $t = (T - 1), (T - 2), \dots, 0$, with $B_t = C_t G_t' R_{t+1}^{-1}$, and $a_T(0) = m_T$, $R_T(0) = C_T$. Here $a_t$, $m_t$, $R_t$, and $C_t$ are obtained using the filtering equations as explained before.
-
-#### Forecasting
-
-For $h \geq 0$, it is possible to show that:
-
-$$
-(\theta_{t+h} \mid D_t) \sim  \mathcal{N}(a_t(h), R_t(h)),
-$$
-
-$$
-(y_{t+h} \mid D_t) \sim  \mathcal{N}(f_t(h), q_t(h)),
-$$
-
-with
-
-$$
-a_t(h) = G_{t+h} a_t(h - 1),
-$$
-
-$$
-R_t(h) = G_{t+h} R_t(h - 1) G_{t+h}' + W_{t+h},
-$$
-
-$$
-f_t(h) = F_{t+h}' a_t(h),
-$$
-
-$$
-q_t(h) = F_{t+h}' R_t(h) F_{t+h} + v_{t+h},
-$$
-
-and
-
-$$
-a_t(0) = m_t, \quad R_t(0) = C_t.
-$$
-
-<!-- end -->
-
-## Smoothing in the NDLM, Example (Video)
-
-
-
-## R code: Smoothing in the NDLM, Example (Reading) {#sec-smoothing-in-the-NDLM}
-
-```{r}
-#| label: lst-smoothing-in-the-NDLM
-
-#################################################
-##### Univariate DLM: Known, constant variances
-#################################################
-set_up_dlm_matrices <- function(FF, GG, VV, WW){
-  return(list(FF=FF, GG=GG, VV=VV, WW=WW))
-}
-
-set_up_initial_states <- function(m0, C0){
-  return(list(m0=m0, C0=C0))
-}
-
-### forward update equations ###
-forward_filter <- function(data, matrices, initial_states){
-  ## retrieve dataset
-  y_t <- data$y_t
-  T <- length(y_t)
-  
-  ## retrieve a set of quadruples 
-  # FF, GG, VV, WW are scalar
-  FF <- matrices$FF  
-  GG <- matrices$GG
-  VV <- matrices$VV
-  WW <- matrices$WW
-  
-  ## retrieve initial states
-  m0 <- initial_states$m0
-  C0 <- initial_states$C0
-  
-  ## create placeholder for results
-  d <- dim(GG)[1]
-  at <- matrix(NA, nrow=T, ncol=d)
-  Rt <- array(NA, dim=c(d, d, T))
-  ft <- numeric(T)
-  Qt <- numeric(T)
-  mt <- matrix(NA, nrow=T, ncol=d)
-  Ct <- array(NA, dim=c(d, d, T))
-  et <- numeric(T)
-  
-  
-  for(i in 1:T){
-    # moments of priors at t
-    if(i == 1){
-      at[i, ] <- GG %*% t(m0)
-      Rt[, , i] <- GG %*% C0 %*% t(GG) + WW
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i]) 
-    }else{
-      at[i, ] <- GG %*% t(mt[i-1, , drop=FALSE])
-      Rt[, , i] <- GG %*% Ct[, , i-1] %*% t(GG) + WW
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i]) 
-    }
-    
-    # moments of one-step forecast:
-    ft[i] <- t(FF) %*% (at[i, ]) 
-    Qt[i] <- t(FF) %*% Rt[, , i] %*% FF + VV
-    
-    # moments of posterior at t:
-    At <- Rt[, , i] %*% FF / Qt[i]
-    et[i] <- y_t[i] - ft[i]
-    mt[i, ] <- at[i, ] + t(At) * et[i]
-    Ct[, , i] <- Rt[, , i] - Qt[i] * At %*% t(At)
-    Ct[,,i] <- 0.5*Ct[,,i] + 0.5*t(Ct[,,i]) 
-  }
-  cat("Forward filtering is completed!") # indicator of completion
-  return(list(mt = mt, Ct = Ct, at = at, Rt = Rt, 
-              ft = ft, Qt = Qt))
-}
-
-
-forecast_function <- function(posterior_states, k, matrices){
-  
-  ## retrieve matrices
-  FF <- matrices$FF
-  GG <- matrices$GG
-  WW <- matrices$WW
-  VV <- matrices$VV
-  mt <- posterior_states$mt
-  Ct <- posterior_states$Ct
-  
-  ## set up matrices
-  T <- dim(mt)[1] # time points
-  d <- dim(mt)[2] # dimension of state parameter vector
-  
-  ## placeholder for results
-  at <- matrix(NA, nrow = k, ncol = d)
-  Rt <- array(NA, dim=c(d, d, k))
-  ft <- numeric(k)
-  Qt <- numeric(k)
-  
-  
-  for(i in 1:k){
-    ## moments of state distribution
-    if(i == 1){
-      at[i, ] <- GG %*% t(mt[T, , drop=FALSE])
-      Rt[, , i] <- GG %*% Ct[, , T] %*% t(GG) + WW
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i]) 
-    }else{
-      at[i, ] <- GG %*% t(at[i-1, , drop=FALSE])
-      Rt[, , i] <- GG %*% Rt[, , i-1] %*% t(GG) + WW
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i]) 
-    }
-    
-    ## moments of forecast distribution
-    ft[i] <- t(FF) %*% t(at[i, , drop=FALSE])
-    Qt[i] <- t(FF) %*% Rt[, , i] %*% FF + VV
-  }
-  cat("Forecasting is completed!") # indicator of completion
-  return(list(at=at, Rt=Rt, ft=ft, Qt=Qt))
-}
-
-## obtain 95% credible interval
-get_credible_interval <- function(mu, sigma2, 
-                          quantile = c(0.025, 0.975)){
-  z_quantile <- qnorm(quantile)
-  bound <- matrix(0, nrow=length(mu), ncol=2)
-  bound[, 1] <- mu + z_quantile[1]*sqrt(as.numeric(sigma2)) # lower bound
-  bound[, 2] <- mu + z_quantile[2]*sqrt(as.numeric(sigma2)) # upper bound
-  return(bound)
-}
-
-### smoothing equations ###
-backward_smoothing <- function(data, matrices, 
-                               posterior_states){
-  ## retrieve data 
-  y_t <- data$y_t
-  T <- length(y_t) 
-  
-  ## retrieve matrices
-  FF <- matrices$FF
-  GG <- matrices$GG
-  
-  ## retrieve matrices
-  mt <- posterior_states$mt
-  Ct <- posterior_states$Ct
-  at <- posterior_states$at
-  Rt <- posterior_states$Rt
-  
-  ## create placeholder for posterior moments 
-  mnt <- matrix(NA, nrow = dim(mt)[1], ncol = dim(mt)[2])
-  Cnt <- array(NA, dim = dim(Ct))
-  fnt <- numeric(T)
-  Qnt <- numeric(T)
-  for(i in T:1){
-    # moments for the distributions of the state vector given D_T
-    if(i == T){
-      mnt[i, ] <- mt[i, ]
-      Cnt[, , i] <- Ct[, , i]
-      Cnt[, , i] <- 0.5*Cnt[, , i] + 0.5*t(Cnt[, , i]) 
-    }else{
-      inv_Rtp1<-solve(Rt[,,i+1])
-      Bt <- Ct[, , i] %*% t(GG) %*% inv_Rtp1
-      mnt[i, ] <- mt[i, ] + Bt %*% (mnt[i+1, ] - at[i+1, ])
-      Cnt[, , i] <- Ct[, , i] + Bt %*% (Cnt[, , i + 1] - Rt[, , i+1]) %*% t(Bt)
-      Cnt[,,i] <- 0.5*Cnt[,,i] + 0.5*t(Cnt[,,i]) 
-    }
-    # moments for the smoothed distribution of the mean response of the series
-    fnt[i] <- t(FF) %*% t(mnt[i, , drop=FALSE])
-    Qnt[i] <- t(FF) %*% t(Cnt[, , i]) %*% FF
-  }
-  cat("Backward smoothing is completed!")
-  return(list(mnt = mnt, Cnt = Cnt, fnt=fnt, Qnt=Qnt))
-}
-####################### Example: Lake Huron Data ######################
-plot(LakeHuron,main="Lake Huron Data",ylab="level in feet") 
-# 98 observations total 
-k=4
-T=length(LakeHuron)-k # We take the first 94 observations 
-                     #  as our data
-ts_data=LakeHuron[1:T]
-ts_validation_data <- LakeHuron[(T+1):98]
-
-data <- list(y_t = ts_data)
-
-## set up matrices
-FF <- as.matrix(1)
-GG <- as.matrix(1)
-VV <- as.matrix(1)
-WW <- as.matrix(1)
-m0 <- as.matrix(570)
-C0 <- as.matrix(1e4)
-
-## wrap up all matrices and initial values
-matrices <- set_up_dlm_matrices(FF,GG,VV,WW)
-initial_states <- set_up_initial_states(m0, C0)
-
-## filtering
-results_filtered <- forward_filter(data, matrices, 
-                                   initial_states)
-ci_filtered<-get_credible_interval(results_filtered$mt,
-                                   results_filtered$Ct)
-## smoothing
-results_smoothed <- backward_smoothing(data, matrices, 
-                                       results_filtered)
-ci_smoothed <- get_credible_interval(results_smoothed$mnt, 
-                                     results_smoothed$Cnt)
-
-
-index=seq(1875, 1972, length.out = length(LakeHuron))
-index_filt=index[1:T]
-
-plot(index, LakeHuron, main = "Lake Huron Level ",type='l',
-     xlab="time",ylab="level in feet",lty=3,ylim=c(575,583))
-points(index,LakeHuron,pch=20)
-
-lines(index_filt, results_filtered$mt, type='l', 
-      col='red',lwd=2)
-lines(index_filt, ci_filtered[,1], type='l', col='red',lty=2)
-lines(index_filt, ci_filtered[,2], type='l', col='red',lty=2)
-
-lines(index_filt, results_smoothed$mnt, type='l', 
-      col='blue',lwd=2)
-lines(index_filt, ci_smoothed[,1], type='l', col='blue',lty=2)
-lines(index_filt, ci_smoothed[,2], type='l', col='blue',lty=2)
-
-legend('bottomleft', legend=c("filtered","smoothed"),
-       col = c("red", "blue"), lty=c(1, 1))
-
-```
-
-## Second order polynomial: Filtering and smoothing example (Video) {#sec-second-order-polynomial}
-
-In this video walk through the code provided in the section below the comment
-
-::: {.callout-note collapse="true"}
-## Video Transcript
-
-{{< include _C4-L03-T07.qmd >}}
-
-:::
-
-## Using the dlm package in R (Video)
-
-The `dlm` package in R is a powerful tool for working with dynamic linear models. The package provides a wide range of functions for filtering, smoothing, forecasting, and parameter estimation in DLMs. In this video, we walk through the code provided in @lst-dlm-package.
-
-::: {.callout-note collapse="true"}
-## Video Transcript
-
-{{< include _C4-L03-T08.qmd >}}
-
-:::
-
-## R code: Using the `dlm` package in R (Reading) {#sec-dlm-package}
-
-```{r}
-#| label: lst-dlm-package
-#| lst-label: lst-dlm-package
-#| lst-cap: Using the `dlm` package for dynamic linear models
-
-#################################################
-##### Univariate DLM: Known, constant variances
-#################################################
-set_up_dlm_matrices <- function(FF, GG, VV, WW){
-  return(list(FF=FF, GG=GG, VV=VV, WW=WW))
-}
-
-set_up_initial_states <- function(m0, C0){
-  return(list(m0=m0, C0=C0))
-}
-
-### forward update equations ###
-forward_filter <- function(data, matrices, initial_states){
-  ## retrieve dataset
-  y_t <- data$y_t
-  T <- length(y_t)
-  
-  ## retrieve a set of quadruples 
-  # FF, GG, VV, WW are scalar
-  FF <- matrices$FF  
-  GG <- matrices$GG
-  VV <- matrices$VV
-  WW <- matrices$WW
-  
-  ## retrieve initial states
-  m0 <- initial_states$m0
-  C0 <- initial_states$C0
-  
-  ## create placeholder for results
-  d <- dim(GG)[1]
-  at <- matrix(NA, nrow=T, ncol=d)
-  Rt <- array(NA, dim=c(d, d, T))
-  ft <- numeric(T)
-  Qt <- numeric(T)
-  mt <- matrix(NA, nrow=T, ncol=d)
-  Ct <- array(NA, dim=c(d, d, T))
-  et <- numeric(T)
-  
-  
-  for(i in 1:T){
-    # moments of priors at t
-    if(i == 1){
-      at[i, ] <- GG %*% t(m0)
-      Rt[, , i] <- GG %*% C0 %*% t(GG) + WW
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i]) 
-    }else{
-      at[i, ] <- GG %*% t(mt[i-1, , drop=FALSE])
-      Rt[, , i] <- GG %*% Ct[, , i-1] %*% t(GG) + WW
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i]) 
-    }
-    
-    # moments of one-step forecast:
-    ft[i] <- t(FF) %*% (at[i, ]) 
-    Qt[i] <- t(FF) %*% Rt[, , i] %*% FF + VV
-    
-    # moments of posterior at t:
-    At <- Rt[, , i] %*% FF / Qt[i]
-    et[i] <- y_t[i] - ft[i]
-    mt[i, ] <- at[i, ] + t(At) * et[i]
-    Ct[, , i] <- Rt[, , i] - Qt[i] * At %*% t(At)
-    Ct[,,i] <- 0.5*Ct[,,i] + 0.5*t(Ct[,,i]) 
-  }
-  cat("Forward filtering is completed!") # indicator of completion
-  return(list(mt = mt, Ct = Ct, at = at, Rt = Rt, 
-              ft = ft, Qt = Qt))
-}
-
-forecast_function <- function(posterior_states, k, matrices){
-  
-  ## retrieve matrices
-  FF <- matrices$FF
-  GG <- matrices$GG
-  WW <- matrices$WW
-  VV <- matrices$VV
-  mt <- posterior_states$mt
-  Ct <- posterior_states$Ct
-  
-  ## set up matrices
-  T <- dim(mt)[1] # time points
-  d <- dim(mt)[2] # dimension of state parameter vector
-  
-  ## placeholder for results
-  at <- matrix(NA, nrow = k, ncol = d)
-  Rt <- array(NA, dim=c(d, d, k))
-  ft <- numeric(k)
-  Qt <- numeric(k)
-  
-  
-  for(i in 1:k){
-    ## moments of state distribution
-    if(i == 1){
-      at[i, ] <- GG %*% t(mt[T, , drop=FALSE])
-      Rt[, , i] <- GG %*% Ct[, , T] %*% t(GG) + WW
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i]) 
-    }else{
-      at[i, ] <- GG %*% t(at[i-1, , drop=FALSE])
-      Rt[, , i] <- GG %*% Rt[, , i-1] %*% t(GG) + WW
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i]) 
-    }
-    
-    ## moments of forecast distribution
-    ft[i] <- t(FF) %*% t(at[i, , drop=FALSE])
-    Qt[i] <- t(FF) %*% Rt[, , i] %*% FF + VV
-  }
-  cat("Forecasting is completed!") # indicator of completion
-  return(list(at=at, Rt=Rt, ft=ft, Qt=Qt))
-}
-
-## obtain 95% credible interval
-get_credible_interval <- function(mu, sigma2, 
-                          quantile = c(0.025, 0.975)){
-  z_quantile <- qnorm(quantile)
-  bound <- matrix(0, nrow=length(mu), ncol=2)
-  bound[, 1] <- mu + z_quantile[1]*sqrt(as.numeric(sigma2)) # lower bound
-  bound[, 2] <- mu + z_quantile[2]*sqrt(as.numeric(sigma2)) # upper bound
-  return(bound)
-}
-
-### smoothing equations ###
-backward_smoothing <- function(data, matrices, 
-                               posterior_states){
-  ## retrieve data 
-  y_t <- data$y_t
-  T <- length(y_t) 
-  
-  ## retrieve matrices
-  FF <- matrices$FF
-  GG <- matrices$GG
-  
-  ## retrieve matrices
-  mt <- posterior_states$mt
-  Ct <- posterior_states$Ct
-  at <- posterior_states$at
-  Rt <- posterior_states$Rt
-  
-  ## create placeholder for posterior moments 
-  mnt <- matrix(NA, nrow = dim(mt)[1], ncol = dim(mt)[2])
-  Cnt <- array(NA, dim = dim(Ct))
-  fnt <- numeric(T)
-  Qnt <- numeric(T)
-  for(i in T:1){
-    # moments for the distributions of the state vector given D_T
-    if(i == T){
-      mnt[i, ] <- mt[i, ]
-      Cnt[, , i] <- Ct[, , i]
-      Cnt[, , i] <- 0.5*Cnt[, , i] + 0.5*t(Cnt[, , i]) 
-    }else{
-      inv_Rtp1<-solve(Rt[,,i+1])
-      Bt <- Ct[, , i] %*% t(GG) %*% inv_Rtp1
-      mnt[i, ] <- mt[i, ] + Bt %*% (mnt[i+1, ] - at[i+1, ])
-      Cnt[, , i] <- Ct[, , i] + Bt %*% (Cnt[, , i + 1] - Rt[, , i+1]) %*% t(Bt)
-      Cnt[,,i] <- 0.5*Cnt[,,i] + 0.5*t(Cnt[,,i]) 
-    }
-    # moments for the smoothed distribution of the mean response of the series
-    fnt[i] <- t(FF) %*% t(mnt[i, , drop=FALSE])
-    Qnt[i] <- t(FF) %*% t(Cnt[, , i]) %*% FF
-  }
-  cat("Backward smoothing is completed!")
-  return(list(mnt = mnt, Cnt = Cnt, fnt=fnt, Qnt=Qnt))
-}
-
-
-####################### Example: Lake Huron Data ######################
-plot(LakeHuron) # 98 observations total 
-k=4
-T=length(LakeHuron)-k # We take the first 
-                      # 94 observations only as our data
-ts_data=LakeHuron[1:T]
-ts_validation_data <- LakeHuron[(T+1):98]
-
-data <- list(y_t = ts_data)
-
-## set up dlm matrices
-GG <- as.matrix(1)
-FF <- as.matrix(1)
-VV <- as.matrix(1)
-WW <- as.matrix(1)
-m0 <- as.matrix(570)
-C0 <- as.matrix(1e4)
-
-## wrap up all matrices and initial values
-matrices <- set_up_dlm_matrices(FF, GG, VV, WW)
-initial_states <- set_up_initial_states(m0, C0)
-
-## filtering and smoothing 
-results_filtered <- forward_filter(data, matrices, 
-                                   initial_states)
-results_smoothed <- backward_smoothing(data, matrices, 
-                                       results_filtered)
-
-index=seq(1875, 1972, length.out = length(LakeHuron))
-index_filt=index[1:T]
-
-
-par(mfrow=c(2,1), mar = c(3, 4, 2, 1))
-plot(index, LakeHuron, main = "Lake Huron Level ",type='l',
-     xlab="time",ylab="feet",lty=3,ylim=c(575,583))
-points(index,LakeHuron,pch=20)
-lines(index_filt, results_filtered$mt, type='l', 
-      col='red',lwd=2)
-lines(index_filt, results_smoothed$mnt, type='l', 
-      col='blue',lwd=2)
-
-
-# Now let's look at the DLM package 
-library(dlm)
-model=dlmModPoly(order=1,dV=1,dW=1,m0=570,C0=1e4)
-results_filtered_dlm=dlmFilter(LakeHuron[1:T],model)
-results_smoothed_dlm=dlmSmooth(results_filtered_dlm)
-
-plot(index_filt, LakeHuron[1:T], ylab = "level", 
-     main = "Lake Huron Level",
-     type='l', xlab="time",lty=3,ylim=c(575,583))
-points(index_filt,LakeHuron[1:T],pch=20)
-lines(index_filt,results_filtered_dlm$m[-1],col='red',lwd=2)
-lines(index_filt,results_smoothed_dlm$s[-1],col='blue',lwd=2)
-
-# Similarly, for the second order polynomial and the co2 data:
-T=length(co2)
-data=list(y_t = co2)
-
-FF <- (as.matrix(c(1,0)))
-GG <- matrix(c(1,1,0,1),ncol=2,byrow=T)
-VV <- as.matrix(200)
-WW <- 0.01*diag(2)
-m0 <- t(as.matrix(c(320,0)))
-C0 <- 10*diag(2)
-
-## wrap up all matrices and initial values
-matrices <- set_up_dlm_matrices(FF,GG, VV, WW)
-initial_states <- set_up_initial_states(m0, C0)
-
-## filtering and smoothing 
-results_filtered <- forward_filter(data, matrices, 
-                                   initial_states)
-results_smoothed <- backward_smoothing(data, matrices, 
-                                       results_filtered)
-
-#### Now, using the DLM package: 
-model=dlmModPoly(order=2,dV=200,dW=0.01*rep(1,2),
-                 m0=c(320,0),C0=10*diag(2))
-# filtering and smoothing 
-results_filtered_dlm=dlmFilter(data$y_t,model)
-results_smoothed_dlm=dlmSmooth(results_filtered_dlm)
-
-par(mfrow=c(2,1), mar = c(3, 4, 2, 1))
-plot(as.vector(time(co2)),co2,type='l',xlab="time",
-     ylim=c(300,380))
-lines(as.vector(time(co2)),results_filtered$mt[,1],
-      col='red',lwd=2)
-lines(as.vector(time(co2)),results_smoothed$mnt[,1],
-      col='blue',lwd=2)
-
-plot(as.vector(time(co2)),co2,type='l',xlab="time",
-     ylim=c(300,380))
-lines(as.vector(time(co2)),results_filtered_dlm$m[-1,1],
-      col='red',lwd=2)
-lines(as.vector(time(co2)),results_smoothed_dlm$s[-1,1],
-      col='blue',lwd=2)
-```
-
-
-
-## Practice Graded Assignment: NDLM -- sensitivity to the model parameters
-
-::::: {.content-visible unless-profile="HC"}
-
-::: {.callout-caution}
-Section omitted to comply with the Honor Code
-:::
-
-:::::
-
-::::: {.content-hidden unless-profile="HC"}
-
-
-
-
-
-This is a peer reviewed assignment. I may drop in the instructions but the solution will not be provided here due to the Coursera honor code.
-
-This peer-reviewed activity is highly recommended. It does not figure into your grade for this course, but it does provide you with the opportunity to apply what you've learned in R and prepare you for your data analysis project in week 5. 
-
-Consider the following R code: 
-
-```{r}
-#| label: lst-sensitivity-to-model-params
-
-#######################
-##### DLM package #####
-#######################
-
-library(dlm)
-k=4
-T=length(LakeHuron)-k # We take the first 
-                      # 94 observations only as our data
-index=seq(1875, 1972, length.out = length(LakeHuron))
-index_filt=index[1:T]
-
-model=dlmModPoly(order=1,dV=1,dW=1,m0=570,C0=1e4)
-results_filtered_dlm=dlmFilter(LakeHuron[1:T],model)
-results_smoothed_dlm=dlmSmooth(results_filtered_dlm)
-
-plot(index_filt, LakeHuron[1:T], ylab = "level", 
-     main = "Lake Huron Level",
-     type='l', xlab="time",lty=3,ylim=c(575,583))
-points(index_filt,LakeHuron[1:T],pch=20)
-lines(index_filt,results_filtered_dlm$m[-1],col='red',lwd=2)
-lines(index_filt,results_smoothed_dlm$s[-1],col='blue',lwd=2)
-legend(1880,577, legend=c("filtered", "smoothed"),
-       col=c("red", "blue"), lty=1, cex=0.8)
-```
-
-
-Note that you will need to install the `dlm` package in R if you don't have it  installed in order to run the code above. After installing the package and running the code above you will be asked to change some of the model specifications, upload some graphs and and answer some questions. In particular, you will be asked to: 
-
-1. Modify the above code to change the variance of the prior distribution from $C_0=10^4$ to $C_0=10$ and plot and upload the traces of $\mathbb{E}(\theta_t \mid \mathcal D_T)$ (mean of the filtered distribution) and $\mathbb{E}(\theta_t \mid \mathcal D_T)$ for $T\geq t$ and all $t=1:T$ (mean of the smoothed distribution). Are these new results different from the results with the model with $C_0=10^4$?
-
-2. Keep the variance of the prior distribution at $C_0=10^4$. Now change the evolution variance from 
-$W=1$ to $W=0.01$ . Plot and upload the new means of the filtered and smoothed results. Are they different from the results when evolution variance is $W=1$ ?
-
-::: {.callout-info}
-
-### Grading Criteria
-
-Peer reviewers will be asked to check whether 
-
-1. the plots are correct, especially the shape of red and blue lines. 
-2. the responses provided to the questions are correct. 
-
-To receive full credit for this assignment you will have to grade the assignments of 2 students taking the course.
-
-:::
-
-
-::::
-
-
-
-:::::
-
-## Homework - NDLM, Part I: Review
-
-::::: {.content-visible unless-profile="HC"}
-
-::: {.callout-caution}
-Section omitted to comply with the Honor Code
-:::
-
-:::::
-
-::::: {.content-hidden unless-profile="HC"}
-
-:::::

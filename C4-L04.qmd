@@ -1,1197 +1,458 @@
 ---
-date: 2024-10-26
-title: "Normal Dynamic Linear Models, Part 2"
+date: 2024-11-04
+title: "The AR(p) process - M2L4"
 subtitle: Time Series Analysis
-description: "Normal Dynamic Linear Models (NDLMs) are a class of models used for time series analysis that allow for flexible modeling of temporal dependencies."
+description: "The AR(P) process, its state-space representation, the characteristic polynomial, and the forecast function"
 categories: 
+  - Coursera 
+  - notes
   - Bayesian Statistics
+  - Autoregressive Models
   - Time Series
 keywords: 
-  - Time series
-  - Filtering
-  - Smoothing
-  - NDLM
-  - Normal Dynamic Linear Models
-  - Seasonal NDLM
-  - Superposition Principle
+  - time series
+  - stability
+  - order of an AR process 
+  - characteristic lag polynomial
+  - autocorrelation function
+  - ACF
+  - partial autocorrelation function
+  - PACF
+  - smoothing
+  - State Space Model
+  - ARMA process
+  - ARIMA
+  - moving average
+  - AR(p) process  
   - R code
 fig-caption: Notes about ... Bayesian Statistics
 title-block-banner: images/banner_deep.jpg
+#bibliography: bibliography.bib
+format: 
+    html: 
+        code-fold: true
+lightbox:
+  match: auto
+  effect: fade
+  desc-position: left
+  loop: true
 ---
 
-## Seasonal NDLMs
 
-:::{.callout-note collapse="true"}
+::: {.callout-note}
 
-## Learning Objectives {.unnumbered}
+## Learning Objectives
 
-- [ ] Use R for analysis and forecasting of time series using the NDLM (cases of known or unknown observational variance and unknown system variance specified using a discount factor)
-- [ ] Derive the equations to obtain posterior inference and forecasting in the NDLM with unknown observational variance and system variance specified via discount factors
-- [ ] Define seasonal NDLMs
-- [ ] Apply the NDLM superposition principle and explain the role of the forecast function
+- [x]  Define an **AR(p)**, or [autoregressive process of order p]{.mark} and use **R** to obtain samples from such process
+- [x] Define ARIMA (autoregressive moving average) models (honors)
+- [x]  Perform posterior inference for the AR(p) under the conditional likelihood and the reference prior
+- [x]   Perform a full data analysis in R using an AR(p) including
+   - likelihood estimation,
+   - Bayesian inference,
+   - model order selection,
+   - forecasting.
+- [x]  Explain the relationship between the *AR characteristic polynomial*, *the forecast function*, *the ACF* and *the spectral density* in the case of an AR(p)
 
 :::
 
+# The general AR(p) process (video)
 
-## Fourier representation (Video)
+## Definition and state-space representation (video)
 
-Transcript:
+![AR(p) process, characteristic polynomial, stability, stationarity and MA representation ](images/m2_0001.png){.column-margin  group="slides" width="53mm"}
 
-> I will now describe [how to incorporate seasonal components in a normal dynamic linear model]{.mark}. What we will do is we will first talk about the so-called single Fourier component representation [**single Fourier component representation**]{.column-margin}. Just in case you have a single frequency and how to incorporate that single frequency in your model for the seasonality. Then using the superposition principle, you can incorporate several frequencies or a single frequency and the corresponding harmonics in your model.
->
-> There are other seasonal representations as well [clarification needed]{.cn}. 
-> We will focus on the Fourier representation as is is flexible without needing too many parameters. E.g. if you want to consider, a fundamental frequency but you don't want all the harmonics of that frequency. The Fourier representation, if you happen to have a single frequency. 
->
-> We will discuss two cases with different component representations:
->
-  1. $\omega \in (0,\pi)$ 
-  1. $\omega = \pi \implies \{ 1,1,\cdot, \cdot\}$ 
->
-> In the case of any frequency $\omega \in (0,\pi)$, we will have a DLM that has this structure: 
 
-$$\{ \underbrace {E_2}_{F},  \underbrace {J_2(1,\omega)}_{G}, \underbrace{\cdot}_{v_t}, \underbrace{\cdot}_{W_t}\}
-$$ {#eq-fourier-1}
 
-We will have the $F$ vector the 2-dimensional vector:
-$$
-E_2=(1,0)'
-$$ {#eq-fourier-2}
+[**AR(P)**, shorthand for *autoregressive process of order p* which generalizes the **AR(1)** process by defining the current time step in terms of the previous p time steps]{.mark}. Thus the number of parameter $p$, required is the **order** [**order**]{.column-margin} of the autoregressive process. It tells us how many *lags* we will be considering. On the other hand, the **AR(1)** process is a special case of the **AR(p)** process with $p=1$.
 
-As usual and the $G$ matrix will be the 2 by 2 matrix:
+[**AR(P)**]{.column-margin}
+
+We will assume AR(P) has the following structure:
 
 $$
-J_2(1, \omega) = 
-\begin{pmatrix}
-\cos(\omega) & \sin(\omega) \\
--\sin(\omega) & \cos(\omega)
-\end{pmatrix},
-$$ {#eq-fourier-3}
+\textcolor{red}{y_t} = \textcolor{blue}{\phi_1} \textcolor{red}{y_{t-1}} + \textcolor{blue}{\phi_2} \textcolor{red}{y_{t-2}} + \ldots + \textcolor{blue}{\phi_p} \textcolor{red}{y_{t-p}} + \textcolor{grey}{\epsilon_t} \qquad
+$$ {#eq-ar-p-annotated}
 
-where $\omega$ is the frequency that we are considering.
+where:
+
+-   $\textcolor{red}{y_t}$ is the value of the time series at time t
+-   $\textcolor{blue}{\phi_{1:p}}$ are the AR coefficients
+-   $\textcolor{grey}{\epsilon_t} \overset{\text{iid}}{\sim} \text{N}(0,v) \quad \forall t$  is a **white noise process**.
 
 
-Since this is a 2 by 2 matrix the our state parameter vector will also be a vector of dimension 2. 
+- The number of parameters has increased from one coefficient in AR(1) to p coefficients for AR(P).
 
-If we think about the forecast function, $f_t(h)$  h-steps ahead, (you are at time $t$ and you want to look for $h$ steps ahead). 
+A central outcome of the autoregressive nature of the  **AR(p)** is due to the properties the AR characteristic polynomial $\Phi$. [$\Phi$ AR characteristic polynomial]{.column-margin} This is defined as : 
 
-Let's recall: the way we work with this is  $F* G^h * a_t$
-
-going to be your $E_2'$, then you have to take this G matrix, which is just this $J_2(1,\omega)^h$, and then you have a vector, I'm going to call $a_t$ and $b_t$, which is just going to be this vector value of your Theta t vector given the information up to the time t. It's going to have two components, I'm just going to generically call them $a_t$ and $b_t$. When you take this to the power of h using just trigonometric results, you're going to get that $J_2(1,\omega)^h$, is just going to give you cosine of Omega h sine of Omega h minus sine of Omega h cosine of Omega h. When you look at this expression, you get something that looks like this, and then you have, again, times these $a_t$, $b_t$.
+recall the backshift operator $B$ is defined as $B y_t = y_{t-1}$, so that $B^j y_t = y_{t-j}$.
 
 $$
 \begin{aligned}
-f_t(h) &= E_2' [J_2(1, \omega)]^h \underbrace{\begin{pmatrix} a_t \\
- b_t \end{pmatrix}}_{\mathbb{E}[\theta\mid \mathcal{D}]} \\
-&= (1,0) \begin{pmatrix} \cos(\omega h) & \sin(\omega h) \\ 
--\sin(\omega h) & \cos(\omega h) \end{pmatrix} \begin{pmatrix} a_t \\ 
-b_t \end{pmatrix} \\
-&= a_t \cos(\omega h) + b_t \sin(\omega h) \\
-&= A_t \cos(\omega h + B_t).
-\end{aligned}
-$$ {#eq-seasonal-forecast-function}
-
->
-> You're going to have the cosine and sine only multiplied by this. In the end, you're going to have something that looks like this.
->
-> You have this sinusoidal form with the period Omega in your forecast function. You can also write this down in terms of an amplitude that I'm going to call A_t and then a phase that is B_t. Here again, you have your periodicity that appears in this cosine wave. This is again for the case in which you have a single frequency and the frequencies in this range. There was a second case that I mentioned, and that case is the case in which the Omega is exactly Pi. In this case, your Fourier representation is going to be your model that has a state vector that is just one dimensional. In the case where Omega is between zero and Pi, you have a two-dimensional state, vector here you're going to have a one-dimensional state vector.
->
-> This is going to be your $F$ and your $G$. Then you have again whatever you want to put here as your $v_t$ and $W_t$. This gives me, if I think about the forecast function, h steps ahead is just going to be something that has the form $-1^h \times a_t$. Now I have a single component here, is uni-dimensional. This is going to have an oscillatory behavior between $a_t$ and $-a_t$ if I were to look $h$ steps ahead forward when I'm at time $t$. These two forms give me the single component Fourier representation and using the superposition principle, we will see that we can combine a single frequency and the corresponding harmonics or several different frequencies just using the superposition principle in the normal dynamic linear model. You can also incorporate more than one component in a full Fourier representation. Usually the way this works is you have a fundamental period, let's say p. For example, if you are recording monthly data, p could be 12 and then you are going to incorporate in the model the fundamental frequency, and then all the harmonics that go with that fundamental frequency related to the period p.
-
-![slide 1](images/m4_0001.png){.column-margin  group="slides" width="53mm"}
-
-
-
-
->
-> Here $p$, is the period and in this case, we are going to discuss essentially two different situations. One is when p is an odd number, the other one is when p is an even number. Let's begin with the case of p is odd and in this particular scenario, we can write down p as 2 times m minus 1 for some value of m. This gives me a period that is odd. How many frequencies I'm going to incorporate in this model? I'm going to be able to write down $\omega_j = 2 \pi \times j / p$, which is the fundamental period. j here goes from one all the way to m minus 1. Now we can use the superposition principle thinking we have a component DLM representation for each of these frequencies. They are all going to be between 0 and Pi. For each of them I'm going to have that two-dimensional DLM representation in terms of the state vector and then I can use the superposition principle to concatenate them all and get a model that has all these frequencies, the one related to the fundamental period and all the harmonics for that. Again, if I think about what is my $F$ and my $G$ here, I'm not writing down the t because both F and G are going to be constant over time. So my $F$ is going to be again, I concatenate as many $E_2$ as I have frequencies in here. I'm going to have $E_2$ transpose and so on and I'm going to have m minus one of those. Times 2 gives me the dimension of $\theta_t$. The vector here is 2 times m minus 1 dimensional vector.
->
-> My G is going to have that block diagonal structure where we are going to just have all those $J_{2,1} \omega_1$, all the way down to the last harmonic. Each of these blocks is a two-by-two matrix and I'm going to put them together in a block diagonal form. This gives me the representation when the period is odd, what is the structure of the forecast function? Again, using the superposition principle, the forecast function is going to be just the sum of m minus 1 components, where each of those components is going to have an individual forecast function that has that cosine wave representation that we discussed before. Again, if I think about the forecast function at time t h steps ahead, I will be able to write it down like this.
->
-> This should be a B. $B_{t,j}$. Again here, I have an amplitude for each of the components and a phase for each of the components so it depends on time but does not depend on h. The h enters here, and this is my forecast function. In the case of P even the situation is slightly different. But again, it's the same in terms of using the superposition principle. In this case, we can write down P as 2 times m because it's an even number. Now I can write down these Omega j's as a function of the fundamental period. Again, this goes from 1 up to m minus 1. But there is a last frequency here. When j is equal to m, this simplifies to be the **Nyquist frequency**. In this case, I have my Omega is equal to Pi. In this particular case, when I concatenate everything, I'm going to have again an F and a G that look like this. Once again, I concatenate all of these up to the component m minus 1. Then I have this 1 for the last frequency. Then my G is going to be the block diagonal.
->
-> For the last frequency I have that minus 1. This determines the dimension of the state vector, in this case I'm going to have 2 times m minus 1 plus 1.
->
-> My f function, my forecast function, is again a function of the number of steps ahead. I'm going to have the same structure I had before for the m minus 1 components.
-> Then I have to add one more component that corresponds to the frequency Pi.
-> This one appears with the power of h. As you can see, I'm using once again the superposition principle to go from component representation to the full Fourier representation. In practice, once we set the period, we can use a model that has the fundamental period and all the harmonics related to that fundamental period. We could also use, discard some of those harmonics and use a subset of them. This is one of the things that the Fourier representation allows. It allows you to be flexible in terms of how many components you want to add in this model. There are other representations that are also used in practice. One of them is the seasonal factors representation. In that case, you're going to have a model in which the state vector has dimension p for a given period. It uses a G matrix that is a permutation matrix. There is a correspondence between this parameterization using the Fourier representation and that other parameterization. If you want to use that parameterization, the way to interpret the components of this state vector, since you have P of those, is going to be a representation in terms of factors. For example, if you think about monthly data, you will have the say January factor, February factor, March factor, and so on. You could think about those effects and do a correspondence with this particular model. We will always work in this class with these representations because it's more flexible. But again, you can go back and forth between one and the other.
-
-![slide 2](images/m4_0002.png){.column-margin group="slides" width="53mm"}
-
-
-
-
-## Fourier Representation: Example 1 (Reading)
-
-### Seasonal Models
-
-Example: Full Fourier Model with $p=5$
-
-In this case the Fourier frequencies are
-
-- $ω_1 = 2π/5$ and 
-- $ω_2 = 4π/5$ and so
-- $p = 2 × 3 − 1$. Then, 
-- $m = 3$ and 
-- $\theta_t = (\theta_{t,1}, \ldots , \theta_{t,4})′$, 
-- $F = (1, 0, 1, 0)$, 
-- $G$ is given by:
-
-$$
-G = \begin{bmatrix}
-\cos(2\pi/5) & \sin(2\pi/5) & 0 & 0 \\
-\cos(4\pi/5) & \sin(4\pi/5) & 0 & 0 \\
-0 & 0 & \cos(2\pi/5) & \sin(2\pi/5) \\
-0 & 0 & \cos(4\pi/5) & \sin(4\pi/5) \\
-0 & 0 & 0 & 0
-\end{bmatrix}
-$$
-
-and the forecast function is:
-
-$$
-f_t(h) = A_{t,1} \cos(2\pi h/5 + \gamma_t) + A_{t,2} \cos(4\pi h /5 + \gamma_{t,2}) \qquad
-$$ {#eq-forecast-function}
-
-## Building NDLMs with multiple components: Examples (Video)
-
-![two component model](images/m4_0011.png){.column-margin  group="slides" width="53mm"}
-
-
-
-
-> [In this second example, we are going to have two components; a linear trend plus a seasonal component where the fundamental period is four.
-The way to build this model, again, is using the superposition principle.]{.mark} 
->
-> First we need to think "what *structure* do we need, to get a *linear trend* in the **forecast function**?" 
->
->The linear trend is a linear function on the number of steps ahead. 
->
-> Whenever you have that structure, you will get a DLM that is the so-called **polynomial model of order 2**. So let's discuss first the linear. Let's say the linear trend part, and in this case, we have an $F$ and a $G$, I'm going to call them 1, $F_1$ and $G_1$ to denote that this is the first component in the model.
->
->
-$F_1$ is just going to be 1, 0 transpose, and the $G_1$ is that upper triangular matrix, it's a 2 by 2 matrix that has 1, 1 in the first row, 0, 1 in the second row, so this gives me a linear trend. 
->
-> My forecast function, let's call it $f_{1,t}$ in terms of the number of steps ahead is just a linear function on h, is a linear polynomial order 1. Let's say it's a constant of $K$ but depends on t0 plus $K_{t_1}^h$. This is the structure of the first component. Then I have to think about the seasonal component with period of four. If we are going to incorporate all the harmonics, we have to think again, is this an even period or a not period? In this example, this is an even period. I can write p, which is 4, as 2 times 2, so this gives me that m. I'm going to have one frequency, the first one, Omega 1, is related to the fundamental period of 4, so is 2 Pi over 4, which I can simplify and write down this as Pi over 2. This is the first frequency. The last one is going to correspond to the Nyquist.
->
-> We could obtain that doing 4Pi over 4, which is just Pi. As you remember, this component is going to require a two-dimensional DLM component model, this one is going to require a one-dimensional DLM component model in terms of the dimension here is the dimension of the state vectors. When we build this concatenating these components, we are going to have, again, let's call it F_2 and G_2 for this particular component. I had called this here a, let's call this b. My F_2 has that E_2 transpose and a 1, which gives me just 1, 0, 1. My G matrix is going to be a 3 by 3 matrix. The first component is
->
->the component associated to that fundamental period. It's a block diagonal again, and I'm going to have that J_2, 1 Omega 1, and then I have my minus 1 here. What this means is if I write this down as a matrix, let me write it here, G_2 is going to be cosine of that Pi halves,
->
->and then I have zeros here, I have my minus 1 here, 0, and 0. I can further simplify these to have this structure. The cosine of Pi halves is 0, the sine is 1, so I can write this down as 0, 1, 0, minus 1, 0, 0, and 0, 0 minus 1. Now if I want to go back to just having a model that has both components, I use the superposition principle again and combine this component with this component. The linear plus seasonal
->
->
-is a model that is going to have the representation $F$, $G$, with $F$ is going to be just concatenate $F_1$ and $F_2$. $G$ now has that block diagonal form again.
->
->If I look at what I have, I have this block that is a 2 by 2, this block that is a 3 by 3. Therefore my model is going to be a five-dimensional model in terms of the state parameter vector, so this G is a 5 by 5, and this one is also a five-dimensional vector. Finally, if I think about the forecast function in this case, if I call here the forecast function $f_{2,t}$ for the component that is seasonal, I'm going to have my A_t1 cosine of Pi halves h plus $B_{t,1}$, and then I have my $A_{t,2}$ minus 1^h. My forecast function for the final model is going to be just the sum of these two components.
->
->You can see how I can now put together all these blocks, so I have a block that is seasonal and a block that is a linear polynomial model, and I can put them together in a single model just to create a more flexible structure. You could add regression components, you could add autoregressive components and put together as many components as you need for the forecast function to have the form that you expect it to have. All of these models are using, again, the superposition principle and the fact that we're working with a linear and Gaussian structure in terms of doing the posterior inference later.
-
-
-## Summary: DLM Fourier representation (Reading)
-
-### Seasonal Models: Fourier Representation
-
-For any frequency $\omega \in (0, \pi)$, a model of the form $\{E_2, J_2(1, \omega), \cdot, \cdot\}$ with a 2-dimensional state vector $\theta_t = (\theta_{t,1}, \theta_{t,2})'$ and
-
-$$
-J_2(1, \omega) = 
-\begin{pmatrix}
-\cos(\omega) & \sin(\omega) \\
--\sin(\omega) & \cos(\omega)
-\end{pmatrix},
-$$
-
-has a forecast function
-
-$$
-\begin{aligned}
-f_t(h) &= (1, 0) J_2^h(1, \omega) (a_t, b_t) \\
-       &= a_t \cos(\omega h) + b_t \sin(\omega h) \\
-       &= A_t \cos(\omega h + B_t).
+       y_t &= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \epsilon_t  && \text{(Ar(p) defn.)} \newline
+       y_t &= \phi_1 By_{t} + \phi_2 B^2y_{t} + \ldots + \phi_p B^p y_{t} + \epsilon_t && \text{(B defn.)} \newline
+\epsilon_t &= y_t - \phi_1 B y_t + \phi_2 B^2 y_t + \ldots + \phi_p B^p y_t    && \text{(rearranging)} \newline 
+\epsilon_t  &= (1- \phi_1 B + \phi_2 B^2 + \ldots + \phi_p B^p) y_t            && \text{(factoring out $y_t$)}
 \end{aligned}
 $$
+$$
+\Phi(z) = 1 - \phi_1 z - \phi_2 z^2 - \ldots - \phi_p z^p \qquad \text{(Characteristic polynomial)}
+$$ {#eq-ar-poly}
 
-For $\omega = \pi$, the NDLM is $\{1, -1, \cdot, \cdot\}$ and has a forecast function of the form
+where:
+
+- $z \in \mathbb{C}$ i.e. complex-valued.
+
+we can also rewrite the characteristic polynomial in terms of the reciprocal roots of the polynomial.
+
+
+The zeros of the characteristic polynomial are the roots of the **AR(p)** process.
 
 $$
-f_t(h) = (-1)^h m_t
-$$ 
-
-These are component Fourier models. Now, for a given period $p$, we can build a model that contains components for the fundamental period and all the harmonics of such a period using the superposition principle as follows:
-
-### Case: $p = 2m - 1$ (odd)
-
-Let $\omega_j = 2\pi j / p$ for $j = 1 : (m - 1)$, $F$ a $(p - 1)$-dimensional vector, or equivalently, a $2(m - 1)$-dimensional vector, and $G$ a $(p - 1) \times (p - 1)$ matrix with $F = (E_2', E_2', \dots, E_2')'$, 
-
-$$
-G = \text{blockdiag}[J_2(1, \omega_1), \dots, J_2(1, \omega_{m-1})].
+\Phi(z) = \prod_{j=1}^{p} (1 - \alpha_j z) = 0  \implies z = \frac{1}{ \alpha_j} \qquad \text{(reciprocal roots)}
 $$
 
-### Case: $p = 2m$ (even)
+where: 
 
-In this case, $F$ is again a $(p - 1)$-dimensional vector (or equivalently a $(2m - 1)$-dimensional vector), and $G$ is a $(p - 1) \times (p - 1)$ matrix such that $F = (E_2', \dots, E_2', 1)'$ and 
+- $\alpha_j$ are the reciprocal roots of the characteristic polynomial.
+
+> Why are we interested in this autoregresive lag polynomial? 
+
+- [This polynomial and its roots tells us a lot about the process and its properties.]{.mark}
+- One of the main characteristics is it allows us to think about things like **quasi-periodic behavior**, whether it's present or not in a particular **AR(p)** process.
+- It allows us to think about whether a process is **stationary or not**, depending on some properties related to this polynomial. 
+- In particular, we are going to say that the process is **stable** if all the roots of the characteristic polynomial have a modulus greater than one. [stability condition]{.column-margin}
+$$
+\Phi(z) = 0 \iff |z| > 1  \qquad \text{(stability condition)}
+$$ {#eq-ar(p)-stability}
+
+- For any of the roots, it has to be the case that the modulus of that root, they have to be all outside the unit circle.
+
+- If a process is stable, it will also be stationary.
+
+We can show this as follows:
+
+- Once the process is stationary, and if all the roots of the characteristic polynomial are outside the unit circle, then we will be able to write this process in terms of an infinite order moving average process. In this case, if the process is stable, then we are going to be able to write it like this.
 
 $$
-G = \text{blockdiag}[J_2(1, \omega_1), \dots, J_2(1, \omega_{m-1}), -1].
-$$
+y_t = \Psi(B) \epsilon_t = \sum_{j=0}^{\infty} \psi_j \epsilon_{t-j} \ \text {with} \ \psi_0 = 1 \text{ and } \sum_{j=0}^{\infty} |\psi_j| < \infty
+$$ {#eq-ar-stationary}
 
-In both cases, the forecast function has the general form:
+where:
 
-$$
-f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j}) + (-1)^h A_{t,m},
-$$
+- $\epsilon_t$ is a white noise process with zero mean and constant variance $v$.
+- $B$ is the lag operator AKA the backshift operator defined by $B \varepsilon_t = \varepsilon_{t-1}$. This need to be applied to a time series $\epsilon_t$ to get the lagged values. 
+- $\Psi(B)$ is the infinite order polynomial in $B$ that representing a linear filter applied to the noise process.​
+- $\psi_t = 1$ is the weight for the white noise at time $t$.
+- the constraint $\psi_0 = 1$ ensures that the current shock contributes directly to $y_t$
+- the constraint on the weights $\sum_{j=0}^{\infty} |\psi_j| < \infty$ ensures that the weights decay sufficiently fast, so that the process does not explode i.e. it is stable and thus stationary.
 
-with $A_{t,m} = 0$ if $p$ is odd.
+the notation with $\psi$ a functional of operator $B$ and $\psi_i$ as constants is confusing in both the reuse if the symbol and the complexity.
 
-## Examples
+Here, U is any complex valued number. 
 
-### Fourier Representation, $p = 12$:
+> I am going to have an infinite order polynomial here on B, the backshift operator that I can write down just as the sum, j goes from zero to infinity.
 
-In this case, $p = 2 \times 6$ so $\theta_t$ is an 11-dimensional state vector, 
+> Here $\psi_0=1$. Then there is another condition on the Psi's for this to happen. We have to have finite sum of these on these coefficients. Once again, if the process is stable, then it would be stationary and we will be able to write down the AR as an infinite order moving average process here. If you recall, B is the backshift operator. Again, if I apply this to $y_t$, I'm just going to get $y_t-j$. I can write down Psi of B, as $1 + \psi_1$ B, B squared, and so on. It's an infinite order process.
 
-$$
-F = (1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1)',
-$$ 
+>The AR characteristic polynomial can also be written in terms of the reciprocal roots of the polynomial. So instead of considering the roots, we can consider the reciprocal roots. In that case, let's say the \$phi$ of u
+>for Alpha 1, Alpha 2, and so on. The reciprocal roots.
 
-the Fourier frequencies are $\omega_1 = 2\pi/12$, $\omega_2 = 4\pi/12 = 2\pi/6$, $\omega_3 = 6\pi/12 = 2\pi/4$, $\omega_4 = 8\pi/12 = 2\pi/3$, $\omega_5 = 10\pi/12 = 5\pi/6$, and $\omega_6 = 12\pi/12 = \pi$ (the Nyquist frequency). 
+>[Why do we care about all these roots? Why do we care about this structure? Again, we will be able to understand some properties of the process based on these roots]{.mark} as we will see. 
 
-$$
-G = \text{blockdiag}(J_2(1, \omega_1), \dots, J_2(1, \omega_5), 1)
-$$
+![A state space representation of Ar(p)](images/m2_0002.png){.column-margin  group="slides" width="53mm"}
 
-and the forecast function is given by:
 
-$$
-f_t(h) = \sum_{j=1}^{5} A_{t,j} \cos(2\pi j / 12 + \gamma_{t,j}) + (-1)^h A_{t,6}.
-$$
 
-### Linear Trend + Seasonal Component with $p = 4$
+[We will now discuss another important representation of the AR(P) process, one that is based on a state-space representation of the process.]{.mark} Again, we care about this type of representations because they allow us to study some important properties of the process. In this case, our state-space or dynamic linear model representation, we will make some connections with these representations later when we talk about dynamic linear models, is given as follows for an AR(P). I have my y_t. I can write it as F transpose and then another vector x_t here. Then we're going to have x_t is going to be a function of x_t minus 1. That vector there is going to be an F and a G. I will describe what those are in a second. Then I'm going to have another vector here with some distribution. In our case, we are going to have a normal distribution also for that one. In the case of the AR(P), we're going to have x_t to be y_t, y_t minus 1.
 
-We can use the superposition principle to build more sophisticated models. For instance, assume that we want a model with the following 2 components:
+>It's a vector that has all these values of the y_t process. Then F is going to be a vector. It has to match the dimension of this vector. The first entry is going to be a one, and then I'm going to have zeros everywhere else. The w here is going to be a vector as well.
+>
+>The first component is going to be the Epsilon t. That we defined for the ARP process. Then every other entry is going to be a zero here. Again, the dimensions are going to match so that I get the right equations here. Then finally, my G matrix in this representation is going to be a very important matrix, the first row is going to contain the AR parameters, the AR coefficients.
+> We have p of those. That's my first row. In this block, I'm going to have an identity matrix. It's going to have ones in the diagonal and zeros everywhere else. I'm going to have a one here, and then I want to have zeros everywhere else. In this portion, I'm going to have column vector here of zeros. This is my G matrix. Why is this G matrix important? This G matrix is going to be related to the characteristic polynomial, in particular, is going to be related to the reciprocal roots of the characteristic polynomial that we discussed before. The eigenvalues of this matrix correspond precisely to the reciprocal roots of the characteristic polynomial. We will think about that and write down another representation related to this process. But before we go there, I just want you to look at this equation and see that if you do the matrix operations that are described these two equations, you get back the form of your autoregressive process. The other thing is, again, this is called a state-space representation because you have two equations here. One, you can call it the observational level equation where you are relating your observed y's with some other model information here. Then there is another equation that has a Markovian structure here, where x_t is a function of x_t minus 1. This is why this is a state-space representation. One of the nice things about working with this representation is we can use some definitions that apply to dynamic linear models or state-space models, and one of those definitions is the so-called forecast function. The forecast function, we can define it in terms of, I'm going to use here the notation f_t h to denote that is a function f that depends on the time t that you're considering, and then you're looking at forecasting h steps ahead in your time series. If you have observations up to today and you want to look at what is the forecast function five days later, you will have h equals 5 there. It's just the expected value. We are going to think of this as the expected value of y_t plus h. Conditional on all the observations or all the information you have received up to time t. I'm going to write it just like this. Using the state-space representation, you can see that if I use the first equation and I think about the expected value of y_t plus h is going to be F transpose, and then I have the expected value of the vector x_t plus h in that case. I can think of just applying this, then I would have expected value of x_t plus h given y_1 up to t. But now when I look at the structure of x_t plus h, if I go to my second equation here, I can see that x_t plus h is going to be dependent on x_t plus h minus 1, and there is a G matrix here. I can write this in terms of the expected value of x_t plus h, which is just G, expected value of x_t plus h minus 1, and then I also have plus expected value of the w_t's. But because of the structure of the AR process that we defined, we said that all the Epsilon T's are independent normally distributed random variables center at zero. In this case, those are going to be all zero. I can write down this as F transpose G, and then I have the expected value of x_t plus h minus 1 given y_1 up to t. If I continue with this process all the way until I get to time t, I'm going to get a product of all these G matrices here, and because we are starting with this lag h, I'm going to have the product of that G matrix h times. I can write this down as F transpose G to the power of h, and then I'm going to have the expected value of, finally, I get up to here.
+>
+>This is simply is going to be just my x_t vector. I can write this down as F transpose G^h, and then I have just my x_t. Again, why do we care? Now we are going to make that connection with this matrix and the eigenstructure of this matrix. I said before, one of the features of this matrix is that the eigenstructure is related to the reciprocal roots of the characteristic polynomial. In particular, the eigenvalues of this matrix correspond to the reciprocal roots of the characteristic polynomial. If we are working with the case in which we have exactly p different roots. We have as many different roots as the order of the AR process. Let's say, p distinct.
+>We can write down then G in terms of its eigendecomposition. I can write this down as E, a matrix Lambda here, E inverse. 
+>
+>Here, Lambda is going to be a diagonal matrix,
+>you just put the reciprocal roots, I'm going to call those Alpha 1 up to Alpha p. They are all different. You just put them in the diagonal and you can use any order you want. But the eigendecomposition, the eigenvectors, have to follow the order that you choose for the eigenvalues. Then what happens is, regardless of that, you're going to have a unique G. But here, the E is a matrix of eigenvectors.
 
-- **Linear trend**: $\{F_1, G_1, \cdot, \cdot\}$ with $F_1 = (1, 0)'$,
 
-$$
-G_1 = J_2(1) = 
-\begin{pmatrix}
-1 & 1 \\
-0 & 1
-\end{pmatrix}.
-$$
 
-- **Full seasonal model with $p = 4$**: $\{F_2, G_2, \cdot, \cdot\}$, $p = 2 \times 2$ so $m = 2$ and $\omega = 2\pi / 4 = \pi / 2$, 
+>Again, why do we care? Well, if you look at what we have here, we have the power G to the power of h. Using that eigendecomposition, we can get to write this in this form. Whatever elements you have in the matrix of eigenvectors, they are now going to be functions of the reciprocal roots. The power that appears here, which is the number of steps ahead that you want to forecast in your time series for prediction, I'm just going to have the Alphas to the power of h. When I do this calculation, I can end up writing the forecast function just by doing that calculation as a sum from j equals 1 up to p of some constants. Those constants are going to be related to those E matrices but the important point is that what appears here is my Alpha to the power of h. What this means is I'm breaking this expected value of what I'm going to see in the future in terms of a function of the reciprocal roots of the characteristic polynomial. You can see that if the process is stable, is going to be stationary, all the moduli of my reciprocal roots are going to be below one. This is going to decay exponentially as a function of h. You're going to have something that decays exponentially. Depending on whether those reciprocal roots are real-valued or complex-valued, you're going to have behavior here that may be quasiperiodic for complex-valued roots or just non-quasiperiodic for the real valued roots. The other thing that matters is, if you're working with a stable process, are going to have moduli smaller than one. The contribution of each of the roots to these forecasts function is going to be dependent on how close that modulus of that reciprocal root is to one or minus one. For roots that have relatively large values of the modulus, then they are going to have more contribution in terms of what's going to happen in the future. This provides a way to interpret the AR process.
 
-$$
-F_2 = (1, 0, 1)',
-$$ 
+## Examples (video)
 
-and 
+![AR(1)](images/m2_0011.png){.column-margin  group="slides" width="53mm"}
 
-$$
-G_2 = 
-\begin{pmatrix}
-\cos(\pi / 2) & \sin(\pi / 2) & 0 \\
--\sin(\pi / 2) & \cos(\pi / 2) & 0 \\
-0 & 0 & -1
-\end{pmatrix}
-= 
-\begin{pmatrix}
-0 & 1 & 0 \\
--1 & 0 & 0 \\
-0 & 0 & -1
-\end{pmatrix}.
-$$
 
-The resulting DLM is a 5-dimensional model $\{F, G, \cdot, \cdot\}$ with
 
-$$
-F = (1, 0, 1, 0, 1)',
-$$ 
 
-and 
+![AR(2) two positive roots](images/m2_0012.png){.column-margin  group="slides" width="53mm"}
 
-$$
-G = 
-\begin{pmatrix}
-1 & 1 & 0 & 0 & 0 \\
-0 & 1 & 0 & 0 & 0 \\
-0 & 0 & 0 & 1 & 0 \\
-0 & 0 & -1 & 0 & 0 \\
-0 & 0 & 0 & 0 & -1
-\end{pmatrix}.
-$$
 
-The forecast function is:
 
-$$
-f_t(h) = (k_{t,1} + k_{t,2} h) + k_{t,3} \cos(\pi h / 2) + k_{t,4} \sin(\pi h / 2) + k_{t,5} (-1)^h.
-$$
 
+![AR(2) complex roots](images/m2_0013.png){.column-margin  group="slides" width="53mm"}
 
-## Quiz: Seasonal Models and Superposition
 
-This is omitted due to the Coursera honor code.
+{{< lipsum 3 >}}
 
+## ACF of the AR(p) (video)
 
-# Bayesian Inference in the NDLM: Part 2
-
-## Filtering, Smoothing and Forecasting: Unknown observational variance (Video)
-
-In this video we cover the following material aslo provided as a handout:
-
-Inference in the NDLM with unknown but constant observational variance:
-
-Let $v_t = v$ for all $t$, with $v$ unknown and consider a DLM with the following
-structure:
-$$
-\begin{aligned}
-y_t &= \mathbf{F}_t' \mathbf{\theta}_t + \nu_t, &\nu_t &\sim N (0, v)\\
-\mathbf{\theta}_t &= \mathbf{G}_t \mathbf{\theta}_{t-1} + \mathbf{\omega}_t, & \mathbf{\omega}_t &\sim N (0, v \mathbf{W}^*_t)
-\end{aligned}
-$$ {#eq-NDLM-unknown-variance}
-
-with conjugate prior distributions:
-$$
-(\mathbf{\theta}_0 \mid D_0, v) \sim N (\mathbf{m}_0, v\mathbf{C}^*_0), \qquad (v \mid D_0) \sim IG(\frac{n_0}{2}, \frac{d_0}{2}),
-$$ {#eq-NDLM-unknown-variance-priors}
-and $d_0 = n_0s_0$
-
-### Filtering
-
-Assuming $(\theta_{t-1} \mid D_{t-1}, v) \sim N (m_{t-1}, vC^*_{t-1})$, we have the following results:
-
-- $(\theta_t \mid D_{t-1}, v) \sim N (a_t, vR^*_t)$ with $a_t = G_t m_{t-1}$ and $R^*_t = G_t C^*_{t-1} G'_t + W^*_t$, and unconditional on $v$, $(\theta_t \mid D_{t-1}) \sim T_{n_{t-1}} (a_t, R_t)$, with $R_t = s_{t-1} R^*_t$. The expression for $s_t$ for all $t$ is given below.
-- $(y_t \mid D_{t-1}, v) \sim N (f_t, vq^*_t)$, with $f_t = F'_t a_t$, and $q^*_t = (1 + F'_t R^*_t F_t)$ and unconditional on $v$ we have $(y_t \mid D_{t-1}) \sim T_{n_{t-1}} (f_t, q_t)$, with $q_t = s_{t-1} q^*_t$.
-- $(v \mid D_t) \sim \mathcal{IG}(n_t/2, s_t/2)$, with $n_t = n_{t-1} + 1$ and
-  $$ 
-  s_t = s_{t-1} + \frac{s_{t-1}}{n_t} \left ( \frac{e^2_t}{q^*_t} - 1 \right ), 
-  $$ {#eq-NDLM-unknown-variance-filtering}
-
-  where $e_t = y_t - f_t$
-
-- θt|Dt, v) ∼ N (mt, vC∗
-t ), with mt = at + Atet, and C∗
-t = R∗
-t − AtA′
-tq∗
-t .
-Similarly, unconditional on v we have
-(θt|Dt) ∼ Tnt (mt, Ct),
-with Ct = stC∗
-t
-
-
-## Summary of Filtering, Smoothing and Forecasting Distributions, NDLM unknown observational variance (Reading)
-
-## Specifying the system covariance matrix via discount factors (Video)
-
-## NDLM, Unknown Observational Variance: Example (Video)
-
-This is a walk though of the R code for the example bellow.
-
-## Rcode: NDLM, Unknown Observational Variance Example (Reading)
-
-This code allows time-varying $F_t$, $G_t$ and $W_t$ matrices and assumes an unknown but constant $\nu$. It also allows the user to specify $W_t$ using a discount factor $\delta \in (0,1]$ or assume $W_t$  known.
-
-```{r}  
-#| label: code-NDLM-unknown-variance
-
-## create list for matrices
-set_up_dlm_matrices_unknown_v <- function(Ft, Gt, Wt_star){
-  if(!is.array(Gt)){
-    Stop("Gt and Ft should be array")
-  }
-  if(missing(Wt_star)){
-    return(list(Ft=Ft, Gt=Gt))
-  }else{
-    return(list(Ft=Ft, Gt=Gt, Wt_star=Wt_star))
-  }
-}
-
-
-## create list for initial states
-set_up_initial_states_unknown_v <- function(m0, C0_star, n0, S0){
-  return(list(m0=m0, C0_star=C0_star, n0=n0, S0=S0))
-}
-
-forward_filter_unknown_v <- function(data, matrices, 
-                              initial_states, delta){
-  ## retrieve dataset
-  yt <- data$yt
-  T<- length(yt)
-  
-  ## retrieve matrices
-  Ft <- matrices$Ft
-  Gt <- matrices$Gt
-  if(missing(delta)){
-    Wt_star <- matrices$Wt_star
-  }
-  
-  ## retrieve initial state
-  m0 <- initial_states$m0
-  C0_star <- initial_states$C0_star
-  n0 <- initial_states$n0
-  S0 <- initial_states$S0
-  C0 <- S0*C0_star
-  
-  ## create placeholder for results
-  d <- dim(Gt)[1]
-  at <- matrix(0, nrow=T, ncol=d)
-  Rt <- array(0, dim=c(d, d, T))
-  ft <- numeric(T)
-  Qt <- numeric(T)
-  mt <- matrix(0, nrow=T, ncol=d)
-  Ct <- array(0, dim=c(d, d, T))
-  et <- numeric(T)
-  nt <- numeric(T)
-  St <- numeric(T)
-  dt <- numeric(T)
-  
-  # moments of priors at t
-  for(i in 1:T){
-    if(i == 1){
-      at[i, ] <- Gt[, , i] %*% m0
-      Pt <- Gt[, , i] %*% C0 %*% t(Gt[, , i])
-      Pt <- 0.5*Pt + 0.5*t(Pt)
-      if(missing(delta)){
-        Wt <- Wt_star[, , i]*S0
-        Rt[, , i] <- Pt + Wt
-        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      }else{
-        Rt[, , i] <- Pt/delta
-        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      }
-      
-    }else{
-      at[i, ] <- Gt[, , i] %*% t(mt[i-1, , drop=FALSE])
-      Pt <- Gt[, , i] %*% Ct[, , i-1] %*% t(Gt[, , i])
-      if(missing(delta)){
-        Wt <- Wt_star[, , i] * St[i-1]
-        Rt[, , i] <- Pt + Wt
-        Rt[,,i]=0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      }else{
-        Rt[, , i] <- Pt/delta
-        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      }
-    }
-    
-    # moments of one-step forecast:
-    ft[i] <- t(Ft[, , i]) %*% t(at[i, , drop=FALSE]) 
-    Qt[i] <- t(Ft[, , i]) %*% Rt[, , i] %*% Ft[, , i] + 
-      ifelse(i==1, S0, St[i-1])
-    et[i] <- yt[i] - ft[i]
-    
-    nt[i] <- ifelse(i==1, n0, nt[i-1]) + 1
-    St[i] <- ifelse(i==1, S0, 
-                    St[i-1])*(1 + 1/nt[i]*(et[i]^2/Qt[i]-1))
-    
-    # moments of posterior at t:
-    At <- Rt[, , i] %*% Ft[, , i] / Qt[i]
-    
-    mt[i, ] <- at[i, ] + t(At) * et[i]
-    Ct[, , i] <- St[i]/ifelse(i==1, S0, 
-                  St[i-1])*(Rt[, , i] - Qt[i] * At %*% t(At))
-    Ct[,,i] <- 0.5*Ct[,,i]+0.5*t(Ct[,,i])
-  }
-  cat("Forward filtering is completed!\n")
-  return(list(mt = mt, Ct = Ct,  at = at, Rt = Rt, 
-              ft = ft, Qt = Qt,  et = et, 
-              nt = nt, St = St))
-}
-
-### smoothing function ###
-backward_smoothing_unknown_v <- function(data, matrices, 
-                                posterior_states,delta){
-  ## retrieve data 
-  yt <- data$yt
-  T <- length(yt) 
-  
-  ## retrieve matrices
-  Ft <- matrices$Ft
-  Gt <- matrices$Gt
-  
-  ## retrieve matrices
-  mt <- posterior_states$mt
-  Ct <- posterior_states$Ct
-  Rt <- posterior_states$Rt
-  nt <- posterior_states$nt
-  St <- posterior_states$St
-  at <- posterior_states$at
-  
-  ## create placeholder for posterior moments 
-  mnt <- matrix(NA, nrow = dim(mt)[1], ncol = dim(mt)[2])
-  Cnt <- array(NA, dim = dim(Ct))
-  fnt <- numeric(T)
-  Qnt <- numeric(T)
-  
-  for(i in T:1){
-    if(i == T){
-      mnt[i, ] <- mt[i, ]
-      Cnt[, , i] <- Ct[, , i]
-    }else{
-      if(missing(delta)){
-        inv_Rtp1 <- chol2inv(chol(Rt[, , i+1]))
-        Bt <- Ct[, , i] %*% t(Gt[, , i+1]) %*% inv_Rtp1
-        mnt[i, ] <- mt[i, ] + Bt %*% (mnt[i+1, ] - at[i+1, ])
-        Cnt[, , i] <- Ct[, , i] + Bt %*% (Cnt[, , i+1] - 
-                                    Rt[, , i+1]) %*% t(Bt)
-        Cnt[,,i] <- 0.5*Cnt[,,i]+0.5*t(Cnt[,,i])
-      }else{
-        inv_Gt <- solve(Gt[, , i+1])
-        mnt[i, ] <- (1-delta)*mt[i, ] + 
-                delta*inv_Gt %*% t(mnt[i+1, ,drop=FALSE])
-        Cnt[, , i] <- (1-delta)*Ct[, , i] + 
-                delta^2*inv_Gt %*% Cnt[, , i + 1]  %*% t(inv_Gt)
-        Cnt[,,i] <- 0.5*Cnt[,,i]+0.5*t(Cnt[,,i])
-      }
-    }
-    fnt[i] <- t(Ft[, , i]) %*% t(mnt[i, , drop=FALSE])
-    Qnt[i] <- t(Ft[, , i]) %*% t(Cnt[, , i]) %*% Ft[, , i]
-  }
-  for(i in 1:T){
-     Cnt[,,i]=St[T]*Cnt[,,i]/St[i] 
-     Qnt[i]=St[T]*Qnt[i]/St[i]
-  }
-  cat("Backward smoothing is completed!\n")
-  return(list(mnt = mnt, Cnt = Cnt, fnt=fnt, Qnt=Qnt))
-}
-
-## Forecast Distribution for k step
-forecast_function_unknown_v <- function(posterior_states, k, 
-                                        matrices, delta){
-  
-  ## retrieve matrices
-  Ft <- matrices$Ft
-  Gt <- matrices$Gt
-  if(missing(delta)){
-    Wt_star <- matrices$Wt_star
-  }
-  
-  mt <- posterior_states$mt
-  Ct <- posterior_states$Ct
-  St <- posterior_states$St
-  at <- posterior_states$at
-  
-  ## set up matrices
-  T <- dim(mt)[1] # time points
-  d <- dim(mt)[2] # dimension of state parameter vector
-  
-  ## placeholder for results
-  at <- matrix(NA, nrow = k, ncol = d)
-  Rt <- array(NA, dim=c(d, d, k))
-  ft <- numeric(k)
-  Qt <- numeric(k)
-  
-  for(i in 1:k){
-    ## moments of state distribution
-    if(i == 1){
-      at[i, ] <- Gt[, , T+i] %*% t(mt[T, , drop=FALSE])
-      
-      if(missing(delta)){
-       Rt[, , i] <- Gt[, , T+i] %*% Ct[, , T] %*% 
-         t(Gt[, , T+i]) + St[T]*Wt_star[, , T+i]
-      }else{
-        Rt[, , i] <- Gt[, , T+i] %*% Ct[, , T] %*% 
-          t(Gt[, , T+i])/delta
-      }
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      
-    }else{
-      at[i, ] <- Gt[, , T+i] %*% t(at[i-1, , drop=FALSE])
-      if(missing(delta)){
-        Rt[, , i] <- Gt[, , T+i] %*% Rt[, , i-1] %*% 
-          t(Gt[, , T+i]) + St[T]*Wt_star[, , T + i]
-      }else{
-        Rt[, , i] <- Gt[, , T+i] %*% Rt[, , i-1] %*% 
-          t(Gt[, , T+i])/delta
-      }
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-    }
-    
-    
-    ## moments of forecast distribution
-    ft[i] <- t(Ft[, , T+i]) %*% t(at[i, , drop=FALSE])
-    Qt[i] <- t(Ft[, , T+i]) %*% Rt[, , i] %*% Ft[, , T+i] + 
-      St[T]
-  }
-  cat("Forecasting is completed!\n") # indicator of completion
-  return(list(at=at, Rt=Rt, ft=ft, Qt=Qt))
-}
-
-## obtain 95% credible interval
-get_credible_interval_unknown_v <- function(ft, Qt, nt, 
-                                   quantile = c(0.025, 0.975)){
-  bound <- matrix(0, nrow=length(ft), ncol=2)
-
-  if ((length(nt)==1)){
-   for (t in 1:length(ft)){
-      t_quantile <- qt(quantile[1], df = nt)
-      bound[t, 1] <- ft[t] + t_quantile*sqrt(as.numeric(Qt[t])) 
-  
-  # upper bound of 95% credible interval
-      t_quantile <- qt(quantile[2], df = nt)
-      bound[t, 2] <- ft[t] + 
-        t_quantile*sqrt(as.numeric(Qt[t]))}
-  }else{
-  # lower bound of 95% credible interval
-    for (t in 1:length(ft)){
-      t_quantile <- qt(quantile[1], df = nt[t])
-      bound[t, 1] <- ft[t] + 
-        t_quantile*sqrt(as.numeric(Qt[t])) 
-  
-  # upper bound of 95% credible interval
-      t_quantile <- qt(quantile[2], df = nt[t])
-      bound[t, 2] <- ft[t] + 
-        t_quantile*sqrt(as.numeric(Qt[t]))}
-  }
-  return(bound)
-
-}
-
-
-
-## Example: Nile River Level (in 10^8 m^3), 1871-1970 
-## Model: First order polynomial DLM
-plot(Nile) 
-n=length(Nile) #n=100 observations 
-k=5
-T=n-k
-data_T=Nile[1:T]
-test_data=Nile[(T+1):n]
-data=list(yt = data_T)
-
-
-## set up matrices for first order polynomial model 
-Ft=array(1, dim = c(1, 1, n))
-Gt=array(1, dim = c(1, 1, n))
-Wt_star=array(1, dim = c(1, 1, n))
-m0=as.matrix(800)
-C0_star=as.matrix(10)
-n0=1
-S0=10
-
-## wrap up all matrices and initial values
-matrices = set_up_dlm_matrices_unknown_v(Ft, Gt, Wt_star)
-initial_states = set_up_initial_states_unknown_v(m0, 
-                                      C0_star, n0, S0)
-
-## filtering 
-results_filtered = forward_filter_unknown_v(data, matrices, 
-                                            initial_states)
-ci_filtered=get_credible_interval_unknown_v(results_filtered$mt, 
-                                    results_filtered$Ct, 
-                                     results_filtered$nt)
-
-## smoothing
-results_smoothed=backward_smoothing_unknown_v(data, matrices, 
-                                             results_filtered)
-ci_smoothed=get_credible_interval_unknown_v(results_smoothed$mnt, 
-                                         results_smoothed$Cnt, 
-                                         results_filtered$nt[T])
-
-## one-step ahead forecasting
-results_forecast=forecast_function_unknown_v(results_filtered, 
-                                                k,  matrices)
-ci_forecast=get_credible_interval_unknown_v(results_forecast$ft, 
-                                          results_forecast$Qt, 
-                                     results_filtered$nt[T])
-
-
-## plot results
-index=seq(1871, 1970, length.out = length(Nile))
-index_filt=index[1:T]
-index_forecast=index[(T+1):(T+k)]
-
-plot(index, Nile, main = "Nile River Level ",type='l',
-     xlab="time",ylab="feet",lty=3,ylim=c(400,1500))
-points(index,Nile,pch=20)
-
-lines(index_filt,results_filtered$mt, type='l', col='red',lwd=2)
-lines(index_filt,ci_filtered[, 1], type='l', col='red', lty=2)
-lines(index_filt,ci_filtered[, 2], type='l', col='red', lty=2)
-lines(index_filt,results_smoothed$mnt, type='l', col='blue',lwd=2)
-lines(index_filt, ci_smoothed[, 1], type='l', col='blue', lty=2)
-lines(index_filt, ci_smoothed[, 2], type='l', col='blue', lty=2)
-
-lines(index_forecast, results_forecast$ft, type='l', 
-      col='green',lwd=2)
-lines(index_forecast, ci_forecast[, 1], type='l', 
-      col='green', lty=2)
-lines(index_forecast, ci_forecast[, 2], type='l', 
-      col='green', lty=2)
-
-```
-
-## Practice Graded Assignment: NDLM data analysis
-
-This peer-reviewed activity is highly recommended. It does not figure into your grade for this course, but it does provide you with the opportunity to apply what you've learned in R and prepare you for your data analysis project in week 5. 
-
-The R code below fits a Normal Dynamic Linear Model to the monthly time series of Google trends "hits" for the term "time series". The model has two components: (a) a polynomial model of order 2 and (b) a seasonal component with 4 frequencies:  $ω_1=2π/12$, (annual cycle) $ω_2=2π/6$ (6 months cycle), $ω_3=2π/4$ and $ω_4=2π/3.$ The model assumes that the observational variance $v$ is unknown and the system variance-covariance matrix $W_t$ is specified using a single discount factor. The discount factor is chosen using an optimality criterion as explained in the course. 
-
-You will be asked to modify the code in order to consider a DLM with two components: (a) a polynomial model of order 1 and (b) a seasonal component that contains a fundamental period of $p = 12$ and 2 additional harmonics for a total of 3 frequencies: $ω1=2π/12$, $ω2=2π/6$ and $ω3=2π/4$. You will also need to optimize the choice of the discount factor for this model.  You will be asked to upload pictures summarizing your results. 
-
-R code to fit the model: requires R packages `gtrends`,and `dlm` as well as the files  "all_dlm_functions_unknown_v.R" and "discountfactor_selection_functions.R" also provided below. 
-
-```r
-#| label: code-gtrendsR-data-analysis
-# download data 
-library(gtrendsR)
-timeseries_data <- gtrends("time series",time="all")
-plot(timeseries_data)
-names(timeseries_data)
-
-timeseries_data=timeseries_data$interest_over_time
-data=list(yt=timeseries_data$hits)
-
-library(dlm)
-model_seasonal=dlmModTrig(s=12,q=4,dV=0,dW=1)
-model_trend=dlmModPoly(order=2,dV=10,dW=rep(1,2),m0=c(40,0))
-model=model_trend+model_seasonal
-model$C0=10*diag(10)
-n0=1
-S0=10
-k=length(model$m0)
-T=length(data$yt)
-
-Ft=array(0,c(1,k,T))
-Gt=array(0,c(k,k,T))
-for(t in 1:T){
-   Ft[,,t]=model$FF
-   Gt[,,t]=model$GG
-}
-
-source('all_dlm_functions_unknown_v.R')
-source('discountfactor_selection_functions.R')
-
-matrices=set_up_dlm_matrices_unknown_v(Ft=Ft,Gt=Gt)
-initial_states=set_up_initial_states_unknown_v(model$m0,
-                                               model$C0,n0,S0)
-
-df_range=seq(0.9,1,by=0.005)
-
-## fit discount DLM
-## MSE
-results_MSE <- adaptive_dlm(data, matrices, 
-               initial_states, df_range,"MSE",forecast=FALSE)
-
-## print selected discount factor
-print(paste("The selected discount factor:",results_MSE$df_opt))
-
-## retrieve filtered results
-results_filtered <- results_MSE$results_filtered
-ci_filtered <- get_credible_interval_unknown_v(
-  results_filtered$ft,results_filtered$Qt,results_filtered$nt)
-
-## retrieve smoothed results
-results_smoothed <- results_MSE$results_smoothed
-ci_smoothed <- get_credible_interval_unknown_v(
-  results_smoothed$fnt, results_smoothed$Qnt, 
-  results_filtered$nt[length(results_smoothed$fnt)])
-
-## plot smoothing results 
-par(mfrow=c(1,1), mar = c(3, 4, 2, 1))
-index <- timeseries_data$date
-plot(index, data$yt, ylab='Google hits',
-     main = "Google Trends: time series", type = 'l',
-     xlab = 'time', lty=3,ylim=c(0,100))
-lines(index, results_smoothed$fnt, type = 'l', col='blue', 
-      lwd=2)
-lines(index, ci_smoothed[, 1], type='l', col='blue', lty=2)
-lines(index, ci_smoothed[, 2], type='l', col='blue', lty=2)
-
-# Plot trend and rate of change 
-par(mfrow=c(2,1), mar = c(3, 4, 2, 1))
-plot(index,data$yt,pch=19,cex=0.3,col='lightgray',xlab="time",
-     ylab="Google hits",main="trend")
-lines(index,results_smoothed$mnt[,1],lwd=2,col='magenta')
-plot(index,results_smoothed$mnt[,2],col='darkblue',lwd=2,
-     type='l', ylim=c(-0.6,0.6), xlab="time",
-     ylab="rate of change")
-abline(h=0,col='red',lty=2)
-
-# Plot seasonal components 
-par(mfrow=c(2,2), mar = c(3, 4, 2, 1))
-plot(index,results_smoothed$mnt[,3],lwd=2,col="darkgreen",
-     type='l', xlab="time",ylab="",main="period=12",
-     ylim=c(-12,12))
-plot(index,results_smoothed$mnt[,5],lwd=2,col="darkgreen",
-     type='l',xlab="time",ylab="",main="period=6",
-     ylim=c(-12,12))
-plot(index,results_smoothed$mnt[,7],lwd=2,col="darkgreen",
-     type='l', xlab="time",ylab="",main="period=4",
-     ylim=c(-12,12))
-plot(index,results_smoothed$mnt[,9],lwd=2,col="darkgreen",
-     type='l', xlab="time",ylab="",main="period=3",
-     ylim=c(-12,12))
-
-#Estimate for the observational variance: St[T]
-results_filtered$St[T]
-
-```
-### All dlm functions unknown v
+![ACF of the AR(p)](images/m2_0021.png){.column-margin  group="slides" width="53mm"}
+
+
+
+
+{{< lipsum 2 >}}
+
+## Simulating data from an AR(p) (video)
+
+{{< lipsum 2 >}}
+
+## Computing the roots of the AR polynomial (reading)
+
+Compute AR reciprocal roots given the AR coefficients
 
 ```{r}
-#| label: code-all-dlm-functions-unknown-v
-## create list for matrices
-set_up_dlm_matrices_unknown_v <- function(Ft, Gt, Wt_star){
-  if(!is.array(Gt)){
-    Stop("Gt and Ft should be array")
-  }
-  if(missing(Wt_star)){
-    return(list(Ft=Ft, Gt=Gt))
-  }else{
-    return(list(Ft=Ft, Gt=Gt, Wt_star=Wt_star))
-  }
-}
+#| label: ar-roots
 
+# Assume the folloing AR coefficients for an AR(8)
+phi=c(0.27, 0.07, -0.13, -0.15, -0.11, -0.15, -0.23, -0.14)
+roots=1/polyroot(c(1, -phi)) # compute reciprocal characteristic roots
+r=Mod(roots) # compute moduli of reciprocal roots
+lambda=2*pi/Arg(roots) # compute periods of reciprocal roots
 
-## create list for initial states
-set_up_initial_states_unknown_v <- function(m0, C0_star, n0, S0){
-  return(list(m0=m0, C0_star=C0_star, n0=n0, S0=S0))
-}
-
-forward_filter_unknown_v <- function(data, matrices, 
-                              initial_states, delta){
-  ## retrieve dataset
-  yt <- data$yt
-  T<- length(yt)
-  
-  ## retrieve matrices
-  Ft <- matrices$Ft
-  Gt <- matrices$Gt
-  if(missing(delta)){
-    Wt_star <- matrices$Wt_star
-  }
-  
-  ## retrieve initial state
-  m0 <- initial_states$m0
-  C0_star <- initial_states$C0_star
-  n0 <- initial_states$n0
-  S0 <- initial_states$S0
-  C0 <- S0*C0_star
-  
-  ## create placeholder for results
-  d <- dim(Gt)[1]
-  at <- matrix(0, nrow=T, ncol=d)
-  Rt <- array(0, dim=c(d, d, T))
-  ft <- numeric(T)
-  Qt <- numeric(T)
-  mt <- matrix(0, nrow=T, ncol=d)
-  Ct <- array(0, dim=c(d, d, T))
-  et <- numeric(T)
-  nt <- numeric(T)
-  St <- numeric(T)
-  dt <- numeric(T)
-  
-  # moments of priors at t
-  for(i in 1:T){
-    if(i == 1){
-      at[i, ] <- Gt[, , i] %*% m0
-      Pt <- Gt[, , i] %*% C0 %*% t(Gt[, , i])
-      Pt <- 0.5*Pt + 0.5*t(Pt)
-      if(missing(delta)){
-        Wt <- Wt_star[, , i]*S0
-        Rt[, , i] <- Pt + Wt
-        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      }else{
-        Rt[, , i] <- Pt/delta
-        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      }
-      
-    }else{
-      at[i, ] <- Gt[, , i] %*% t(mt[i-1, , drop=FALSE])
-      Pt <- Gt[, , i] %*% Ct[, , i-1] %*% t(Gt[, , i])
-      if(missing(delta)){
-        Wt <- Wt_star[, , i] * St[i-1]
-        Rt[, , i] <- Pt + Wt
-        Rt[,,i]=0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      }else{
-        Rt[, , i] <- Pt/delta
-        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      }
-    }
-    
-    # moments of one-step forecast:
-    ft[i] <- t(Ft[, , i]) %*% t(at[i, , drop=FALSE]) 
-    Qt[i] <- t(Ft[, , i]) %*% Rt[, , i] %*% Ft[, , i] + 
-      ifelse(i==1, S0, St[i-1])
-    et[i] <- yt[i] - ft[i]
-    
-    nt[i] <- ifelse(i==1, n0, nt[i-1]) + 1
-    St[i] <- ifelse(i==1, S0, 
-                    St[i-1])*(1 + 1/nt[i]*(et[i]^2/Qt[i]-1))
-    
-    # moments of posterior at t:
-    At <- Rt[, , i] %*% Ft[, , i] / Qt[i]
-    
-    mt[i, ] <- at[i, ] + t(At) * et[i]
-    Ct[, , i] <- St[i]/ifelse(i==1, S0, 
-                  St[i-1])*(Rt[, , i] - Qt[i] * At %*% t(At))
-    Ct[,,i] <- 0.5*Ct[,,i]+0.5*t(Ct[,,i])
-  }
-  cat("Forward filtering is completed!\n")
-  return(list(mt = mt, Ct = Ct,  at = at, Rt = Rt, 
-              ft = ft, Qt = Qt,  et = et, 
-              nt = nt, St = St))
-}
-
-### smoothing function ###
-backward_smoothing_unknown_v <- function(data, matrices, 
-                                posterior_states,delta){
-  ## retrieve data 
-  yt <- data$yt
-  T <- length(yt) 
-  
-  ## retrieve matrices
-  Ft <- matrices$Ft
-  Gt <- matrices$Gt
-  
-  ## retrieve matrices
-  mt <- posterior_states$mt
-  Ct <- posterior_states$Ct
-  Rt <- posterior_states$Rt
-  nt <- posterior_states$nt
-  St <- posterior_states$St
-  at <- posterior_states$at
-  
-  ## create placeholder for posterior moments 
-  mnt <- matrix(NA, nrow = dim(mt)[1], ncol = dim(mt)[2])
-  Cnt <- array(NA, dim = dim(Ct))
-  fnt <- numeric(T)
-  Qnt <- numeric(T)
-  
-  for(i in T:1){
-    if(i == T){
-      mnt[i, ] <- mt[i, ]
-      Cnt[, , i] <- Ct[, , i]
-    }else{
-      if(missing(delta)){
-        inv_Rtp1 <- chol2inv(chol(Rt[, , i+1]))
-        Bt <- Ct[, , i] %*% t(Gt[, , i+1]) %*% inv_Rtp1
-        mnt[i, ] <- mt[i, ] + Bt %*% (mnt[i+1, ] - at[i+1, ])
-        Cnt[, , i] <- Ct[, , i] + Bt %*% (Cnt[, , i+1] - 
-                                    Rt[, , i+1]) %*% t(Bt)
-        Cnt[,,i] <- 0.5*Cnt[,,i]+0.5*t(Cnt[,,i])
-      }else{
-        inv_Gt <- solve(Gt[, , i+1])
-        mnt[i, ] <- (1-delta)*mt[i, ] + 
-                delta*inv_Gt %*% t(mnt[i+1, ,drop=FALSE])
-        Cnt[, , i] <- (1-delta)*Ct[, , i] + 
-                delta^2*inv_Gt %*% Cnt[, , i + 1]  %*% t(inv_Gt)
-        Cnt[,,i] <- 0.5*Cnt[,,i]+0.5*t(Cnt[,,i])
-      }
-    }
-    fnt[i] <- t(Ft[, , i]) %*% t(mnt[i, , drop=FALSE])
-    Qnt[i] <- t(Ft[, , i]) %*% t(Cnt[, , i]) %*% Ft[, , i]
-  }
-  for(i in 1:T){
-     Cnt[,,i]=St[T]*Cnt[,,i]/St[i] 
-     Qnt[i]=St[T]*Qnt[i]/St[i]
-  }
-  cat("Backward smoothing is completed!\n")
-  return(list(mnt = mnt, Cnt = Cnt, fnt=fnt, Qnt=Qnt))
-}
-
-## Forecast Distribution for k step
-forecast_function_unknown_v <- function(posterior_states, k, 
-                                        matrices, delta){
-  
-  ## retrieve matrices
-  Ft <- matrices$Ft
-  Gt <- matrices$Gt
-  if(missing(delta)){
-    Wt_star <- matrices$Wt_star
-  }
-  
-  mt <- posterior_states$mt
-  Ct <- posterior_states$Ct
-  St <- posterior_states$St
-  at <- posterior_states$at
-  
-  ## set up matrices
-  T <- dim(mt)[1] # time points
-  d <- dim(mt)[2] # dimension of state parameter vector
-  
-  ## placeholder for results
-  at <- matrix(NA, nrow = k, ncol = d)
-  Rt <- array(NA, dim=c(d, d, k))
-  ft <- numeric(k)
-  Qt <- numeric(k)
-  
-  for(i in 1:k){
-    ## moments of state distribution
-    if(i == 1){
-      at[i, ] <- Gt[, , T+i] %*% t(mt[T, , drop=FALSE])
-      
-      if(missing(delta)){
-       Rt[, , i] <- Gt[, , T+i] %*% Ct[, , T] %*% 
-         t(Gt[, , T+i]) + St[T]*Wt_star[, , T+i]
-      }else{
-        Rt[, , i] <- Gt[, , T+i] %*% Ct[, , T] %*% 
-          t(Gt[, , T+i])/delta
-      }
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-      
-    }else{
-      at[i, ] <- Gt[, , T+i] %*% t(at[i-1, , drop=FALSE])
-      if(missing(delta)){
-        Rt[, , i] <- Gt[, , T+i] %*% Rt[, , i-1] %*% 
-          t(Gt[, , T+i]) + St[T]*Wt_star[, , T + i]
-      }else{
-        Rt[, , i] <- Gt[, , T+i] %*% Rt[, , i-1] %*% 
-          t(Gt[, , T+i])/delta
-      }
-      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
-    }
-    
-    
-    ## moments of forecast distribution
-    ft[i] <- t(Ft[, , T+i]) %*% t(at[i, , drop=FALSE])
-    Qt[i] <- t(Ft[, , T+i]) %*% Rt[, , i] %*% Ft[, , T+i] + 
-      St[T]
-  }
-  cat("Forecasting is completed!\n") # indicator of completion
-  return(list(at=at, Rt=Rt, ft=ft, Qt=Qt))
-}
-
-## obtain 95% credible interval
-get_credible_interval_unknown_v <- function(ft, Qt, nt, 
-                                   quantile = c(0.025, 0.975)){
-  bound <- matrix(0, nrow=length(ft), ncol=2)
-
-  if ((length(nt)==1)){
-   for (t in 1:length(ft)){
-      t_quantile <- qt(quantile[1], df = nt)
-      bound[t, 1] <- ft[t] + t_quantile*sqrt(as.numeric(Qt[t])) 
-  
-  # upper bound of 95% credible interval
-      t_quantile <- qt(quantile[2], df = nt)
-      bound[t, 2] <- ft[t] + 
-        t_quantile*sqrt(as.numeric(Qt[t]))}
-  }else{
-  # lower bound of 95% credible interval
-    for (t in 1:length(ft)){
-      t_quantile <- qt(quantile[1], df = nt[t])
-      bound[t, 1] <- ft[t] + 
-        t_quantile*sqrt(as.numeric(Qt[t])) 
-  
-  # upper bound of 95% credible interval
-      t_quantile <- qt(quantile[2], df = nt[t])
-      bound[t, 2] <- ft[t] + 
-        t_quantile*sqrt(as.numeric(Qt[t]))}
-  }
-  return(bound)
-
-}
+# print results modulus and frequency by decreasing order
+print(cbind(r, abs(lambda))[order(r, decreasing=TRUE), ][c(2,4,6,8),]) 
 ```
 
+## Simulating data from an AR(p) (reading)
 
-### Discount factor selection functions
+\index{AR(p)}
+\index{ARIMA}
+
+1.  R code to simulate data from an AR(2) with one pair of complex-valued reciprocal roots and plot the corresponding sample ACF and sample PACF
 
 ```{r}
-#| label: code-discount-factor-selection
+#| label: ar-sim-complex-valued-roots
 
+## simulate data from an AR(2)
+set.seed(2021)
+## AR(2) with a pair of complex-valued roots with modulus 0.95 and period 12 
+r=0.95
+lambda=12 
+phi=numeric(2) 
+phi[1]<- 2*r*cos(2*pi/lambda) 
+phi[2] <- -r^2
+phi
+T=300 # number of time points
+sd=1 # innovation standard deviation
+yt=arima.sim(n=T, model = list(ar = phi), sd=sd)
 
-##################################################
-##### using discount factor ##########
-##################################################
-## compute measures of forecasting accuracy
-## MAD: mean absolute deviation
-## MSE: mean square error
-## MAPE: mean absolute percentage error
-## Neg LL: Negative log-likelihood of disc,
-##         based on the one step ahead forecast distribution
-measure_forecast_accuracy <- function(et, yt, Qt=NA, nt=NA, type){
-  if(type == "MAD"){
-    measure <- mean(abs(et))
-  }else if(type == "MSE"){
-    measure <- mean(et^2)
-  }else if(type == "MAPE"){
-    measure <- mean(abs(et)/yt)
-  }else if(type == "NLL"){
-    measure <- log_likelihood_one_step_ahead(et, Qt, nt)
-  }else{
-    stop("Wrong type!")
-  }
-  return(measure)
-}
+par(mfrow = c(3, 1), mar = c(3, 4, 2, 1), cex.lab = 1.5)
+## plot simulated data
+ts.plot(yt)
+## draw sample autocorrelation function
+acf(yt, lag.max = 50,
+    type = "correlation", ylab = "sample ACF", 
+    lty = 1, ylim = c(-1, 1), main = " ")
 
-
-## compute log likelihood of one step ahead forecast function
-log_likelihood_one_step_ahead <- function(et, Qt, nt){
-  ## et:the one-step-ahead error
-  ## Qt: variance of one-step-ahead forecast function
-  ## nt: degrees freedom of t distribution
-  T <- length(et)
-  aux=0
-  for (t in 1:T){
-    zt=et[t]/sqrt(Qt[t])
-    aux=(dt(zt,df=nt[t],log=TRUE)-log(sqrt(Qt[t]))) + aux 
-  } 
-  return(-aux)
-}
-
-## Maximize log density of one-step-ahead forecast function to select discount factor
-adaptive_dlm <- function(data, matrices, initial_states, df_range, type, 
-                         forecast=TRUE){
-  measure_best <- NA
-  measure <- numeric(length(df_range))
-  valid_data <- data$valid_data
-  df_opt <- NA
-  j <- 0
-  ## find the optimal discount factor
-  for(i in df_range){
-    j <- j + 1
-    results_tmp <- forward_filter_unknown_v(data, matrices, initial_states, i)
-     
-    measure[j] <- measure_forecast_accuracy(et=results_tmp$et, yt=data$yt,
-                                  Qt=results_tmp$Qt, 
-                                  nt=c(initial_states$n0,results_tmp$nt), type=type)
-    
-    
-    if(j == 1){
-      measure_best <- measure[j]
-      results_filtered <- results_tmp
-      df_opt <- i
-    }else if(measure[j] < measure_best){
-      measure_best <- measure[j]
-      results_filtered <- results_tmp
-      df_opt <- i
-    }
-  }
-  results_smoothed <- backward_smoothing_unknown_v(data, matrices, results_filtered, delta = df_opt)
-  if(forecast){
-    results_forecast <- forecast_function(results_filtered, length(valid_data), 
-                                          matrices, df_opt)
-    return(list(results_filtered=results_filtered, 
-                results_smoothed=results_smoothed, 
-                results_forecast=results_forecast, 
-                df_opt = df_opt, measure=measure))
-  }else{
-    return(list(results_filtered=results_filtered, 
-                results_smoothed=results_smoothed, 
-                df_opt = df_opt, measure=measure))
-  }
-  
-}
+## draw sample partial autocorrelation function
+pacf(yt, lag.ma = 50, main = "sample PACF")
 ```
+
+2.  R=code to simulate data from an AR(2) with two different real-valued reciprocal roots and plot the corresponding sample ACF and sample PACF
+
+```{r}
+#| label: ar-sim-real-valued-roots
+### Simulate from AR(2) with two real reciprocal roots (e.g., 0.95 and 0.5)
+set.seed(2021)
+recip_roots=c(0.95, 0.5) ## two different real reciprocal roots
+phi=c(sum(recip_roots), -prod(recip_roots)) ## compute ar coefficients
+phi
+T=300 ## set up number of time points
+sd=1 ## set up standard deviation
+yt=arima.sim(n=T,model = list(ar=phi),sd=sd) # generate ar(2)
+
+par(mfrow = c(3, 1), mar = c(3, 4, 2, 1),  cex.lab = 1.5, cex.main = 1.5)
+### plot simulated data 
+ts.plot(yt)
+### plot sample ACF
+acf(yt, lag.max = 50, type = "correlation",  main = "sample ACF")
+### plot sample PACF
+pacf(yt, lag.max = 50, main = "sample PACF")
+```
+
+3.  R code to simulate data from an $AR(3)$ with one real reciprocal root and a pair of complex-valued reciprocal roots and plot the corresponding sample ACF and sample PACF
+
+```{r}
+#| label: ar-sim-ar3
+
+### Simulate from AR(3) with one real root 
+### and a pair of complex roots (e.g., r=0.95 and lambda = 12 and real root with
+### 0.8 modulus)
+set.seed(2021)
+r= c(0.95, 0.95, 0.8) ## modulus
+lambda=c(-12, 12) ## lambda
+recip_roots=c(r[1:2]*exp(2*pi/lambda*1i), r[3]) ## reciprocal roots
+phi <- numeric(3) # placeholder for phi
+phi[1]=Re(sum(recip_roots)) # ar coefficients at lag 1
+phi[2]=-Re(recip_roots[1]*recip_roots[2] + recip_roots[1]*recip_roots[3] + recip_roots[2]*recip_roots[3]) # ar coefficients at lag 2
+phi[3]=Re(prod(recip_roots))
+phi
+T=300 # number of time points
+sd=1 # standard deviation
+yt=arima.sim(n=T,model = list(ar=phi), sd = sd) # generate ar(3)
+
+par(mfrow = c(3,1),  mar = c(3, 4, 2, 1), cex.lab = 1.5, cex.main = 1.5)
+### plot simulated data 
+ts.plot(yt)
+### plot sample ACF
+acf(yt, lag.max = 50, type = "correlation",  main = "sample ACF")
+### plot sample PACF
+pacf(yt, lag.max = 50, main = "sample PACF")
+
+```
+
+## The AR(p): Review (Reading)
+
+### AR(p): Definition, stability, and stationarity
 
 ::: {.callout-info}
 
+### AR(p)
 
-### Grading Criteria
+A time series follows a zero-mean autoregressive process of order $p$, of AR(p), if:
 
-The assignment will be graded based on the uploaded pictures summarizing the results.  Estimates of some of the model parameters and additional discussion will also be requested. 
+$$
+y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \epsilon_t \qquad
+$$ {#eq-ar-p}
+
+where $\phi_1, \ldots, \phi_p$ are the AR coefficients and $\epsilon_t$ is a white noise process 
+
+with $\epsilon_t \sim \text{i.i.d. } N(0, v)$, for all $t$.
 
 :::
 
-# Case Studies
+The AR characteristic polynomial is given by
 
-## EEG data
+$$
+\Phi(u) = 1 - \phi_1 u - \phi_2 u^2 - \ldots - \phi_p u^p,
+$$
 
-## Google Trends
+with $u$ complex-valued.
 
+The AR(p) process is stable if $\Phi(u) = 0$ only when $\|u\| > 1$. In this case, the process is also stationary and can be written as
 
-# Quiz - NDLM, Part II
+$$
+y_t = \psi(B) \epsilon_t = \sum_{j=0}^{\infty} \psi_j \epsilon_{t-j},
+$$
 
-This is omitted due to the Coursera honor code.
+with $\psi_0 = 1$ and $\sum_{j=0}^{\infty} |\psi_j| < \infty$. Here $B$ denotes the backshift operator, so $B^j \epsilon_t = \epsilon_{t-j}$ and
+
+$$
+\psi(B) = 1 + \psi_1 B + \psi_2 B^2 + \ldots + \psi_j B^j + \ldots
+$$
+
+The AR polynomial can also be written as
+
+$$
+\Phi(u) = \prod_{j=1}^{p} (1 - \alpha_j u),
+$$
+
+with $\alpha_j$ being the reciprocal roots of the characteristic polynomial. For the process to be stable (and consequently stationary), $|\alpha_j| < 1$ for all $j = 1, \ldots, p$.
+
+#### AR(p): State-space representation
+
+An AR(p) can also be represented using the following state-space or dynamic linear (DLM) model representation:
+
+$$
+y_t = F' x_t,
+$$
+
+$$
+x_t = G x_{t-1} + \omega_t,
+$$
+
+with $x_t = (y_t, y_{t-1}, \dots, y_{t-p+1})'$, $F = (1, 0, \dots, 0)'$, $\omega_t = (\epsilon_t, 0, \dots, 0)'$, and
+
+$$
+G = \begin{pmatrix}
+\phi_1 & \phi_2 & \phi_3 & \dots & \phi_{p-1} & \phi_p \\
+1 & 0 & 0 & \dots & 0 & 0 \\
+0 & 1 & 0 & \dots & 0 & 0 \\
+\vdots & \ddots & \ddots & \ddots & & \vdots \\
+0 & 0 & 0 & \dots & 1 & 0
+\end{pmatrix}.
+$$
+
+Using this representation, the expected behavior of the process in the future can be exhibited via the forecast function:
+
+$$
+f_t(h) = E(y_{t+h} | y_{1:t}) = F' G^h x_t, \quad h > 0,
+$$
+
+for any $t \ge p$. The eigenvalues of the matrix $G$ are the reciprocal roots of the characteristic polynomial.
+
+::: {.callout-note}
+##### Eigenvalues
+
+-   The eigenvalues can be real-valued or complex-valued.
+-   If they are Complex-valued the eigenvalues/reciprocal roots appear in conjugate pairs.
+:::
+
+Assuming the matrix $G$ has $p$ distinct eigenvalues, we can decompose $G$ into $G = E \Lambda E^{-1}$, with
+
+$$
+\Lambda = \text{diag}(\alpha_1, \dots, \alpha_p),
+$$
+
+for a matrix of corresponding eigenvectors $E$. Then, $G^h = E \Lambda^h E^{-1}$ and we have:
+
+$$
+f_t(h) = \sum_{j=1}^{p} c_{tj} \alpha_j^h.
+$$
+
+#### ACF of AR(p)
+
+For a general AR(p), the ACF is given in terms of the homogeneous difference equation:
+
+$$
+\rho(h) - \phi_1 \rho(h-1) - \ldots - \phi_p \rho(h-p) = 0, \quad h > 0.
+$$
+
+Assuming that $\alpha_1, \dots, \alpha_r$ denotes the characteristic reciprocal roots each with multiplicity $m_1, \ldots, m_r$, respectively, with $\sum_{i=1}^{r} m_i = p$. Then, the general solution is
+
+$$
+\rho(h) = \alpha_1^h p_1(h) + \ldots + \alpha_r^h p_r(h),
+$$
+
+with $p_j(h)$ being a polynomial of degree $m_j - 1$.
+
+##### Example: AR(1)
+
+We already know that for $h \ge 0$, $\rho(h) = \phi^h$. Using the result above, we have
+
+$$
+\rho(h) = a \phi^h,
+$$
+
+and so to find $a$, we take $\rho(0) = 1 = a \phi^0$, hence $a = 1$.
+
+##### Example: AR(2)
+
+Similarly, using the result above in the case of two complex-valued reciprocal roots, we have
+
+$$
+\rho(h) = a \alpha_1^h + b \alpha_2^h = c r^h \cos(\omega h + d).
+$$
+
+#### PACF of AR(p)
+
+We can use the Durbin-Levinson recursion to obtain the PACF of an AR(p). 
+
+Using the same representation but substituting the true autocovariances and autocorrelations with their sampled versions, we can also obtain the sample PACF.
+
+It is possible to show that the PACF of an AR(p) is equal to zero for $h > p$.
+

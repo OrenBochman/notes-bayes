@@ -1,0 +1,877 @@
+---
+date: 2024-11-09
+title: "Bayesian Inference in the NDLM: Part 2 - M4L9"
+subtitle: Time Series Analysis
+description: "Normal Dynamic Linear Models (NDLMs) are a class of models used for time series analysis that allow for flexible modeling of temporal dependencies."
+categories: 
+  - Bayesian Statistics
+  - Time Series
+keywords: 
+  - Time series
+  - Filtering
+  - Smoothing
+  - NDLM
+  - Normal Dynamic Linear Models
+  - Seasonal NDLM
+  - Superposition Principle
+  - R code
+fig-caption: Notes about ... Bayesian Statistics
+title-block-banner: images/banner_deep.jpg
+---
+
+## Filtering, Smoothing and Forecasting: Unknown observational variance (Video)
+
+In this video we cover the following material also provided as a handout:
+
+Inference in the NDLM with unknown but constant observational variance:
+
+Let $v_t = v$ for all $t$, with $v$ unknown and consider a DLM with the following
+structure:
+$$
+\begin{aligned}
+y_t &= \mathbf{F}_t' \mathbf{\theta}_t + \nu_t, &\nu_t &\sim N (0, v)\\
+\mathbf{\theta}_t &= \mathbf{G}_t \mathbf{\theta}_{t-1} + \mathbf{\omega}_t, & \mathbf{\omega}_t &\sim N (0, v \mathbf{W}^*_t)
+\end{aligned}
+$$ {#eq-NDLM-unknown-variance}
+
+with conjugate prior distributions:
+$$
+(\mathbf{\theta}_0 \mid D_0, v) \sim N (\mathbf{m}_0, v\mathbf{C}^*_0), \qquad (v \mid D_0) \sim IG(\frac{n_0}{2}, \frac{d_0}{2}),
+$$ {#eq-NDLM-unknown-variance-priors}
+and $d_0 = n_0s_0$
+
+### Filtering
+
+Assuming $(\theta_{t-1} \mid D_{t-1}, v) \sim N (m_{t-1}, vC^*_{t-1})$, we have the following results:
+
+- $(\theta_t \mid D_{t-1}, v) \sim N (a_t, vR^*_t)$ with $a_t = G_t m_{t-1}$ and $R^*_t = G_t C^*_{t-1} G'_t + W^*_t$, and unconditional on $v$, $(\theta_t \mid D_{t-1}) \sim T_{n_{t-1}} (a_t, R_t)$, with $R_t = s_{t-1} R^*_t$. The expression for $s_t$ for all $t$ is given below.
+- $(y_t \mid D_{t-1}, v) \sim N (f_t, vq^*_t)$, with $f_t = F'_t a_t$, and $q^*_t = (1 + F'_t R^*_t F_t)$ and unconditional on $v$ we have $(y_t \mid D_{t-1}) \sim T_{n_{t-1}} (f_t, q_t)$, with $q_t = s_{t-1} q^*_t$.
+- $(v \mid D_t) \sim \mathcal{IG}(n_t/2, s_t/2)$, with $n_t = n_{t-1} + 1$ and
+  $$ 
+  s_t = s_{t-1} + \frac{s_{t-1}}{n_t} \left ( \frac{e^2_t}{q^*_t} - 1 \right ), 
+  $$ {#eq-NDLM-unknown-variance-filtering}
+
+  where $e_t = y_t - f_t$
+
+- θt|Dt, v) ∼ N (mt, vC∗
+t ), with mt = at + Atet, and C∗
+t = R∗
+t − AtA′
+tq∗
+t .
+Similarly, unconditional on v we have
+(θt|Dt) ∼ Tnt (mt, Ct),
+with Ct = stC∗
+t
+
+
+## Summary of Filtering, Smoothing and Forecasting Distributions, NDLM unknown observational variance (Reading)
+
+## Specifying the system covariance matrix via discount factors (Video)
+
+## NDLM, Unknown Observational Variance: Example (Video)
+
+This is a walk though of the R code for the example bellow.
+
+## Rcode: NDLM, Unknown Observational Variance Example (Reading)
+
+This code allows time-varying $F_t$, $G_t$ and $W_t$ matrices and assumes an unknown but constant $\nu$. It also allows the user to specify $W_t$ using a discount factor $\delta \in (0,1]$ or assume $W_t$  known.
+
+```{r}  
+#| label: code-NDLM-unknown-variance
+
+## create list for matrices
+set_up_dlm_matrices_unknown_v <- function(Ft, Gt, Wt_star){
+  if(!is.array(Gt)){
+    Stop("Gt and Ft should be array")
+  }
+  if(missing(Wt_star)){
+    return(list(Ft=Ft, Gt=Gt))
+  }else{
+    return(list(Ft=Ft, Gt=Gt, Wt_star=Wt_star))
+  }
+}
+
+
+## create list for initial states
+set_up_initial_states_unknown_v <- function(m0, C0_star, n0, S0){
+  return(list(m0=m0, C0_star=C0_star, n0=n0, S0=S0))
+}
+
+forward_filter_unknown_v <- function(data, matrices, 
+                              initial_states, delta){
+  ## retrieve dataset
+  yt <- data$yt
+  T<- length(yt)
+  
+  ## retrieve matrices
+  Ft <- matrices$Ft
+  Gt <- matrices$Gt
+  if(missing(delta)){
+    Wt_star <- matrices$Wt_star
+  }
+  
+  ## retrieve initial state
+  m0 <- initial_states$m0
+  C0_star <- initial_states$C0_star
+  n0 <- initial_states$n0
+  S0 <- initial_states$S0
+  C0 <- S0*C0_star
+  
+  ## create placeholder for results
+  d <- dim(Gt)[1]
+  at <- matrix(0, nrow=T, ncol=d)
+  Rt <- array(0, dim=c(d, d, T))
+  ft <- numeric(T)
+  Qt <- numeric(T)
+  mt <- matrix(0, nrow=T, ncol=d)
+  Ct <- array(0, dim=c(d, d, T))
+  et <- numeric(T)
+  nt <- numeric(T)
+  St <- numeric(T)
+  dt <- numeric(T)
+  
+  # moments of priors at t
+  for(i in 1:T){
+    if(i == 1){
+      at[i, ] <- Gt[, , i] %*% m0
+      Pt <- Gt[, , i] %*% C0 %*% t(Gt[, , i])
+      Pt <- 0.5*Pt + 0.5*t(Pt)
+      if(missing(delta)){
+        Wt <- Wt_star[, , i]*S0
+        Rt[, , i] <- Pt + Wt
+        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      }else{
+        Rt[, , i] <- Pt/delta
+        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      }
+      
+    }else{
+      at[i, ] <- Gt[, , i] %*% t(mt[i-1, , drop=FALSE])
+      Pt <- Gt[, , i] %*% Ct[, , i-1] %*% t(Gt[, , i])
+      if(missing(delta)){
+        Wt <- Wt_star[, , i] * St[i-1]
+        Rt[, , i] <- Pt + Wt
+        Rt[,,i]=0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      }else{
+        Rt[, , i] <- Pt/delta
+        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      }
+    }
+    
+    # moments of one-step forecast:
+    ft[i] <- t(Ft[, , i]) %*% t(at[i, , drop=FALSE]) 
+    Qt[i] <- t(Ft[, , i]) %*% Rt[, , i] %*% Ft[, , i] + 
+      ifelse(i==1, S0, St[i-1])
+    et[i] <- yt[i] - ft[i]
+    
+    nt[i] <- ifelse(i==1, n0, nt[i-1]) + 1
+    St[i] <- ifelse(i==1, S0, 
+                    St[i-1])*(1 + 1/nt[i]*(et[i]^2/Qt[i]-1))
+    
+    # moments of posterior at t:
+    At <- Rt[, , i] %*% Ft[, , i] / Qt[i]
+    
+    mt[i, ] <- at[i, ] + t(At) * et[i]
+    Ct[, , i] <- St[i]/ifelse(i==1, S0, 
+                  St[i-1])*(Rt[, , i] - Qt[i] * At %*% t(At))
+    Ct[,,i] <- 0.5*Ct[,,i]+0.5*t(Ct[,,i])
+  }
+  cat("Forward filtering is completed!\n")
+  return(list(mt = mt, Ct = Ct,  at = at, Rt = Rt, 
+              ft = ft, Qt = Qt,  et = et, 
+              nt = nt, St = St))
+}
+
+### smoothing function ###
+backward_smoothing_unknown_v <- function(data, matrices, 
+                                posterior_states,delta){
+  ## retrieve data 
+  yt <- data$yt
+  T <- length(yt) 
+  
+  ## retrieve matrices
+  Ft <- matrices$Ft
+  Gt <- matrices$Gt
+  
+  ## retrieve matrices
+  mt <- posterior_states$mt
+  Ct <- posterior_states$Ct
+  Rt <- posterior_states$Rt
+  nt <- posterior_states$nt
+  St <- posterior_states$St
+  at <- posterior_states$at
+  
+  ## create placeholder for posterior moments 
+  mnt <- matrix(NA, nrow = dim(mt)[1], ncol = dim(mt)[2])
+  Cnt <- array(NA, dim = dim(Ct))
+  fnt <- numeric(T)
+  Qnt <- numeric(T)
+  
+  for(i in T:1){
+    if(i == T){
+      mnt[i, ] <- mt[i, ]
+      Cnt[, , i] <- Ct[, , i]
+    }else{
+      if(missing(delta)){
+        inv_Rtp1 <- chol2inv(chol(Rt[, , i+1]))
+        Bt <- Ct[, , i] %*% t(Gt[, , i+1]) %*% inv_Rtp1
+        mnt[i, ] <- mt[i, ] + Bt %*% (mnt[i+1, ] - at[i+1, ])
+        Cnt[, , i] <- Ct[, , i] + Bt %*% (Cnt[, , i+1] - 
+                                    Rt[, , i+1]) %*% t(Bt)
+        Cnt[,,i] <- 0.5*Cnt[,,i]+0.5*t(Cnt[,,i])
+      }else{
+        inv_Gt <- solve(Gt[, , i+1])
+        mnt[i, ] <- (1-delta)*mt[i, ] + 
+                delta*inv_Gt %*% t(mnt[i+1, ,drop=FALSE])
+        Cnt[, , i] <- (1-delta)*Ct[, , i] + 
+                delta^2*inv_Gt %*% Cnt[, , i + 1]  %*% t(inv_Gt)
+        Cnt[,,i] <- 0.5*Cnt[,,i]+0.5*t(Cnt[,,i])
+      }
+    }
+    fnt[i] <- t(Ft[, , i]) %*% t(mnt[i, , drop=FALSE])
+    Qnt[i] <- t(Ft[, , i]) %*% t(Cnt[, , i]) %*% Ft[, , i]
+  }
+  for(i in 1:T){
+     Cnt[,,i]=St[T]*Cnt[,,i]/St[i] 
+     Qnt[i]=St[T]*Qnt[i]/St[i]
+  }
+  cat("Backward smoothing is completed!\n")
+  return(list(mnt = mnt, Cnt = Cnt, fnt=fnt, Qnt=Qnt))
+}
+
+## Forecast Distribution for k step
+forecast_function_unknown_v <- function(posterior_states, k, 
+                                        matrices, delta){
+  
+  ## retrieve matrices
+  Ft <- matrices$Ft
+  Gt <- matrices$Gt
+  if(missing(delta)){
+    Wt_star <- matrices$Wt_star
+  }
+  
+  mt <- posterior_states$mt
+  Ct <- posterior_states$Ct
+  St <- posterior_states$St
+  at <- posterior_states$at
+  
+  ## set up matrices
+  T <- dim(mt)[1] # time points
+  d <- dim(mt)[2] # dimension of state parameter vector
+  
+  ## placeholder for results
+  at <- matrix(NA, nrow = k, ncol = d)
+  Rt <- array(NA, dim=c(d, d, k))
+  ft <- numeric(k)
+  Qt <- numeric(k)
+  
+  for(i in 1:k){
+    ## moments of state distribution
+    if(i == 1){
+      at[i, ] <- Gt[, , T+i] %*% t(mt[T, , drop=FALSE])
+      
+      if(missing(delta)){
+       Rt[, , i] <- Gt[, , T+i] %*% Ct[, , T] %*% 
+         t(Gt[, , T+i]) + St[T]*Wt_star[, , T+i]
+      }else{
+        Rt[, , i] <- Gt[, , T+i] %*% Ct[, , T] %*% 
+          t(Gt[, , T+i])/delta
+      }
+      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      
+    }else{
+      at[i, ] <- Gt[, , T+i] %*% t(at[i-1, , drop=FALSE])
+      if(missing(delta)){
+        Rt[, , i] <- Gt[, , T+i] %*% Rt[, , i-1] %*% 
+          t(Gt[, , T+i]) + St[T]*Wt_star[, , T + i]
+      }else{
+        Rt[, , i] <- Gt[, , T+i] %*% Rt[, , i-1] %*% 
+          t(Gt[, , T+i])/delta
+      }
+      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+    }
+    
+    
+    ## moments of forecast distribution
+    ft[i] <- t(Ft[, , T+i]) %*% t(at[i, , drop=FALSE])
+    Qt[i] <- t(Ft[, , T+i]) %*% Rt[, , i] %*% Ft[, , T+i] + 
+      St[T]
+  }
+  cat("Forecasting is completed!\n") # indicator of completion
+  return(list(at=at, Rt=Rt, ft=ft, Qt=Qt))
+}
+
+## obtain 95% credible interval
+get_credible_interval_unknown_v <- function(ft, Qt, nt, 
+                                   quantile = c(0.025, 0.975)){
+  bound <- matrix(0, nrow=length(ft), ncol=2)
+
+  if ((length(nt)==1)){
+   for (t in 1:length(ft)){
+      t_quantile <- qt(quantile[1], df = nt)
+      bound[t, 1] <- ft[t] + t_quantile*sqrt(as.numeric(Qt[t])) 
+  
+  # upper bound of 95% credible interval
+      t_quantile <- qt(quantile[2], df = nt)
+      bound[t, 2] <- ft[t] + 
+        t_quantile*sqrt(as.numeric(Qt[t]))}
+  }else{
+  # lower bound of 95% credible interval
+    for (t in 1:length(ft)){
+      t_quantile <- qt(quantile[1], df = nt[t])
+      bound[t, 1] <- ft[t] + 
+        t_quantile*sqrt(as.numeric(Qt[t])) 
+  
+  # upper bound of 95% credible interval
+      t_quantile <- qt(quantile[2], df = nt[t])
+      bound[t, 2] <- ft[t] + 
+        t_quantile*sqrt(as.numeric(Qt[t]))}
+  }
+  return(bound)
+
+}
+
+
+
+## Example: Nile River Level (in 10^8 m^3), 1871-1970 
+## Model: First order polynomial DLM
+plot(Nile) 
+n=length(Nile) #n=100 observations 
+k=5
+T=n-k
+data_T=Nile[1:T]
+test_data=Nile[(T+1):n]
+data=list(yt = data_T)
+
+
+## set up matrices for first order polynomial model 
+Ft=array(1, dim = c(1, 1, n))
+Gt=array(1, dim = c(1, 1, n))
+Wt_star=array(1, dim = c(1, 1, n))
+m0=as.matrix(800)
+C0_star=as.matrix(10)
+n0=1
+S0=10
+
+## wrap up all matrices and initial values
+matrices = set_up_dlm_matrices_unknown_v(Ft, Gt, Wt_star)
+initial_states = set_up_initial_states_unknown_v(m0, 
+                                      C0_star, n0, S0)
+
+## filtering 
+results_filtered = forward_filter_unknown_v(data, matrices, 
+                                            initial_states)
+ci_filtered=get_credible_interval_unknown_v(results_filtered$mt, 
+                                    results_filtered$Ct, 
+                                     results_filtered$nt)
+
+## smoothing
+results_smoothed=backward_smoothing_unknown_v(data, matrices, 
+                                             results_filtered)
+ci_smoothed=get_credible_interval_unknown_v(results_smoothed$mnt, 
+                                         results_smoothed$Cnt, 
+                                         results_filtered$nt[T])
+
+## one-step ahead forecasting
+results_forecast=forecast_function_unknown_v(results_filtered, 
+                                                k,  matrices)
+ci_forecast=get_credible_interval_unknown_v(results_forecast$ft, 
+                                          results_forecast$Qt, 
+                                     results_filtered$nt[T])
+
+
+## plot results
+index=seq(1871, 1970, length.out = length(Nile))
+index_filt=index[1:T]
+index_forecast=index[(T+1):(T+k)]
+
+plot(index, Nile, main = "Nile River Level ",type='l',
+     xlab="time",ylab="feet",lty=3,ylim=c(400,1500))
+points(index,Nile,pch=20)
+
+lines(index_filt,results_filtered$mt, type='l', col='red',lwd=2)
+lines(index_filt,ci_filtered[, 1], type='l', col='red', lty=2)
+lines(index_filt,ci_filtered[, 2], type='l', col='red', lty=2)
+lines(index_filt,results_smoothed$mnt, type='l', col='blue',lwd=2)
+lines(index_filt, ci_smoothed[, 1], type='l', col='blue', lty=2)
+lines(index_filt, ci_smoothed[, 2], type='l', col='blue', lty=2)
+
+lines(index_forecast, results_forecast$ft, type='l', 
+      col='green',lwd=2)
+lines(index_forecast, ci_forecast[, 1], type='l', 
+      col='green', lty=2)
+lines(index_forecast, ci_forecast[, 2], type='l', 
+      col='green', lty=2)
+
+```
+
+## Practice Graded Assignment: NDLM data analysis
+
+This peer-reviewed activity is highly recommended. It does not figure into your grade for this course, but it does provide you with the opportunity to apply what you've learned in R and prepare you for your data analysis project in week 5. 
+
+The R code below fits a Normal Dynamic Linear Model to the monthly time series of Google trends "hits" for the term "time series". The model has two components: (a) a polynomial model of order 2 and (b) a seasonal component with 4 frequencies:  $ω_1=2π/12$, (annual cycle) $ω_2=2π/6$ (6 months cycle), $ω_3=2π/4$ and $ω_4=2π/3.$ The model assumes that the observational variance $v$ is unknown and the system variance-covariance matrix $W_t$ is specified using a single discount factor. The discount factor is chosen using an optimality criterion as explained in the course. 
+
+You will be asked to modify the code in order to consider a DLM with two components: (a) a polynomial model of order 1 and (b) a seasonal component that contains a fundamental period of $p = 12$ and 2 additional harmonics for a total of 3 frequencies: $ω1=2π/12$, $ω2=2π/6$ and $ω3=2π/4$. You will also need to optimize the choice of the discount factor for this model.  You will be asked to upload pictures summarizing your results. 
+
+R code to fit the model: requires R packages `gtrends`,and `dlm` as well as the files  "all_dlm_functions_unknown_v.R" and "discountfactor_selection_functions.R" also provided below. 
+
+```r
+#| label: code-gtrendsR-data-analysis
+# download data 
+library(gtrendsR)
+timeseries_data <- gtrends("time series",time="all")
+plot(timeseries_data)
+names(timeseries_data)
+
+timeseries_data=timeseries_data$interest_over_time
+data=list(yt=timeseries_data$hits)
+
+library(dlm)
+model_seasonal=dlmModTrig(s=12,q=4,dV=0,dW=1)
+model_trend=dlmModPoly(order=2,dV=10,dW=rep(1,2),m0=c(40,0))
+model=model_trend+model_seasonal
+model$C0=10*diag(10)
+n0=1
+S0=10
+k=length(model$m0)
+T=length(data$yt)
+
+Ft=array(0,c(1,k,T))
+Gt=array(0,c(k,k,T))
+for(t in 1:T){
+   Ft[,,t]=model$FF
+   Gt[,,t]=model$GG
+}
+
+source('all_dlm_functions_unknown_v.R')
+source('discountfactor_selection_functions.R')
+
+matrices=set_up_dlm_matrices_unknown_v(Ft=Ft,Gt=Gt)
+initial_states=set_up_initial_states_unknown_v(model$m0,
+                                               model$C0,n0,S0)
+
+df_range=seq(0.9,1,by=0.005)
+
+## fit discount DLM
+## MSE
+results_MSE <- adaptive_dlm(data, matrices, 
+               initial_states, df_range,"MSE",forecast=FALSE)
+
+## print selected discount factor
+print(paste("The selected discount factor:",results_MSE$df_opt))
+
+## retrieve filtered results
+results_filtered <- results_MSE$results_filtered
+ci_filtered <- get_credible_interval_unknown_v(
+  results_filtered$ft,results_filtered$Qt,results_filtered$nt)
+
+## retrieve smoothed results
+results_smoothed <- results_MSE$results_smoothed
+ci_smoothed <- get_credible_interval_unknown_v(
+  results_smoothed$fnt, results_smoothed$Qnt, 
+  results_filtered$nt[length(results_smoothed$fnt)])
+
+## plot smoothing results 
+par(mfrow=c(1,1), mar = c(3, 4, 2, 1))
+index <- timeseries_data$date
+plot(index, data$yt, ylab='Google hits',
+     main = "Google Trends: time series", type = 'l',
+     xlab = 'time', lty=3,ylim=c(0,100))
+lines(index, results_smoothed$fnt, type = 'l', col='blue', 
+      lwd=2)
+lines(index, ci_smoothed[, 1], type='l', col='blue', lty=2)
+lines(index, ci_smoothed[, 2], type='l', col='blue', lty=2)
+
+# Plot trend and rate of change 
+par(mfrow=c(2,1), mar = c(3, 4, 2, 1))
+plot(index,data$yt,pch=19,cex=0.3,col='lightgray',xlab="time",
+     ylab="Google hits",main="trend")
+lines(index,results_smoothed$mnt[,1],lwd=2,col='magenta')
+plot(index,results_smoothed$mnt[,2],col='darkblue',lwd=2,
+     type='l', ylim=c(-0.6,0.6), xlab="time",
+     ylab="rate of change")
+abline(h=0,col='red',lty=2)
+
+# Plot seasonal components 
+par(mfrow=c(2,2), mar = c(3, 4, 2, 1))
+plot(index,results_smoothed$mnt[,3],lwd=2,col="darkgreen",
+     type='l', xlab="time",ylab="",main="period=12",
+     ylim=c(-12,12))
+plot(index,results_smoothed$mnt[,5],lwd=2,col="darkgreen",
+     type='l',xlab="time",ylab="",main="period=6",
+     ylim=c(-12,12))
+plot(index,results_smoothed$mnt[,7],lwd=2,col="darkgreen",
+     type='l', xlab="time",ylab="",main="period=4",
+     ylim=c(-12,12))
+plot(index,results_smoothed$mnt[,9],lwd=2,col="darkgreen",
+     type='l', xlab="time",ylab="",main="period=3",
+     ylim=c(-12,12))
+
+#Estimate for the observational variance: St[T]
+results_filtered$St[T]
+
+```
+### All dlm functions unknown v
+
+```{r}
+#| label: code-all-dlm-functions-unknown-v
+## create list for matrices
+set_up_dlm_matrices_unknown_v <- function(Ft, Gt, Wt_star){
+  if(!is.array(Gt)){
+    Stop("Gt and Ft should be array")
+  }
+  if(missing(Wt_star)){
+    return(list(Ft=Ft, Gt=Gt))
+  }else{
+    return(list(Ft=Ft, Gt=Gt, Wt_star=Wt_star))
+  }
+}
+
+
+## create list for initial states
+set_up_initial_states_unknown_v <- function(m0, C0_star, n0, S0){
+  return(list(m0=m0, C0_star=C0_star, n0=n0, S0=S0))
+}
+
+forward_filter_unknown_v <- function(data, matrices, 
+                              initial_states, delta){
+  ## retrieve dataset
+  yt <- data$yt
+  T<- length(yt)
+  
+  ## retrieve matrices
+  Ft <- matrices$Ft
+  Gt <- matrices$Gt
+  if(missing(delta)){
+    Wt_star <- matrices$Wt_star
+  }
+  
+  ## retrieve initial state
+  m0 <- initial_states$m0
+  C0_star <- initial_states$C0_star
+  n0 <- initial_states$n0
+  S0 <- initial_states$S0
+  C0 <- S0*C0_star
+  
+  ## create placeholder for results
+  d <- dim(Gt)[1]
+  at <- matrix(0, nrow=T, ncol=d)
+  Rt <- array(0, dim=c(d, d, T))
+  ft <- numeric(T)
+  Qt <- numeric(T)
+  mt <- matrix(0, nrow=T, ncol=d)
+  Ct <- array(0, dim=c(d, d, T))
+  et <- numeric(T)
+  nt <- numeric(T)
+  St <- numeric(T)
+  dt <- numeric(T)
+  
+  # moments of priors at t
+  for(i in 1:T){
+    if(i == 1){
+      at[i, ] <- Gt[, , i] %*% m0
+      Pt <- Gt[, , i] %*% C0 %*% t(Gt[, , i])
+      Pt <- 0.5*Pt + 0.5*t(Pt)
+      if(missing(delta)){
+        Wt <- Wt_star[, , i]*S0
+        Rt[, , i] <- Pt + Wt
+        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      }else{
+        Rt[, , i] <- Pt/delta
+        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      }
+      
+    }else{
+      at[i, ] <- Gt[, , i] %*% t(mt[i-1, , drop=FALSE])
+      Pt <- Gt[, , i] %*% Ct[, , i-1] %*% t(Gt[, , i])
+      if(missing(delta)){
+        Wt <- Wt_star[, , i] * St[i-1]
+        Rt[, , i] <- Pt + Wt
+        Rt[,,i]=0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      }else{
+        Rt[, , i] <- Pt/delta
+        Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      }
+    }
+    
+    # moments of one-step forecast:
+    ft[i] <- t(Ft[, , i]) %*% t(at[i, , drop=FALSE]) 
+    Qt[i] <- t(Ft[, , i]) %*% Rt[, , i] %*% Ft[, , i] + 
+      ifelse(i==1, S0, St[i-1])
+    et[i] <- yt[i] - ft[i]
+    
+    nt[i] <- ifelse(i==1, n0, nt[i-1]) + 1
+    St[i] <- ifelse(i==1, S0, 
+                    St[i-1])*(1 + 1/nt[i]*(et[i]^2/Qt[i]-1))
+    
+    # moments of posterior at t:
+    At <- Rt[, , i] %*% Ft[, , i] / Qt[i]
+    
+    mt[i, ] <- at[i, ] + t(At) * et[i]
+    Ct[, , i] <- St[i]/ifelse(i==1, S0, 
+                  St[i-1])*(Rt[, , i] - Qt[i] * At %*% t(At))
+    Ct[,,i] <- 0.5*Ct[,,i]+0.5*t(Ct[,,i])
+  }
+  cat("Forward filtering is completed!\n")
+  return(list(mt = mt, Ct = Ct,  at = at, Rt = Rt, 
+              ft = ft, Qt = Qt,  et = et, 
+              nt = nt, St = St))
+}
+
+### smoothing function ###
+backward_smoothing_unknown_v <- function(data, matrices, 
+                                posterior_states,delta){
+  ## retrieve data 
+  yt <- data$yt
+  T <- length(yt) 
+  
+  ## retrieve matrices
+  Ft <- matrices$Ft
+  Gt <- matrices$Gt
+  
+  ## retrieve matrices
+  mt <- posterior_states$mt
+  Ct <- posterior_states$Ct
+  Rt <- posterior_states$Rt
+  nt <- posterior_states$nt
+  St <- posterior_states$St
+  at <- posterior_states$at
+  
+  ## create placeholder for posterior moments 
+  mnt <- matrix(NA, nrow = dim(mt)[1], ncol = dim(mt)[2])
+  Cnt <- array(NA, dim = dim(Ct))
+  fnt <- numeric(T)
+  Qnt <- numeric(T)
+  
+  for(i in T:1){
+    if(i == T){
+      mnt[i, ] <- mt[i, ]
+      Cnt[, , i] <- Ct[, , i]
+    }else{
+      if(missing(delta)){
+        inv_Rtp1 <- chol2inv(chol(Rt[, , i+1]))
+        Bt <- Ct[, , i] %*% t(Gt[, , i+1]) %*% inv_Rtp1
+        mnt[i, ] <- mt[i, ] + Bt %*% (mnt[i+1, ] - at[i+1, ])
+        Cnt[, , i] <- Ct[, , i] + Bt %*% (Cnt[, , i+1] - 
+                                    Rt[, , i+1]) %*% t(Bt)
+        Cnt[,,i] <- 0.5*Cnt[,,i]+0.5*t(Cnt[,,i])
+      }else{
+        inv_Gt <- solve(Gt[, , i+1])
+        mnt[i, ] <- (1-delta)*mt[i, ] + 
+                delta*inv_Gt %*% t(mnt[i+1, ,drop=FALSE])
+        Cnt[, , i] <- (1-delta)*Ct[, , i] + 
+                delta^2*inv_Gt %*% Cnt[, , i + 1]  %*% t(inv_Gt)
+        Cnt[,,i] <- 0.5*Cnt[,,i]+0.5*t(Cnt[,,i])
+      }
+    }
+    fnt[i] <- t(Ft[, , i]) %*% t(mnt[i, , drop=FALSE])
+    Qnt[i] <- t(Ft[, , i]) %*% t(Cnt[, , i]) %*% Ft[, , i]
+  }
+  for(i in 1:T){
+     Cnt[,,i]=St[T]*Cnt[,,i]/St[i] 
+     Qnt[i]=St[T]*Qnt[i]/St[i]
+  }
+  cat("Backward smoothing is completed!\n")
+  return(list(mnt = mnt, Cnt = Cnt, fnt=fnt, Qnt=Qnt))
+}
+
+## Forecast Distribution for k step
+forecast_function_unknown_v <- function(posterior_states, k, 
+                                        matrices, delta){
+  
+  ## retrieve matrices
+  Ft <- matrices$Ft
+  Gt <- matrices$Gt
+  if(missing(delta)){
+    Wt_star <- matrices$Wt_star
+  }
+  
+  mt <- posterior_states$mt
+  Ct <- posterior_states$Ct
+  St <- posterior_states$St
+  at <- posterior_states$at
+  
+  ## set up matrices
+  T <- dim(mt)[1] # time points
+  d <- dim(mt)[2] # dimension of state parameter vector
+  
+  ## placeholder for results
+  at <- matrix(NA, nrow = k, ncol = d)
+  Rt <- array(NA, dim=c(d, d, k))
+  ft <- numeric(k)
+  Qt <- numeric(k)
+  
+  for(i in 1:k){
+    ## moments of state distribution
+    if(i == 1){
+      at[i, ] <- Gt[, , T+i] %*% t(mt[T, , drop=FALSE])
+      
+      if(missing(delta)){
+       Rt[, , i] <- Gt[, , T+i] %*% Ct[, , T] %*% 
+         t(Gt[, , T+i]) + St[T]*Wt_star[, , T+i]
+      }else{
+        Rt[, , i] <- Gt[, , T+i] %*% Ct[, , T] %*% 
+          t(Gt[, , T+i])/delta
+      }
+      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+      
+    }else{
+      at[i, ] <- Gt[, , T+i] %*% t(at[i-1, , drop=FALSE])
+      if(missing(delta)){
+        Rt[, , i] <- Gt[, , T+i] %*% Rt[, , i-1] %*% 
+          t(Gt[, , T+i]) + St[T]*Wt_star[, , T + i]
+      }else{
+        Rt[, , i] <- Gt[, , T+i] %*% Rt[, , i-1] %*% 
+          t(Gt[, , T+i])/delta
+      }
+      Rt[,,i] <- 0.5*Rt[,,i]+0.5*t(Rt[,,i])
+    }
+    
+    
+    ## moments of forecast distribution
+    ft[i] <- t(Ft[, , T+i]) %*% t(at[i, , drop=FALSE])
+    Qt[i] <- t(Ft[, , T+i]) %*% Rt[, , i] %*% Ft[, , T+i] + 
+      St[T]
+  }
+  cat("Forecasting is completed!\n") # indicator of completion
+  return(list(at=at, Rt=Rt, ft=ft, Qt=Qt))
+}
+
+## obtain 95% credible interval
+get_credible_interval_unknown_v <- function(ft, Qt, nt, 
+                                   quantile = c(0.025, 0.975)){
+  bound <- matrix(0, nrow=length(ft), ncol=2)
+
+  if ((length(nt)==1)){
+   for (t in 1:length(ft)){
+      t_quantile <- qt(quantile[1], df = nt)
+      bound[t, 1] <- ft[t] + t_quantile*sqrt(as.numeric(Qt[t])) 
+  
+  # upper bound of 95% credible interval
+      t_quantile <- qt(quantile[2], df = nt)
+      bound[t, 2] <- ft[t] + 
+        t_quantile*sqrt(as.numeric(Qt[t]))}
+  }else{
+  # lower bound of 95% credible interval
+    for (t in 1:length(ft)){
+      t_quantile <- qt(quantile[1], df = nt[t])
+      bound[t, 1] <- ft[t] + 
+        t_quantile*sqrt(as.numeric(Qt[t])) 
+  
+  # upper bound of 95% credible interval
+      t_quantile <- qt(quantile[2], df = nt[t])
+      bound[t, 2] <- ft[t] + 
+        t_quantile*sqrt(as.numeric(Qt[t]))}
+  }
+  return(bound)
+
+}
+```
+
+
+### Discount factor selection functions
+
+```{r}
+#| label: code-discount-factor-selection
+
+
+##################################################
+##### using discount factor ##########
+##################################################
+## compute measures of forecasting accuracy
+## MAD: mean absolute deviation
+## MSE: mean square error
+## MAPE: mean absolute percentage error
+## Neg LL: Negative log-likelihood of disc,
+##         based on the one step ahead forecast distribution
+measure_forecast_accuracy <- function(et, yt, Qt=NA, nt=NA, type){
+  if(type == "MAD"){
+    measure <- mean(abs(et))
+  }else if(type == "MSE"){
+    measure <- mean(et^2)
+  }else if(type == "MAPE"){
+    measure <- mean(abs(et)/yt)
+  }else if(type == "NLL"){
+    measure <- log_likelihood_one_step_ahead(et, Qt, nt)
+  }else{
+    stop("Wrong type!")
+  }
+  return(measure)
+}
+
+
+## compute log likelihood of one step ahead forecast function
+log_likelihood_one_step_ahead <- function(et, Qt, nt){
+  ## et:the one-step-ahead error
+  ## Qt: variance of one-step-ahead forecast function
+  ## nt: degrees freedom of t distribution
+  T <- length(et)
+  aux=0
+  for (t in 1:T){
+    zt=et[t]/sqrt(Qt[t])
+    aux=(dt(zt,df=nt[t],log=TRUE)-log(sqrt(Qt[t]))) + aux 
+  } 
+  return(-aux)
+}
+
+## Maximize log density of one-step-ahead forecast function to select discount factor
+adaptive_dlm <- function(data, matrices, initial_states, df_range, type, 
+                         forecast=TRUE){
+  measure_best <- NA
+  measure <- numeric(length(df_range))
+  valid_data <- data$valid_data
+  df_opt <- NA
+  j <- 0
+  ## find the optimal discount factor
+  for(i in df_range){
+    j <- j + 1
+    results_tmp <- forward_filter_unknown_v(data, matrices, initial_states, i)
+     
+    measure[j] <- measure_forecast_accuracy(et=results_tmp$et, yt=data$yt,
+                                  Qt=results_tmp$Qt, 
+                                  nt=c(initial_states$n0,results_tmp$nt), type=type)
+    
+    
+    if(j == 1){
+      measure_best <- measure[j]
+      results_filtered <- results_tmp
+      df_opt <- i
+    }else if(measure[j] < measure_best){
+      measure_best <- measure[j]
+      results_filtered <- results_tmp
+      df_opt <- i
+    }
+  }
+  results_smoothed <- backward_smoothing_unknown_v(data, matrices, results_filtered, delta = df_opt)
+  if(forecast){
+    results_forecast <- forecast_function(results_filtered, length(valid_data), 
+                                          matrices, df_opt)
+    return(list(results_filtered=results_filtered, 
+                results_smoothed=results_smoothed, 
+                results_forecast=results_forecast, 
+                df_opt = df_opt, measure=measure))
+  }else{
+    return(list(results_filtered=results_filtered, 
+                results_smoothed=results_smoothed, 
+                df_opt = df_opt, measure=measure))
+  }
+  
+}
+```
+
+::: {.callout-info}
+
+
+### Grading Criteria
+
+The assignment will be graded based on the uploaded pictures summarizing the results.  Estimates of some of the model parameters and additional discussion will also be requested. 
+
+:::
+
+# Case Studies
+
+## EEG data
+
+## Google Trends
+
