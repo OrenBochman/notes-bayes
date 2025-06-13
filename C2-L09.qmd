@@ -115,9 +115,14 @@ Our prior for the $\beta$ (which we'll call $b$ in the model) coefficients will 
 ddexp = function(x, mu, tau) {
   0.5*tau*exp(-tau*abs(x-mu)) 
 }
-curve(ddexp(x, mu=0.0, tau=1.0), from=-5.0, to=5.0, ylab="density", main="Double exponential\ndistribution") # double exponential distribution
-curve(dnorm(x, mean=0.0, sd=1.0), from=-5.0, to=5.0, lty=2, add=TRUE) # normal distribution
-legend("topright", legend=c("double exponential", "normal"), lty=c(1,2), bty="n")
+curve(ddexp(x, mu=0.0, tau=1.0), from=-5.0, to=5.0, 
+      ylab="density", 
+      main="Double exponential\ndistribution") # double exponential distribution
+curve(dnorm(x, mean=0.0, sd=1.0), from=-5.0, to=5.0, 
+      lty=2, add=TRUE) # normal distribution
+legend("topright", 
+      legend=c("double exponential", "normal"), 
+      lty=c(1,2), bty="n")
 ```
 
 ```{r}
@@ -127,22 +132,33 @@ library("rjags")
 
 ```{r}
 #| label: C2-L09-10
-mod1_string = " model {
+mod1_string = 
+  " model {
     for (i in 1:length(y)) {
         y[i] ~ dbern(p[i])
-        logit(p[i]) = int + b[1]*gravity[i] + b[2]*ph[i] + b[3]*osmo[i] + b[4]*cond[i] + b[5]*urea[i] + b[6]*calc[i]
+        logit(p[i]) = int + b[1]*gravity[i] + 
+                            b[2]*ph[i] + 
+                            b[3]*osmo[i] + 
+                            b[4]*cond[i] + 
+                            b[5]*urea[i] + 
+                            b[6]*calc[i]
     }
     int ~ dnorm(0.0, 1.0/25.0)
     for (j in 1:6) {
-        b[j] ~ ddexp(0.0, sqrt(2.0)) # has variance 1.0
+        b[j] ~ ddexp(0.0, sqrt(2.0)) # has var 1.0
     }
 } "
 
 set.seed(92)
 head(X)
 
-data_jags = list(y=dat$r, gravity=X[,"gravity"], ph=X[,"ph"], osmo=X[,"osmo"], cond=X[,"cond"], urea=X[,"urea"], calc=X[,"calc"])
-
+data_jags = list(y=dat$r, 
+                 gravity=X[,"gravity"], 
+                 ph=X[,"ph"], 
+                 osmo=X[,"osmo"], 
+                 cond=X[,"cond"], 
+                 urea=X[,"urea"], 
+                 calc=X[,"calc"])
 params = c("int", "b")
 
 mod1 = jags.model(textConnection(mod1_string), data=data_jags, n.chains=3)
