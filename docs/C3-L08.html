@@ -319,7 +319,7 @@ background-size: cover;
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">80</span>&nbsp; <span class="chapter-title">Computational Considerations - M5L8</span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+      <div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">80</span>&nbsp; <span class="chapter-title">Computational Considerations - M5L8</span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
             <p class="subtitle lead">Bayesian Statistics: Mixture Models</p>
                                 <div class="quarto-categories">
                 <div class="quarto-category">Bayesian Statistics</div>
@@ -1077,97 +1077,70 @@ Figure&nbsp;80.1: Computational Considerations
 <section id="sample-code-to-illustrate-numerical-stability-issues-reading" class="level3" data-number="80.1.2">
 <h3 data-number="80.1.2" class="anchored" data-anchor-id="sample-code-to-illustrate-numerical-stability-issues-reading"><span class="header-section-number">80.1.2</span> Sample code to illustrate numerical stability issues (Reading)</h3>
 <div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Consider a mixture of two normal distributions with equal weights (w1 = w2 = 1/2)</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Component 1 has mean 0 and standard deviation 1</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="do">## Component 2 has mean 1 and standard deviation 1</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="do">## The observation is x = 50</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="do">## What is Pr(c = 1 | x)?</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">dnorm</span>(<span class="dv">50</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dnorm</span>(<span class="dv">50</span>, <span class="dv">1</span>, <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dnorm</span>(<span class="dv">50</span>, <span class="dv">0</span>, <span class="dv">1</span>)<span class="sc">/</span>(<span class="fu">dnorm</span>(<span class="dv">50</span>, <span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">+</span> <span class="fu">dnorm</span>(<span class="dv">50</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] NaN</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="do">## What if x=3?  Two ways to do the calculation</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="do">## One way:  Direct calculation</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>z1 <span class="ot">=</span> <span class="fu">dnorm</span>(<span class="dv">3</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>z2 <span class="ot">=</span> <span class="fu">dnorm</span>(<span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>z1<span class="sc">/</span>(z1<span class="sc">+</span>z2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.07585818</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="do">## A second way:  Compute in the logarithm scale, add b </span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="do">## to all values, and then exponentiate before standardizing</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>lz1 <span class="ot">=</span> <span class="fu">dnorm</span>(<span class="dv">3</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="at">log=</span>T)</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>lz2 <span class="ot">=</span> <span class="fu">dnorm</span>(<span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="at">log=</span>T)</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="dv">3</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(lz1<span class="sc">+</span>b)<span class="sc">/</span>(<span class="fu">exp</span>(lz1<span class="sc">+</span>b) <span class="sc">+</span> <span class="fu">exp</span>(lz2<span class="sc">+</span>b))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.07585818</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Going back to the case x - 50:</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Wrong</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>lz1 <span class="ot">=</span> <span class="fu">log</span>(<span class="fu">dnorm</span>(<span class="dv">50</span>, <span class="dv">0</span>, <span class="dv">1</span>))</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>lz2 <span class="ot">=</span> <span class="fu">log</span>(<span class="fu">dnorm</span>(<span class="dv">50</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="fu">max</span>(lz1, lz2)</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(lz1<span class="sc">-</span>b)<span class="sc">/</span>(<span class="fu">exp</span>(lz1<span class="sc">-</span>b) <span class="sc">+</span> <span class="fu">exp</span>(lz2<span class="sc">-</span>b))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] NaN</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Wrong</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>lz1 <span class="ot">=</span> <span class="fu">log</span>(<span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.5</span><span class="sc">*</span><span class="dv">50</span><span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span><span class="fu">sqrt</span>(<span class="dv">2</span><span class="sc">*</span>pi))</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>lz2 <span class="ot">=</span> <span class="fu">log</span>(<span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.5</span><span class="sc">*</span><span class="dv">49</span><span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span><span class="fu">sqrt</span>(<span class="dv">2</span><span class="sc">*</span>pi))</span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="fu">max</span>(lz1, lz2)</span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(lz1<span class="sc">-</span>b)<span class="sc">/</span>(<span class="fu">exp</span>(lz1<span class="sc">-</span>b) <span class="sc">+</span> <span class="fu">exp</span>(lz2<span class="sc">-</span>b))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] NaN</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Right</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>lz1 <span class="ot">=</span> <span class="fu">dnorm</span>(<span class="dv">50</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="at">log=</span><span class="cn">TRUE</span>)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>lz2 <span class="ot">=</span> <span class="fu">dnorm</span>(<span class="dv">50</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="at">log=</span><span class="cn">TRUE</span>)</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="fu">max</span>(lz1, lz2)</span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(lz1<span class="sc">-</span>b)<span class="sc">/</span>(<span class="fu">exp</span>(lz1<span class="sc">-</span>b) <span class="sc">+</span> <span class="fu">exp</span>(lz2<span class="sc">-</span>b))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 3.179971e-22</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Also right (just more cumbersome)</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>lz1 <span class="ot">=</span> <span class="sc">-</span><span class="fl">0.5</span><span class="sc">*</span><span class="fu">log</span>(<span class="dv">2</span><span class="sc">*</span>pi) <span class="sc">-</span> <span class="fl">0.5</span><span class="sc">*</span><span class="dv">50</span><span class="sc">^</span><span class="dv">2</span></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>lz2 <span class="ot">=</span> <span class="sc">-</span><span class="fl">0.5</span><span class="sc">*</span><span class="fu">log</span>(<span class="dv">2</span><span class="sc">*</span>pi) <span class="sc">-</span> <span class="fl">0.5</span><span class="sc">*</span><span class="dv">49</span><span class="sc">^</span><span class="dv">2</span></span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="fu">max</span>(lz1, lz2)</span>
 <span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(lz1<span class="sc">-</span>b)<span class="sc">/</span>(<span class="fu">exp</span>(lz1<span class="sc">-</span>b) <span class="sc">+</span> <span class="fu">exp</span>(lz2<span class="sc">-</span>b))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 3.179971e-22</code></pre>
 </div>
@@ -1190,22 +1163,16 @@ Figure&nbsp;80.2: multimodality issues
 <h3 data-number="80.1.4" class="anchored" data-anchor-id="sec-multimodality-1"><span class="header-section-number">80.1.4</span> Sample code to illustrate multimodality issues 1 (Reading)</h3>
 <p> </p>
 <div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Illustrating the fact that the likelihood for a mixture model is multimodal</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="do">### Loading data and setting up global variables</span></span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mclust)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Package 'mclust' version 6.1.1
 Type 'citation("mclust")' for citing this R package in publications.</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mvtnorm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'mvtnorm'</code></pre>
@@ -1215,8 +1182,6 @@ Attaching package: 'mvtnorm'</code></pre>
 
     dmvnorm</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="do">### Defining a custom function to create pair plots</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="do">### This is an alternative to the R function pairs() that allows for </span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="do">### more flexibility. In particular, it allows us to use text to label </span></span>
@@ -1327,7 +1292,6 @@ Attaching package: 'mvtnorm'</code></pre>
 <span id="cb24-108"><a href="#cb24-108" aria-hidden="true" tabindex="-1"></a>  QQ.sum[ss]  <span class="ot">=</span> QQ.out[s]</span>
 <span id="cb24-109"><a href="#cb24-109" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"ss ="</span>, ss))</span>
 <span id="cb24-110"><a href="#cb24-110" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "ss = 1"
 [1] "ss = 2"
@@ -1345,13 +1309,10 @@ Attaching package: 'mvtnorm'</code></pre>
 [1] "ss = 14"
 [1] "ss = 15"</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Boxplot of final values of the Q function for all runs of the algorithm</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="dv">1</span>))</span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(QQ.out, <span class="at">ylab=</span><span class="st">"Q"</span>, <span class="at">xlab=</span><span class="st">"Iterations"</span>,<span class="at">las=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -1359,14 +1320,11 @@ Attaching package: 'mvtnorm'</code></pre>
 </figure>
 </div>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Graphical representation of the best solution </span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">=</span> <span class="fu">apply</span>(v.sum[<span class="fu">which.max</span>(QQ.sum),,], <span class="dv">1</span> ,which.max)</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>colscale <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"black"</span>,<span class="st">"blue"</span>,<span class="st">"red"</span>)</span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co">#pairs(x, col=colscale[cc], pch=cc)</span></span>
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs2</span>(x, <span class="at">col=</span>colscale[cc], <span class="at">labels=</span>cc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -1374,14 +1332,11 @@ Attaching package: 'mvtnorm'</code></pre>
 </figure>
 </div>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Graphical representation of the worst solution</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">=</span> <span class="fu">apply</span>(v.sum[<span class="fu">which.min</span>(QQ.sum),,], <span class="dv">1</span> ,which.max)</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>colscale <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"black"</span>,<span class="st">"blue"</span>,<span class="st">"red"</span>)</span>
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co">#pairs(x, col=colscale[cc], pch=cc)</span></span>
 <span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs2</span>(x, <span class="at">col=</span>colscale[cc], <span class="at">labels=</span>cc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -1395,8 +1350,6 @@ Attaching package: 'mvtnorm'</code></pre>
 <h3 data-number="80.1.5" class="anchored" data-anchor-id="sec-multimodality-2"><span class="header-section-number">80.1.5</span> Sample code to illustrate multimodality issues 2 (Reading)</h3>
 <p>This code fails to converge because the algorithm is stuck in a local maximum of the likelihood function. The problem is that one of the components is “numerically empty” (i.e., it has no data points assigned to it). <mark>This can happen when the initial values for the means are too far apart or when the data is not well-separated.</mark></p>
 <div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Illustrating that the EM might fail for numerical reasons if a component is “numerically empty”</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="do">### Loading data and setting up global variables</span></span>
@@ -1404,7 +1357,6 @@ Attaching package: 'mvtnorm'</code></pre>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mclust)</span>
 <span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mvtnorm)</span>
 <span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ellipse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'ellipse'</code></pre>
@@ -1414,8 +1366,6 @@ Attaching package: 'ellipse'</code></pre>
 
     pairs</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Setup data</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>x       <span class="ot">=</span> <span class="fu">as.matrix</span>(iris[,<span class="sc">-</span><span class="dv">5</span>])</span>
@@ -1456,7 +1406,6 @@ Attaching package: 'ellipse'</code></pre>
 <span id="cb32-38"><a href="#cb32-38" aria-hidden="true" tabindex="-1"></a>    }</span>
 <span id="cb32-39"><a href="#cb32-39" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb32-40"><a href="#cb32-40" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -1464,8 +1413,6 @@ Attaching package: 'ellipse'</code></pre>
 </figure>
 </div>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Run the EM algorithm.  It will fail in the first iteration</span></span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>sw     <span class="ot">=</span> <span class="cn">FALSE</span></span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>QQ     <span class="ot">=</span> <span class="sc">-</span><span class="cn">Inf</span></span>
@@ -1513,14 +1460,10 @@ Attaching package: 'ellipse'</code></pre>
 <span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a>  QQ.out <span class="ot">=</span> <span class="fu">c</span>(QQ.out, QQ)</span>
 <span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a>  s <span class="ot">=</span> s <span class="sc">+</span> <span class="dv">1</span></span>
 <span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-error">
 <pre><code>Error in if (abs(QQn - QQ)/abs(QQn) &lt; epsilon) {: missing value where TRUE/FALSE needed</code></pre>
 </div>
-<details class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>QQn</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] NaN</code></pre>
 </div>
