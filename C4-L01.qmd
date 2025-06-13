@@ -23,17 +23,7 @@ keywords:
   - differencing operator
   - back shift operator
   - moving average
-  - AR(1) process
-  - Yule-Walker equations
-  - Durbin-Levinson recursion
   - R code
-fig-caption: Notes about ... Bayesian Statistics
-title-block-banner: images/banner_deep.jpg
-#bibliography: bibliography.bib
-format: 
-    html: 
-        code-fold: true
-        css: styles.css
 ---
 
 
@@ -41,17 +31,16 @@ format:
 ## Learning Objectives
 
 -   [x] ~~List the goals of the course~~
--   [x] identify the basics of the R environment.
--   [x] Explain **stationary** time series processes
--   [ ] Define **auto-correlation function** (ACF) and **partial auto-correlation function** (PACF) and use R to plot the sample ACF and sample PACF of a time series
+-   [x] ~~identify the basics of the R environment.~~
+-   [x] Explain **stationary** time series processes 
+-   [ ] Define **auto-correlation function** (ACF) and
+-   [ ] Define **partial auto-correlation function** (PACF)
+-   [ ] use R to plot the sample ACF and sample PACF of a time series
 -   [x] Explain the concepts of differencing and smoothing via moving averages to remove/highlight trends and seasonal components in a time series
--   [ ] Define the zero-mean autoregressive process of order one or AR(1) and use R to obtain samples from this type of process
--   [ ] Perform maximum likelihood estimation for the full and conditional likelihood in an AR(1)
--   [ ] Perform Bayesian inference for the AR(1) under the conditional likelihood and the reference prior
 
 :::
 
-## Introduction
+## Introduction {#sec-c4-introduction}
 
 ### Welcome to Bayesian Statistics: Time Series
 
@@ -72,7 +61,6 @@ Before diving into the material here is a brief overview of the notations for ti
 
 -   $\{y_t\}$ - the time series process, where each $y_t$ is a univariate random variable and t are the time points that are equally spaced. 
 -   $y_{1:T}$ or $y_1, y_2, \ldots, y_T$ - the observed data.
-
 - You will see the use of ' to denote the transpose of a matrix,
 - and the use of $\sim$ to denote a distribution.
 - under tildes $\utilde{y}$ are used to denote estimates of the true values $y$.
@@ -90,8 +78,8 @@ also see [@prado2023time pp. 2-3]
 ![strong and weak stationarity](images/m1_0001.png){#fig-slide-stationarity-1 .column-margin  group="slides" width="53mm"}
 
 
-
-Stationarity c.f. [@prado2023time §1.2] is a fundamental concept in time series analysis. 
+\index{stationarity}
+Stationarity c.f. [@prado2023time §1.2] is a fundamental concept in time series analysis.
 
 ::: {.callout-important}
 
@@ -112,6 +100,7 @@ Stationarity
 
 ## Strong Stationarity
 
+\index{stationarity!strong}
 [Strong Stationarity]{.column-margin} Let $y_t$ be a time series. We say that $y_t$ is *stationary* if the following conditions hold:
 
 Let $\{y_t\} \quad \forall n>0$ be a time series and $h > 0$ be a lag. If for any subsequence the distribution of $y_t, y_{t+1}, \ldots, y_{t+n}$ is the same as the distribution of $y_{t+h}, y_{t+h+1}, \ldots, y_{t+h+n}$ we call the series strongly stationary.
@@ -124,6 +113,7 @@ As it's difficult to verify strong stationarity in practice, we will often use t
 
 ## Weak Stationarity
 
+\index{stationarity!weak }
 [Weak Stationarity]{.column-margin} [Second-order Stationarity]{.column-margin} The mean, variance, and auto-covariance are constant over time.
 
 $$
@@ -135,6 +125,7 @@ $$
 $$ {#eq-weak-stationarity}
 
 :::
+
 
 -   Strong stationarity $\implies$ Weak stationarity, but
 -   The converse is not true.
@@ -174,7 +165,11 @@ $$
 \end{aligned} \qquad
 $$ {#eq-covariance}
 
-We get the second line by substituting $\mu_t = \mathbb{E}(y_t)$ and $\mu_s = \mathbb{E}(y_s)$ using the definition of the mean of a RV.
+We get the second line by substituting 
+$\mu_t = \mathbb{E}(y_t)$ 
+and
+$\mu_s = \mathbb{E}(y_s)$ 
+using the definition of the mean of a RV.
 the third line is by multiplying out and using the linearity of the expectation operator.
 :::
 
@@ -191,7 +186,8 @@ $$ {#eq-autocovariance}
 :::
 
 
-When the time series is stationary, then the covariance only depends on the lag $h = |t-s|$ and we can write the covariance as $\gamma(h)$.
+When the time series is stationary, then the covariance only depends on the lag 
+$h = \|t-s\|$ and we can write the covariance as $\gamma(h)$.
 
 
 Let $\{y_t\}$ be a time series. Recall that the covariance between two random variables $y_t$ and $y_s$ is defined as:
@@ -303,6 +299,8 @@ Note that the sample PACF can be obtained by substituting the sample autocorrela
 
 ## Differencing and smoothing (Reading) {#sec-differencing-and-smoothing}
 
+\index{differencing}
+\index{smoothing}
 Differencing and smoothing are techniques used to remove trends and seasonality in time series data. They are covered in the [@prado2023time §1.4].
 
 Many synthetic time series models are built under the assumption of stationarity. However, in the real world time series data often present non-stationary features such as **trends** or **seasonality**. These features render such a time series non-stationary, and therefore, not suitable for analysis using the tools and methods we have discussed so far. However practitioners can use techniques for detrending, deseasonalizing and smoothing that when applied to such observed data transforms it into a new time series that is consistent with the stationarity assumption.
@@ -314,13 +312,13 @@ We briefly discuss two methods that are commonly used in practice for detrending
 [Differencing, is a method which removes the trend from a time series data]{.mark}. The first difference of a time series is defined in terms of the  difference operator, denoted as $D$, that produces the transformation [differencing operator $D$]{.column-margin}
 
 $$
-Dy_t \doteqdot y_t - y_{t-1}.
+Dy_t \doteqdot y_t - y_{t-1}
 $$ {#eq-first-difference-operator-definition}
 
 Higher order differences are obtained by successively applying the operator $D$. For example,
 
 $$
-D^2y_t = D(Dy_t) = D(y_t - y_{t-1}) = y_t - 2y_{t-1} + y_{t-2}.
+D^2y_t = D(Dy_t) = D(y_t - y_{t-1}) = y_t - 2y_{t-1} + y_{t-2}
 $$ {#eq-higher-order-difference-operator-definition}
 
 
@@ -346,6 +344,8 @@ this notation lets us write the differences in by referencing items backwards in
 
 ### Smoothing
 
+\index{smoothing}
+\index{moving average}
 [Moving averages, which is commonly used to "smooth" a time series by removing certain features (e.g., seasonality) to highlight other features]{.mark} (e.g., trends). 
 
 [A moving average is a weighted average of the time series around a particular time]{.mark} $t$. In general, if we have data $y_{1:T}$, we could obtain a new time series such that [moving average]{.column-margin}
@@ -386,6 +386,7 @@ $$ {#eq-odd-seasonal-moving-average}
 
 ### Seasonal Moving Average
 
+
 To remove seasonality in monthly data (i.e., seasonality with a period of d = 12 months), we use a moving average with $p = q = 6$, $a_6 = a_{−6} = 1/24$, and $a_j = a_{−j} = 1/12$ for $j = 0, \ldots , 5$ , resulting in:
 
 $$
@@ -396,7 +397,7 @@ $$ {#eq-seasonal-moving-average}
 
 ## ACF PACF Differencing and Smoothing Examples (Video) {#sec-differencing-and-smoothing-examples}
 
-This video walks us through the code snippets in @lst-moving-averages-and-differencing and @lst-white-noise-simulation below and provides examples of how to compute the ACF and PACF of a time series, how to use differencing to remove trends, and how to use moving averages to remove seasonality. 
+This video walks us through the code snippets in @fig-moving-averages-and-differencing and @lst-white-noise-simulation below and provides examples of how to compute the ACF and PACF of a time series, how to use differencing to remove trends, and how to use moving averages to remove seasonality.
 
 
 - Outline:
@@ -420,14 +421,14 @@ This video walks us through the code snippets in @lst-moving-averages-and-differ
   - we plot the resulting time series after taking the first and second differences
   - the ACF and PACF of the resulting time series are plotted, they look different, in that they no longer have the slow decay characteristic of time series with a trend.
 
-
-
 The r-code for the examples is provided below.
 
 
 ## R code for Differencing and filtering via moving averages (reading) {#sec-differencing-and-smoothing-reading}
 
 \index{dataset!CO2}
+\index{differencing}
+\index{smoothing}
 
 ```{r}
 #| label: fig-moving-averages-and-differencing
@@ -436,48 +437,68 @@ The r-code for the examples is provided below.
 #| fig.height: 9
 #| fig.width: 7
 
-# Load the CO2 dataset in R
-data(co2) 
+data(co2) # <1>
+co2_1stdiff = diff(co2,differences=1) # <2>
+co2_ma = filter(co2,filter=c(1/24,rep(1/12,11),1/24),sides=2) # <3>
 
-# Take first differences to remove the trend 
-co2_1stdiff=diff(co2,differences=1)
-
-# Filter via moving averages to remove the seasonality 
-co2_ma=filter(co2,filter=c(1/24,rep(1/12,11),1/24),sides=2)
-
-par(mfrow=c(3,1),mar = c(3, 4, 2, 1), cex.lab=1.2,cex.main=1.2)
-plot(co2) # plot the original data 
-plot(co2_1stdiff) # plot the first differences (removes trend, highlights seasonality)
-plot(co2_ma) # plot the filtered series via moving averages (removes the seasonality, highlights the trend)
+par(mfrow = c(3,1),
+    mar   = c(3, 4, 2, 1), 
+    cex.lab=1.2,
+    cex.main=1.2)
+plot(co2) # <4>
+plot(co2_1stdiff) # <5>
+plot(co2_ma) # <6>
 ```
 
+1. Load the CO2 dataset in R
+2. Take first differences to remove the trend
+3. Filter via moving averages to remove the seasonality
+4. plot the original data 
+5. plot the first differences (removes trend, highlights seasonality)
+6. plot the filtered series via moving averages (removes the seasonality, highlights the trend)
+
+
 ## R Code: Simulate data from a white noise process (reading) {#sec-white-noise-simulation}
+
+\index{white noise}
+\index{process!white noise}
+\index{process!Wiener}
+\index{Brownian motion}
 
 ```{r}
 #| label: lst-white-noise-simulation
 #| lst-label: lst-white-noise-simulation
-#| lst-cap: "R Code: Simulate data from a white noise process"
-
-#
-# Simulate data with no temporal structure (white noise)
-#
+#| lst-cap: "Simulate data with no temporal structure (white noise)"
+#| fig.height: 9
+#| fig.width: 7
+#| 
 set.seed(2021)
 T=200
 t =1:T
 y_white_noise=rnorm(T, mean=0, sd=1)
-#
-# Define a time series object in R: 
-# Assume the data correspond to annual observations starting in January 1960 
-#
+
+yt=ts(y_white_noise, start=c(1960), frequency=1) # <1>
+
+
+par(mfrow = c(3, 1),
+    mar = c(3, 4, 2, 1), 
+    cex.lab = 1.3, 
+    cex.main = 1.3) 
 yt=ts(y_white_noise, start=c(1960), frequency=1)
-#
-# plot the simulated time series, their sample ACF and their sample PACF
-#
-par(mfrow = c(1, 3),mar = c(3, 4, 2, 1), cex.lab = 1.3, cex.main = 1.3)
-yt=ts(y_white_noise, start=c(1960), frequency=1)
-plot(yt, type = 'l', col='red', xlab = 'time (t)', ylab = "Y(t)")
-acf(yt, lag.max = 20, xlab = "lag",
-    ylab = "Sample ACF",ylim=c(-1,1),main="")
-pacf(yt, lag.max = 20,xlab = "lag",
-     ylab = "Sample PACF",ylim=c(-1,1),main="")
+plot(yt, type = 'l', col='red', 
+     xlab = 'time (t)', 
+     ylab = "Y(t)") # <2>
+acf(yt, 
+    lag.max = 20, 
+    xlab = "lag",
+    ylab = "Sample ACF",
+    ylim=c(-1,1),main="") # <2>
+pacf(yt, 
+     lag.max = 20,
+     xlab = "lag",
+     ylab = "Sample PACF",
+     ylim=c(-1,1),main="") # <2>
 ```
+
+1. Define a time series object in R - Assume the data correspond to annual observations starting in January 1960 
+2. Plot the simulated time series, their sample ACF and their sample PACF
