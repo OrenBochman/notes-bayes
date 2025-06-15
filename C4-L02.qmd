@@ -20,24 +20,130 @@ keywords:
 ::: {.callout-note collapse="true"}
 ## Learning Objectives
 
--   [x] Define the zero-mean autoregressive process of order one or AR(1) and use R to obtain samples from this type of process
--   [x] Perform maximum likelihood estimation for the full and conditional likelihood in an AR(1)
+-   [x] Define the zero-mean autoregressive process of order one or AR(1) [\#](#l2g1)
+-   [x] use R to obtain samples from this type of process. [\#](#l2g2)
+-   [x] Perform maximum likelihood estimation for the full and conditional likelihood in an AR(1) [\#](#l2g3)
 :::
 
 We will next introduce the autoregressive process of order one, or AR(1) process, which is a fundamental model in time series analysis. We will discuss the definition of the AR(1) process, its properties, and how to simulate data from an AR(1) process.
 
-### The AR(1) process (video)
+## The AR(1) process (video)
 
 
-![AR(1)](images/m1_0031.png){#fig-c4l3-s1 .column-margin  group="slides" width="53mm"}
+![AR(1) definition](images/m1_0031.png){#fig-c4l3-s1 .column-margin  group="slides" width="53mm"}
 
 
 ![AR(1) properties](images/m1_0032.png){#fig-c4l3-s2 .column-margin  group="slides" width="53mm"}
 
 
-### The PACF of the AR(1) process (reading)
+### AR(1) Definition {#sec-ar1-definition}
 
-It is possible to show that the PACF of an autoregressive process of order one is zero after the first lag. We can use the Durbin-Levinson recursion to show this.
+
+\index{AR(1)!definition}
+[The AR(1) process is defined as]{#l2g1 .mark}:
+
+$$
+y_t = \phi y_{t-1} + \varepsilon_t \qquad \varepsilon_t \sim \mathcal{N}(0, v), i.i.d.
+$$
+
+where $\phi$ is the AR(1) coefficient
+ 
+### AR(1) Recursive Expansion
+
+Recursive substitution yields:
+
+$$
+\begin{aligned}
+y_t &= \phi(\phi y_{t-1} )+ \varepsilon_t \\
+    &= \phi^2 y_{t-2} + \phi \varepsilon_{t-1} + \varepsilon_t \\
+    &= \phi^k y_{t-k} + \sum_{j=0}^{k-1} \phi^j \varepsilon_{t-j}
+\end{aligned}
+$$ {#eq-ar1-recursive}
+
+For $\|\phi\| < 1$, as $k \to \infty$, this becomes:
+
+$$
+y_t = \sum_{j=0}^{\infty} \phi^j \varepsilon_{t-j}
+$$
+
+Interpreted as an infinite-order **Moving Average (MA(∞))** process.
+
+### AR(1) Mean
+
+\index{AR(1)!mean} 
+
+Since $\mathbb{E}[\varepsilon_t] = 0$,
+
+$$
+\mathbb{E}[y_t] = 0 \text{ mean of the AR(1) process}
+$$ {#eq-ar1-mean}
+
+### AR(1) Variance
+
+\index{AR(1)!variance}
+Using independence and identical distribution:
+
+$$
+\mathbb{V}ar[y_t] = \sum_{j=0}^{\infty} \phi^{2j} v = \frac{v}{1 - \phi^2}
+$$ {#eq-ar1-variance}
+
+Requires $\|\phi\| < 1$ for convergence (i.e., stationarity).
+
+### AR(1) Autocovariance Function $\gamma(h)$
+
+\index{AR(1)!autocovariance}
+For lag $h$, the autocovariance:
+
+$$
+\begin{aligned}
+\gamma(h) &= \mathbb{E}[y_t y_{t-h}] \\
+&= \mathbb{E} \left[ \left( \sum_{j=0}^{\infty} \phi^j \varepsilon_{t-j}\right )\left (\sum_{k=0}^{\infty} \phi^k \varepsilon_{t-h-k}\right) \right] \\
+&= \mathbb{E}[(\varepsilon_{t} + \phi \varepsilon_{t-1} + \phi^2 \varepsilon_{t-2} + \ldots ) \times (\varepsilon_{t-h} + \phi \varepsilon_{t-h-1} + \phi^2 \varepsilon_{t-h-2} + \ldots ) ] \\
+&= \mathbb{E}[\phi ^h \varepsilon_{t-h} \varepsilon_{t} + \phi^{h+1} \varepsilon_{t-h-1} \varepsilon_{t} + \ldots] \\
+&= v \sum_{j=0}^{\infty} \phi^{h+j}  \phi^{j} \\
+&= v \phi^h \sum_{j=0}^{\infty} \phi^{2j}  \\
+&= \frac{v \phi^{\|h\|}}{1 - \phi^2} \qquad \text { when } |\phi| < 1
+\end{aligned}
+$$ {#eq-ar1-autocovariance}
+
+We used the definition and properties of the expectation, independence of the innovations $\varepsilon_t$, and the fact that $\mathbb{E}[\varepsilon_t^2] = v$.
+In the cross product, only terms where lags are the same ($j = k$) contribute, as the others are independent, leading to the above result. In the final step, we used the formula for the sum of a geometric series.
+
+
+### AR(1) Autocorrelation Function $\rho(h)$
+
+\index{AR(1)!PACF} 
+Defined by:
+
+$$
+\rho(h) = \frac{\gamma(h)}{\gamma(0)} = \phi^{\|h\|}
+$$ {#eq-ar1-autocorrelation}
+
+ ### AR(1) other properties:
+
+1. for any lag $h$:
+
+- $\rho(h) = \phi^{\|h\|}$
+- $\gamma(h) = \frac{v \phi^{\|h\|}}{1 - \phi^2}$
+
+2. Exponential decay if $\|\phi\| < 1$
+3. If $\phi > 0$: decay is monotonic
+4. If $\phi < 0$: decay is **oscillatory** (alternates signs)
+
+### Stationarity
+
+* The process is stationary when $\|\phi\| < 1$:
+
+  * Mean and variance are constant over time
+  * Autocovariance depends only on lag $h$, not on $t$
+
+
+## The PACF of the AR(1) process (reading)
+
+\index{AR(1)!PACF}
+\index{Durbin-Levinson recursion}
+It is possible to show that the **PACF** of an AR(1) process is zero after the first lag. 
+We can use the Durbin-Levinson recursion to show this.
 
 For lag $n = 0$ we have $\phi(0, 0) = 0$
 
@@ -80,15 +186,47 @@ $$
 \phi(3, 2) = \phi(2, 2) − \phi(3, 3)\phi(2, 1) = 0
 $$
 
-We can prove by induction that in the case of an AR(1), for any lag $n$,
+We can prove by *induction* that in the case of an AR(1), for any lag $n$,
 
 $\phi(n, h) = 0, \phi(n, 1) = \phi$ and $\phi(n, h) = 0$ for $h \ge 2$ and $n \ge 2$.
 
-Then, the PACF of an AR(1) is zero for any lag above 1 and the PACF coefficient at lag 1 is equal to the AR coefficient $\phi$
+Then, [the PACF of an AR(1) is zero for any lag above 1 and the **PACF** coefficient at lag 1 is equal to the AR coefficient $\phi$]{.mark}
 
-### Simulate data from an AR(1) process (video)
+### Simulate data from an AR(1) process (video) {#sec-ar1-simulation}
 
 This video walks through the code snippet below and provides examples of how to sample data from an AR(1) process and plot the ACF and PACF functions of the resulting time series.
+
+Prado demonstrates how to simulate AR(1) processes using `arima.sim` in R:
+
+* **Simulation Setup**:
+
+  * `set.seed()` ensures reproducibility.
+  * Simulate 500 time points from an AR(1) with $\phi = 0.9$ and variance = 1.
+  * The process is stationary since $|\phi| < 1$.
+
+* **arima.sim Function**:
+
+  * Can simulate ARIMA(p,d,q) processes; here, only AR(1) is used.
+  * Model specified via a list: `list(ar = phi)`, with `sd` as the standard deviation (√variance).
+
+* **Comparative Simulation**:
+
+  * Second AR(1) simulated with $\phi = –0.9$ to show the impact of negative $\phi$.
+  * The positive $\phi$ process shows persistent values (random walk-like).
+  * The negative $\phi$ process shows oscillatory behavior.
+
+* **ACF and PACF Analysis**:
+
+  * **True ACF**: Exponential decay for both cases, oscillatory when $\phi < 0$.
+  * **Sample ACF**: Matches theoretical ACF for each process.
+  * **Sample PACF**: Only lag 1 is non-negligible, aligning with AR(1) properties:
+
+    * Positive at lag 1 for $\phi = 0.9$.
+    * Negative at lag 1 for $\phi = –0.9$.
+    * All other lags $≈ 0$.
+
+The demonstration confirms our theoretical results regarding ACF/PACF behavior in AR(1) processes.
+
 
 
 ###  R code: Sample data from AR(1) processes (Reading)
@@ -96,35 +234,48 @@ This video walks through the code snippet below and provides examples of how to 
 \index{AR(1)}
 \index{ARIMA}
 
+[Sample data from 2 ar(1) processes]{#l2g2 .mark}: and plot their ACF and PACF functions
+
 ```{r}
-#| label: "ar(1) sampling"
+#| label: lst-ar1-sampling
 
-# sample data from 2 ar(1) processes and plot their ACF and PACF functions
-#
-set.seed(2021)
-T=500 # number of time points
-#
-# sample data from an ar(1) with ar coefficient phi = 0.9 and variance 1
-#
-v=1.0 # innovation variance
-sd=sqrt(v) #innovation stantard deviation
-phi1=0.9 # ar coefficient
-yt1=arima.sim(n = T, model = list(ar = phi1), sd = sd)
-#
-# sample data from an ar(1) with ar coefficient phi = -0.9 and variance 1
-#
-phi2=-0.9 # ar coefficient
-yt2=arima.sim(n = T, model = list(ar = phi2), sd = sd)
+set.seed(2021) # <1>
+T=500 #<2>
 
+v=1.0 # <3> 
+sd=sqrt(v) # <4>
+phi1=0.9 # <5> 
+yt1=arima.sim(n = T, model = list(ar = phi1), sd = sd) # <6>
+
+phi2=-0.9 # <7> 
+yt2=arima.sim(n = T, model = list(ar = phi2), sd = sd) # <8>
+```
+
+1. set seed for reproducibility
+2.  number of time points
+3. innovation variance
+4. innovation standard deviation
+5. AR coefficient for the first process
+6. Sample data from an ar(1) with ar coefficient phi = 0.9 and variance = 1
+7. AR coefficient for the second process
+8. Sample data from an ar(1) with ar coefficient phi = -0.9 and variance = 1
+
+### Plot the time series of both processes
+
+```{r}
+#| label: fig-ar1-simulated
 par(mfrow = c(2, 1),mar = c(3, 4, 2, 1), cex.lab = 1.3)
 plot(yt1,main=expression(phi==0.9))
 plot(yt2,main=expression(phi==-0.9))
 
 par(mfrow = c(3, 2),mar = c(3, 4, 2, 1), cex.lab = 1.3)
 lag.max=50 # max lag
-#
-## plot true ACFs for both processes
-#
+```
+
+### Plot true ACFs for both processes
+```{r}
+#| label: fig-acfs
+
 cov_0=sd^2/(1-phi1^2) # compute auto-covariance at h=0
 cov_h=phi1^(0:lag.max)*cov_0 # compute auto-covariance at h
 plot(0:lag.max, cov_h/cov_0, pch = 1, type = 'h', col = 'red',
@@ -136,8 +287,13 @@ cov_h=phi2^(0:lag.max)*cov_0 # compute auto-covariance at h
 plot(0:lag.max, cov_h/cov_0, pch = 1, type = 'h', col = 'red',
      ylab = "true ACF", xlab = "Lag",ylim=c(-1,1),main=expression(phi==-0.9))
 
-## plot sample ACFs for both processes
-#
+```
+
+### plot sample ACFs for both processes
+
+```{r}
+#| label: fig-sample-acfs
+
 acf(yt1, lag.max = lag.max, type = "correlation", ylab = "sample ACF",
     lty = 1, ylim = c(-1, 1), main = " ")
 acf(yt2, lag.max = lag.max, type = "correlation", ylab = "sample ACF",
@@ -147,3 +303,4 @@ acf(yt2, lag.max = lag.max, type = "correlation", ylab = "sample ACF",
 pacf(yt1, lag.ma = lag.max, ylab = "sample PACF", ylim=c(-1,1),main="")
 pacf(yt2, lag.ma = lag.max, ylab = "sample PACF", ylim=c(-1,1),main="")
 ```
+
