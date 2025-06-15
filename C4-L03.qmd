@@ -62,58 +62,160 @@ and the MLE for $v$ is given by:
 
 $$
 \hat{v}_{MLE} = \frac{1}{n} (y − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE})′(y − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE})
-$$
+$$ {#eq-mle-estimator-v}
 
 $\hat{v}_{MLE}$ is not an unbiased estimator of $v$, therefore, the following unbiased estimator of $v$ is typically used:
 
 $$
 s^2 = \frac{1}{n-k}(y − \mathbf{X} \hat{\boldsymbol\beta}_{MLE} )′(y − \mathbf{X} \hat{\boldsymbol\beta}_{MLE} )
-$$
+$$ {#eq-mle-unbiased-estimator-v}
 
 ### Regression Models: Bayesian Inference {#sec-bayes-regression}
 
 Assume once again we have a model with the structure in (1), which results in a likelihood of the form
 
 $$
-\mathbb{P}r(y \mid \beta , v) = \frac{1}{(2\pi v)^{n/2}}\exp \left\{ -\frac{1}{2} (y − X\beta)′(y − X\beta) \right\}
+\mathbb{P}r(y \mid \boldsymbol{\beta} , v) = \frac{1}{(2\pi v)^{n/2}}\exp \left\{ -\frac{1}{2} (y − \mathbf{X} \boldsymbol{\beta})′(y − \mathbf{X} \boldsymbol{\beta}) \right\}
 $$
 
-If a prior of the form 
+If a prior of the form :
 
 $$ 
-\mathbb{P}r(\beta, v) \propto \frac{1}{v}
-$$
+\mathbb{P}r(\boldsymbol{\beta}, v) \propto \frac{1}{v}
+$$ {#eq-prior-regression}
 
-is used, we obtain that the posterior distribution is given by
+is used, we obtain that the posterior distribution is given by:
 
 $$
-\mathbb{P}r(\beta,v \mid y) \propto \frac{1}{v^{n/2+1}}\exp \left\{ -\frac{1}{2v} (y − X\beta)′(y − X\beta) \right\}
-$$
+\mathbb{P}r(\boldsymbol{\beta},v \mid \mathbf{y}) \propto \frac{1}{v^{n/2+1}}\exp \left\{ -\frac{1}{2v} (\mathbf{y} − \mathbf{X} \boldsymbol{\beta})′(\mathbf{y} − \mathbf{X} \boldsymbol{\beta}) \right\}
+$$ {#eq-posterior-regression}
 
 In addition it can be shown that
 
--   $(\beta\mid v, y) \sim N (\hat \beta_{MLE} , v(X′X)−1)$
--   $(v\mid y) \sim \text{IG}((n − k)/2, d/2)$ with
+-   $(\boldsymbol{\beta}\mid v, \mathbf{y}) \sim \mathcal{N} (\hat{\boldsymbol{\beta}}_{MLE} , v(\mathbf{X}'\mathbf{X})^{-1})$
+-   $(v \mid \mathbf{y}) \sim \mathcal{IG}((n − k)/2, d/2)$ with
 
 $$
-d = (y − X \hat \beta_{MLE} )′(y − \hat \beta_{MLE} )
-$$
+d = (\mathbf{y} − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE} )′(\mathbf{y} − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE} )
+$$ {#eq-d-unbiased-estimator-v}
 
-with $k = dim(\beta)$.
+where $\mathcal{IG}(a, b)$ denotes the inverse-gamma distribution with *shape* parameter $a$ and *scale* parameter $b$.
 
-Given that $\mathbb{P}r(\beta, v \mid y) = \mathbb{P}r(\beta \mid v, y)p(v \mid y)$ the equations above provide a way to directly sample from the posterior distribution of $\beta$ and $v$ by first sampling v from the inverse-gamma distribution above and then conditioning on this sampled value of v, sampling $\beta$ from the normal distribution above.
+with $k = dim(\boldsymbol\beta)$.
+
+[Given that $\mathbb{P}r(\boldsymbol\beta, v \mid \mathbf{y}) = \mathbb{P}r(\boldsymbol\beta \mid v, \mathbf{y})p(v \mid \mathbf{y})$ the equations above provide a way to directly sample from the posterior distribution of $\boldsymbol \beta$ and $v$ by first sampling v from the inverse-gamma distribution above and then conditioning on this sampled value of v, sampling $\boldsymbol \beta$ from the normal distribution above.]{.mark}
 
 ## Maximum likelihood estimation in the AR(1) (video) {#sec-mle-ar1}
 
-![slide 1](images/m1_0041.png){.column-margin  group="slides" width="53mm"}
+![MLE 1](images/m1_0041.png){#fig-s_0041 .column-margin  group="slides" width="53mm"}
 
 
 
-![slide 2](images/m1_0042.png){.column-margin  group="slides" width="53mm"}
+![MLE 2](images/m1_0042.png){#fig-s_0042 .column-margin  group="slides" width="53mm"}
 
 
 
-![slide 3](images/m1_0043.png){.column-margin  group="slides" width="53mm"}
+![MLE 3](images/m1_0043.png){#fig-s_0043 .column-margin  group="slides" width="53mm"}
+
+
+### **Model Setup**
+
+The focus is on the **zero-mean AR(1) model**:
+
+$$
+Y_t = \phi Y_{t-1} + \epsilon_t, \quad \epsilon_t \overset{iid}{\sim} \mathcal{N}(0, v), \quad \phi \in (-1,1)
+$$
+
+This condition ensures **stationarity** of the process.
+
+### **Distributional Assumptions**
+
+* $Y_1 \sim \mathcal{N}\left(0, \frac{v}{1 - \phi^2}\right)$
+* $Y_t \mid Y_{t-1} \sim \mathcal{N}(\phi Y_{t-1}, v)$ for $t \geq 2$
+
+
+
+### **Likelihood Approaches**
+
+Two approaches are considered:
+
+#### 1. **Full Likelihood**
+
+$$
+\begin{aligned}
+p(y_{1:T} \mid \phi, v) &= p(y_1 \mid \phi, v) \cdot \prod_{t=2}^T p(y_t \mid y_{t-1}, \phi, v) \\
+ &= \frac{1}{\sqrt{2\pi \frac{v}{1 - \phi^2}}} \exp\left( -\frac{y_1^2 (1 - \phi^2)}{2v} \right) \cdot  \prod_{t=2}^T \frac{1}{\sqrt{2\pi v}} \exp\left( -\frac{(y_t - \phi y_{t-1})^2}{2v} \right) \\
+  &= \frac{(1 - \phi^2)^{1/2}}{(2\pi v)^{T/2}} \cdot
+\exp\left( -\frac{1}{2v} \left[ \underbrace{ y_1^2(1 - \phi^2) + \sum_{t=2}^T (y_t - \phi y_{t-1})^2 }_{\text{Quadratic Loss } Q^*(\phi)} \right] \right) \\
+&= \frac{(1 - \phi^2)^{1/2}}{(2\pi v)^{T/2}} \exp\left( -\frac{Q^*(\phi)}{2v} \right)
+\end{aligned} 
+$$ {#eq-full-likelihood-ar1}
+
+where $Q^*(\phi)$ is defined as:
+
+$$
+Q^*(\phi) = \underbrace{y_1^2(1 - \phi^2)}_{\text{Initial Loss}} + \underbrace{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}_{\text{remaining Loss } Q(\phi)}
+$$
+
+$$
+Q^*(\phi) = 
+\underbrace{y_1^2(1 - \phi^2)\vphantom{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}}_{\text{Initial Loss}} 
++ \underbrace{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}_{\text{Remaining Loss } Q(\phi)}
+$$ {#eq-qstar-ar1}
+
+So the log-likelihood becomes:
+
+$$
+\log p(y_{1:T} \mid \phi) = \frac{1}{2} \log(1 - \phi^2) - \frac{1}{2} Q^*(\phi) + K
+$$
+
+Maximizing the full likelihood requires **numerical optimization methods** (e.g., Newton-Raphson), as there's no closed-form solution.
+
+
+
+#### 2. **Conditional Likelihood**
+
+Condition on $y_1$:
+
+$$
+p(y_{2:T} \mid y_1, \phi, v) = \prod_{t=2}^T p(y_t \mid y_{t-1}, \phi, v)
+$$
+
+Define:
+
+$$
+Q(\phi) = \sum_{t=2}^T (y_t - \phi y_{t-1})^2
+$$
+
+This setup is equivalent to a **linear regression**:
+
+$$
+\mathbf{y} = X\beta + \epsilon, \quad \epsilon \sim \mathcal{N}(0, vI)
+$$
+
+Where:
+
+* $\mathbf{y} = [y_2, \dots, y_T]^T$
+* $X = [y_1, \dots, y_{T-1}]^T$
+* $\beta = \phi$
+
+The MLEs are:
+
+$$
+\hat{\phi} = \frac{\sum_{t=2}^T y_t y_{t-1}}{\sum_{t=2}^T y_{t-1}^2}, \quad
+\hat{v} = \frac{\sum_{t=2}^T (y_t - \hat{\phi} y_{t-1})^2}{T - 2}
+$$
+
+This approach yields **closed-form estimators** and is computationally simpler.
+
+
+
+### **Conclusion**
+
+* **Full likelihood** is more general but computationally intensive.
+* **Conditional likelihood** simplifies estimation by leveraging regression theory.
+* When variance $v$ is known (e.g., $v = 1$), the optimization reduces to maximizing a univariate function of $\phi$.
+* For full likelihood, optimization of $Q^*(\phi)$ is required.
 
 
 
