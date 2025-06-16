@@ -5,7 +5,8 @@ categories:
   - Bayesian Statistics
 keywords:
   - Mixture Models
-  - Maximum Likelihood Estimation
+  - MCMC
+  - Markov Chain Monte Carlo
   - notes
 ---
 
@@ -94,21 +95,62 @@ In the last line we remove $\omega$ on from the left term based on independence.
 ::: {.callout-note collapse="true"}
 ## Video transcript {.unnumbered .unlisted}
 
-In previous lectures, we discussed the expectation maximization algorithm for fitting mixture models. In this lecture, we are going to discuss Markov Chain Monte Carlo for Bayesian inference in mixture models.
+[In previous lectures, we discussed the expectation maximization algorithm for fitting mixture models. In this lecture, we are going to discuss Markov Chain Monte Carlo for Bayesian inference in mixture models.]{.mark}
 
-So we're going to move from frequentist inference which we were interested only on finding the point estimate for the parameters in the model to a situation in which we are going to try to explore a full posterior distribution for those parameters. So recall that the mixture model we are working with is going to take the form or the density of that mixture model, is going to take the form of f of x is the sum over k components of weight multiplied by the components in the mixture. Those components are indexed by this parameter theta k, and we may have components that are all belong to the same family or that they belong to different families. If we are going to do Bayesian inference for this model, we need to compliment this density that is going to give us the likelihood with priors on the unknown parameters. In particular, we're going to need priors for the weights, and we are going to need priors for the data suitcase. What is typically done in these situations is to use a priors of convenience.
+[We're going to move from frequentist inference which we were interested only on finding the point estimate for the parameters in the model to a situation in which we are going to try to explore a full posterior distribution for those parameters.]{.mark} 
+
+[Recall that the mixture model we are working with is going to take the form or the density of that mixture model.]{.mark} It is going to take the form of f of x is the sum over k components of weight multiplied by the components in the mixture. Those components are indexed by this parameter theta k, and we may have components that are all belong to the same family or that they belong to different families. If we are going to do Bayesian inference for this model, we need to compliment this density that is going to give us the likelihood with priors on the unknown parameters. In particular, we're going to need priors for the weights, and we are going to need priors for the data suitcase. What is typically done in these situations is to use a priors of convenience.
  
-Where are those players of convenience? Well, first for the weights remember that we have a constraint that the sum of the weights needs to be equal to one.
+Where are those priors of convenience? 
+[Well, first for the weights remember that we have a constraint that the sum of the weights needs to be equal to one.]{.mark}
  
-Obviously each one of them individually needs to be between zero and one. So a natural prior for that type of parameters is a Dirichlet prior and that is precisely what we are going to use. So we're going to assume that the prior for the vector that includes all these weights just follows a Dirichlet distribution, with parameters a1 all the way to a_k. Just as a quick reminder they expected value of each one of these parameters individually is just given by the corresponding a divided by the sum of the a's. So in other words, the values of the a's just construals a prior what is the relative size of the different weights. In particular if you make them all the same, then you are saying that a prior you believe that all the weights are the same. We also know that as a special case if you make a1 equal to a2 all the way equal to ak and in particular equal to one then we just have the uniform distribution on the simplex.
+[Obviously each one of them individually needs to be between zero and one. So a natural prior for that type of parameters is a Dirichlet prior and that is precisely what we are going to use.]{.mark}
+So we're going to assume that the prior for the vector that includes all these weights just follows a Dirichlet distribution, with parameters a1 all the way to $a_k$. Just as a quick reminder they expected value of each one of these parameters individually is just given by the corresponding a divided by the sum of the a's. 
+[So in other words, the values of the a's just constrains a prior that is the relative size of the different weights. ]{.mark}
+In particular if you make them all the same, then you are saying that a prior you believe that all the weights are the same. We also know that as a special case if you make $a_1=a_2= \ldots = a_k$ and in particular equal to one then we just have the Uniform distribution on the simplex.
 
 Which is actually one of the typical choices used for the hyperparameters when fearing mixture models. Now, this is our priori of convenience for the omegas and we will see that in addition to having a very nice interpretation it will also allow us to do computation in a very straight forward manner. Now, the other set of priors that we need is the priors for the data case. What is typically done here is that if they admit a conjugate prior under gk then that prior is used.
 
-The reason for that is that even though for the full mixture this conjugate prior on the $g_k1$ conjugate for the full model it will be conditionally conjugate under our sampling scheme that we will derive in a minute. So it will make computation for the parameters theta k much simpler if we can find that conjugate prior under theta k. After we have set up priors for the model the next thing that we need to do before deriving our Gibbs sampler is to write down the complete data likelihood in a slightly more convenient way. If you remember the complete data likelihood that we used extensively for deriving the EM Algorithm has the form of the distribution of the data in all those indicators CSU either just tells you which component you belong to conditional on the weight, and all the Thetas is just going to take the form of a double product. So the product over the observations followed by the product over the components of omega sub k g sub k of x sub y given Theta k raised to the indicator function of ci equals to k. In other words, rather than write the complete sum that we had before, we replaced that completes sum by a product where each one of the terms is now raised to this indicator function that just depends on whether the component was generated, the observation was generated by the k component in the mixture. This complete data likelihood that we use extensively can now be written in a couple of different ways, and one that is going to be particularly helpful for us involves breaking this expression into two pieces, one that has to do with their omega's, and one that has to do with g's. So let me start with a piece that starts with the g's. The way in which I'm going to do it is first I'm going to reverse the order of this products. So I am going to consider first the product over the components. Next I'm going to consider the product over the observations. But before I write exploration explicitly, let me interpret this expression up here a little bit. So what we're doing here with this double product or one way to think about what we're doing with a double product is to think about computing a bunch of terms that are in here in particular in this piece, that can be positioned onto a matrix where one dimension corresponds to the index i, and the second dimension corresponds to the index k. The entries of this matrix are just g of x i given theta k. So different combinations of i and different combinations of k gives you the values that you are going to put into this matrix. Now, what is this important? Because if you think about what they indicator or function up here is doing is it's telling you well you need to compute the whole matrix but you're actually not going to use the full matrix, you are just going to pick a few elements of it, and in particular you are going to pick one element in each row according to what the value of ci case. So for example, if the first observation belongs to the second component you'd be picking this value, second observation the first component you will pick this value, third observation with third component here and so on. So the values of the ci can be interpreted as giving you a way to select elements in this matrix, and in particular one per row. So another way to write the product over all the observations is used to think about grouping rows together according to which column is being selected. In particular, for example, we could put all the observations that have the first column being selected together, then all the observations that have the second column being selected together and so on. One way to write that mathematically is to say that we're going to do a product over the i's but grouped together according to the value of k. Then we can get rid of the indicator and the numerator and write this as g sub k, xi given theta sub k. So this is one piece of this expression up here or one way to rewrite this expression up here or one piece of it that involves the g subcase. Of course we have a second piece that involves the omegas, that second piece that involves the omegas we can write as the product. Again, I'm going to consider the product over the case first. Then for a given k, omega k is exactly the same argument for all of them. So I can just write omega k and the product of omega k to the indicators just becomes omega k raised to the sum of the indicators.
- 
-Well, once I have written the expression in this way, I can essentially think about this piece as being the distribution of the observations if I knew the indicators, the omegas, and the Thetas. It so happens that this expression in particular doesn't depend on the omegas. So for this model this is the same as p of x given c and the theta. In this expression here you can interpret as the distribution of the c's given the omegas and the theta's. Again, in the particular structure of this model this happens to just depend on the weights omega. So we know that the product of these two quantities is just by the total law of probability the expression that we wanted in the beginning that is the distribution of the Theta and indicators together. So this particular form for the distribution is going to be particularly useful in terms of deriving the posterior distribution that we need for the Gibbs sampler. One last observation that I want to make that will be useful in the future is that if you think about what is the form of this piece down here the distribution or the Indicators even the weights, what you have is a form that resembles the kernel of multinomial distribution. So this is similar to the kernel of a multinomial.
+[The reason for that is that even though for the full mixture this conjugate prior on the $g_k1$ conjugate for the full model it will be conditionally conjugate under our sampling scheme that we will derive in a minute.]{.mark} 
+So it will make computation for the parameters theta k much simpler if we can find that conjugate prior under theta k. 
+After we have set up priors for the model the next thing that we need to do before deriving our Gibbs sampler is to write down the complete data likelihood in a slightly more convenient way. 
+If you remember the complete data likelihood that we used extensively for deriving the EM Algorithm has the form of the distribution of the data in all those indicators CSU either just tells you which component you belong to conditional on the weight, and all the Thetas is just going to take the form of a double product. 
+So the product over the observations followed by the product over the components of omega sub k g sub k of x sub y given Theta k raised to the indicator function of ci equals to k. 
+In other words, rather than write the complete sum that we had before, we replaced that completes sum by a product where each one of the terms is now raised to this indicator function that just depends on whether the component was generated, the observation was generated by the k component in the mixture. 
+This complete data likelihood that we use extensively can now be written in a couple of different ways, and one that is going to be particularly helpful for us involves breaking this expression into two pieces, one that has to do with their omega's, and one that has to do with g's. 
+So let me start with a piece that starts with the g's. 
+The way in which I'm going to do it is first I'm going to reverse the order of this products. 
+So I am going to consider first the product over the components. 
+Next I'm going to consider the product over the observations. 
+But before I write exploration explicitly, let me interpret this expression up here a little bit. 
+So what we're doing here with this double product or one way to think about what we're doing with a double product is to think about computing a bunch of terms that are in here in particular in this piece, that can be positioned onto a matrix where one dimension corresponds to the index i, and the second dimension corresponds to the index k. 
+The entries of this matrix are just g of x i given theta k. 
+So different combinations of i and different combinations of k gives you the values that you are going to put into this matrix. 
+Now, what is this important? 
+Because if you think about what they indicator or function up here is doing is it's telling you well you need to compute the whole matrix but you're actually not going to use the full matrix, you are just going to pick a few elements of it, and in particular you are going to pick one element in each row according to what the value of ci case. 
+So for example, if the first observation belongs to the second component you'd be picking this value, second observation the first component you will pick this value, third observation with third component here and so on. So the values of the ci can be interpreted as giving you a way to select elements in this matrix, and in particular one per row. 
+[So another way to write the product over all the observations is used to think about grouping rows together according to which column is being selected. In particular, for example, we could put all the observations that have the first column being selected together, then all the observations that have the second column being selected together and so on.  ]{.mark}
 
-In particular, it's not only similar but it's proportional to it. So it will be particularly useful in terms of deriving the algorithm using the fact that this looks like a multinomial distribution.
+One way to write that mathematically is to say that we're going to do a product over the i's but grouped together according to the value of k. 
+Then we can get rid of the indicator and the numerator and write this as g sub k, xi given theta sub k. 
+So this is one piece of this expression up here or one way to rewrite this expression up here or one piece of it that involves the g subcase. 
+Of course we have a second piece that involves the omegas, that second piece that involves the omegas we can write as the product. 
+Again, I'm going to consider the product over the case first. Then for a given k, omega k is exactly the same argument for all of them. 
+So I can just write omega k and the product of omega k to the indicators just becomes omega k raised to the sum of the indicators.
+ 
+Well, once I have written the expression in this way, I can essentially think about this piece as being the distribution of the observations if I knew the indicators, the omegas, and the thetas. 
+It so happens that this expression in particular doesn't depend on the omegas. 
+So for this model this is the same as p of x given c and the theta. 
+In this expression here you can interpret as the distribution of the c's given the omegas and the theta's. 
+
+Again, in the particular structure of this model this happens to just depend on the weights omega. 
+So we know that the product of these two quantities is just by the total law of probability the expression that we wanted in the beginning that is the distribution of the Theta and indicators together. 
+So this particular form for the distribution is going to be particularly useful in terms of deriving the posterior distribution that we need for the Gibbs sampler. 
+One last observation that I want to make that will be useful in the future is that if you think about what is the form of this piece down here the distribution or the Indicators even the weights, what you have is a form that resembles the kernel of multinomial distribution. 
+So this is similar to the kernel of a multinomial.
+
+In particular, it's not only similar but it's proportional to it. 
+So it will be particularly useful in terms of deriving the algorithm using the fact that this looks like a multinomial distribution.
 
 :::
 
@@ -131,7 +173,8 @@ In particular, it's not only similar but it's proportional to it. So it will be 
 
 Now that we have a structure for the likelihood function that we and the prior distributions for all of our parameters, we can can derive the posterior distribution for our model.
 
-So we want to write down the joint posterior distribution. In that joint posterior distribution includes, the weights and the parameters of the components, but it also involves the vector of indicators C, that we have introduced to simplify the structure of the likelihood, and by definition, this quantity is proportional to the distribution of the data, given all the parameters, multiplied by the distribution of the missing data parameters, given Omega and Theta, multiplied by the prior distribution on the parameters, multiplied by the prior distribution on the base.
+So we want to write down the joint posterior distribution. 
+In that joint posterior distribution includes, the weights and the parameters of the components, but it also involves the vector of indicators C, that we have introduced to simplify the structure of the likelihood, and by definition, this quantity is proportional to the distribution of the data, given all the parameters, multiplied by the distribution of the missing data parameters, given Omega and Theta, multiplied by the prior distribution on the parameters, multiplied by the prior distribution on the base.
 
 $$
 \mathbb{P}r(c, \theta, \omega \mid x) \propto \left \{ \prod_{i=1}^n \mathbb{P}r(x | c, \theta, \omega) \right \} \left \{ \prod_{i=1}^n\prod_{k=1}^K \mathbb{P}r(c \mid \omega, \theta) \right \}\ \mathbb{P}r(\omega)\ \mathbb{P}r(\theta)
@@ -143,65 +186,76 @@ Each of the full conditional distributions can be derived from this joint poster
 ::: {.callout-note collapse="true"}
 ## Video transcript {.unnumbered .unlisted}
 
-Now that we have a clear structure for the likelihood function that we will be using and we have prior distributions for all of our parameters, we can proceed to derive the posterior distribution that we will be working with. 
+[Now that we have a clear structure for the likelihood function that we will be using and we have prior distributions for all of our parameters, we can proceed to derive the posterior distribution that we will be working with.]{.mark}
 
-So we want to write down the joint posterior distribution. In that joint posterior distribution includes, of course, the weights and the parameters of the components, but it also involves the vector of indicators C, that we have introduced to simplify the structure of the likelihood, and by definition, this quantity is proportional to the distribution of the data, given all the parameters, multiplied by the distribution of the missing data parameters, given Omega and Theta, multiplied by the prior distribution on the parameters, multiplied by the prior distribution on the base. 
+We want to write down the joint posterior distribution. 
+In that joint posterior distribution includes, of course, the weights and the parameters of the components, but it also involves the vector of indicators $C$, that we have introduced to simplify the structure of the likelihood, and by definition, this quantity is proportional to the distribution of the data, given all the parameters, multiplied by the distribution of the missing data parameters, given $\omega$ and $\theta$, multiplied by the prior distribution on the parameters, multiplied by the prior distribution on the base.
 
 So this is the general expression, the general form, for that posterior distribution. 
 Now, we have already seen what the form of the different terms is. 
 In particular, this joint distribution of the data can be written as a double product. 
-First-order components, and then over the groups of observations that belong to each one of those components of $g_k$ $x_i$, given $\theta_k$. So that is the first piece that we're interested in. The second piece, we have already seen also how to write it down. 
-This is going to be the product from k equals one, to capital k of Omega_k. 
-Some of these indicators of C_i is equal to k from one to n. This is our second piece. 
-Then we discussed using a Dirichlet distribution for this. So ignoring some proportionality constants, this becomes the product from k equals one to capital k of Omega_k raised to the a_k minus 1. 
+First-order components, and then over the groups of observations that belong to each one of those components of $g_k$ $x_i$, given $\theta_k$. 
+So that is the first piece that we're interested in. 
+The second piece, we have already seen also how to write it down. 
+This is going to be the product from k equals one, to capital k of $\omega_k$. 
+Some of these indicators of $c_i$ is equal to k from one to n. This is our second piece. 
+Then we discussed using a Dirichlet distribution for this. So ignoring some proportionality constants, this becomes the product from k equals one to capital k of $\omega_k$ raised to the $a_k - 1$. 
 That's this piece. 
 Then finally, we're going to have another product. 
 So typically, we use independent priors for each one of the data case. 
 As I said, we'll typically try to pick them so that they are conjugate to this kernel, $g_k()$, but for now, I'm going to write it in general form by writing this as $p_k(\theta_k)$, and that's what the last term in the expression is. So we have written down a full expression for this. 
 Now, it should be more or less clear how we need to proceed. 
 So we need full conditionals for all the parameters in the model. 
-In particular, we are going to need a full conditional for Omega, given all the other parameters, we're going to need a full conditional for each one of the C_is given the rest of the parameters, and we're going to need a full conditional for each one of the data case, given the rest of the parameters. 
+In particular, we are going to need a full conditional for $\omega$, given all the other parameters, we're going to need a full conditional for each one of the $c_i$'s given the rest of the parameters, and we're going to need a full conditional for each one of the data cases, given the rest of the parameters. 
 
 So to derive these full conditionals, what we will do is we will pick particular pieces from this expressions to retain and to construct this
 particular four conditionals. 
+
 Let's proceed now to derive each one of the four conditionals that we need to derive a Gibbs sampler or a Markov Chain Monte Carlo algorithm for this problem.
-Let's just start with the full posterior distribution for the weights, and please note that we're going to work with all the weights as a block, so we're going to try to sample them all together, and rather than looking at each one of them at a time. o this full conditional distribution is made up of the terms in this full posterior distribution that involves Omega k, and if you look at this expression carefully, you will see that this piece doesn't depend on Omega k anyway, and that this piece doesn't depend on any of the Omega case either, so it's just this two pieces in the middle that we need to consider. 
-Furthermore, the two pieces are very similar, so both in both products over K of the weight raised to some power, so we can actually combine the two expressions together and just write them as the product from one to capital k of Omega _k raised to the sum of these indicator functions, plus a_k minus 1. This looks exactly like
-the prior that we used, except that now, we have updated parameters. 
-So I could write this as the product of Omega_k raised to the a_k, call them stars, minus one, where a_k a star, is just the original a_k plus the sum from one to n of the indicators of C_i equals to k. So just doing this little change, makes it very clear that the form of the posterior is exactly the same form as the prior. 
-In other words, this a conditionally conjugate prior for our problem, and that just means that Omega is going to be distributed as a Dirichlet, given all the other parameters, but with this updated parameters, a_1 star all the way to a_k star, and this is very interesting because essentially, a posteriori, we know that the expected value of Omega given all the other parameters, so this is the expected value of the full conditional. This is not expected value of the marginal posterior, but this is the expected value of the full conditional
+Let's just start with the full posterior distribution for the weights, and please note that we're going to work with all the weights as a block, so we're going to try to sample them all together, and rather than looking at each one of them at a time. o this full conditional distribution is made up of the terms in this full posterior distribution that involves $\omega_k$, and if you look at this expression carefully, you will see that this piece doesn't depend on $\omega_k$ anyway, and that this piece doesn't depend on any of the $\omega_k$ either, so it's just this two pieces in the middle that we need to consider.
+Furthermore, the two pieces are very similar, so both in both products over K of the weight raised to some power, so we can actually combine the two expressions together and just write them as the product from one to capital k of $\omega_k$ raised to the sum of these indicator functions, plus a_k minus 1. This looks exactly like
+the prior that we used, except that now, we have updated parameters.
+So I could write this as the product of $\omega_k$ raised to the $a_k$, call them stars, minus one, where a_k a star, is just the original $a_k$ plus the sum from one to n of the indicators of $c_i$ equals to k.
+
+[So just doing this little change, makes it very clear that the form of the posterior is exactly the same form as the prior.]{.mark}
+
+[In other words, this a conditionally conjugate prior for our problem, and that just means that $\omega$ is going to be distributed as a Dirichlet, given all the other parameters, but with this updated parameters, a_1 star all the way to a_k star, and this is very interesting because essentially, a posteriori, we know that the expected value of $\omega$ given all the other parameters, so this is the expected value of the full conditional. This is not expected value of the marginal posterior, but this is the expected value of the full conditional]{.mark}
 that is going to be a_k star divided by the sum from L equals
 one to k of a sub L, a star, but this is just a_k plus the sum from one
-to n of these indicators, c_i equals to k, divided by n plus the sum from L equals one to capital K of the a_l. N just comes from the fact that if I sum over all the components, then the sum of those values
+to n of these indicators, $c_i$ equals to k, divided by n plus the sum from L equals one to capital K of the a_l. N just comes from the fact that if I sum over all the components, then the sum of those values
 is going to be n. 
-So this is just the number of observations that are currently assigned to the case component, and if the values of a, k are small, then this is just roughly speaking. 
-So approximately, the proportion of observations in component K. 
-This has a very nice analogy with the computations that we did in the EM algorithm. 
 
-If you remember the way in which we computed the weights in that case, or the MLE for the weights, was by essentially computing a quantity that could also be interpreted as, roughly speaking, the proportion of observations in that step of the algorithm that were assigned to that component. 
-So this provides a mirror image to what we did with the EM algorithm, but that has a Bayesian flavor rather than a frequentist flavor. Let's continue now with the full conditional posterior distribution for the indicators, for the c_is. I'm interested in the probability that c_i is equal to K given the data. As before, this is going to be proportional to just the terms in this large product
-that depends on c_i, and if you look at it carefully, c_i only appears in this
-two terms of the product. These have nothing to do with c_i. In particular, it appears in a single term within this really large product and in a single term within this product. 
-So the term that depends on C surviving equal to K in here is Omega_k. The term that depends on
-c_i equal to k in here, it's just g_k of x_i given Theta, and this is true for
-every k from one to capital K. 
-Remember that c_i is a discrete
-random variable, taking values between one and k because it indicates which component generated the observation. 
-So if I want to get rid of the proportionality sign and actually being able to write what the probability is, I just need to normalize this by dividing over the sum of these quantities over k. 
-So that means that p of c_i equals to k, given all the other parameters, is equal to Omega_k, g_k, x_i, given Theta_k, divided by the sum from l equals one to capital k of Omega l, g_l of x_i, given Theta_l. 
+So this is just the number of observations that are currently assigned to the case component, and if the values of a, k are small, then this is just roughly speaking. 
+
+[So approximately, the proportion of observations in component K. 
+This has a very nice analogy with the computations that we did in the EM algorithm.]{.mark} 
+
+[If you remember the way in which we computed the weights in that case, or the MLE for the weights, was by essentially computing a quantity that could also be interpreted as, roughly speaking, the proportion of observations in that step of the algorithm that were assigned to that component.]{.mark}
+
+[So this provides a mirror image to what we did with the EM algorithm, but that has a Bayesian flavor rather than a frequentist flavor. Let's continue now with the full conditional posterior distribution for the indicators, for the c_is. I'm interested in the probability that c_i is equal to K given the data.]{.mark}
+
+As before, this is going to be proportional to just the terms in this large product that depends on $c_i$, and if you look at it carefully, $c_i$ only appears in this two terms of the product. 
+These have nothing to do with $c_i.$ 
+In particular, it appears in a single term within this really large product and in a single term within this product. 
+So the term that depends on $c_i$ being equal to $k$ in here is $\omega_k$. 
+The term that depends on
+$c_i$ equal to $k$ in here, it's just $g_k(x_i \mid \theta_k)$, and this is true for
+every $k$ from one to capital $K$. 
+Remember that $c_i$ is a discrete
+random variable, taking values between one and $k$ because it indicates which component generated the observation. 
+So if I want to get rid of the proportionality sign and actually being able to write what the probability is, I just need to normalize this by dividing over the sum of these quantities over $k$. 
+So that means that $p(c_i = k \mid \text{all other parameters}) = \frac{\omega_k g_k(x_i \mid \theta_k)}{\sum_{l=1}^{K} \omega_l g_l(x_i \mid \theta_l)}$. 
 If you look at this expression carefully, you will realize that it is very similar to the expression that we used when computing in the EM algorithm, the weights associated which is one of the observations. 
-In fact, it is the same expression, and this is just what we called in the EM algorithm, V_ik. Finally, let's consider the full conditional posterior distribution for the data case. 
-So we need p of Theta k given all the other parameters in the model. 
-Again, we just pick from this whole product the terms that have to do with Theta k, in this case, it is the two in the middle that do
+In fact, it is the same expression, and this is just what we called in the EM algorithm, $V_{ik}$. Finally, let's consider the full conditional posterior distribution for the data case. 
+So we need $p(\theta_k \mid \text{all other parameters})$. 
+Again, we just pick from this whole product the terms that have to do with $\theta_k$, in this case, it is the two in the middle that do
 not depend on it, and within this big expression, we just have a few terms
-that contain Theta k, and those correspond to the observations that are currently assigned to that particular component. 
-So this expression is proportional to the product over the i's that have been assigned to the kth component of g_k, x_i Theta k, and among this product, again, there is a single term that belongs to Theta k. 
-So the form of the full conditional posterior distribution for the parameter Theta
-k is simply this. 
-Now, without a specific choice of G and P, it is hard to further simplify this expression. 
-But what I do want to note here is that if this prior p_k is conjugate to this kernel g_k, then we typically know what family this posterior
-distribution will belong to, and that will make computation much simpler because
-you will typically be able to sample from that full posterior conditional distribution in using a direct sampler. 
+that contain $\theta_k$, and those correspond to the observations that are currently assigned to that particular component. 
+So this expression is proportional to the product over the $i$'s that have been assigned to the $k$ th component of $g_k(x_i \mid \theta_k)$, and among this product, again, there is a single term that belongs to $\theta_k$. 
+So the form of the full conditional posterior distribution for the parameter $\theta_k$ is simply this. 
+Now, without a specific choice of $G$ and $P$, it is hard to further simplify this expression. 
+But what I do want to note here is that if this prior $p_k$ is conjugate to this kernel $g_k$, then we typically know what family this posterior
+distribution will belong to, and that will make computation much simpler because you will typically be able to sample from that full posterior conditional distribution in using a direct sampler. 
 This will become a little bit more clear once we do an example with mixture models, which is what we're going to do next.
 
 :::
@@ -231,7 +285,7 @@ This will become a little bit more clear once we do an example with mixture mode
 
 
 
-as in the previous module we derive the full conditional distributions for the mixture of two univariate normals.
+As in the previous module we derive the full conditional distributions for the mixture of two univariate normals.
 
 
 $$
@@ -248,7 +302,7 @@ Inverse Gamma for $\sigma^2$ with shape parameter $a$ and scale parameter $b$.
 An empirical approach to priors:
 
 \index{empirical Bayes}
-In the absence of real prior information we typically employ the observed data to guide the selection of the hyperparameter $η$, $τ^2$, $d$ and $q$, in an approach that is reminiscent of empirical Bayes. In particular, we attempt to make the means of the different component lie in the same support of the observed data, so we take $η$ to be  approximately equal the mean (or median) of the observations, and $τ^2$ to be roughly equal to their variance. Similarly, for the prior on the variance $σ^2$ we set $d = 2$ (which implies that $E(σ^2) = q$ and an infinite prior variance) and $q$ to be roughly equal to the variance of the observations. [Posteriors are often not very sensitive to changes on the prior means that remain within an order of magnitude of the values suggested above.]{.mark}
+In the absence of real prior information we typically employ the observed data to guide the selection of the hyperparameter $η$, $τ^2$, $d$ and $q$, in an approach that is reminiscent of empirical Bayes. In particular, we attempt to make the means of the different component lie in the same support of the observed data, so we take $η$ to be  approximately equal the mean (or median) of the observations, and $τ^2$ to be roughly equal to their variance. Similarly, for the prior on the variance $σ^2$ we set $d = 2$ (which implies that $\mathbb{E}(σ^2) = q$ and an infinite prior variance) and $q$ to be roughly equal to the variance of the observations. [Posteriors are often not very sensitive to changes on the prior means that remain within an order of magnitude of the values suggested above.]{.mark}
 
 ::: {.callout-note collapse="true"}
 
