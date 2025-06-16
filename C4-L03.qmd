@@ -110,13 +110,16 @@ with $k = dim(\boldsymbol\beta)$.
 ![MLE 1](images/m1_0041.png){#fig-s_0041 .column-margin  group="slides" width="53mm"}
 
 
-
-![MLE 2](images/m1_0042.png){#fig-s_0042 .column-margin  group="slides" width="53mm"}
-
+![Full Likelihood MLE ](images/m1_0042.png){#fig-s_0042 .column-margin  group="slides" width="53mm"}
 
 
-![MLE 3](images/m1_0043.png){#fig-s_0043 .column-margin  group="slides" width="53mm"}
+![Conditional Likelihood MLE](images/m1_0043.png){#fig-s_0043 .column-margin  group="slides" width="53mm"}
 
+
+There are two main strategies for performing MLE for an AR(1) model:
+
+- Full Likelihood: Considers the joint distribution of all observations $y_1, \dots, y_T$.
+- Conditional Likelihood: Conditions on the first observation ($y_1$) and works with the likelihood of the remaining observations ($y_2, \dots, y_T$).
 
 ### **Model Setup**
 
@@ -159,14 +162,15 @@ Q^*(\phi) =
 + \underbrace{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}_{\text{Remaining Loss } Q(\phi)}
 $$ {#eq-qstar-ar1}
 
-
 $$
 \begin{aligned}
 p(y_{1:T} \mid \phi) &= \prod_{t=2}^T \frac{1}{\sqrt{2\pi v}} \exp\left( -\frac{(y_t - \phi y_{t-1})^2}{2v} \right) \\
 &= \frac{1}{(2\pi v)^{T/2}} \exp\left( -\sum_{t=2}^T \frac{1}{2v} \left( y_t - \phi y_{t-1} \right)^2 \right) \\
 &= \frac{1}{(2\pi v)^{T/2}} \exp\left( -\frac{Q(\phi)}{2v} \right)
 \end{aligned}
-$$
+$$ {#eq-likelihood-ar1}
+
+where $Q(\phi)$ is the quadratic loss function defined as:
 
 
 $$
@@ -174,7 +178,9 @@ $$
 \underbrace{ \begin{pmatrix}y_1 \\ y_2 \\ \vdots \\ y_T \end{pmatrix} }_{\mathbb{X}} 
 \underbrace{ \phi \vphantom{\begin{pmatrix}y_1 \\ y_2 \\ \vdots \\ y_T \end{pmatrix} }}_{\beta} + 
 \underbrace{ \begin{pmatrix}\epsilon_1 \\ \epsilon_2 \\ \vdots \\ \epsilon_T\end{pmatrix}}_{\utilde {\epsilon}}
-$$
+$$ {#eq-ar1-model}
+
+where $\utilde{y}$ is the vector of observations, $\mathbb{X}$ is the design matrix with $y_1$ as the first column and $y_2, \ldots, y_{T-1}$ as the second column, $\beta = \phi$ is the AR coefficient, and $\utilde{\epsilon} \sim \mathcal{N}(0, vI)$ is the error term.
 
 $$
 \utilde{y} = \mathbb{X} \beta + \utilde{\epsilon} \qquad \utilde{\epsilon} \sim \mathcal{N}(0, vI)
@@ -212,15 +218,8 @@ And we usually use this unbiased estimator for $v$ in practice, as the MLE for $
 
 #### 2. **Conditional Likelihood**
 
-So the log-likelihood becomes:
-
-$$
-\log p(y_{1:T} \mid \phi) = \frac{1}{2} \log(1 - \phi^2) - \frac{1}{2} Q^*(\phi) + K
-$$
 
 Maximizing the full likelihood requires **numerical optimization methods** (e.g., Newton-Raphson), as there's no closed-form solution.
-
-#### 2. **Conditional Likelihood**
 
 This setup is equivalent to a **linear regression**:
 
@@ -253,16 +252,20 @@ p(y_{1:T} \mid y_1, \phi, v) &= p(y_1 \mid \phi)  \cdot \prod_{t=2}^T p(y_t \mid
 \end{aligned}
 $$
 
+So the log-likelihood becomes:
+
 $$
-log p(y_{1:T} \mid y_1, \phi) = \frac{1}{2} \log(1 - \phi^2) - \frac{1}{2} Q(\phi) + K
-$$
+\log p(y_{1:T} \mid y_1, \phi) = \frac{1}{2} \log(1 - \phi^2) - \frac{1}{2} Q(\phi) + K
+$$ {#eq-log-likelihood-ar1}
 
 where $K$ is a constant that does not depend on $\phi$.
 
 So if I were to look at maximizing this function, we can think about taking first derivatives with respect to phi. And then we will see that again the expression that you obtain doesn't allow you to obtain a close form expression for $\hat{\phi}_{MLE}$. Instead, we will need to use a numerical optimization method such as Newton Raphson to obtain the maximum likelihood estimator for phi.
 
 
-### **Conclusion**
+### Conclusion
+
+
 
 * **Full likelihood** is more general but computationally intensive.
 * **Conditional likelihood** simplifies estimation by leveraging regression theory.
