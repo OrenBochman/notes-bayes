@@ -154,14 +154,63 @@ $$ {#eq-full-likelihood-ar1}
 where $Q^*(\phi)$ is defined as:
 
 $$
-Q^*(\phi) = \underbrace{y_1^2(1 - \phi^2)}_{\text{Initial Loss}} + \underbrace{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}_{\text{remaining Loss } Q(\phi)}
-$$
-
-$$
 Q^*(\phi) = 
 \underbrace{y_1^2(1 - \phi^2)\vphantom{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}}_{\text{Initial Loss}} 
 + \underbrace{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}_{\text{Remaining Loss } Q(\phi)}
 $$ {#eq-qstar-ar1}
+
+
+$$
+\begin{aligned}
+p(y_{1:T} \mid \phi) &= \prod_{t=2}^T \frac{1}{\sqrt{2\pi v}} \exp\left( -\frac{(y_t - \phi y_{t-1})^2}{2v} \right) \\
+&= \frac{1}{(2\pi v)^{T/2}} \exp\left( -\sum_{t=2}^T \frac{1}{2v} \left( y_t - \phi y_{t-1} \right)^2 \right) \\
+&= \frac{1}{(2\pi v)^{T/2}} \exp\left( -\frac{Q(\phi)}{2v} \right)
+\end{aligned}
+$$
+
+
+$$
+\underbrace{ \begin{pmatrix}y_1 \\ y_2 \\ \vdots \\ y_T \end{pmatrix} }_{\utilde{y}} = 
+\underbrace{ \begin{pmatrix}y_1 \\ y_2 \\ \vdots \\ y_T \end{pmatrix} }_{\mathbb{X}} 
+\underbrace{ \phi \vphantom{\begin{pmatrix}y_1 \\ y_2 \\ \vdots \\ y_T \end{pmatrix} }}_{\beta} + 
+\underbrace{ \begin{pmatrix}\epsilon_1 \\ \epsilon_2 \\ \vdots \\ \epsilon_T\end{pmatrix}}_{\utilde {\epsilon}}
+$$
+
+$$
+\utilde{y} = \mathbb{X} \beta + \utilde{\epsilon} \qquad \utilde{\epsilon} \sim \mathcal{N}(0, vI)
+$$
+
+where $\mathbb{X}$ is the design matrix 
+
+with $y_1$ as the first column and $y_2, \ldots, y_{T-1}$ as the second column.
+
+If the matrix $\mathbb{X}$ is full rank, the MLE for $\phi$ can be obtained as:
+
+$$
+\hat{\beta} = (\mathbb{X}'\mathbb{X})^{-1}\mathbb{X}'y
+$$
+and the MLE for $v$ is given by:
+
+$$
+\hat{v} = S^2 = \frac{(y - \mathbb{X}\hat{\beta})'(y - \mathbb{X}\hat{\beta})}{\dim(y)-\dim(\beta)} 
+$$
+
+and the MLE for $\phi$.
+$$
+\hat{\phi}_{MLE} = \frac{\sum_{t=2}^T y_t y_{t-1}}{\sum_{t=2}^T y_{t-1}^2}
+$$ {#eq-mle-ar1-phi}
+
+
+and the unbiased estimator for $v$ is given by:
+
+$$
+S^2 = \sum_{t=2}^T (y_t - \hat{\phi}_{MLE} y_{t-1})^2 / (T - 2)
+$$ {#eq-mle-ar1-v-unbiased}
+
+where $T$ is the number of time points and $S^2$ is the unbiased estimator for the variance $v$.
+And we usually use this unbiased estimator for $v$ in practice, as the MLE for $v$ is biased.
+
+#### 2. **Conditional Likelihood**
 
 So the log-likelihood becomes:
 
@@ -171,21 +220,7 @@ $$
 
 Maximizing the full likelihood requires **numerical optimization methods** (e.g., Newton-Raphson), as there's no closed-form solution.
 
-
-
 #### 2. **Conditional Likelihood**
-
-Condition on $y_1$:
-
-$$
-p(y_{2:T} \mid y_1, \phi, v) = \prod_{t=2}^T p(y_t \mid y_{t-1}, \phi, v)
-$$
-
-Define:
-
-$$
-Q(\phi) = \sum_{t=2}^T (y_t - \phi y_{t-1})^2
-$$
 
 This setup is equivalent to a **linear regression**:
 
@@ -199,15 +234,32 @@ Where:
 * $X = [y_1, \dots, y_{T-1}]^T$
 * $\beta = \phi$
 
-The MLEs are:
+
+Condition on $y_1$:
 
 $$
-\hat{\phi} = \frac{\sum_{t=2}^T y_t y_{t-1}}{\sum_{t=2}^T y_{t-1}^2}, \quad
-\hat{v} = \frac{\sum_{t=2}^T (y_t - \hat{\phi} y_{t-1})^2}{T - 2}
+\begin{aligned}
+p(y_1 \mid \phi) &\sim \mathcal{N}(0, 1/(1 - \phi^2)) \\
+p(y_t \mid y_{t-1}, \phi) &\sim \mathcal{N}(\phi y_{t-1}, 1) \\
+\end{aligned}
 $$
 
-This approach yields **closed-form estimators** and is computationally simpler.
 
+$$
+\begin{aligned}
+p(y_{1:T} \mid y_1, \phi, v) &= p(y_1 \mid \phi)  \cdot \prod_{t=2}^T p(y_t \mid y_{t-1}, \phi)\\
+&= \frac{(1 - \phi^2)^{1/2}}{(2\pi)^{T/2}} \exp\left(-\frac{y_1^2(1 - \phi^2)}{2}\right) \cdot \prod_{t=2}^T \frac{1}{\sqrt{2\pi}} \exp\left(-\frac{(y_t - \phi y_{t-1})^2}{2}\right) \\
+&= \frac{(1 - \phi^2)^{1/2}}{(2\pi)^{T/2}} \exp\left(-\frac{1}{2} \left[y_1^2(1 - \phi^2) + \sum_{t=2}^T (y_t - \phi y_{t-1})^2\right]\right) \\
+\end{aligned}
+$$
+
+$$
+log p(y_{1:T} \mid y_1, \phi) = \frac{1}{2} \log(1 - \phi^2) - \frac{1}{2} Q(\phi) + K
+$$
+
+where $K$ is a constant that does not depend on $\phi$.
+
+So if I were to look at maximizing this function, we can think about taking first derivatives with respect to phi. And then we will see that again the expression that you obtain doesn't allow you to obtain a close form expression for $\hat{\phi}_{MLE}$. Instead, we will need to use a numerical optimization method such as Newton Raphson to obtain the maximum likelihood estimator for phi.
 
 
 ### **Conclusion**
@@ -217,6 +269,14 @@ This approach yields **closed-form estimators** and is computationally simpler.
 * When variance $v$ is known (e.g., $v = 1$), the optimization reduces to maximizing a univariate function of $\phi$.
 * For full likelihood, optimization of $Q^*(\phi)$ is required.
 
+
+| Feature               | Full Likelihood             | Conditional Likelihood (Regression)       |
+| --------------------- | --------------------------- | ------------------------------------------|
+| Accounts for $Y\_1$   | ✅ Yes                      | ❌ No                                     |
+| MLE for $\phi$        | ❌ No closed form           | ✅ Closed form                            |
+| MLE for $v$           | ❌ Biased unless adjusted   | ✅ Unbiased estimator available           |
+| Optimization Needed   | ✅ Yes (numerical methods)  | ❌ No (closed-form MLE for $\phi$)        |
+| Useful when           | Modeling full joint process | Estimating $\phi$ efficiently in practice |
 
 
 ## R code: MLE for the AR(1), examples (reading)

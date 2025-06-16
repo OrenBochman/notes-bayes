@@ -104,8 +104,8 @@ The fix is basically to stack the correlation plots vertically.
 |Sub-sub-index entry |`\index{main_index_ent!sub_ent!sub_sub_ent}`|	`{\index{scheduling!reg!MS}`|
 
 ### Page range definitions
-use 
-`\index{\ldots\mid(}` `\index{\ldots\mid)}` to define a page range
+
+use `\index{\ldots\mid(}` `\index{\ldots\mid)}` to define a page range
 
 ### See notes
 
@@ -129,7 +129,6 @@ computers is filling up. This drive contains the computer’s
 ```
 
 ### Latex Tricks
-
 
 1. this is how to add bold greek letters to indicate matrixes or vectors. Use `\boldsymbol` to get the bold greek letters. you need to add `\usepackage{amsmath}` to the preamble of your latex document.
 
