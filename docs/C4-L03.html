@@ -8,7 +8,7 @@
 
 <meta name="author" content="Oren Bochman">
 <meta name="dcterms.date" content="2024-11-03">
-<meta name="keywords" content="notes, time series, autoregressive models, stationarity, MLE, AR(1) process, Yule-Walker equations, Durbin-Levinson recursion, Moore-Penrose pseudoinverse, R code">
+<meta name="keywords" content="notes, time series, autoregressive models, stationarity, MLE, AR(1) process, Yule-Walker equations, Durbin-Levinson recursion, Moore-Penrose pseudoinverse, Full Rank Matrix, R code">
 <meta name="description" content="This lesson we will define the AR(1) process, Stationarity, ACF, PACF, differencing, smoothing">
 
 <title>90&nbsp; The AR(1): MLE and Bayesian inference - M1L3 – Bayesian Statistics</title>
@@ -421,7 +421,7 @@ window.Quarto = {
   <div>
     <div class="keywords">
       <div class="block-title">Keywords</div>
-      <p>notes, time series, autoregressive models, stationarity, MLE, AR(1) process, Yule-Walker equations, Durbin-Levinson recursion, Moore-Penrose pseudoinverse, R code</p>
+      <p>notes, time series, autoregressive models, stationarity, MLE, AR(1) process, Yule-Walker equations, Durbin-Levinson recursion, Moore-Penrose pseudoinverse, Full Rank Matrix, R code</p>
     </div>
   </div>
   
@@ -1034,7 +1034,7 @@ window.Quarto = {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L11.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">98</span>&nbsp; <span class="chapter-title">Week 0: Feynman Notebook on Bayesian Time Series Analysis</span></span></a>
+ <span class="menu-text"><span class="chapter-number">98</span>&nbsp; <span class="chapter-title">Week 0: Feynman Notebook on Bayesian Analysis</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -1198,8 +1198,12 @@ window.Quarto = {
 </div>
 <div class="callout-body-container callout-body">
 <p>Prado snuck the Moore-Penrose pseudoinverse in this handout, then she used it in the class and notes. I thought this isn’t the first time this has come up in the specialization as we used MLE to some degree in all the courses, and in depth in the previous course on mixtures. However a cursory review did not uncover previous use of this mathematical tool. So I thought it might be useful to provide a brief overview of the Moore-Penrose pseudoinverse, its properties and how it is used in regression models.</p>
-<p>Moore-Penrose pseudoinverse is a generalization of the inverse matrix that can be applied to non-square matrices. It not covered in typical linear algebra courses and I don’t recall it being included in the course I took on numerical methods which I took as an undergraduate student. But I have definitely seen it and the Cholesky decomposition in a number of text books. However we are not just talking about the algebra but its application in regression models.</p>
-<p>I found a good reference in <span class="citation" data-cites="schott2016matrix">(<a href="references.html#ref-schott2016matrix" role="doc-biblioref">Schott 2016</a> ch.&nbsp;5)</span></p>
+<p>Moore-Penrose pseudoinverse is a generalization of the inverse matrix that can be applied to non-square matrices.</p>
+<ul>
+<li>It is not covered in typical linear algebra courses. It might come up in numerical methods courses or a second linear algebra course. But unless they cover application in regression models, it is quite likely that they skip an important point, that <mark>the Moore-Penrose pseudoinverse is used to obtain the maximum likelihood estimator for the regression coefficients in linear regression models.</mark></li>
+</ul>
+<p>I found a couple of reference in <span class="citation" data-cites="schott2016matrix">(<a href="references.html#ref-schott2016matrix" role="doc-biblioref">Schott 2016</a> ch.&nbsp;5)</span> but they it didn’t cover they MLE aspect of the pseudoinverse.</p>
+<p>I cover some of this material in an <a href="A14.html#sec-moore-penrose" class="quarto-xref"><span>Section 110.1</span></a> to the course notes, however I</p>
 <p>It is denoted as <span class="math inline">X^+</span> and has the following properties:</p>
 <p>This pseudoinverse is a neat bit of mathematics which allows us to not only invert the equation from the left but it somehow minimizes the sum of squared errors in the regression - I.e. we get the parameters while minimizing the sum of squared errors due to the variance term. One strong assumption we must make is that the design matrix <span class="math inline">X</span> is full rank, which means that the columns of the matrix are linearly independent. The columns of the design matrix correspond to the explanatory variables in the regression model.</p>
 <p>In reality as we are dealing with hierarchical models, so we will not always have a full rank design matrix, but we can still use the Moore-Penrose pseudoinverse to obtain the maximum likelihood estimator for the regression coefficients.</p>
@@ -2447,654 +2451,659 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>Prado snuck the Moore-Penrose pseudoinverse in this handout, then she used it in the class and notes. I thought this isn't the first time this has come up in the specialization as we used MLE to some degree in all the courses, and in depth in the previous course on mixtures. However a cursory review did not uncover previous use of this mathematical tool. So I thought it might be useful to provide a brief overview of the Moore-Penrose pseudoinverse, its properties and how it is used in regression models.</span>
 <span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>Moore-Penrose pseudoinverse is a generalization of the inverse matrix that can be applied to non-square matrices. It not covered in typical linear algebra courses and I don't recall it being included in the course I took on numerical methods which I took as an undergraduate student. But I have definitely seen it and the Cholesky decomposition in a number of text books. However we are not just talking about the algebra but its application in regression models. </span>
-<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a>I found a good reference in <span class="co">[</span><span class="ot">@schott2016matrix ch. 5</span><span class="co">]</span></span>
-<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>Moore-Penrose pseudoinverse is a generalization of the inverse matrix that can be applied to non-square matrices. </span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>It is not covered in typical linear algebra courses. It might come up in numerical methods courses or a second linear algebra course. But unless they cover application in regression models, it is quite likely that they skip an important point, that <span class="co">[</span><span class="ot">the Moore-Penrose pseudoinverse is used to obtain the maximum likelihood estimator for the regression coefficients in linear regression models.</span><span class="co">]</span>{.mark}</span>
 <span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>I found a couple of reference in <span class="co">[</span><span class="ot">@schott2016matrix ch. 5</span><span class="co">]</span> but they it didn't cover they MLE aspect of the pseudoinverse.</span>
 <span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>It is denoted as $X^+$ and has the following properties:</span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>I cover some of this material in an @sec-moore-penrose to the course notes, however I </span>
 <span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>This pseudoinverse is a neat bit of mathematics which allows us to not only invert the equation from the left but it somehow minimizes the sum of squared errors in the regression - I.e. we get the parameters while minimizing the sum of squared errors due to the variance term. One strong assumption we must make is that the design matrix $X$ is full rank, which means that the columns of the matrix are linearly independent. The columns of the design matrix correspond to the explanatory variables in the regression model.</span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a>In reality as we are dealing with hierarchical models, so we will not always have a full rank design matrix, but we can still use the Moore-Penrose pseudoinverse to obtain the maximum likelihood estimator for the regression coefficients.</span>
-<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a>It is denoted as $X^+$ and has the following properties:</span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a><span class="fu">### Regression Models: Maximum Likelihood Estimation</span></span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>This pseudoinverse is a neat bit of mathematics which allows us to not only invert the equation from the left but it somehow minimizes the sum of squared errors in the regression - I.e. we get the parameters while minimizing the sum of squared errors due to the variance term. One strong assumption we must make is that the design matrix $X$ is full rank, which means that the columns of the matrix are linearly independent. The columns of the design matrix correspond to the explanatory variables in the regression model.</span>
 <span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>\index{regression!linear}</span>
-<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>\index{Maximum Likelihood Estimation}</span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>In reality as we are dealing with hierarchical models, so we will not always have a full rank design matrix, but we can still use the Moore-Penrose pseudoinverse to obtain the maximum likelihood estimator for the regression coefficients.</span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>Assume a regression model with the following structure: </span>
-<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>y_i = \beta_1x_{i,1} + \ldots + \beta_kx_{i,k} + \epsilon_i,</span>
-<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a><span class="fu">### Regression Models: Maximum Likelihood Estimation</span></span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>\index{regression!linear}</span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a>\index{Maximum Likelihood Estimation}</span>
 <span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a>for $i = 1, \ldots, n$ and $\epsilon_i$ independent random variables with $\epsilon_i \sim \mathcal{N}(0, v) \quad \forall i$. </span>
-<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a>This model can be written in matrix form as: </span>
-<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a>Assume a regression model with the following structure: </span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a>y_i = \beta_1x_{i,1} + \ldots + \beta_kx_{i,k} + \epsilon_i,</span>
 <span id="cb15-70"><a href="#cb15-70" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a>y = \mathbf{X} \boldsymbol{\beta} + \boldsymbol\epsilon \qquad \boldsymbol\epsilon \sim \mathcal{N} (0, v\mathbf{I})</span>
-<span id="cb15-72"><a href="#cb15-72" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-73"><a href="#cb15-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-74"><a href="#cb15-74" aria-hidden="true" tabindex="-1"></a>where:</span>
-<span id="cb15-75"><a href="#cb15-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-76"><a href="#cb15-76" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$y = (y_1, \ldots, y_n)′$ is an n-dimensional vector of responses,</span>
-<span id="cb15-77"><a href="#cb15-77" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$\mathbf{X}$ is an $n × k$ matrix containing the explanatory variables,</span>
-<span id="cb15-78"><a href="#cb15-78" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$\boldsymbol \beta = (\beta_1, \ldots, \beta_k)'$ is the k-dimensional vector of regression coefficients,</span>
-<span id="cb15-79"><a href="#cb15-79" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$\boldsymbol \epsilon = (\epsilon_1, \ldots, \epsilon_n)'$ is the n-dimensional vector of errors,</span>
-<span id="cb15-80"><a href="#cb15-80" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$\mathbf{I}$ is an $n \times n$ identity matrix.</span>
-<span id="cb15-81"><a href="#cb15-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-82"><a href="#cb15-82" aria-hidden="true" tabindex="-1"></a>If $\mathbf{X}$ is a *full rank* matrix with rank $k$ , the maximum likelihood estimator for $\boldsymbol\beta$, denoted as $\hat{\boldsymbol\beta}_{MLE}$ is given by:</span>
-<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-84"><a href="#cb15-84" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-85"><a href="#cb15-85" aria-hidden="true" tabindex="-1"></a>\hat{\boldsymbol{\beta}}_{MLE} = (\mathbf{X}'\mathbf{X})^{−1}\mathbf{X}'\mathbf{y},</span>
-<span id="cb15-86"><a href="#cb15-86" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-estimator-beta}</span>
-<span id="cb15-87"><a href="#cb15-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-88"><a href="#cb15-88" aria-hidden="true" tabindex="-1"></a>\index{Moore-Penrose pseudoinverse}</span>
-<span id="cb15-89"><a href="#cb15-89" aria-hidden="true" tabindex="-1"></a>where $(X^+ = \mathbf{X}'\mathbf{X})^{−1}\mathbf{X}'$ is the <span class="co">[</span><span class="ot">Moore-Penrose pseudoinverse</span><span class="co">](https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse)</span> of the matrix $\mathbf{X}$. This Moore-Penrose pseudoinverse of the matrix $\mathbf{X}$ is the most widely known generalization of the inverse matrix and is used to obtain the least squares solution to the linear regression problem.</span>
-<span id="cb15-90"><a href="#cb15-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-91"><a href="#cb15-91" aria-hidden="true" tabindex="-1"></a>and the MLE for $v$ is given by:</span>
+<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-72"><a href="#cb15-72" aria-hidden="true" tabindex="-1"></a>for $i = 1, \ldots, n$ and $\epsilon_i$ independent random variables with $\epsilon_i \sim \mathcal{N}(0, v) \quad \forall i$. </span>
+<span id="cb15-73"><a href="#cb15-73" aria-hidden="true" tabindex="-1"></a>This model can be written in matrix form as: </span>
+<span id="cb15-74"><a href="#cb15-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-75"><a href="#cb15-75" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-76"><a href="#cb15-76" aria-hidden="true" tabindex="-1"></a>y = \mathbf{X} \boldsymbol{\beta} + \boldsymbol\epsilon \qquad \boldsymbol\epsilon \sim \mathcal{N} (0, v\mathbf{I})</span>
+<span id="cb15-77"><a href="#cb15-77" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-78"><a href="#cb15-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-79"><a href="#cb15-79" aria-hidden="true" tabindex="-1"></a>where:</span>
+<span id="cb15-80"><a href="#cb15-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-81"><a href="#cb15-81" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$y = (y_1, \ldots, y_n)′$ is an n-dimensional vector of responses,</span>
+<span id="cb15-82"><a href="#cb15-82" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$\mathbf{X}$ is an $n × k$ matrix containing the explanatory variables,</span>
+<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$\boldsymbol \beta = (\beta_1, \ldots, \beta_k)'$ is the k-dimensional vector of regression coefficients,</span>
+<span id="cb15-84"><a href="#cb15-84" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$\boldsymbol \epsilon = (\epsilon_1, \ldots, \epsilon_n)'$ is the n-dimensional vector of errors,</span>
+<span id="cb15-85"><a href="#cb15-85" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$\mathbf{I}$ is an $n \times n$ identity matrix.</span>
+<span id="cb15-86"><a href="#cb15-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-87"><a href="#cb15-87" aria-hidden="true" tabindex="-1"></a>If $\mathbf{X}$ is a *full rank* matrix with rank $k$ , the maximum likelihood estimator for $\boldsymbol\beta$, denoted as $\hat{\boldsymbol\beta}_{MLE}$ is given by:</span>
+<span id="cb15-88"><a href="#cb15-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-89"><a href="#cb15-89" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-90"><a href="#cb15-90" aria-hidden="true" tabindex="-1"></a>\hat{\boldsymbol{\beta}}_{MLE} = (\mathbf{X}'\mathbf{X})^{−1}\mathbf{X}'\mathbf{y},</span>
+<span id="cb15-91"><a href="#cb15-91" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-estimator-beta}</span>
 <span id="cb15-92"><a href="#cb15-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-93"><a href="#cb15-93" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-94"><a href="#cb15-94" aria-hidden="true" tabindex="-1"></a>\hat{v}_{MLE} = \frac{1}{n} (y − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE})′(y − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE})</span>
-<span id="cb15-95"><a href="#cb15-95" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-estimator-v}</span>
-<span id="cb15-96"><a href="#cb15-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-97"><a href="#cb15-97" aria-hidden="true" tabindex="-1"></a>$\hat{v}_{MLE}$ is not an unbiased estimator of $v$, therefore, the following unbiased estimator of $v$ is typically used:</span>
-<span id="cb15-98"><a href="#cb15-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-99"><a href="#cb15-99" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-100"><a href="#cb15-100" aria-hidden="true" tabindex="-1"></a>s^2 = \frac{1}{n-k}(y − \mathbf{X} \hat{\boldsymbol\beta}_{MLE} )′(y − \mathbf{X} \hat{\boldsymbol\beta}_{MLE} )</span>
-<span id="cb15-101"><a href="#cb15-101" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-unbiased-estimator-v}</span>
-<span id="cb15-102"><a href="#cb15-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-103"><a href="#cb15-103" aria-hidden="true" tabindex="-1"></a><span class="fu">### Regression Models: Bayesian Inference {#sec-bayes-regression}</span></span>
-<span id="cb15-104"><a href="#cb15-104" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-105"><a href="#cb15-105" aria-hidden="true" tabindex="-1"></a>Assume once again we have a model with the structure in (1), which results in a likelihood of the form</span>
-<span id="cb15-106"><a href="#cb15-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-107"><a href="#cb15-107" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-108"><a href="#cb15-108" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(y \mid \boldsymbol{\beta} , v) = \frac{1}{(2\pi v)^{n/2}}\exp \left<span class="sc">\{</span> -\frac{1}{2} (y − \mathbf{X} \boldsymbol{\beta})′(y − \mathbf{X} \boldsymbol{\beta}) \right<span class="sc">\}</span></span>
-<span id="cb15-109"><a href="#cb15-109" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-110"><a href="#cb15-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-111"><a href="#cb15-111" aria-hidden="true" tabindex="-1"></a>If a prior of the form :</span>
-<span id="cb15-112"><a href="#cb15-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-113"><a href="#cb15-113" aria-hidden="true" tabindex="-1"></a>$$ </span>
-<span id="cb15-114"><a href="#cb15-114" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\boldsymbol{\beta}, v) \propto \frac{1}{v}</span>
-<span id="cb15-115"><a href="#cb15-115" aria-hidden="true" tabindex="-1"></a>$$ {#eq-prior-regression}</span>
-<span id="cb15-116"><a href="#cb15-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-117"><a href="#cb15-117" aria-hidden="true" tabindex="-1"></a>is used, we obtain that the posterior distribution is given by:</span>
-<span id="cb15-118"><a href="#cb15-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-119"><a href="#cb15-119" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-120"><a href="#cb15-120" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\boldsymbol{\beta},v \mid \mathbf{y}) \propto \frac{1}{v^{n/2+1}}\exp \left<span class="sc">\{</span> -\frac{1}{2v} (\mathbf{y} − \mathbf{X} \boldsymbol{\beta})′(\mathbf{y} − \mathbf{X} \boldsymbol{\beta}) \right<span class="sc">\}</span></span>
-<span id="cb15-121"><a href="#cb15-121" aria-hidden="true" tabindex="-1"></a>$$ {#eq-posterior-regression}</span>
-<span id="cb15-122"><a href="#cb15-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-123"><a href="#cb15-123" aria-hidden="true" tabindex="-1"></a>In addition it can be shown that</span>
-<span id="cb15-124"><a href="#cb15-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-125"><a href="#cb15-125" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$(\boldsymbol{\beta}\mid v, \mathbf{y}) \sim \mathcal{N} (\hat{\boldsymbol{\beta}}_{MLE} , v(\mathbf{X}'\mathbf{X})^{-1})$</span>
-<span id="cb15-126"><a href="#cb15-126" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$(v \mid \mathbf{y}) \sim \mathcal{IG}\left(\frac{(n − k)}{2}, \frac{1}{2}d\right)$ with</span>
+<span id="cb15-93"><a href="#cb15-93" aria-hidden="true" tabindex="-1"></a>\index{Moore-Penrose pseudoinverse}</span>
+<span id="cb15-94"><a href="#cb15-94" aria-hidden="true" tabindex="-1"></a>where $(X^+ = \mathbf{X}'\mathbf{X})^{−1}\mathbf{X}'$ is the <span class="co">[</span><span class="ot">Moore-Penrose pseudoinverse</span><span class="co">](https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse)</span> of the matrix $\mathbf{X}$. This Moore-Penrose pseudoinverse of the matrix $\mathbf{X}$ is the most widely known generalization of the inverse matrix and is used to obtain the least squares solution to the linear regression problem.</span>
+<span id="cb15-95"><a href="#cb15-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-96"><a href="#cb15-96" aria-hidden="true" tabindex="-1"></a>and the MLE for $v$ is given by:</span>
+<span id="cb15-97"><a href="#cb15-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-98"><a href="#cb15-98" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-99"><a href="#cb15-99" aria-hidden="true" tabindex="-1"></a>\hat{v}_{MLE} = \frac{1}{n} (y − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE})′(y − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE})</span>
+<span id="cb15-100"><a href="#cb15-100" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-estimator-v}</span>
+<span id="cb15-101"><a href="#cb15-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-102"><a href="#cb15-102" aria-hidden="true" tabindex="-1"></a>$\hat{v}_{MLE}$ is not an unbiased estimator of $v$, therefore, the following unbiased estimator of $v$ is typically used:</span>
+<span id="cb15-103"><a href="#cb15-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-104"><a href="#cb15-104" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-105"><a href="#cb15-105" aria-hidden="true" tabindex="-1"></a>s^2 = \frac{1}{n-k}(y − \mathbf{X} \hat{\boldsymbol\beta}_{MLE} )′(y − \mathbf{X} \hat{\boldsymbol\beta}_{MLE} )</span>
+<span id="cb15-106"><a href="#cb15-106" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-unbiased-estimator-v}</span>
+<span id="cb15-107"><a href="#cb15-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-108"><a href="#cb15-108" aria-hidden="true" tabindex="-1"></a><span class="fu">### Regression Models: Bayesian Inference {#sec-bayes-regression}</span></span>
+<span id="cb15-109"><a href="#cb15-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-110"><a href="#cb15-110" aria-hidden="true" tabindex="-1"></a>Assume once again we have a model with the structure in (1), which results in a likelihood of the form</span>
+<span id="cb15-111"><a href="#cb15-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-112"><a href="#cb15-112" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-113"><a href="#cb15-113" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(y \mid \boldsymbol{\beta} , v) = \frac{1}{(2\pi v)^{n/2}}\exp \left<span class="sc">\{</span> -\frac{1}{2} (y − \mathbf{X} \boldsymbol{\beta})′(y − \mathbf{X} \boldsymbol{\beta}) \right<span class="sc">\}</span></span>
+<span id="cb15-114"><a href="#cb15-114" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-115"><a href="#cb15-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-116"><a href="#cb15-116" aria-hidden="true" tabindex="-1"></a>If a prior of the form :</span>
+<span id="cb15-117"><a href="#cb15-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-118"><a href="#cb15-118" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb15-119"><a href="#cb15-119" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\boldsymbol{\beta}, v) \propto \frac{1}{v}</span>
+<span id="cb15-120"><a href="#cb15-120" aria-hidden="true" tabindex="-1"></a>$$ {#eq-prior-regression}</span>
+<span id="cb15-121"><a href="#cb15-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-122"><a href="#cb15-122" aria-hidden="true" tabindex="-1"></a>is used, we obtain that the posterior distribution is given by:</span>
+<span id="cb15-123"><a href="#cb15-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-124"><a href="#cb15-124" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-125"><a href="#cb15-125" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\boldsymbol{\beta},v \mid \mathbf{y}) \propto \frac{1}{v^{n/2+1}}\exp \left<span class="sc">\{</span> -\frac{1}{2v} (\mathbf{y} − \mathbf{X} \boldsymbol{\beta})′(\mathbf{y} − \mathbf{X} \boldsymbol{\beta}) \right<span class="sc">\}</span></span>
+<span id="cb15-126"><a href="#cb15-126" aria-hidden="true" tabindex="-1"></a>$$ {#eq-posterior-regression}</span>
 <span id="cb15-127"><a href="#cb15-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-128"><a href="#cb15-128" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-129"><a href="#cb15-129" aria-hidden="true" tabindex="-1"></a>d = (\mathbf{y} − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE} )′(\mathbf{y} − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE} )</span>
-<span id="cb15-130"><a href="#cb15-130" aria-hidden="true" tabindex="-1"></a>$$ {#eq-d-unbiased-estimator-v}</span>
-<span id="cb15-131"><a href="#cb15-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-132"><a href="#cb15-132" aria-hidden="true" tabindex="-1"></a>where $\mathcal{IG}(a, b)$ denotes the inverse-gamma distribution with *shape* parameter $a$ and *scale* parameter $b$.</span>
-<span id="cb15-133"><a href="#cb15-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-134"><a href="#cb15-134" aria-hidden="true" tabindex="-1"></a>with $k = dim(\boldsymbol\beta)$.</span>
-<span id="cb15-135"><a href="#cb15-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-136"><a href="#cb15-136" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Given that $\mathbb{P}r(\boldsymbol\beta, v \mid \mathbf{y}) = \mathbb{P}r(\boldsymbol\beta \mid v, \mathbf{y})p(v \mid \mathbf{y})$ the equations above provide a way to directly sample from the posterior distribution of $\boldsymbol \beta$ and $v$ by first sampling v from the inverse-gamma distribution above and then conditioning on this sampled value of v, sampling $\boldsymbol \beta$ from the normal distribution above.</span><span class="co">]</span>{.mark}</span>
-<span id="cb15-137"><a href="#cb15-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-138"><a href="#cb15-138" aria-hidden="true" tabindex="-1"></a><span class="fu">## Maximum likelihood estimation in the AR(1) 🎥  {#sec-mle-ar1}</span></span>
-<span id="cb15-139"><a href="#cb15-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-140"><a href="#cb15-140" aria-hidden="true" tabindex="-1"></a><span class="al">![MLE 1](images/m1_0041.png)</span>{#fig-s_0041 .column-margin  group="slides" width="53mm"}</span>
-<span id="cb15-141"><a href="#cb15-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-128"><a href="#cb15-128" aria-hidden="true" tabindex="-1"></a>In addition it can be shown that</span>
+<span id="cb15-129"><a href="#cb15-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-130"><a href="#cb15-130" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$(\boldsymbol{\beta}\mid v, \mathbf{y}) \sim \mathcal{N} (\hat{\boldsymbol{\beta}}_{MLE} , v(\mathbf{X}'\mathbf{X})^{-1})$</span>
+<span id="cb15-131"><a href="#cb15-131" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$(v \mid \mathbf{y}) \sim \mathcal{IG}\left(\frac{(n − k)}{2}, \frac{1}{2}d\right)$ with</span>
+<span id="cb15-132"><a href="#cb15-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-133"><a href="#cb15-133" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-134"><a href="#cb15-134" aria-hidden="true" tabindex="-1"></a>d = (\mathbf{y} − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE} )′(\mathbf{y} − \mathbf{X} \hat{\boldsymbol{\beta}}_{MLE} )</span>
+<span id="cb15-135"><a href="#cb15-135" aria-hidden="true" tabindex="-1"></a>$$ {#eq-d-unbiased-estimator-v}</span>
+<span id="cb15-136"><a href="#cb15-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-137"><a href="#cb15-137" aria-hidden="true" tabindex="-1"></a>where $\mathcal{IG}(a, b)$ denotes the inverse-gamma distribution with *shape* parameter $a$ and *scale* parameter $b$.</span>
+<span id="cb15-138"><a href="#cb15-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-139"><a href="#cb15-139" aria-hidden="true" tabindex="-1"></a>with $k = dim(\boldsymbol\beta)$.</span>
+<span id="cb15-140"><a href="#cb15-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-141"><a href="#cb15-141" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Given that $\mathbb{P}r(\boldsymbol\beta, v \mid \mathbf{y}) = \mathbb{P}r(\boldsymbol\beta \mid v, \mathbf{y})p(v \mid \mathbf{y})$ the equations above provide a way to directly sample from the posterior distribution of $\boldsymbol \beta$ and $v$ by first sampling v from the inverse-gamma distribution above and then conditioning on this sampled value of v, sampling $\boldsymbol \beta$ from the normal distribution above.</span><span class="co">]</span>{.mark}</span>
 <span id="cb15-142"><a href="#cb15-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-143"><a href="#cb15-143" aria-hidden="true" tabindex="-1"></a><span class="al">![Full Likelihood MLE ](images/m1_0042.png)</span>{#fig-s_0042 .column-margin  group="slides" width="53mm"}</span>
+<span id="cb15-143"><a href="#cb15-143" aria-hidden="true" tabindex="-1"></a><span class="fu">## Maximum likelihood estimation in the AR(1) 🎥  {#sec-mle-ar1}</span></span>
 <span id="cb15-144"><a href="#cb15-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-145"><a href="#cb15-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-146"><a href="#cb15-146" aria-hidden="true" tabindex="-1"></a><span class="al">![Conditional Likelihood MLE](images/m1_0043.png)</span>{#fig-s_0043 .column-margin  group="slides" width="53mm"}</span>
+<span id="cb15-145"><a href="#cb15-145" aria-hidden="true" tabindex="-1"></a><span class="al">![MLE 1](images/m1_0041.png)</span>{#fig-s_0041 .column-margin  group="slides" width="53mm"}</span>
+<span id="cb15-146"><a href="#cb15-146" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-147"><a href="#cb15-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-148"><a href="#cb15-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-149"><a href="#cb15-149" aria-hidden="true" tabindex="-1"></a>There are two main strategies for performing MLE for an AR(1) model:</span>
+<span id="cb15-148"><a href="#cb15-148" aria-hidden="true" tabindex="-1"></a><span class="al">![Full Likelihood MLE ](images/m1_0042.png)</span>{#fig-s_0042 .column-margin  group="slides" width="53mm"}</span>
+<span id="cb15-149"><a href="#cb15-149" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-150"><a href="#cb15-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-151"><a href="#cb15-151" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Full Likelihood: Considers the joint distribution of all observations $y_1, \dots, y_T$.</span>
-<span id="cb15-152"><a href="#cb15-152" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Conditional Likelihood: Conditions on the first observation ($y_1$) and works with the likelihood of the remaining observations ($y_2, \dots, y_T$).</span>
+<span id="cb15-151"><a href="#cb15-151" aria-hidden="true" tabindex="-1"></a><span class="al">![Conditional Likelihood MLE](images/m1_0043.png)</span>{#fig-s_0043 .column-margin  group="slides" width="53mm"}</span>
+<span id="cb15-152"><a href="#cb15-152" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-153"><a href="#cb15-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-154"><a href="#cb15-154" aria-hidden="true" tabindex="-1"></a><span class="fu">### **Model Setup**</span></span>
+<span id="cb15-154"><a href="#cb15-154" aria-hidden="true" tabindex="-1"></a>There are two main strategies for performing MLE for an AR(1) model:</span>
 <span id="cb15-155"><a href="#cb15-155" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-156"><a href="#cb15-156" aria-hidden="true" tabindex="-1"></a>The focus is on the **zero-mean AR(1) model**:</span>
-<span id="cb15-157"><a href="#cb15-157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-158"><a href="#cb15-158" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-159"><a href="#cb15-159" aria-hidden="true" tabindex="-1"></a>Y_t = \phi Y_{t-1} + \epsilon_t, \quad \epsilon_t \overset{iid}{\sim} \mathcal{N}(0, v), \quad \phi \in (-1,1)</span>
-<span id="cb15-160"><a href="#cb15-160" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-161"><a href="#cb15-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-162"><a href="#cb15-162" aria-hidden="true" tabindex="-1"></a>This condition ensures **stationarity** of the process.</span>
-<span id="cb15-163"><a href="#cb15-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-164"><a href="#cb15-164" aria-hidden="true" tabindex="-1"></a><span class="fu">### **Distributional Assumptions**</span></span>
-<span id="cb15-165"><a href="#cb15-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-166"><a href="#cb15-166" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$Y_1 \sim \mathcal{N}\left(0, \frac{v}{1 - \phi^2}\right)$</span>
-<span id="cb15-167"><a href="#cb15-167" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$Y_t \mid Y_{t-1} \sim \mathcal{N}(\phi Y_{t-1}, v)$ for $t \geq 2$</span>
+<span id="cb15-156"><a href="#cb15-156" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Full Likelihood: Considers the joint distribution of all observations $y_1, \dots, y_T$.</span>
+<span id="cb15-157"><a href="#cb15-157" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Conditional Likelihood: Conditions on the first observation ($y_1$) and works with the likelihood of the remaining observations ($y_2, \dots, y_T$).</span>
+<span id="cb15-158"><a href="#cb15-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-159"><a href="#cb15-159" aria-hidden="true" tabindex="-1"></a><span class="fu">### **Model Setup**</span></span>
+<span id="cb15-160"><a href="#cb15-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-161"><a href="#cb15-161" aria-hidden="true" tabindex="-1"></a>The focus is on the **zero-mean AR(1) model**:</span>
+<span id="cb15-162"><a href="#cb15-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-163"><a href="#cb15-163" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-164"><a href="#cb15-164" aria-hidden="true" tabindex="-1"></a>Y_t = \phi Y_{t-1} + \epsilon_t, \quad \epsilon_t \overset{iid}{\sim} \mathcal{N}(0, v), \quad \phi \in (-1,1)</span>
+<span id="cb15-165"><a href="#cb15-165" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-166"><a href="#cb15-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-167"><a href="#cb15-167" aria-hidden="true" tabindex="-1"></a>This condition ensures **stationarity** of the process.</span>
 <span id="cb15-168"><a href="#cb15-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-169"><a href="#cb15-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-169"><a href="#cb15-169" aria-hidden="true" tabindex="-1"></a><span class="fu">### **Distributional Assumptions**</span></span>
 <span id="cb15-170"><a href="#cb15-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-171"><a href="#cb15-171" aria-hidden="true" tabindex="-1"></a><span class="fu">### **Likelihood Approaches**</span></span>
-<span id="cb15-172"><a href="#cb15-172" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-173"><a href="#cb15-173" aria-hidden="true" tabindex="-1"></a>Two approaches are considered:</span>
+<span id="cb15-171"><a href="#cb15-171" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$Y_1 \sim \mathcal{N}\left(0, \frac{v}{1 - \phi^2}\right)$</span>
+<span id="cb15-172"><a href="#cb15-172" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$Y_t \mid Y_{t-1} \sim \mathcal{N}(\phi Y_{t-1}, v)$ for $t \geq 2$</span>
+<span id="cb15-173"><a href="#cb15-173" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-174"><a href="#cb15-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-175"><a href="#cb15-175" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 1. **Full Likelihood**</span></span>
-<span id="cb15-176"><a href="#cb15-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-177"><a href="#cb15-177" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-178"><a href="#cb15-178" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb15-179"><a href="#cb15-179" aria-hidden="true" tabindex="-1"></a>p(y_{1:T} \mid \phi, v) &amp;= p(y_1 \mid \phi, v) \cdot \prod_{t=2}^T p(y_t \mid y_{t-1}, \phi, v) <span class="sc">\\</span></span>
-<span id="cb15-180"><a href="#cb15-180" aria-hidden="true" tabindex="-1"></a> &amp;= \frac{1}{\sqrt{2\pi \frac{v}{1 - \phi^2}}} \exp\left( -\frac{y_1^2 (1 - \phi^2)}{2v} \right) \cdot  \prod_{t=2}^T \frac{1}{\sqrt{2\pi v}} \exp\left( -\frac{(y_t - \phi y_{t-1})^2}{2v} \right) <span class="sc">\\</span></span>
-<span id="cb15-181"><a href="#cb15-181" aria-hidden="true" tabindex="-1"></a>  &amp;= \frac{(1 - \phi^2)^{1/2}}{(2\pi v)^{T/2}} \cdot</span>
-<span id="cb15-182"><a href="#cb15-182" aria-hidden="true" tabindex="-1"></a>\exp\left( -\frac{1}{2v} \left<span class="co">[</span><span class="ot"> \underbrace{ y_1^2(1 - \phi^2) + \sum_{t=2}^T (y_t - \phi y_{t-1})^2 }_{\text{Quadratic Loss } Q^*(\phi)} \right</span><span class="co">]</span> \right) <span class="sc">\\</span></span>
-<span id="cb15-183"><a href="#cb15-183" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{(1 - \phi^2)^{1/2}}{(2\pi v)^{T/2}} \exp\left( -\frac{Q^*(\phi)}{2v} \right)</span>
-<span id="cb15-184"><a href="#cb15-184" aria-hidden="true" tabindex="-1"></a>\end{aligned} </span>
-<span id="cb15-185"><a href="#cb15-185" aria-hidden="true" tabindex="-1"></a>$$ {#eq-full-likelihood-ar1}</span>
-<span id="cb15-186"><a href="#cb15-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-187"><a href="#cb15-187" aria-hidden="true" tabindex="-1"></a>where $Q^*(\phi)$ is defined as:</span>
-<span id="cb15-188"><a href="#cb15-188" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-189"><a href="#cb15-189" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-190"><a href="#cb15-190" aria-hidden="true" tabindex="-1"></a>Q^*(\phi) = </span>
-<span id="cb15-191"><a href="#cb15-191" aria-hidden="true" tabindex="-1"></a>\underbrace{y_1^2(1 - \phi^2)\vphantom{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}}_{\text{Initial Loss}} </span>
-<span id="cb15-192"><a href="#cb15-192" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>\underbrace{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}_{\text{Remaining Loss } Q(\phi)}</span>
-<span id="cb15-193"><a href="#cb15-193" aria-hidden="true" tabindex="-1"></a>$$ {#eq-qstar-ar1}</span>
-<span id="cb15-194"><a href="#cb15-194" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-195"><a href="#cb15-195" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-196"><a href="#cb15-196" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb15-197"><a href="#cb15-197" aria-hidden="true" tabindex="-1"></a>p(y_{1:T} \mid \phi) &amp;= \prod_{t=2}^T \frac{1}{\sqrt{2\pi v}} \exp\left( -\frac{(y_t - \phi y_{t-1})^2}{2v} \right) <span class="sc">\\</span></span>
-<span id="cb15-198"><a href="#cb15-198" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{1}{(2\pi v)^{T/2}} \exp\left( -\sum_{t=2}^T \frac{1}{2v} \left( y_t - \phi y_{t-1} \right)^2 \right) <span class="sc">\\</span></span>
-<span id="cb15-199"><a href="#cb15-199" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{1}{(2\pi v)^{T/2}} \exp\left( -\frac{Q(\phi)}{2v} \right)</span>
-<span id="cb15-200"><a href="#cb15-200" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb15-201"><a href="#cb15-201" aria-hidden="true" tabindex="-1"></a>$$ {#eq-likelihood-ar1}</span>
-<span id="cb15-202"><a href="#cb15-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-203"><a href="#cb15-203" aria-hidden="true" tabindex="-1"></a>where $Q(\phi)$ is the quadratic loss function defined as:</span>
-<span id="cb15-204"><a href="#cb15-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-205"><a href="#cb15-205" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-206"><a href="#cb15-206" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-207"><a href="#cb15-207" aria-hidden="true" tabindex="-1"></a>\underbrace{ \begin{pmatrix}y_1 <span class="sc">\\</span> y_2 <span class="sc">\\</span> \vdots <span class="sc">\\</span> y_T \end{pmatrix} }_{\utilde{y}} = </span>
-<span id="cb15-208"><a href="#cb15-208" aria-hidden="true" tabindex="-1"></a>\underbrace{ \begin{pmatrix}y_1 <span class="sc">\\</span> y_2 <span class="sc">\\</span> \vdots <span class="sc">\\</span> y_T \end{pmatrix} }_{\mathbb{X}} </span>
-<span id="cb15-209"><a href="#cb15-209" aria-hidden="true" tabindex="-1"></a>\underbrace{ \phi \vphantom{\begin{pmatrix}y_1 <span class="sc">\\</span> y_2 <span class="sc">\\</span> \vdots <span class="sc">\\</span> y_T \end{pmatrix} }}_{\beta} + </span>
-<span id="cb15-210"><a href="#cb15-210" aria-hidden="true" tabindex="-1"></a>\underbrace{ \begin{pmatrix}\epsilon_1 <span class="sc">\\</span> \epsilon_2 <span class="sc">\\</span> \vdots <span class="sc">\\</span> \epsilon_T\end{pmatrix}}_{\utilde {\epsilon}}</span>
-<span id="cb15-211"><a href="#cb15-211" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model}</span>
-<span id="cb15-212"><a href="#cb15-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-213"><a href="#cb15-213" aria-hidden="true" tabindex="-1"></a>where $\utilde{y}$ is the vector of observations, $\mathbb{X}$ is the design matrix with $y_1$ as the first column and $y_2, \ldots, y_{T-1}$ as the second column, $\beta = \phi$ is the AR coefficient, and $\utilde{\epsilon} \sim \mathcal{N}(0, vI)$ is the error term.</span>
-<span id="cb15-214"><a href="#cb15-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-215"><a href="#cb15-215" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-216"><a href="#cb15-216" aria-hidden="true" tabindex="-1"></a>\utilde{y} = \mathbb{X} \beta + \utilde{\epsilon} \qquad \utilde{\epsilon} \sim \mathcal{N}(0, vI)</span>
-<span id="cb15-217"><a href="#cb15-217" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-218"><a href="#cb15-218" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-219"><a href="#cb15-219" aria-hidden="true" tabindex="-1"></a>where $\mathbb{X}$ is the design matrix </span>
-<span id="cb15-220"><a href="#cb15-220" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-221"><a href="#cb15-221" aria-hidden="true" tabindex="-1"></a>with $y_1$ as the first column and $y_2, \ldots, y_{T-1}$ as the second column.</span>
-<span id="cb15-222"><a href="#cb15-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-223"><a href="#cb15-223" aria-hidden="true" tabindex="-1"></a>If the matrix $\mathbb{X}$ is full rank, the MLE for $\phi$ can be obtained as:</span>
-<span id="cb15-224"><a href="#cb15-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-225"><a href="#cb15-225" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-226"><a href="#cb15-226" aria-hidden="true" tabindex="-1"></a>\hat{\beta} = (\mathbb{X}'\mathbb{X})^{-1}\mathbb{X}'y</span>
-<span id="cb15-227"><a href="#cb15-227" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-228"><a href="#cb15-228" aria-hidden="true" tabindex="-1"></a>and the MLE for $v$ is given by:</span>
+<span id="cb15-175"><a href="#cb15-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-176"><a href="#cb15-176" aria-hidden="true" tabindex="-1"></a><span class="fu">### **Likelihood Approaches**</span></span>
+<span id="cb15-177"><a href="#cb15-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-178"><a href="#cb15-178" aria-hidden="true" tabindex="-1"></a>Two approaches are considered:</span>
+<span id="cb15-179"><a href="#cb15-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-180"><a href="#cb15-180" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 1. **Full Likelihood**</span></span>
+<span id="cb15-181"><a href="#cb15-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-182"><a href="#cb15-182" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-183"><a href="#cb15-183" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb15-184"><a href="#cb15-184" aria-hidden="true" tabindex="-1"></a>p(y_{1:T} \mid \phi, v) &amp;= p(y_1 \mid \phi, v) \cdot \prod_{t=2}^T p(y_t \mid y_{t-1}, \phi, v) <span class="sc">\\</span></span>
+<span id="cb15-185"><a href="#cb15-185" aria-hidden="true" tabindex="-1"></a> &amp;= \frac{1}{\sqrt{2\pi \frac{v}{1 - \phi^2}}} \exp\left( -\frac{y_1^2 (1 - \phi^2)}{2v} \right) \cdot  \prod_{t=2}^T \frac{1}{\sqrt{2\pi v}} \exp\left( -\frac{(y_t - \phi y_{t-1})^2}{2v} \right) <span class="sc">\\</span></span>
+<span id="cb15-186"><a href="#cb15-186" aria-hidden="true" tabindex="-1"></a>  &amp;= \frac{(1 - \phi^2)^{1/2}}{(2\pi v)^{T/2}} \cdot</span>
+<span id="cb15-187"><a href="#cb15-187" aria-hidden="true" tabindex="-1"></a>\exp\left( -\frac{1}{2v} \left<span class="co">[</span><span class="ot"> \underbrace{ y_1^2(1 - \phi^2) + \sum_{t=2}^T (y_t - \phi y_{t-1})^2 }_{\text{Quadratic Loss } Q^*(\phi)} \right</span><span class="co">]</span> \right) <span class="sc">\\</span></span>
+<span id="cb15-188"><a href="#cb15-188" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{(1 - \phi^2)^{1/2}}{(2\pi v)^{T/2}} \exp\left( -\frac{Q^*(\phi)}{2v} \right)</span>
+<span id="cb15-189"><a href="#cb15-189" aria-hidden="true" tabindex="-1"></a>\end{aligned} </span>
+<span id="cb15-190"><a href="#cb15-190" aria-hidden="true" tabindex="-1"></a>$$ {#eq-full-likelihood-ar1}</span>
+<span id="cb15-191"><a href="#cb15-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-192"><a href="#cb15-192" aria-hidden="true" tabindex="-1"></a>where $Q^*(\phi)$ is defined as:</span>
+<span id="cb15-193"><a href="#cb15-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-194"><a href="#cb15-194" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-195"><a href="#cb15-195" aria-hidden="true" tabindex="-1"></a>Q^*(\phi) = </span>
+<span id="cb15-196"><a href="#cb15-196" aria-hidden="true" tabindex="-1"></a>\underbrace{y_1^2(1 - \phi^2)\vphantom{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}}_{\text{Initial Loss}} </span>
+<span id="cb15-197"><a href="#cb15-197" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>\underbrace{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}_{\text{Remaining Loss } Q(\phi)}</span>
+<span id="cb15-198"><a href="#cb15-198" aria-hidden="true" tabindex="-1"></a>$$ {#eq-qstar-ar1}</span>
+<span id="cb15-199"><a href="#cb15-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-200"><a href="#cb15-200" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-201"><a href="#cb15-201" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb15-202"><a href="#cb15-202" aria-hidden="true" tabindex="-1"></a>p(y_{1:T} \mid \phi) &amp;= \prod_{t=2}^T \frac{1}{\sqrt{2\pi v}} \exp\left( -\frac{(y_t - \phi y_{t-1})^2}{2v} \right) <span class="sc">\\</span></span>
+<span id="cb15-203"><a href="#cb15-203" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{1}{(2\pi v)^{T/2}} \exp\left( -\sum_{t=2}^T \frac{1}{2v} \left( y_t - \phi y_{t-1} \right)^2 \right) <span class="sc">\\</span></span>
+<span id="cb15-204"><a href="#cb15-204" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{1}{(2\pi v)^{T/2}} \exp\left( -\frac{Q(\phi)}{2v} \right)</span>
+<span id="cb15-205"><a href="#cb15-205" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb15-206"><a href="#cb15-206" aria-hidden="true" tabindex="-1"></a>$$ {#eq-likelihood-ar1}</span>
+<span id="cb15-207"><a href="#cb15-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-208"><a href="#cb15-208" aria-hidden="true" tabindex="-1"></a>where $Q(\phi)$ is the quadratic loss function defined as:</span>
+<span id="cb15-209"><a href="#cb15-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-210"><a href="#cb15-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-211"><a href="#cb15-211" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-212"><a href="#cb15-212" aria-hidden="true" tabindex="-1"></a>\underbrace{ \begin{pmatrix}y_1 <span class="sc">\\</span> y_2 <span class="sc">\\</span> \vdots <span class="sc">\\</span> y_T \end{pmatrix} }_{\utilde{y}} = </span>
+<span id="cb15-213"><a href="#cb15-213" aria-hidden="true" tabindex="-1"></a>\underbrace{ \begin{pmatrix}y_1 <span class="sc">\\</span> y_2 <span class="sc">\\</span> \vdots <span class="sc">\\</span> y_T \end{pmatrix} }_{\mathbb{X}} </span>
+<span id="cb15-214"><a href="#cb15-214" aria-hidden="true" tabindex="-1"></a>\underbrace{ \phi \vphantom{\begin{pmatrix}y_1 <span class="sc">\\</span> y_2 <span class="sc">\\</span> \vdots <span class="sc">\\</span> y_T \end{pmatrix} }}_{\beta} + </span>
+<span id="cb15-215"><a href="#cb15-215" aria-hidden="true" tabindex="-1"></a>\underbrace{ \begin{pmatrix}\epsilon_1 <span class="sc">\\</span> \epsilon_2 <span class="sc">\\</span> \vdots <span class="sc">\\</span> \epsilon_T\end{pmatrix}}_{\utilde {\epsilon}}</span>
+<span id="cb15-216"><a href="#cb15-216" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model}</span>
+<span id="cb15-217"><a href="#cb15-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-218"><a href="#cb15-218" aria-hidden="true" tabindex="-1"></a>where $\utilde{y}$ is the vector of observations, $\mathbb{X}$ is the design matrix with $y_1$ as the first column and $y_2, \ldots, y_{T-1}$ as the second column, $\beta = \phi$ is the AR coefficient, and $\utilde{\epsilon} \sim \mathcal{N}(0, vI)$ is the error term.</span>
+<span id="cb15-219"><a href="#cb15-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-220"><a href="#cb15-220" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-221"><a href="#cb15-221" aria-hidden="true" tabindex="-1"></a>\utilde{y} = \mathbb{X} \beta + \utilde{\epsilon} \qquad \utilde{\epsilon} \sim \mathcal{N}(0, vI)</span>
+<span id="cb15-222"><a href="#cb15-222" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-223"><a href="#cb15-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-224"><a href="#cb15-224" aria-hidden="true" tabindex="-1"></a>where $\mathbb{X}$ is the design matrix </span>
+<span id="cb15-225"><a href="#cb15-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-226"><a href="#cb15-226" aria-hidden="true" tabindex="-1"></a>with $y_1$ as the first column and $y_2, \ldots, y_{T-1}$ as the second column.</span>
+<span id="cb15-227"><a href="#cb15-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-228"><a href="#cb15-228" aria-hidden="true" tabindex="-1"></a>If the matrix $\mathbb{X}$ is full rank, the MLE for $\phi$ can be obtained as:</span>
 <span id="cb15-229"><a href="#cb15-229" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-230"><a href="#cb15-230" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-231"><a href="#cb15-231" aria-hidden="true" tabindex="-1"></a>\hat{v} = S^2 = \frac{(y - \mathbb{X}\hat{\beta})'(y - \mathbb{X}\hat{\beta})}{\dim(y)-\dim(\beta)} </span>
+<span id="cb15-231"><a href="#cb15-231" aria-hidden="true" tabindex="-1"></a>\hat{\beta} = (\mathbb{X}'\mathbb{X})^{-1}\mathbb{X}'y</span>
 <span id="cb15-232"><a href="#cb15-232" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-233"><a href="#cb15-233" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-234"><a href="#cb15-234" aria-hidden="true" tabindex="-1"></a>and the MLE for $\phi$.</span>
+<span id="cb15-233"><a href="#cb15-233" aria-hidden="true" tabindex="-1"></a>and the MLE for $v$ is given by:</span>
+<span id="cb15-234"><a href="#cb15-234" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-235"><a href="#cb15-235" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-236"><a href="#cb15-236" aria-hidden="true" tabindex="-1"></a>\hat{\phi}_{MLE} = \frac{\sum_{t=2}^T y_t y_{t-1}}{\sum_{t=2}^T y_{t-1}^2}</span>
-<span id="cb15-237"><a href="#cb15-237" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-ar1-phi}</span>
+<span id="cb15-236"><a href="#cb15-236" aria-hidden="true" tabindex="-1"></a>\hat{v} = S^2 = \frac{(y - \mathbb{X}\hat{\beta})'(y - \mathbb{X}\hat{\beta})}{\dim(y)-\dim(\beta)} </span>
+<span id="cb15-237"><a href="#cb15-237" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb15-238"><a href="#cb15-238" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-239"><a href="#cb15-239" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-240"><a href="#cb15-240" aria-hidden="true" tabindex="-1"></a>and the unbiased estimator for $v$ is given by:</span>
-<span id="cb15-241"><a href="#cb15-241" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-242"><a href="#cb15-242" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-243"><a href="#cb15-243" aria-hidden="true" tabindex="-1"></a>S^2 = \sum_{t=2}^T (y_t - \hat{\phi}_{MLE} y_{t-1})^2 / (T - 2)</span>
-<span id="cb15-244"><a href="#cb15-244" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-ar1-v-unbiased}</span>
-<span id="cb15-245"><a href="#cb15-245" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-246"><a href="#cb15-246" aria-hidden="true" tabindex="-1"></a>where $T$ is the number of time points and $S^2$ is the unbiased estimator for the variance $v$.</span>
-<span id="cb15-247"><a href="#cb15-247" aria-hidden="true" tabindex="-1"></a>And we usually use this unbiased estimator for $v$ in practice, as the MLE for $v$ is biased.</span>
-<span id="cb15-248"><a href="#cb15-248" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-249"><a href="#cb15-249" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 2. **Conditional Likelihood**</span></span>
+<span id="cb15-239"><a href="#cb15-239" aria-hidden="true" tabindex="-1"></a>and the MLE for $\phi$.</span>
+<span id="cb15-240"><a href="#cb15-240" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-241"><a href="#cb15-241" aria-hidden="true" tabindex="-1"></a>\hat{\phi}_{MLE} = \frac{\sum_{t=2}^T y_t y_{t-1}}{\sum_{t=2}^T y_{t-1}^2}</span>
+<span id="cb15-242"><a href="#cb15-242" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-ar1-phi}</span>
+<span id="cb15-243"><a href="#cb15-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-244"><a href="#cb15-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-245"><a href="#cb15-245" aria-hidden="true" tabindex="-1"></a>and the unbiased estimator for $v$ is given by:</span>
+<span id="cb15-246"><a href="#cb15-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-247"><a href="#cb15-247" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-248"><a href="#cb15-248" aria-hidden="true" tabindex="-1"></a>S^2 = \sum_{t=2}^T (y_t - \hat{\phi}_{MLE} y_{t-1})^2 / (T - 2)</span>
+<span id="cb15-249"><a href="#cb15-249" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-ar1-v-unbiased}</span>
 <span id="cb15-250"><a href="#cb15-250" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-251"><a href="#cb15-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-252"><a href="#cb15-252" aria-hidden="true" tabindex="-1"></a>Maximizing the full likelihood requires **numerical optimization methods** (e.g., Newton-Raphson), as there's no closed-form solution.</span>
+<span id="cb15-251"><a href="#cb15-251" aria-hidden="true" tabindex="-1"></a>where $T$ is the number of time points and $S^2$ is the unbiased estimator for the variance $v$.</span>
+<span id="cb15-252"><a href="#cb15-252" aria-hidden="true" tabindex="-1"></a>And we usually use this unbiased estimator for $v$ in practice, as the MLE for $v$ is biased.</span>
 <span id="cb15-253"><a href="#cb15-253" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-254"><a href="#cb15-254" aria-hidden="true" tabindex="-1"></a>This setup is equivalent to a **linear regression**:</span>
+<span id="cb15-254"><a href="#cb15-254" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 2. **Conditional Likelihood**</span></span>
 <span id="cb15-255"><a href="#cb15-255" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-256"><a href="#cb15-256" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-257"><a href="#cb15-257" aria-hidden="true" tabindex="-1"></a>\mathbf{y} = X\beta + \epsilon, \quad \epsilon \sim \mathcal{N}(0, vI)</span>
-<span id="cb15-258"><a href="#cb15-258" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-259"><a href="#cb15-259" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-260"><a href="#cb15-260" aria-hidden="true" tabindex="-1"></a>Where:</span>
-<span id="cb15-261"><a href="#cb15-261" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-262"><a href="#cb15-262" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$\mathbf{y} = <span class="co">[</span><span class="ot">y_2, \dots, y_T</span><span class="co">]</span>^T$</span>
-<span id="cb15-263"><a href="#cb15-263" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$X = <span class="co">[</span><span class="ot">y_1, \dots, y_{T-1}</span><span class="co">]</span>^T$</span>
-<span id="cb15-264"><a href="#cb15-264" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$\beta = \phi$</span>
-<span id="cb15-265"><a href="#cb15-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-256"><a href="#cb15-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-257"><a href="#cb15-257" aria-hidden="true" tabindex="-1"></a>Maximizing the full likelihood requires **numerical optimization methods** (e.g., Newton-Raphson), as there's no closed-form solution.</span>
+<span id="cb15-258"><a href="#cb15-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-259"><a href="#cb15-259" aria-hidden="true" tabindex="-1"></a>This setup is equivalent to a **linear regression**:</span>
+<span id="cb15-260"><a href="#cb15-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-261"><a href="#cb15-261" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-262"><a href="#cb15-262" aria-hidden="true" tabindex="-1"></a>\mathbf{y} = X\beta + \epsilon, \quad \epsilon \sim \mathcal{N}(0, vI)</span>
+<span id="cb15-263"><a href="#cb15-263" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-264"><a href="#cb15-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-265"><a href="#cb15-265" aria-hidden="true" tabindex="-1"></a>Where:</span>
 <span id="cb15-266"><a href="#cb15-266" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-267"><a href="#cb15-267" aria-hidden="true" tabindex="-1"></a>Condition on $y_1$:</span>
-<span id="cb15-268"><a href="#cb15-268" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-269"><a href="#cb15-269" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-270"><a href="#cb15-270" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb15-271"><a href="#cb15-271" aria-hidden="true" tabindex="-1"></a>p(y_1 \mid \phi) &amp;\sim \mathcal{N}(0, 1/(1 - \phi^2)) <span class="sc">\\</span></span>
-<span id="cb15-272"><a href="#cb15-272" aria-hidden="true" tabindex="-1"></a>p(y_t \mid y_{t-1}, \phi) &amp;\sim \mathcal{N}(\phi y_{t-1}, 1) <span class="sc">\\</span></span>
-<span id="cb15-273"><a href="#cb15-273" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb15-267"><a href="#cb15-267" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$\mathbf{y} = <span class="co">[</span><span class="ot">y_2, \dots, y_T</span><span class="co">]</span>^T$</span>
+<span id="cb15-268"><a href="#cb15-268" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$X = <span class="co">[</span><span class="ot">y_1, \dots, y_{T-1}</span><span class="co">]</span>^T$</span>
+<span id="cb15-269"><a href="#cb15-269" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>$\beta = \phi$</span>
+<span id="cb15-270"><a href="#cb15-270" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-271"><a href="#cb15-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-272"><a href="#cb15-272" aria-hidden="true" tabindex="-1"></a>Condition on $y_1$:</span>
+<span id="cb15-273"><a href="#cb15-273" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-274"><a href="#cb15-274" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-275"><a href="#cb15-275" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-276"><a href="#cb15-276" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-277"><a href="#cb15-277" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-278"><a href="#cb15-278" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb15-279"><a href="#cb15-279" aria-hidden="true" tabindex="-1"></a>p(y_{1:T} \mid y_1, \phi, v) &amp;= p(y_1 \mid \phi)  \cdot \prod_{t=2}^T p(y_t \mid y_{t-1}, \phi)<span class="sc">\\</span></span>
-<span id="cb15-280"><a href="#cb15-280" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{(1 - \phi^2)^{1/2}}{(2\pi)^{T/2}} \exp\left(-\frac{y_1^2(1 - \phi^2)}{2}\right) \cdot \prod_{t=2}^T \frac{1}{\sqrt{2\pi}} \exp\left(-\frac{(y_t - \phi y_{t-1})^2}{2}\right) <span class="sc">\\</span></span>
-<span id="cb15-281"><a href="#cb15-281" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{(1 - \phi^2)^{1/2}}{(2\pi)^{T/2}} \exp\left(-\frac{1}{2} \left<span class="co">[</span><span class="ot">y_1^2(1 - \phi^2) + \sum_{t=2}^T (y_t - \phi y_{t-1})^2\right</span><span class="co">]</span>\right) <span class="sc">\\</span></span>
-<span id="cb15-282"><a href="#cb15-282" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb15-283"><a href="#cb15-283" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-284"><a href="#cb15-284" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-285"><a href="#cb15-285" aria-hidden="true" tabindex="-1"></a>So the log-likelihood becomes:</span>
-<span id="cb15-286"><a href="#cb15-286" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-287"><a href="#cb15-287" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-288"><a href="#cb15-288" aria-hidden="true" tabindex="-1"></a>\log p(y_{1:T} \mid y_1, \phi) = \frac{1}{2} \log(1 - \phi^2) - \frac{1}{2} Q(\phi) + K</span>
-<span id="cb15-289"><a href="#cb15-289" aria-hidden="true" tabindex="-1"></a>$$ {#eq-log-likelihood-ar1}</span>
-<span id="cb15-290"><a href="#cb15-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-291"><a href="#cb15-291" aria-hidden="true" tabindex="-1"></a>where $K$ is a constant that does not depend on $\phi$.</span>
-<span id="cb15-292"><a href="#cb15-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-293"><a href="#cb15-293" aria-hidden="true" tabindex="-1"></a>So if I were to look at maximizing this function, we can think about taking first derivatives with respect to phi. And then we will see that again the expression that you obtain doesn't allow you to obtain a close form expression for $\hat{\phi}_{MLE}$. Instead, we will need to use a numerical optimization method such as Newton Raphson to obtain the maximum likelihood estimator for phi.</span>
-<span id="cb15-294"><a href="#cb15-294" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-275"><a href="#cb15-275" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb15-276"><a href="#cb15-276" aria-hidden="true" tabindex="-1"></a>p(y_1 \mid \phi) &amp;\sim \mathcal{N}(0, 1/(1 - \phi^2)) <span class="sc">\\</span></span>
+<span id="cb15-277"><a href="#cb15-277" aria-hidden="true" tabindex="-1"></a>p(y_t \mid y_{t-1}, \phi) &amp;\sim \mathcal{N}(\phi y_{t-1}, 1) <span class="sc">\\</span></span>
+<span id="cb15-278"><a href="#cb15-278" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb15-279"><a href="#cb15-279" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-280"><a href="#cb15-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-281"><a href="#cb15-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-282"><a href="#cb15-282" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-283"><a href="#cb15-283" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb15-284"><a href="#cb15-284" aria-hidden="true" tabindex="-1"></a>p(y_{1:T} \mid y_1, \phi, v) &amp;= p(y_1 \mid \phi)  \cdot \prod_{t=2}^T p(y_t \mid y_{t-1}, \phi)<span class="sc">\\</span></span>
+<span id="cb15-285"><a href="#cb15-285" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{(1 - \phi^2)^{1/2}}{(2\pi)^{T/2}} \exp\left(-\frac{y_1^2(1 - \phi^2)}{2}\right) \cdot \prod_{t=2}^T \frac{1}{\sqrt{2\pi}} \exp\left(-\frac{(y_t - \phi y_{t-1})^2}{2}\right) <span class="sc">\\</span></span>
+<span id="cb15-286"><a href="#cb15-286" aria-hidden="true" tabindex="-1"></a>&amp;= \frac{(1 - \phi^2)^{1/2}}{(2\pi)^{T/2}} \exp\left(-\frac{1}{2} \left<span class="co">[</span><span class="ot">y_1^2(1 - \phi^2) + \sum_{t=2}^T (y_t - \phi y_{t-1})^2\right</span><span class="co">]</span>\right) <span class="sc">\\</span></span>
+<span id="cb15-287"><a href="#cb15-287" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb15-288"><a href="#cb15-288" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-289"><a href="#cb15-289" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-290"><a href="#cb15-290" aria-hidden="true" tabindex="-1"></a>So the log-likelihood becomes:</span>
+<span id="cb15-291"><a href="#cb15-291" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-292"><a href="#cb15-292" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-293"><a href="#cb15-293" aria-hidden="true" tabindex="-1"></a>\log p(y_{1:T} \mid y_1, \phi) = \frac{1}{2} \log(1 - \phi^2) - \frac{1}{2} Q(\phi) + K</span>
+<span id="cb15-294"><a href="#cb15-294" aria-hidden="true" tabindex="-1"></a>$$ {#eq-log-likelihood-ar1}</span>
 <span id="cb15-295"><a href="#cb15-295" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-296"><a href="#cb15-296" aria-hidden="true" tabindex="-1"></a><span class="fu">### Conclusion</span></span>
+<span id="cb15-296"><a href="#cb15-296" aria-hidden="true" tabindex="-1"></a>where $K$ is a constant that does not depend on $\phi$.</span>
 <span id="cb15-297"><a href="#cb15-297" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-298"><a href="#cb15-298" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>**Full likelihood** is more general but computationally intensive.</span>
-<span id="cb15-299"><a href="#cb15-299" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>**Conditional likelihood** simplifies estimation by leveraging regression theory.</span>
-<span id="cb15-300"><a href="#cb15-300" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>When variance $v$ is known (e.g., $v = 1$), the optimization reduces to maximizing a univariate function of $\phi$.</span>
-<span id="cb15-301"><a href="#cb15-301" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>For full likelihood, optimization of $Q^*(\phi)$ is required.</span>
+<span id="cb15-298"><a href="#cb15-298" aria-hidden="true" tabindex="-1"></a>So if I were to look at maximizing this function, we can think about taking first derivatives with respect to phi. And then we will see that again the expression that you obtain doesn't allow you to obtain a close form expression for $\hat{\phi}_{MLE}$. Instead, we will need to use a numerical optimization method such as Newton Raphson to obtain the maximum likelihood estimator for phi.</span>
+<span id="cb15-299"><a href="#cb15-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-300"><a href="#cb15-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-301"><a href="#cb15-301" aria-hidden="true" tabindex="-1"></a><span class="fu">### Conclusion</span></span>
 <span id="cb15-302"><a href="#cb15-302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-303"><a href="#cb15-303" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-304"><a href="#cb15-304" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Feature               <span class="pp">|</span> Full Likelihood             <span class="pp">|</span> Conditional Likelihood (Regression)       <span class="pp">|</span></span>
-<span id="cb15-305"><a href="#cb15-305" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---------------------</span> <span class="pp">| ---------------------------</span> <span class="pp">| ------------------------------------------|</span></span>
-<span id="cb15-306"><a href="#cb15-306" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Accounts for $Y<span class="sc">\_</span>1$   <span class="pp">|</span> ✅ Yes                      <span class="pp">|</span> ❌ No                                     <span class="pp">|</span></span>
-<span id="cb15-307"><a href="#cb15-307" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> MLE for $\phi$        <span class="pp">|</span> ❌ No closed form           <span class="pp">|</span> ✅ Closed form                            <span class="pp">|</span></span>
-<span id="cb15-308"><a href="#cb15-308" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> MLE for $v$           <span class="pp">|</span> ❌ Biased unless adjusted   <span class="pp">|</span> ✅ Unbiased estimator available           <span class="pp">|</span></span>
-<span id="cb15-309"><a href="#cb15-309" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Optimization Needed   <span class="pp">|</span> ✅ Yes (numerical methods)  <span class="pp">|</span> ❌ No (closed-form MLE for $\phi$)        <span class="pp">|</span></span>
-<span id="cb15-310"><a href="#cb15-310" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Useful when           <span class="pp">|</span> Modeling full joint process <span class="pp">|</span> Estimating $\phi$ efficiently in practice <span class="pp">|</span></span>
-<span id="cb15-311"><a href="#cb15-311" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-312"><a href="#cb15-312" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-313"><a href="#cb15-313" aria-hidden="true" tabindex="-1"></a><span class="fu">## MLE for the AR(1) 📖 ℛ</span></span>
-<span id="cb15-314"><a href="#cb15-314" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-315"><a href="#cb15-315" aria-hidden="true" tabindex="-1"></a>\index{AR(1) process!MLE}</span>
-<span id="cb15-316"><a href="#cb15-316" aria-hidden="true" tabindex="-1"></a>The following code allows you to compute the *MLE* of the AR coefficient $\psi$, the unbiased estimator of $v$, $s^2$ , and the *MLE* of $v$ based on a dataset simulated from an *AR(1) process* and using the conditional likelihood.</span>
+<span id="cb15-303"><a href="#cb15-303" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>**Full likelihood** is more general but computationally intensive.</span>
+<span id="cb15-304"><a href="#cb15-304" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>**Conditional likelihood** simplifies estimation by leveraging regression theory.</span>
+<span id="cb15-305"><a href="#cb15-305" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>When variance $v$ is known (e.g., $v = 1$), the optimization reduces to maximizing a univariate function of $\phi$.</span>
+<span id="cb15-306"><a href="#cb15-306" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>For full likelihood, optimization of $Q^*(\phi)$ is required.</span>
+<span id="cb15-307"><a href="#cb15-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-308"><a href="#cb15-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-309"><a href="#cb15-309" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Feature               <span class="pp">|</span> Full Likelihood             <span class="pp">|</span> Conditional Likelihood (Regression)       <span class="pp">|</span></span>
+<span id="cb15-310"><a href="#cb15-310" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---------------------</span> <span class="pp">| ---------------------------</span> <span class="pp">| ------------------------------------------|</span></span>
+<span id="cb15-311"><a href="#cb15-311" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Accounts for $Y<span class="sc">\_</span>1$   <span class="pp">|</span> ✅ Yes                      <span class="pp">|</span> ❌ No                                     <span class="pp">|</span></span>
+<span id="cb15-312"><a href="#cb15-312" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> MLE for $\phi$        <span class="pp">|</span> ❌ No closed form           <span class="pp">|</span> ✅ Closed form                            <span class="pp">|</span></span>
+<span id="cb15-313"><a href="#cb15-313" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> MLE for $v$           <span class="pp">|</span> ❌ Biased unless adjusted   <span class="pp">|</span> ✅ Unbiased estimator available           <span class="pp">|</span></span>
+<span id="cb15-314"><a href="#cb15-314" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Optimization Needed   <span class="pp">|</span> ✅ Yes (numerical methods)  <span class="pp">|</span> ❌ No (closed-form MLE for $\phi$)        <span class="pp">|</span></span>
+<span id="cb15-315"><a href="#cb15-315" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Useful when           <span class="pp">|</span> Modeling full joint process <span class="pp">|</span> Estimating $\phi$ efficiently in practice <span class="pp">|</span></span>
+<span id="cb15-316"><a href="#cb15-316" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-317"><a href="#cb15-317" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-320"><a href="#cb15-320" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb15-321"><a href="#cb15-321" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "MLE for AR(1)"</span></span>
-<span id="cb15-322"><a href="#cb15-322" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
-<span id="cb15-323"><a href="#cb15-323" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span>    <span class="co"># &lt;1&gt;</span></span>
-<span id="cb15-324"><a href="#cb15-324" aria-hidden="true" tabindex="-1"></a>v<span class="ot">=</span><span class="dv">1</span></span>
-<span id="cb15-325"><a href="#cb15-325" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="fu">sqrt</span>(v) <span class="co"># &lt;2&gt;</span></span>
-<span id="cb15-326"><a href="#cb15-326" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">500</span>      <span class="co"># &lt;3&gt;</span></span>
-<span id="cb15-327"><a href="#cb15-327" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) </span>
-<span id="cb15-328"><a href="#cb15-328" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-329"><a href="#cb15-329" aria-hidden="true" tabindex="-1"></a><span class="do">## Case 1: Conditional likelihood</span></span>
-<span id="cb15-330"><a href="#cb15-330" aria-hidden="true" tabindex="-1"></a>y<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">2</span><span class="sc">:</span>T])     <span class="co"># &lt;4&gt;</span></span>
-<span id="cb15-331"><a href="#cb15-331" aria-hidden="true" tabindex="-1"></a>X<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]) <span class="co"># &lt;5&gt;</span></span>
-<span id="cb15-332"><a href="#cb15-332" aria-hidden="true" tabindex="-1"></a>phi_MLE<span class="ot">=</span><span class="fu">as.numeric</span>((<span class="fu">t</span>(X)<span class="sc">%*%</span>y)<span class="sc">/</span><span class="fu">sum</span>(X<span class="sc">^</span><span class="dv">2</span>))   <span class="co"># &lt;6&gt; </span></span>
-<span id="cb15-333"><a href="#cb15-333" aria-hidden="true" tabindex="-1"></a>s2<span class="ot">=</span><span class="fu">sum</span>((y <span class="sc">-</span> phi_MLE<span class="sc">*</span>X)<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span>(<span class="fu">length</span>(y) <span class="sc">-</span> <span class="dv">1</span>) <span class="co"># &lt;7&gt; </span></span>
-<span id="cb15-334"><a href="#cb15-334" aria-hidden="true" tabindex="-1"></a>v_MLE<span class="ot">=</span>s2<span class="sc">*</span>(<span class="fu">length</span>(y)<span class="sc">-</span><span class="dv">1</span>)<span class="sc">/</span>(<span class="fu">length</span>(y))        <span class="co"># &lt;8&gt; </span></span>
-<span id="cb15-335"><a href="#cb15-335" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-336"><a href="#cb15-336" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st"> MLE of conditional likelihood for phi: "</span>, phi_MLE, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb15-337"><a href="#cb15-337" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MLE for the variance v: "</span>, v_MLE, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, </span>
-<span id="cb15-338"><a href="#cb15-338" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Estimate s2 for the variance v: "</span>, s2, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb15-339"><a href="#cb15-339" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb15-318"><a href="#cb15-318" aria-hidden="true" tabindex="-1"></a><span class="fu">## MLE for the AR(1) 📖 ℛ</span></span>
+<span id="cb15-319"><a href="#cb15-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-320"><a href="#cb15-320" aria-hidden="true" tabindex="-1"></a>\index{AR(1) process!MLE}</span>
+<span id="cb15-321"><a href="#cb15-321" aria-hidden="true" tabindex="-1"></a>The following code allows you to compute the *MLE* of the AR coefficient $\psi$, the unbiased estimator of $v$, $s^2$ , and the *MLE* of $v$ based on a dataset simulated from an *AR(1) process* and using the conditional likelihood.</span>
+<span id="cb15-322"><a href="#cb15-322" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-325"><a href="#cb15-325" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb15-326"><a href="#cb15-326" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "MLE for AR(1)"</span></span>
+<span id="cb15-327"><a href="#cb15-327" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
+<span id="cb15-328"><a href="#cb15-328" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span>    <span class="co"># &lt;1&gt;</span></span>
+<span id="cb15-329"><a href="#cb15-329" aria-hidden="true" tabindex="-1"></a>v<span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb15-330"><a href="#cb15-330" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="fu">sqrt</span>(v) <span class="co"># &lt;2&gt;</span></span>
+<span id="cb15-331"><a href="#cb15-331" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">500</span>      <span class="co"># &lt;3&gt;</span></span>
+<span id="cb15-332"><a href="#cb15-332" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) </span>
+<span id="cb15-333"><a href="#cb15-333" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-334"><a href="#cb15-334" aria-hidden="true" tabindex="-1"></a><span class="do">## Case 1: Conditional likelihood</span></span>
+<span id="cb15-335"><a href="#cb15-335" aria-hidden="true" tabindex="-1"></a>y<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">2</span><span class="sc">:</span>T])     <span class="co"># &lt;4&gt;</span></span>
+<span id="cb15-336"><a href="#cb15-336" aria-hidden="true" tabindex="-1"></a>X<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]) <span class="co"># &lt;5&gt;</span></span>
+<span id="cb15-337"><a href="#cb15-337" aria-hidden="true" tabindex="-1"></a>phi_MLE<span class="ot">=</span><span class="fu">as.numeric</span>((<span class="fu">t</span>(X)<span class="sc">%*%</span>y)<span class="sc">/</span><span class="fu">sum</span>(X<span class="sc">^</span><span class="dv">2</span>))   <span class="co"># &lt;6&gt; </span></span>
+<span id="cb15-338"><a href="#cb15-338" aria-hidden="true" tabindex="-1"></a>s2<span class="ot">=</span><span class="fu">sum</span>((y <span class="sc">-</span> phi_MLE<span class="sc">*</span>X)<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span>(<span class="fu">length</span>(y) <span class="sc">-</span> <span class="dv">1</span>) <span class="co"># &lt;7&gt; </span></span>
+<span id="cb15-339"><a href="#cb15-339" aria-hidden="true" tabindex="-1"></a>v_MLE<span class="ot">=</span>s2<span class="sc">*</span>(<span class="fu">length</span>(y)<span class="sc">-</span><span class="dv">1</span>)<span class="sc">/</span>(<span class="fu">length</span>(y))        <span class="co"># &lt;8&gt; </span></span>
 <span id="cb15-340"><a href="#cb15-340" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-341"><a href="#cb15-341" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>ar coefficient</span>
-<span id="cb15-342"><a href="#cb15-342" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>innovation standard deviation</span>
-<span id="cb15-343"><a href="#cb15-343" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>number of time points</span>
-<span id="cb15-344"><a href="#cb15-344" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>response variable</span>
-<span id="cb15-345"><a href="#cb15-345" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>design matrix</span>
-<span id="cb15-346"><a href="#cb15-346" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>MLE for phi </span>
-<span id="cb15-347"><a href="#cb15-347" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>Unbiased estimate for v</span>
-<span id="cb15-348"><a href="#cb15-348" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>MLE for v</span>
-<span id="cb15-349"><a href="#cb15-349" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-350"><a href="#cb15-350" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-351"><a href="#cb15-351" aria-hidden="true" tabindex="-1"></a>This code allows you to compute estimates of the AR(1) coefficient and the variance using the <span class="in">`arima`</span> function in R. The first case uses the conditional sum of squares, the second and third cases use the full likelihood with different starting points for the numerical optimization required to compute the MLE with the full likelihood.</span>
-<span id="cb15-352"><a href="#cb15-352" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-355"><a href="#cb15-355" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb15-356"><a href="#cb15-356" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "MLE for AR(1) with different methods"</span></span>
-<span id="cb15-357"><a href="#cb15-357" aria-hidden="true" tabindex="-1"></a><span class="co"># Obtaining parameter estimates using the arima function in R</span></span>
-<span id="cb15-358"><a href="#cb15-358" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
-<span id="cb15-359"><a href="#cb15-359" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span> <span class="co"># ar coefficient</span></span>
-<span id="cb15-360"><a href="#cb15-360" aria-hidden="true" tabindex="-1"></a>v<span class="ot">=</span><span class="dv">1</span></span>
-<span id="cb15-361"><a href="#cb15-361" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="fu">sqrt</span>(v) <span class="co"># innovation standard deviation</span></span>
-<span id="cb15-362"><a href="#cb15-362" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">500</span> <span class="co"># number of time points</span></span>
-<span id="cb15-363"><a href="#cb15-363" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) </span>
-<span id="cb15-364"><a href="#cb15-364" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-365"><a href="#cb15-365" aria-hidden="true" tabindex="-1"></a><span class="co"># Using conditional sum of squares, equivalent to conditional likelihood </span></span>
-<span id="cb15-366"><a href="#cb15-366" aria-hidden="true" tabindex="-1"></a>arima_CSS<span class="ot">=</span><span class="fu">arima</span>(yt,<span class="at">order=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>),<span class="at">method=</span><span class="st">"CSS"</span>,<span class="at">n.cond=</span><span class="dv">1</span>,<span class="at">include.mean=</span><span class="cn">FALSE</span>)</span>
-<span id="cb15-367"><a href="#cb15-367" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"AR estimates with conditional sum of squares (CSS) for phi and v:"</span>, arima_CSS<span class="sc">$</span>coef,arima_CSS<span class="sc">$</span>sigma2,</span>
-<span id="cb15-368"><a href="#cb15-368" aria-hidden="true" tabindex="-1"></a><span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb15-341"><a href="#cb15-341" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st"> MLE of conditional likelihood for phi: "</span>, phi_MLE, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb15-342"><a href="#cb15-342" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MLE for the variance v: "</span>, v_MLE, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, </span>
+<span id="cb15-343"><a href="#cb15-343" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Estimate s2 for the variance v: "</span>, s2, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb15-344"><a href="#cb15-344" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb15-345"><a href="#cb15-345" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-346"><a href="#cb15-346" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>ar coefficient</span>
+<span id="cb15-347"><a href="#cb15-347" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>innovation standard deviation</span>
+<span id="cb15-348"><a href="#cb15-348" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>number of time points</span>
+<span id="cb15-349"><a href="#cb15-349" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>response variable</span>
+<span id="cb15-350"><a href="#cb15-350" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>design matrix</span>
+<span id="cb15-351"><a href="#cb15-351" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>MLE for phi </span>
+<span id="cb15-352"><a href="#cb15-352" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>Unbiased estimate for v</span>
+<span id="cb15-353"><a href="#cb15-353" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>MLE for v</span>
+<span id="cb15-354"><a href="#cb15-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-355"><a href="#cb15-355" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-356"><a href="#cb15-356" aria-hidden="true" tabindex="-1"></a>This code allows you to compute estimates of the AR(1) coefficient and the variance using the <span class="in">`arima`</span> function in R. The first case uses the conditional sum of squares, the second and third cases use the full likelihood with different starting points for the numerical optimization required to compute the MLE with the full likelihood.</span>
+<span id="cb15-357"><a href="#cb15-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-360"><a href="#cb15-360" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb15-361"><a href="#cb15-361" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "MLE for AR(1) with different methods"</span></span>
+<span id="cb15-362"><a href="#cb15-362" aria-hidden="true" tabindex="-1"></a><span class="co"># Obtaining parameter estimates using the arima function in R</span></span>
+<span id="cb15-363"><a href="#cb15-363" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
+<span id="cb15-364"><a href="#cb15-364" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span> <span class="co"># ar coefficient</span></span>
+<span id="cb15-365"><a href="#cb15-365" aria-hidden="true" tabindex="-1"></a>v<span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb15-366"><a href="#cb15-366" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="fu">sqrt</span>(v) <span class="co"># innovation standard deviation</span></span>
+<span id="cb15-367"><a href="#cb15-367" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">500</span> <span class="co"># number of time points</span></span>
+<span id="cb15-368"><a href="#cb15-368" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) </span>
 <span id="cb15-369"><a href="#cb15-369" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-370"><a href="#cb15-370" aria-hidden="true" tabindex="-1"></a><span class="co">#Uses ML with full likelihood </span></span>
-<span id="cb15-371"><a href="#cb15-371" aria-hidden="true" tabindex="-1"></a>arima_ML<span class="ot">=</span><span class="fu">arima</span>(yt,<span class="at">order=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>),<span class="at">method=</span><span class="st">"ML"</span>,<span class="at">include.mean=</span><span class="cn">FALSE</span>)</span>
-<span id="cb15-372"><a href="#cb15-372" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"AR estimates with full likelihood for phi and v:"</span>, arima_ML<span class="sc">$</span>coef,arima_ML<span class="sc">$</span>sigma2,</span>
+<span id="cb15-370"><a href="#cb15-370" aria-hidden="true" tabindex="-1"></a><span class="co"># Using conditional sum of squares, equivalent to conditional likelihood </span></span>
+<span id="cb15-371"><a href="#cb15-371" aria-hidden="true" tabindex="-1"></a>arima_CSS<span class="ot">=</span><span class="fu">arima</span>(yt,<span class="at">order=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>),<span class="at">method=</span><span class="st">"CSS"</span>,<span class="at">n.cond=</span><span class="dv">1</span>,<span class="at">include.mean=</span><span class="cn">FALSE</span>)</span>
+<span id="cb15-372"><a href="#cb15-372" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"AR estimates with conditional sum of squares (CSS) for phi and v:"</span>, arima_CSS<span class="sc">$</span>coef,arima_CSS<span class="sc">$</span>sigma2,</span>
 <span id="cb15-373"><a href="#cb15-373" aria-hidden="true" tabindex="-1"></a><span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
 <span id="cb15-374"><a href="#cb15-374" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-375"><a href="#cb15-375" aria-hidden="true" tabindex="-1"></a><span class="co">#Default: uses conditional sum of squares to find the starting point for ML and </span></span>
-<span id="cb15-376"><a href="#cb15-376" aria-hidden="true" tabindex="-1"></a><span class="co">#         then uses ML </span></span>
-<span id="cb15-377"><a href="#cb15-377" aria-hidden="true" tabindex="-1"></a>arima_CSS_ML<span class="ot">=</span><span class="fu">arima</span>(yt,<span class="at">order=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>),<span class="at">method=</span><span class="st">"CSS-ML"</span>,<span class="at">n.cond=</span><span class="dv">1</span>,<span class="at">include.mean=</span><span class="cn">FALSE</span>)</span>
-<span id="cb15-378"><a href="#cb15-378" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"AR estimates with CSS to find starting point for ML for phi and v:"</span>, </span>
-<span id="cb15-379"><a href="#cb15-379" aria-hidden="true" tabindex="-1"></a>arima_CSS_ML<span class="sc">$</span>coef,arima_CSS_ML<span class="sc">$</span>sigma2,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb15-380"><a href="#cb15-380" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb15-381"><a href="#cb15-381" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-382"><a href="#cb15-382" aria-hidden="true" tabindex="-1"></a>This code shows you how to compute the MLE for $\psi$ using the full likelihood and the function optimize in R.</span>
-<span id="cb15-383"><a href="#cb15-383" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-386"><a href="#cb15-386" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb15-387"><a href="#cb15-387" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "MLE for AR(1) with full likelihood"</span></span>
-<span id="cb15-388"><a href="#cb15-388" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
-<span id="cb15-389"><a href="#cb15-389" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span> <span class="co"># &lt;1&gt;</span></span>
-<span id="cb15-390"><a href="#cb15-390" aria-hidden="true" tabindex="-1"></a>v<span class="ot">=</span><span class="dv">1</span></span>
-<span id="cb15-391"><a href="#cb15-391" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="fu">sqrt</span>(v) <span class="co"># &lt;2&gt;</span></span>
-<span id="cb15-392"><a href="#cb15-392" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">500</span> <span class="co"># &lt;3&gt;</span></span>
-<span id="cb15-393"><a href="#cb15-393" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) </span>
-<span id="cb15-394"><a href="#cb15-394" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-395"><a href="#cb15-395" aria-hidden="true" tabindex="-1"></a><span class="do">## MLE, full likelihood AR(1) with v=1 assumed known </span></span>
-<span id="cb15-396"><a href="#cb15-396" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-397"><a href="#cb15-397" aria-hidden="true" tabindex="-1"></a>log_p <span class="ot">&lt;-</span> <span class="cf">function</span>(phi, yt){ <span class="co">#&lt;4&gt;</span></span>
-<span id="cb15-398"><a href="#cb15-398" aria-hidden="true" tabindex="-1"></a>  <span class="fl">0.5</span><span class="sc">*</span>(<span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>phi<span class="sc">^</span><span class="dv">2</span>) <span class="sc">-</span> <span class="fu">sum</span>((yt[<span class="dv">2</span><span class="sc">:</span>T] <span class="sc">-</span> phi<span class="sc">*</span>yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)])<span class="sc">^</span><span class="dv">2</span>) <span class="sc">-</span> yt[<span class="dv">1</span>]<span class="sc">^</span><span class="dv">2</span><span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>phi<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb15-399"><a href="#cb15-399" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb15-400"><a href="#cb15-400" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-401"><a href="#cb15-401" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> <span class="fu">optimize</span>(log_p, <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), </span>
-<span id="cb15-402"><a href="#cb15-402" aria-hidden="true" tabindex="-1"></a>                  <span class="at">tol =</span> <span class="fl">0.0001</span>, </span>
-<span id="cb15-403"><a href="#cb15-403" aria-hidden="true" tabindex="-1"></a>                  <span class="at">maximum =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb15-404"><a href="#cb15-404" aria-hidden="true" tabindex="-1"></a>                  <span class="at">yt =</span> yt) <span class="co"># &lt;5&gt;</span></span>
-<span id="cb15-405"><a href="#cb15-405" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st"> MLE of full likelihood for phi: "</span>, result<span class="sc">$</span>maximum)</span>
-<span id="cb15-406"><a href="#cb15-406" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb15-407"><a href="#cb15-407" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-408"><a href="#cb15-408" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>ar coefficient</span>
-<span id="cb15-409"><a href="#cb15-409" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>innovation standard deviation</span>
-<span id="cb15-410"><a href="#cb15-410" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>number of time points</span>
-<span id="cb15-411"><a href="#cb15-411" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>log likelihood function</span>
-<span id="cb15-412"><a href="#cb15-412" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>using a built-in optimization method to obtain MLE</span>
-<span id="cb15-413"><a href="#cb15-413" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-414"><a href="#cb15-414" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-415"><a href="#cb15-415" aria-hidden="true" tabindex="-1"></a><span class="fu">## Bayesian inference in the AR(1)</span></span>
-<span id="cb15-416"><a href="#cb15-416" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-417"><a href="#cb15-417" aria-hidden="true" tabindex="-1"></a><span class="al">![inference](images/m1_0051.png)</span>{#fig-c2l1-s1-inference .column-margin  group="slides" width="53mm"}</span>
+<span id="cb15-375"><a href="#cb15-375" aria-hidden="true" tabindex="-1"></a><span class="co">#Uses ML with full likelihood </span></span>
+<span id="cb15-376"><a href="#cb15-376" aria-hidden="true" tabindex="-1"></a>arima_ML<span class="ot">=</span><span class="fu">arima</span>(yt,<span class="at">order=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>),<span class="at">method=</span><span class="st">"ML"</span>,<span class="at">include.mean=</span><span class="cn">FALSE</span>)</span>
+<span id="cb15-377"><a href="#cb15-377" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"AR estimates with full likelihood for phi and v:"</span>, arima_ML<span class="sc">$</span>coef,arima_ML<span class="sc">$</span>sigma2,</span>
+<span id="cb15-378"><a href="#cb15-378" aria-hidden="true" tabindex="-1"></a><span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb15-379"><a href="#cb15-379" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-380"><a href="#cb15-380" aria-hidden="true" tabindex="-1"></a><span class="co">#Default: uses conditional sum of squares to find the starting point for ML and </span></span>
+<span id="cb15-381"><a href="#cb15-381" aria-hidden="true" tabindex="-1"></a><span class="co">#         then uses ML </span></span>
+<span id="cb15-382"><a href="#cb15-382" aria-hidden="true" tabindex="-1"></a>arima_CSS_ML<span class="ot">=</span><span class="fu">arima</span>(yt,<span class="at">order=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>),<span class="at">method=</span><span class="st">"CSS-ML"</span>,<span class="at">n.cond=</span><span class="dv">1</span>,<span class="at">include.mean=</span><span class="cn">FALSE</span>)</span>
+<span id="cb15-383"><a href="#cb15-383" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"AR estimates with CSS to find starting point for ML for phi and v:"</span>, </span>
+<span id="cb15-384"><a href="#cb15-384" aria-hidden="true" tabindex="-1"></a>arima_CSS_ML<span class="sc">$</span>coef,arima_CSS_ML<span class="sc">$</span>sigma2,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb15-385"><a href="#cb15-385" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb15-386"><a href="#cb15-386" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-387"><a href="#cb15-387" aria-hidden="true" tabindex="-1"></a>This code shows you how to compute the MLE for $\psi$ using the full likelihood and the function optimize in R.</span>
+<span id="cb15-388"><a href="#cb15-388" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-391"><a href="#cb15-391" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb15-392"><a href="#cb15-392" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "MLE for AR(1) with full likelihood"</span></span>
+<span id="cb15-393"><a href="#cb15-393" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
+<span id="cb15-394"><a href="#cb15-394" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span> <span class="co"># &lt;1&gt;</span></span>
+<span id="cb15-395"><a href="#cb15-395" aria-hidden="true" tabindex="-1"></a>v<span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb15-396"><a href="#cb15-396" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="fu">sqrt</span>(v) <span class="co"># &lt;2&gt;</span></span>
+<span id="cb15-397"><a href="#cb15-397" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">500</span> <span class="co"># &lt;3&gt;</span></span>
+<span id="cb15-398"><a href="#cb15-398" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) </span>
+<span id="cb15-399"><a href="#cb15-399" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-400"><a href="#cb15-400" aria-hidden="true" tabindex="-1"></a><span class="do">## MLE, full likelihood AR(1) with v=1 assumed known </span></span>
+<span id="cb15-401"><a href="#cb15-401" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-402"><a href="#cb15-402" aria-hidden="true" tabindex="-1"></a>log_p <span class="ot">&lt;-</span> <span class="cf">function</span>(phi, yt){ <span class="co">#&lt;4&gt;</span></span>
+<span id="cb15-403"><a href="#cb15-403" aria-hidden="true" tabindex="-1"></a>  <span class="fl">0.5</span><span class="sc">*</span>(<span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>phi<span class="sc">^</span><span class="dv">2</span>) <span class="sc">-</span> <span class="fu">sum</span>((yt[<span class="dv">2</span><span class="sc">:</span>T] <span class="sc">-</span> phi<span class="sc">*</span>yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)])<span class="sc">^</span><span class="dv">2</span>) <span class="sc">-</span> yt[<span class="dv">1</span>]<span class="sc">^</span><span class="dv">2</span><span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>phi<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb15-404"><a href="#cb15-404" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-405"><a href="#cb15-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-406"><a href="#cb15-406" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> <span class="fu">optimize</span>(log_p, <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), </span>
+<span id="cb15-407"><a href="#cb15-407" aria-hidden="true" tabindex="-1"></a>                  <span class="at">tol =</span> <span class="fl">0.0001</span>, </span>
+<span id="cb15-408"><a href="#cb15-408" aria-hidden="true" tabindex="-1"></a>                  <span class="at">maximum =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb15-409"><a href="#cb15-409" aria-hidden="true" tabindex="-1"></a>                  <span class="at">yt =</span> yt) <span class="co"># &lt;5&gt;</span></span>
+<span id="cb15-410"><a href="#cb15-410" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st"> MLE of full likelihood for phi: "</span>, result<span class="sc">$</span>maximum)</span>
+<span id="cb15-411"><a href="#cb15-411" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb15-412"><a href="#cb15-412" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-413"><a href="#cb15-413" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>ar coefficient</span>
+<span id="cb15-414"><a href="#cb15-414" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>innovation standard deviation</span>
+<span id="cb15-415"><a href="#cb15-415" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>number of time points</span>
+<span id="cb15-416"><a href="#cb15-416" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>log likelihood function</span>
+<span id="cb15-417"><a href="#cb15-417" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>using a built-in optimization method to obtain MLE</span>
 <span id="cb15-418"><a href="#cb15-418" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-419"><a href="#cb15-419" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-420"><a href="#cb15-420" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-421"><a href="#cb15-421" aria-hidden="true" tabindex="-1"></a>y_t= \phi y_{t-1} + \epsilon_t, \quad \epsilon_t \overset{iid}{\sim} \mathcal{N}(0, v), \quad \phi \in (-1,1)</span>
-<span id="cb15-422"><a href="#cb15-422" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model}</span>
+<span id="cb15-420"><a href="#cb15-420" aria-hidden="true" tabindex="-1"></a><span class="fu">## Bayesian inference in the AR(1)</span></span>
+<span id="cb15-421"><a href="#cb15-421" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-422"><a href="#cb15-422" aria-hidden="true" tabindex="-1"></a><span class="al">![inference](images/m1_0051.png)</span>{#fig-c2l1-s1-inference .column-margin  group="slides" width="53mm"}</span>
 <span id="cb15-423"><a href="#cb15-423" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-424"><a href="#cb15-424" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-425"><a href="#cb15-425" aria-hidden="true" tabindex="-1"></a>\utilde{y} = \mathbb{X}\utilde{\beta} + \utilde{\epsilon}</span>
-<span id="cb15-426"><a href="#cb15-426" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model-bayes}</span>
-<span id="cb15-427"><a href="#cb15-427" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-428"><a href="#cb15-428" aria-hidden="true" tabindex="-1"></a>where $\mathbb{X}$ is the design matrix with $y_1$ as the first column and $y_2, \ldots, y_{T-1}$ as the second column, $\utilde{\beta} = \phi$ is the AR coefficient, and $\utilde{\epsilon} \sim \mathcal{N}(0, v\mathbf{I})$ is the error term.</span>
-<span id="cb15-429"><a href="#cb15-429" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-430"><a href="#cb15-430" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-431"><a href="#cb15-431" aria-hidden="true" tabindex="-1"></a>\utilde{y} = \begin{pmatrix}</span>
-<span id="cb15-432"><a href="#cb15-432" aria-hidden="true" tabindex="-1"></a>y_1 <span class="sc">\\</span></span>
-<span id="cb15-433"><a href="#cb15-433" aria-hidden="true" tabindex="-1"></a>y_2 <span class="sc">\\</span></span>
-<span id="cb15-434"><a href="#cb15-434" aria-hidden="true" tabindex="-1"></a>\vdots <span class="sc">\\</span></span>
-<span id="cb15-435"><a href="#cb15-435" aria-hidden="true" tabindex="-1"></a>y_{T-1}</span>
-<span id="cb15-436"><a href="#cb15-436" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}</span>
-<span id="cb15-437"><a href="#cb15-437" aria-hidden="true" tabindex="-1"></a>$$ {#eq-utilde-y-ar1}</span>
-<span id="cb15-438"><a href="#cb15-438" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-439"><a href="#cb15-439" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-440"><a href="#cb15-440" aria-hidden="true" tabindex="-1"></a>\mathbb{X} = \begin{pmatrix}</span>
-<span id="cb15-441"><a href="#cb15-441" aria-hidden="true" tabindex="-1"></a>y_1 <span class="sc">\\</span></span>
-<span id="cb15-442"><a href="#cb15-442" aria-hidden="true" tabindex="-1"></a>y_2 <span class="sc">\\</span></span>
-<span id="cb15-443"><a href="#cb15-443" aria-hidden="true" tabindex="-1"></a>\vdots <span class="sc">\\</span></span>
-<span id="cb15-444"><a href="#cb15-444" aria-hidden="true" tabindex="-1"></a>y_{T-1} </span>
-<span id="cb15-445"><a href="#cb15-445" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}</span>
-<span id="cb15-446"><a href="#cb15-446" aria-hidden="true" tabindex="-1"></a>$$ {#eq-design-matrix-ar1}</span>
-<span id="cb15-447"><a href="#cb15-447" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-448"><a href="#cb15-448" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-449"><a href="#cb15-449" aria-hidden="true" tabindex="-1"></a>\utilde{\beta} = \phi</span>
-<span id="cb15-450"><a href="#cb15-450" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model}</span>
-<span id="cb15-451"><a href="#cb15-451" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-424"><a href="#cb15-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-425"><a href="#cb15-425" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-426"><a href="#cb15-426" aria-hidden="true" tabindex="-1"></a>y_t= \phi y_{t-1} + \epsilon_t, \quad \epsilon_t \overset{iid}{\sim} \mathcal{N}(0, v), \quad \phi \in (-1,1)</span>
+<span id="cb15-427"><a href="#cb15-427" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model}</span>
+<span id="cb15-428"><a href="#cb15-428" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-429"><a href="#cb15-429" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-430"><a href="#cb15-430" aria-hidden="true" tabindex="-1"></a>\utilde{y} = \mathbb{X}\utilde{\beta} + \utilde{\epsilon}</span>
+<span id="cb15-431"><a href="#cb15-431" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model-bayes}</span>
+<span id="cb15-432"><a href="#cb15-432" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-433"><a href="#cb15-433" aria-hidden="true" tabindex="-1"></a>where $\mathbb{X}$ is the design matrix with $y_1$ as the first column and $y_2, \ldots, y_{T-1}$ as the second column, $\utilde{\beta} = \phi$ is the AR coefficient, and $\utilde{\epsilon} \sim \mathcal{N}(0, v\mathbf{I})$ is the error term.</span>
+<span id="cb15-434"><a href="#cb15-434" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-435"><a href="#cb15-435" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-436"><a href="#cb15-436" aria-hidden="true" tabindex="-1"></a>\utilde{y} = \begin{pmatrix}</span>
+<span id="cb15-437"><a href="#cb15-437" aria-hidden="true" tabindex="-1"></a>y_1 <span class="sc">\\</span></span>
+<span id="cb15-438"><a href="#cb15-438" aria-hidden="true" tabindex="-1"></a>y_2 <span class="sc">\\</span></span>
+<span id="cb15-439"><a href="#cb15-439" aria-hidden="true" tabindex="-1"></a>\vdots <span class="sc">\\</span></span>
+<span id="cb15-440"><a href="#cb15-440" aria-hidden="true" tabindex="-1"></a>y_{T-1}</span>
+<span id="cb15-441"><a href="#cb15-441" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}</span>
+<span id="cb15-442"><a href="#cb15-442" aria-hidden="true" tabindex="-1"></a>$$ {#eq-utilde-y-ar1}</span>
+<span id="cb15-443"><a href="#cb15-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-444"><a href="#cb15-444" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-445"><a href="#cb15-445" aria-hidden="true" tabindex="-1"></a>\mathbb{X} = \begin{pmatrix}</span>
+<span id="cb15-446"><a href="#cb15-446" aria-hidden="true" tabindex="-1"></a>y_1 <span class="sc">\\</span></span>
+<span id="cb15-447"><a href="#cb15-447" aria-hidden="true" tabindex="-1"></a>y_2 <span class="sc">\\</span></span>
+<span id="cb15-448"><a href="#cb15-448" aria-hidden="true" tabindex="-1"></a>\vdots <span class="sc">\\</span></span>
+<span id="cb15-449"><a href="#cb15-449" aria-hidden="true" tabindex="-1"></a>y_{T-1} </span>
+<span id="cb15-450"><a href="#cb15-450" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}</span>
+<span id="cb15-451"><a href="#cb15-451" aria-hidden="true" tabindex="-1"></a>$$ {#eq-design-matrix-ar1}</span>
 <span id="cb15-452"><a href="#cb15-452" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-453"><a href="#cb15-453" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-454"><a href="#cb15-454" aria-hidden="true" tabindex="-1"></a>\utilde{\epsilon} \sim \mathcal{N}(0, v\mathbf{I})</span>
-<span id="cb15-455"><a href="#cb15-455" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model-bayes}</span>
+<span id="cb15-454"><a href="#cb15-454" aria-hidden="true" tabindex="-1"></a>\utilde{\beta} = \phi</span>
+<span id="cb15-455"><a href="#cb15-455" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model}</span>
 <span id="cb15-456"><a href="#cb15-456" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-457"><a href="#cb15-457" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-458"><a href="#cb15-458" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-459"><a href="#cb15-459" aria-hidden="true" tabindex="-1"></a>p(y_{2:T} \mid y_1, \phi, v) =  \frac{1}{(2\pi v)^{\frac{T-1}{2}}} \exp\left(-\frac{(\utilde{y} - \mathbb{X}\utilde{\beta})'(\utilde{y} - \mathbb{X}\utilde{\beta})}{2v}\right)</span>
-<span id="cb15-460"><a href="#cb15-460" aria-hidden="true" tabindex="-1"></a>$$ {#eq-likelihood-ar1-conditional}</span>
+<span id="cb15-459"><a href="#cb15-459" aria-hidden="true" tabindex="-1"></a>\utilde{\epsilon} \sim \mathcal{N}(0, v\mathbf{I})</span>
+<span id="cb15-460"><a href="#cb15-460" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar1-model-bayes}</span>
 <span id="cb15-461"><a href="#cb15-461" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-462"><a href="#cb15-462" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-463"><a href="#cb15-463" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-464"><a href="#cb15-464" aria-hidden="true" tabindex="-1"></a>p(\phi, v \mid y_{1:T}) \propto p(\phi, v) p(y_{2:T} \mid y_1, \phi, v)</span>
-<span id="cb15-465"><a href="#cb15-465" aria-hidden="true" tabindex="-1"></a>$$ {#eq-posterior-ar1}</span>
+<span id="cb15-464"><a href="#cb15-464" aria-hidden="true" tabindex="-1"></a>p(y_{2:T} \mid y_1, \phi, v) =  \frac{1}{(2\pi v)^{\frac{T-1}{2}}} \exp\left(-\frac{(\utilde{y} - \mathbb{X}\utilde{\beta})'(\utilde{y} - \mathbb{X}\utilde{\beta})}{2v}\right)</span>
+<span id="cb15-465"><a href="#cb15-465" aria-hidden="true" tabindex="-1"></a>$$ {#eq-likelihood-ar1-conditional}</span>
 <span id="cb15-466"><a href="#cb15-466" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-467"><a href="#cb15-467" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-468"><a href="#cb15-468" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-469"><a href="#cb15-469" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb15-470"><a href="#cb15-470" aria-hidden="true" tabindex="-1"></a>p(\phi, v) \propto \frac{1}{v} &amp;\cdot (\utilde{\beta} \mid v, \mathbb{X}, \utilde{y}) &amp;\sim &amp; \mathcal{N}(\hat{\utilde{\beta}}, v(\mathbb{X}'\mathbb{X})^{-1}) <span class="sc">\\</span></span>
-<span id="cb15-471"><a href="#cb15-471" aria-hidden="true" tabindex="-1"></a>  &amp; \cdot (v \mid \mathbb{X}, \utilde{y}) &amp;\sim &amp; \mathcal{IG}\left(\frac{T-2}{2}, \frac{1}{2}Q(\hat{\utilde{\beta}}_{MLE}) \right)</span>
-<span id="cb15-472"><a href="#cb15-472" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb15-473"><a href="#cb15-473" aria-hidden="true" tabindex="-1"></a>$$ {#eq-prior-ar1}</span>
-<span id="cb15-474"><a href="#cb15-474" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-475"><a href="#cb15-475" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-476"><a href="#cb15-476" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb15-477"><a href="#cb15-477" aria-hidden="true" tabindex="-1"></a>\hat{\utilde{\beta}_{MLE}} &amp;= (\mathbb{X}'\mathbb{X})^{-1}\mathbb{X}'\utilde{y} <span class="sc">\\</span></span>
-<span id="cb15-478"><a href="#cb15-478" aria-hidden="true" tabindex="-1"></a>&amp;= \hat{\phi}_{MLE} = \frac{\sum_{t=2}^T y_t y_{t-1}}{\sum_{t=2}^T y_{t-1}^2}</span>
-<span id="cb15-479"><a href="#cb15-479" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb15-480"><a href="#cb15-480" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-ar1-phi-bayes}</span>
-<span id="cb15-481"><a href="#cb15-481" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-482"><a href="#cb15-482" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-483"><a href="#cb15-483" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-484"><a href="#cb15-484" aria-hidden="true" tabindex="-1"></a>Q(\hat{\phi}_{MLE}) = \sum_{t=2}^T (y_t - \hat{\phi}_{MLE}\ y_{t-1})^2</span>
-<span id="cb15-485"><a href="#cb15-485" aria-hidden="true" tabindex="-1"></a>$$ {#eq-q-ar1-q-mle-bayes}</span>
+<span id="cb15-469"><a href="#cb15-469" aria-hidden="true" tabindex="-1"></a>p(\phi, v \mid y_{1:T}) \propto p(\phi, v) p(y_{2:T} \mid y_1, \phi, v)</span>
+<span id="cb15-470"><a href="#cb15-470" aria-hidden="true" tabindex="-1"></a>$$ {#eq-posterior-ar1}</span>
+<span id="cb15-471"><a href="#cb15-471" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-472"><a href="#cb15-472" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-473"><a href="#cb15-473" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-474"><a href="#cb15-474" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb15-475"><a href="#cb15-475" aria-hidden="true" tabindex="-1"></a>p(\phi, v) \propto \frac{1}{v} &amp;\cdot (\utilde{\beta} \mid v, \mathbb{X}, \utilde{y}) &amp;\sim &amp; \mathcal{N}(\hat{\utilde{\beta}}, v(\mathbb{X}'\mathbb{X})^{-1}) <span class="sc">\\</span></span>
+<span id="cb15-476"><a href="#cb15-476" aria-hidden="true" tabindex="-1"></a>  &amp; \cdot (v \mid \mathbb{X}, \utilde{y}) &amp;\sim &amp; \mathcal{IG}\left(\frac{T-2}{2}, \frac{1}{2}Q(\hat{\utilde{\beta}}_{MLE}) \right)</span>
+<span id="cb15-477"><a href="#cb15-477" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb15-478"><a href="#cb15-478" aria-hidden="true" tabindex="-1"></a>$$ {#eq-prior-ar1}</span>
+<span id="cb15-479"><a href="#cb15-479" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-480"><a href="#cb15-480" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-481"><a href="#cb15-481" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb15-482"><a href="#cb15-482" aria-hidden="true" tabindex="-1"></a>\hat{\utilde{\beta}_{MLE}} &amp;= (\mathbb{X}'\mathbb{X})^{-1}\mathbb{X}'\utilde{y} <span class="sc">\\</span></span>
+<span id="cb15-483"><a href="#cb15-483" aria-hidden="true" tabindex="-1"></a>&amp;= \hat{\phi}_{MLE} = \frac{\sum_{t=2}^T y_t y_{t-1}}{\sum_{t=2}^T y_{t-1}^2}</span>
+<span id="cb15-484"><a href="#cb15-484" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb15-485"><a href="#cb15-485" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-ar1-phi-bayes}</span>
 <span id="cb15-486"><a href="#cb15-486" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-487"><a href="#cb15-487" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-488"><a href="#cb15-488" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-489"><a href="#cb15-489" aria-hidden="true" tabindex="-1"></a><span class="fu">## Bayesian inference in the AR(1): Conditional likelihood example 🎥</span></span>
-<span id="cb15-490"><a href="#cb15-490" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-491"><a href="#cb15-491" aria-hidden="true" tabindex="-1"></a>This video walks through the code snippet below and provides examples of how to sample from the posterior distribution of the AR coefficient $\psi$ and the variance $v$ using the conditional likelihood and a reference prior.</span>
+<span id="cb15-488"><a href="#cb15-488" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-489"><a href="#cb15-489" aria-hidden="true" tabindex="-1"></a>Q(\hat{\phi}_{MLE}) = \sum_{t=2}^T (y_t - \hat{\phi}_{MLE}\ y_{t-1})^2</span>
+<span id="cb15-490"><a href="#cb15-490" aria-hidden="true" tabindex="-1"></a>$$ {#eq-q-ar1-q-mle-bayes}</span>
+<span id="cb15-491"><a href="#cb15-491" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-492"><a href="#cb15-492" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-493"><a href="#cb15-493" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-494"><a href="#cb15-494" aria-hidden="true" tabindex="-1"></a><span class="fu">## R Code: AR(1) Bayesian inference, conditional likelihood example 📖</span></span>
+<span id="cb15-494"><a href="#cb15-494" aria-hidden="true" tabindex="-1"></a><span class="fu">## Bayesian inference in the AR(1): Conditional likelihood example 🎥</span></span>
 <span id="cb15-495"><a href="#cb15-495" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-498"><a href="#cb15-498" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb15-499"><a href="#cb15-499" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "AR(1) inference, conditional likelihood example"</span></span>
-<span id="cb15-500"><a href="#cb15-500" aria-hidden="true" tabindex="-1"></a><span class="co">#| </span></span>
-<span id="cb15-501"><a href="#cb15-501" aria-hidden="true" tabindex="-1"></a><span class="do">####################################################</span></span>
-<span id="cb15-502"><a href="#cb15-502" aria-hidden="true" tabindex="-1"></a><span class="do">#####             MLE for AR(1)               ######</span></span>
-<span id="cb15-503"><a href="#cb15-503" aria-hidden="true" tabindex="-1"></a><span class="do">####################################################</span></span>
-<span id="cb15-504"><a href="#cb15-504" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
-<span id="cb15-505"><a href="#cb15-505" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span> <span class="co"># ar coefficient</span></span>
-<span id="cb15-506"><a href="#cb15-506" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="dv">1</span> <span class="co"># innovation standard deviation</span></span>
-<span id="cb15-507"><a href="#cb15-507" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">200</span> <span class="co"># number of time points</span></span>
-<span id="cb15-508"><a href="#cb15-508" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) <span class="co"># sample stationary AR(1) process</span></span>
-<span id="cb15-509"><a href="#cb15-509" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-510"><a href="#cb15-510" aria-hidden="true" tabindex="-1"></a>y<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">2</span><span class="sc">:</span>T]) <span class="co"># response</span></span>
-<span id="cb15-511"><a href="#cb15-511" aria-hidden="true" tabindex="-1"></a>X<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]) <span class="co"># design matrix</span></span>
-<span id="cb15-512"><a href="#cb15-512" aria-hidden="true" tabindex="-1"></a>phi_MLE<span class="ot">=</span><span class="fu">as.numeric</span>((<span class="fu">t</span>(X)<span class="sc">%*%</span>y)<span class="sc">/</span><span class="fu">sum</span>(X<span class="sc">^</span><span class="dv">2</span>)) <span class="co"># MLE for phi</span></span>
-<span id="cb15-513"><a href="#cb15-513" aria-hidden="true" tabindex="-1"></a>s2<span class="ot">=</span><span class="fu">sum</span>((y <span class="sc">-</span> phi_MLE<span class="sc">*</span>X)<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span>(<span class="fu">length</span>(y) <span class="sc">-</span> <span class="dv">1</span>) <span class="co"># Unbiased estimate for v</span></span>
-<span id="cb15-514"><a href="#cb15-514" aria-hidden="true" tabindex="-1"></a>v_MLE<span class="ot">=</span>s2<span class="sc">*</span>(<span class="fu">length</span>(y)<span class="sc">-</span><span class="dv">1</span>)<span class="sc">/</span>(<span class="fu">length</span>(y)) <span class="co"># MLE for v </span></span>
-<span id="cb15-515"><a href="#cb15-515" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-516"><a href="#cb15-516" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">c</span>(phi_MLE,s2))</span>
-<span id="cb15-517"><a href="#cb15-517" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-518"><a href="#cb15-518" aria-hidden="true" tabindex="-1"></a><span class="do">#######################################################</span></span>
-<span id="cb15-519"><a href="#cb15-519" aria-hidden="true" tabindex="-1"></a><span class="do">######     Posterior inference, AR(1)               </span><span class="al">###</span></span>
-<span id="cb15-520"><a href="#cb15-520" aria-hidden="true" tabindex="-1"></a><span class="do">######     Conditional Likelihood + Reference Prior </span><span class="al">###</span></span>
-<span id="cb15-521"><a href="#cb15-521" aria-hidden="true" tabindex="-1"></a><span class="do">######     Direct sampling                          </span><span class="al">###</span></span>
-<span id="cb15-522"><a href="#cb15-522" aria-hidden="true" tabindex="-1"></a><span class="do">#######################################################</span></span>
-<span id="cb15-523"><a href="#cb15-523" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-524"><a href="#cb15-524" aria-hidden="true" tabindex="-1"></a>n_sample<span class="ot">=</span><span class="dv">3000</span>   <span class="co"># posterior sample size</span></span>
-<span id="cb15-525"><a href="#cb15-525" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-526"><a href="#cb15-526" aria-hidden="true" tabindex="-1"></a><span class="do">## step 1: sample posterior distribution of v from inverse gamma distribution</span></span>
-<span id="cb15-527"><a href="#cb15-527" aria-hidden="true" tabindex="-1"></a>v_sample<span class="ot">=</span><span class="dv">1</span><span class="sc">/</span><span class="fu">rgamma</span>(n_sample, (T<span class="dv">-2</span>)<span class="sc">/</span><span class="dv">2</span>, <span class="fu">sum</span>((yt[<span class="dv">2</span><span class="sc">:</span>T] <span class="sc">-</span> phi_MLE<span class="sc">*</span>yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)])<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb15-496"><a href="#cb15-496" aria-hidden="true" tabindex="-1"></a>This video walks through the code snippet below and provides examples of how to sample from the posterior distribution of the AR coefficient $\psi$ and the variance $v$ using the conditional likelihood and a reference prior.</span>
+<span id="cb15-497"><a href="#cb15-497" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-498"><a href="#cb15-498" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-499"><a href="#cb15-499" aria-hidden="true" tabindex="-1"></a><span class="fu">## R Code: AR(1) Bayesian inference, conditional likelihood example 📖</span></span>
+<span id="cb15-500"><a href="#cb15-500" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-503"><a href="#cb15-503" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb15-504"><a href="#cb15-504" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "AR(1) inference, conditional likelihood example"</span></span>
+<span id="cb15-505"><a href="#cb15-505" aria-hidden="true" tabindex="-1"></a><span class="co">#| </span></span>
+<span id="cb15-506"><a href="#cb15-506" aria-hidden="true" tabindex="-1"></a><span class="do">####################################################</span></span>
+<span id="cb15-507"><a href="#cb15-507" aria-hidden="true" tabindex="-1"></a><span class="do">#####             MLE for AR(1)               ######</span></span>
+<span id="cb15-508"><a href="#cb15-508" aria-hidden="true" tabindex="-1"></a><span class="do">####################################################</span></span>
+<span id="cb15-509"><a href="#cb15-509" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
+<span id="cb15-510"><a href="#cb15-510" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span> <span class="co"># ar coefficient</span></span>
+<span id="cb15-511"><a href="#cb15-511" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="dv">1</span> <span class="co"># innovation standard deviation</span></span>
+<span id="cb15-512"><a href="#cb15-512" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">200</span> <span class="co"># number of time points</span></span>
+<span id="cb15-513"><a href="#cb15-513" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) <span class="co"># sample stationary AR(1) process</span></span>
+<span id="cb15-514"><a href="#cb15-514" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-515"><a href="#cb15-515" aria-hidden="true" tabindex="-1"></a>y<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">2</span><span class="sc">:</span>T]) <span class="co"># response</span></span>
+<span id="cb15-516"><a href="#cb15-516" aria-hidden="true" tabindex="-1"></a>X<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]) <span class="co"># design matrix</span></span>
+<span id="cb15-517"><a href="#cb15-517" aria-hidden="true" tabindex="-1"></a>phi_MLE<span class="ot">=</span><span class="fu">as.numeric</span>((<span class="fu">t</span>(X)<span class="sc">%*%</span>y)<span class="sc">/</span><span class="fu">sum</span>(X<span class="sc">^</span><span class="dv">2</span>)) <span class="co"># MLE for phi</span></span>
+<span id="cb15-518"><a href="#cb15-518" aria-hidden="true" tabindex="-1"></a>s2<span class="ot">=</span><span class="fu">sum</span>((y <span class="sc">-</span> phi_MLE<span class="sc">*</span>X)<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span>(<span class="fu">length</span>(y) <span class="sc">-</span> <span class="dv">1</span>) <span class="co"># Unbiased estimate for v</span></span>
+<span id="cb15-519"><a href="#cb15-519" aria-hidden="true" tabindex="-1"></a>v_MLE<span class="ot">=</span>s2<span class="sc">*</span>(<span class="fu">length</span>(y)<span class="sc">-</span><span class="dv">1</span>)<span class="sc">/</span>(<span class="fu">length</span>(y)) <span class="co"># MLE for v </span></span>
+<span id="cb15-520"><a href="#cb15-520" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-521"><a href="#cb15-521" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">c</span>(phi_MLE,s2))</span>
+<span id="cb15-522"><a href="#cb15-522" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-523"><a href="#cb15-523" aria-hidden="true" tabindex="-1"></a><span class="do">#######################################################</span></span>
+<span id="cb15-524"><a href="#cb15-524" aria-hidden="true" tabindex="-1"></a><span class="do">######     Posterior inference, AR(1)               </span><span class="al">###</span></span>
+<span id="cb15-525"><a href="#cb15-525" aria-hidden="true" tabindex="-1"></a><span class="do">######     Conditional Likelihood + Reference Prior </span><span class="al">###</span></span>
+<span id="cb15-526"><a href="#cb15-526" aria-hidden="true" tabindex="-1"></a><span class="do">######     Direct sampling                          </span><span class="al">###</span></span>
+<span id="cb15-527"><a href="#cb15-527" aria-hidden="true" tabindex="-1"></a><span class="do">#######################################################</span></span>
 <span id="cb15-528"><a href="#cb15-528" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-529"><a href="#cb15-529" aria-hidden="true" tabindex="-1"></a><span class="do">## step 2: sample posterior distribution of phi from normal distribution</span></span>
-<span id="cb15-530"><a href="#cb15-530" aria-hidden="true" tabindex="-1"></a>phi_sample<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">0</span>,n_sample)</span>
-<span id="cb15-531"><a href="#cb15-531" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_sample){</span>
-<span id="cb15-532"><a href="#cb15-532" aria-hidden="true" tabindex="-1"></a>phi_sample[i]<span class="ot">=</span><span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> phi_MLE, <span class="at">sd=</span><span class="fu">sqrt</span>(v_sample[i]<span class="sc">/</span><span class="fu">sum</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]<span class="sc">^</span><span class="dv">2</span>)))}</span>
+<span id="cb15-529"><a href="#cb15-529" aria-hidden="true" tabindex="-1"></a>n_sample<span class="ot">=</span><span class="dv">3000</span>   <span class="co"># posterior sample size</span></span>
+<span id="cb15-530"><a href="#cb15-530" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-531"><a href="#cb15-531" aria-hidden="true" tabindex="-1"></a><span class="do">## step 1: sample posterior distribution of v from inverse gamma distribution</span></span>
+<span id="cb15-532"><a href="#cb15-532" aria-hidden="true" tabindex="-1"></a>v_sample<span class="ot">=</span><span class="dv">1</span><span class="sc">/</span><span class="fu">rgamma</span>(n_sample, (T<span class="dv">-2</span>)<span class="sc">/</span><span class="dv">2</span>, <span class="fu">sum</span>((yt[<span class="dv">2</span><span class="sc">:</span>T] <span class="sc">-</span> phi_MLE<span class="sc">*</span>yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)])<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span><span class="dv">2</span>)</span>
 <span id="cb15-533"><a href="#cb15-533" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-534"><a href="#cb15-534" aria-hidden="true" tabindex="-1"></a><span class="do">## plot histogram of posterior samples of phi and v</span></span>
-<span id="cb15-535"><a href="#cb15-535" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>),<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>), <span class="at">cex.lab =</span> <span class="fl">1.3</span>)</span>
-<span id="cb15-536"><a href="#cb15-536" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(phi_sample, <span class="at">xlab =</span> <span class="fu">bquote</span>(phi), </span>
-<span id="cb15-537"><a href="#cb15-537" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">bquote</span>(<span class="st">"Posterior for "</span><span class="sc">~</span>phi),<span class="at">xlim=</span><span class="fu">c</span>(<span class="fl">0.75</span>,<span class="fl">1.05</span>), <span class="at">col=</span><span class="st">'lightblue'</span>)</span>
-<span id="cb15-538"><a href="#cb15-538" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> phi, <span class="at">col =</span> <span class="st">'red'</span>)</span>
-<span id="cb15-539"><a href="#cb15-539" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(v_sample, <span class="at">xlab =</span> <span class="fu">bquote</span>(v), <span class="at">col=</span><span class="st">'lightblue'</span>, <span class="at">main =</span> <span class="fu">bquote</span>(<span class="st">"Posterior for "</span><span class="sc">~</span>v))</span>
-<span id="cb15-540"><a href="#cb15-540" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> sd, <span class="at">col =</span> <span class="st">'red'</span>)</span>
-<span id="cb15-541"><a href="#cb15-541" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-542"><a href="#cb15-542" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb15-543"><a href="#cb15-543" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-544"><a href="#cb15-544" aria-hidden="true" tabindex="-1"></a><span class="fu">## Quiz - MLE and Bayesian inference in the AR(1)</span></span>
-<span id="cb15-545"><a href="#cb15-545" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-546"><a href="#cb15-546" aria-hidden="true" tabindex="-1"></a>Omitted per Coursera honor code</span>
-<span id="cb15-547"><a href="#cb15-547" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-548"><a href="#cb15-548" aria-hidden="true" tabindex="-1"></a><span class="fu">## Practice Graded Assignment: MLE and Bayesian inference in the AR(1)</span></span>
-<span id="cb15-549"><a href="#cb15-549" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-550"><a href="#cb15-550" aria-hidden="true" tabindex="-1"></a>This peer-reviewed activity is highly recommended. It does not figure into your grade for this course, but it does provide you with the opportunity to apply what you've learned in R and prepare you for your data analysis project in week 5.</span>
-<span id="cb15-551"><a href="#cb15-551" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-552"><a href="#cb15-552" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Consider the R code below: MLE for the AR(1)</span>
-<span id="cb15-553"><a href="#cb15-553" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-556"><a href="#cb15-556" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb15-557"><a href="#cb15-557" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "lst-ar-1-mle"</span></span>
-<span id="cb15-558"><a href="#cb15-558" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-label: lst-ar-1-mle</span></span>
-<span id="cb15-559"><a href="#cb15-559" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-cap: "R Code: MLE for the AR(1) process, conditional likelihood example"</span></span>
-<span id="cb15-560"><a href="#cb15-560" aria-hidden="true" tabindex="-1"></a><span class="do">####################################################</span></span>
-<span id="cb15-561"><a href="#cb15-561" aria-hidden="true" tabindex="-1"></a><span class="do">#####             MLE for AR(1)               ######</span></span>
-<span id="cb15-562"><a href="#cb15-562" aria-hidden="true" tabindex="-1"></a><span class="do">####################################################</span></span>
-<span id="cb15-563"><a href="#cb15-563" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span> <span class="co"># ar coefficient</span></span>
-<span id="cb15-564"><a href="#cb15-564" aria-hidden="true" tabindex="-1"></a>v<span class="ot">=</span><span class="dv">1</span></span>
-<span id="cb15-565"><a href="#cb15-565" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="fu">sqrt</span>(v) <span class="co"># innovation standard deviation</span></span>
-<span id="cb15-566"><a href="#cb15-566" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">500</span> <span class="co"># number of time points</span></span>
-<span id="cb15-567"><a href="#cb15-567" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) </span>
-<span id="cb15-568"><a href="#cb15-568" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-569"><a href="#cb15-569" aria-hidden="true" tabindex="-1"></a><span class="do">## Case 1: Conditional likelihood</span></span>
-<span id="cb15-570"><a href="#cb15-570" aria-hidden="true" tabindex="-1"></a>y<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">2</span><span class="sc">:</span>T]) <span class="co"># response</span></span>
-<span id="cb15-571"><a href="#cb15-571" aria-hidden="true" tabindex="-1"></a>X<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]) <span class="co"># design matrix</span></span>
-<span id="cb15-572"><a href="#cb15-572" aria-hidden="true" tabindex="-1"></a>phi_MLE<span class="ot">=</span><span class="fu">as.numeric</span>((<span class="fu">t</span>(X)<span class="sc">%*%</span>y)<span class="sc">/</span><span class="fu">sum</span>(X<span class="sc">^</span><span class="dv">2</span>)) <span class="co"># MLE for phi</span></span>
-<span id="cb15-573"><a href="#cb15-573" aria-hidden="true" tabindex="-1"></a>s2<span class="ot">=</span><span class="fu">sum</span>((y <span class="sc">-</span> phi_MLE<span class="sc">*</span>X)<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span>(<span class="fu">length</span>(y) <span class="sc">-</span> <span class="dv">1</span>) <span class="co"># Unbiased estimate for v </span></span>
-<span id="cb15-574"><a href="#cb15-574" aria-hidden="true" tabindex="-1"></a>v_MLE<span class="ot">=</span>s2<span class="sc">*</span>(<span class="fu">length</span>(y)<span class="sc">-</span><span class="dv">1</span>)<span class="sc">/</span>(<span class="fu">length</span>(y)) <span class="co"># MLE for v</span></span>
-<span id="cb15-575"><a href="#cb15-575" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-576"><a href="#cb15-576" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st"> MLE of conditional likelihood for phi: "</span>, phi_MLE, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb15-577"><a href="#cb15-577" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MLE for the variance v: "</span>, v_MLE, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, </span>
-<span id="cb15-578"><a href="#cb15-578" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Estimate s2 for the variance v: "</span>, s2, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb15-579"><a href="#cb15-579" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb15-534"><a href="#cb15-534" aria-hidden="true" tabindex="-1"></a><span class="do">## step 2: sample posterior distribution of phi from normal distribution</span></span>
+<span id="cb15-535"><a href="#cb15-535" aria-hidden="true" tabindex="-1"></a>phi_sample<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">0</span>,n_sample)</span>
+<span id="cb15-536"><a href="#cb15-536" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_sample){</span>
+<span id="cb15-537"><a href="#cb15-537" aria-hidden="true" tabindex="-1"></a>phi_sample[i]<span class="ot">=</span><span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> phi_MLE, <span class="at">sd=</span><span class="fu">sqrt</span>(v_sample[i]<span class="sc">/</span><span class="fu">sum</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]<span class="sc">^</span><span class="dv">2</span>)))}</span>
+<span id="cb15-538"><a href="#cb15-538" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-539"><a href="#cb15-539" aria-hidden="true" tabindex="-1"></a><span class="do">## plot histogram of posterior samples of phi and v</span></span>
+<span id="cb15-540"><a href="#cb15-540" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>),<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>), <span class="at">cex.lab =</span> <span class="fl">1.3</span>)</span>
+<span id="cb15-541"><a href="#cb15-541" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(phi_sample, <span class="at">xlab =</span> <span class="fu">bquote</span>(phi), </span>
+<span id="cb15-542"><a href="#cb15-542" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">bquote</span>(<span class="st">"Posterior for "</span><span class="sc">~</span>phi),<span class="at">xlim=</span><span class="fu">c</span>(<span class="fl">0.75</span>,<span class="fl">1.05</span>), <span class="at">col=</span><span class="st">'lightblue'</span>)</span>
+<span id="cb15-543"><a href="#cb15-543" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> phi, <span class="at">col =</span> <span class="st">'red'</span>)</span>
+<span id="cb15-544"><a href="#cb15-544" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(v_sample, <span class="at">xlab =</span> <span class="fu">bquote</span>(v), <span class="at">col=</span><span class="st">'lightblue'</span>, <span class="at">main =</span> <span class="fu">bquote</span>(<span class="st">"Posterior for "</span><span class="sc">~</span>v))</span>
+<span id="cb15-545"><a href="#cb15-545" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> sd, <span class="at">col =</span> <span class="st">'red'</span>)</span>
+<span id="cb15-546"><a href="#cb15-546" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-547"><a href="#cb15-547" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb15-548"><a href="#cb15-548" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-549"><a href="#cb15-549" aria-hidden="true" tabindex="-1"></a><span class="fu">## Quiz - MLE and Bayesian inference in the AR(1)</span></span>
+<span id="cb15-550"><a href="#cb15-550" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-551"><a href="#cb15-551" aria-hidden="true" tabindex="-1"></a>Omitted per Coursera honor code</span>
+<span id="cb15-552"><a href="#cb15-552" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-553"><a href="#cb15-553" aria-hidden="true" tabindex="-1"></a><span class="fu">## Practice Graded Assignment: MLE and Bayesian inference in the AR(1)</span></span>
+<span id="cb15-554"><a href="#cb15-554" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-555"><a href="#cb15-555" aria-hidden="true" tabindex="-1"></a>This peer-reviewed activity is highly recommended. It does not figure into your grade for this course, but it does provide you with the opportunity to apply what you've learned in R and prepare you for your data analysis project in week 5.</span>
+<span id="cb15-556"><a href="#cb15-556" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-557"><a href="#cb15-557" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Consider the R code below: MLE for the AR(1)</span>
+<span id="cb15-558"><a href="#cb15-558" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-561"><a href="#cb15-561" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb15-562"><a href="#cb15-562" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: "lst-ar-1-mle"</span></span>
+<span id="cb15-563"><a href="#cb15-563" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-label: lst-ar-1-mle</span></span>
+<span id="cb15-564"><a href="#cb15-564" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-cap: "R Code: MLE for the AR(1) process, conditional likelihood example"</span></span>
+<span id="cb15-565"><a href="#cb15-565" aria-hidden="true" tabindex="-1"></a><span class="do">####################################################</span></span>
+<span id="cb15-566"><a href="#cb15-566" aria-hidden="true" tabindex="-1"></a><span class="do">#####             MLE for AR(1)               ######</span></span>
+<span id="cb15-567"><a href="#cb15-567" aria-hidden="true" tabindex="-1"></a><span class="do">####################################################</span></span>
+<span id="cb15-568"><a href="#cb15-568" aria-hidden="true" tabindex="-1"></a>phi<span class="ot">=</span><span class="fl">0.9</span> <span class="co"># ar coefficient</span></span>
+<span id="cb15-569"><a href="#cb15-569" aria-hidden="true" tabindex="-1"></a>v<span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb15-570"><a href="#cb15-570" aria-hidden="true" tabindex="-1"></a>sd<span class="ot">=</span><span class="fu">sqrt</span>(v) <span class="co"># innovation standard deviation</span></span>
+<span id="cb15-571"><a href="#cb15-571" aria-hidden="true" tabindex="-1"></a>T<span class="ot">=</span><span class="dv">500</span> <span class="co"># number of time points</span></span>
+<span id="cb15-572"><a href="#cb15-572" aria-hidden="true" tabindex="-1"></a>yt<span class="ot">=</span><span class="fu">arima.sim</span>(<span class="at">n =</span> T, <span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> phi), <span class="at">sd =</span> sd) </span>
+<span id="cb15-573"><a href="#cb15-573" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-574"><a href="#cb15-574" aria-hidden="true" tabindex="-1"></a><span class="do">## Case 1: Conditional likelihood</span></span>
+<span id="cb15-575"><a href="#cb15-575" aria-hidden="true" tabindex="-1"></a>y<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">2</span><span class="sc">:</span>T]) <span class="co"># response</span></span>
+<span id="cb15-576"><a href="#cb15-576" aria-hidden="true" tabindex="-1"></a>X<span class="ot">=</span><span class="fu">as.matrix</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]) <span class="co"># design matrix</span></span>
+<span id="cb15-577"><a href="#cb15-577" aria-hidden="true" tabindex="-1"></a>phi_MLE<span class="ot">=</span><span class="fu">as.numeric</span>((<span class="fu">t</span>(X)<span class="sc">%*%</span>y)<span class="sc">/</span><span class="fu">sum</span>(X<span class="sc">^</span><span class="dv">2</span>)) <span class="co"># MLE for phi</span></span>
+<span id="cb15-578"><a href="#cb15-578" aria-hidden="true" tabindex="-1"></a>s2<span class="ot">=</span><span class="fu">sum</span>((y <span class="sc">-</span> phi_MLE<span class="sc">*</span>X)<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span>(<span class="fu">length</span>(y) <span class="sc">-</span> <span class="dv">1</span>) <span class="co"># Unbiased estimate for v </span></span>
+<span id="cb15-579"><a href="#cb15-579" aria-hidden="true" tabindex="-1"></a>v_MLE<span class="ot">=</span>s2<span class="sc">*</span>(<span class="fu">length</span>(y)<span class="sc">-</span><span class="dv">1</span>)<span class="sc">/</span>(<span class="fu">length</span>(y)) <span class="co"># MLE for v</span></span>
 <span id="cb15-580"><a href="#cb15-580" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-581"><a href="#cb15-581" aria-hidden="true" tabindex="-1"></a>Modify the code above to sample 800 observations from an AR(1) with AR coefficient $\psi = -0.8$ and variance $v = 2$. Plot your simulated data. Obtain the MLE for $\psi$ based on the conditional likelihood and the unbiased estimate $s^2$ for the variance $v$.</span>
-<span id="cb15-582"><a href="#cb15-582" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-583"><a href="#cb15-583" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Consider the R code below: AR(1) Bayesian inference, conditional likelihood</span>
-<span id="cb15-584"><a href="#cb15-584" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-587"><a href="#cb15-587" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb15-588"><a href="#cb15-588" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-ar-1-inference</span></span>
-<span id="cb15-589"><a href="#cb15-589" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-label: lst-ar-1-inference</span></span>
-<span id="cb15-590"><a href="#cb15-590" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-cap: "R Code: AR(1) Bayesian inference, conditional likelihood example"</span></span>
-<span id="cb15-591"><a href="#cb15-591" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-592"><a href="#cb15-592" aria-hidden="true" tabindex="-1"></a><span class="do">#######################################################</span></span>
-<span id="cb15-593"><a href="#cb15-593" aria-hidden="true" tabindex="-1"></a><span class="do">######     Posterior inference, AR(1)               </span><span class="al">###</span></span>
-<span id="cb15-594"><a href="#cb15-594" aria-hidden="true" tabindex="-1"></a><span class="do">######     Conditional Likelihood + Reference Prior </span><span class="al">###</span></span>
-<span id="cb15-595"><a href="#cb15-595" aria-hidden="true" tabindex="-1"></a><span class="do">######     Direct sampling                          </span><span class="al">###</span></span>
-<span id="cb15-596"><a href="#cb15-596" aria-hidden="true" tabindex="-1"></a><span class="do">#######################################################</span></span>
-<span id="cb15-597"><a href="#cb15-597" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-598"><a href="#cb15-598" aria-hidden="true" tabindex="-1"></a>n_sample<span class="ot">=</span><span class="dv">3000</span>   <span class="co"># posterior sample size</span></span>
-<span id="cb15-599"><a href="#cb15-599" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-600"><a href="#cb15-600" aria-hidden="true" tabindex="-1"></a><span class="do">## step 1: sample posterior distribution of v from inverse gamma distribution</span></span>
-<span id="cb15-601"><a href="#cb15-601" aria-hidden="true" tabindex="-1"></a>v_sample<span class="ot">=</span><span class="dv">1</span><span class="sc">/</span><span class="fu">rgamma</span>(n_sample, (T<span class="dv">-2</span>)<span class="sc">/</span><span class="dv">2</span>, <span class="fu">sum</span>((yt[<span class="dv">2</span><span class="sc">:</span>T] <span class="sc">-</span> phi_MLE<span class="sc">*</span>yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)])<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb15-581"><a href="#cb15-581" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st"> MLE of conditional likelihood for phi: "</span>, phi_MLE, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb15-582"><a href="#cb15-582" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MLE for the variance v: "</span>, v_MLE, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, </span>
+<span id="cb15-583"><a href="#cb15-583" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Estimate s2 for the variance v: "</span>, s2, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb15-584"><a href="#cb15-584" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb15-585"><a href="#cb15-585" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-586"><a href="#cb15-586" aria-hidden="true" tabindex="-1"></a>Modify the code above to sample 800 observations from an AR(1) with AR coefficient $\psi = -0.8$ and variance $v = 2$. Plot your simulated data. Obtain the MLE for $\psi$ based on the conditional likelihood and the unbiased estimate $s^2$ for the variance $v$.</span>
+<span id="cb15-587"><a href="#cb15-587" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-588"><a href="#cb15-588" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Consider the R code below: AR(1) Bayesian inference, conditional likelihood</span>
+<span id="cb15-589"><a href="#cb15-589" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-592"><a href="#cb15-592" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb15-593"><a href="#cb15-593" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-ar-1-inference</span></span>
+<span id="cb15-594"><a href="#cb15-594" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-label: lst-ar-1-inference</span></span>
+<span id="cb15-595"><a href="#cb15-595" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-cap: "R Code: AR(1) Bayesian inference, conditional likelihood example"</span></span>
+<span id="cb15-596"><a href="#cb15-596" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-597"><a href="#cb15-597" aria-hidden="true" tabindex="-1"></a><span class="do">#######################################################</span></span>
+<span id="cb15-598"><a href="#cb15-598" aria-hidden="true" tabindex="-1"></a><span class="do">######     Posterior inference, AR(1)               </span><span class="al">###</span></span>
+<span id="cb15-599"><a href="#cb15-599" aria-hidden="true" tabindex="-1"></a><span class="do">######     Conditional Likelihood + Reference Prior </span><span class="al">###</span></span>
+<span id="cb15-600"><a href="#cb15-600" aria-hidden="true" tabindex="-1"></a><span class="do">######     Direct sampling                          </span><span class="al">###</span></span>
+<span id="cb15-601"><a href="#cb15-601" aria-hidden="true" tabindex="-1"></a><span class="do">#######################################################</span></span>
 <span id="cb15-602"><a href="#cb15-602" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-603"><a href="#cb15-603" aria-hidden="true" tabindex="-1"></a><span class="do">## step 2: sample posterior distribution of phi from normal distribution</span></span>
-<span id="cb15-604"><a href="#cb15-604" aria-hidden="true" tabindex="-1"></a>phi_sample<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">0</span>,n_sample)</span>
-<span id="cb15-605"><a href="#cb15-605" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_sample){</span>
-<span id="cb15-606"><a href="#cb15-606" aria-hidden="true" tabindex="-1"></a>phi_sample[i]<span class="ot">=</span><span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> phi_MLE, <span class="at">sd=</span><span class="fu">sqrt</span>(v_sample[i]<span class="sc">/</span><span class="fu">sum</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]<span class="sc">^</span><span class="dv">2</span>)))}</span>
+<span id="cb15-603"><a href="#cb15-603" aria-hidden="true" tabindex="-1"></a>n_sample<span class="ot">=</span><span class="dv">3000</span>   <span class="co"># posterior sample size</span></span>
+<span id="cb15-604"><a href="#cb15-604" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-605"><a href="#cb15-605" aria-hidden="true" tabindex="-1"></a><span class="do">## step 1: sample posterior distribution of v from inverse gamma distribution</span></span>
+<span id="cb15-606"><a href="#cb15-606" aria-hidden="true" tabindex="-1"></a>v_sample<span class="ot">=</span><span class="dv">1</span><span class="sc">/</span><span class="fu">rgamma</span>(n_sample, (T<span class="dv">-2</span>)<span class="sc">/</span><span class="dv">2</span>, <span class="fu">sum</span>((yt[<span class="dv">2</span><span class="sc">:</span>T] <span class="sc">-</span> phi_MLE<span class="sc">*</span>yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)])<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span><span class="dv">2</span>)</span>
 <span id="cb15-607"><a href="#cb15-607" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-608"><a href="#cb15-608" aria-hidden="true" tabindex="-1"></a><span class="do">## plot histogram of posterior samples of phi and v</span></span>
-<span id="cb15-609"><a href="#cb15-609" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>), <span class="at">cex.lab =</span> <span class="fl">1.3</span>)</span>
-<span id="cb15-610"><a href="#cb15-610" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(phi_sample, <span class="at">xlab =</span> <span class="fu">bquote</span>(phi), </span>
-<span id="cb15-611"><a href="#cb15-611" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">bquote</span>(<span class="st">"Posterior for "</span><span class="sc">~</span>phi),<span class="at">xlim=</span><span class="fu">c</span>(<span class="fl">0.75</span>,<span class="fl">1.05</span>), <span class="at">col=</span><span class="st">'lightblue'</span>)</span>
-<span id="cb15-612"><a href="#cb15-612" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> phi, <span class="at">col =</span> <span class="st">'red'</span>)</span>
-<span id="cb15-613"><a href="#cb15-613" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(v_sample, <span class="at">xlab =</span> <span class="fu">bquote</span>(v), <span class="at">col=</span><span class="st">'lightblue'</span>, <span class="at">main =</span> <span class="fu">bquote</span>(<span class="st">"Posterior for "</span><span class="sc">~</span>v))</span>
-<span id="cb15-614"><a href="#cb15-614" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> sd, <span class="at">col =</span> <span class="st">'red'</span>)</span>
-<span id="cb15-615"><a href="#cb15-615" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb15-616"><a href="#cb15-616" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-617"><a href="#cb15-617" aria-hidden="true" tabindex="-1"></a>Using your simulated data from part 1 modify the code above to summarize your posterior inference for $\psi$ and $v$ based on 5000 samples from the joint posterior distribution of $\psi$ and $v$.</span>
-<span id="cb15-618"><a href="#cb15-618" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-619"><a href="#cb15-619" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
-<span id="cb15-620"><a href="#cb15-620" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-621"><a href="#cb15-621" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Grading Criteria</span></span>
-<span id="cb15-622"><a href="#cb15-622" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-623"><a href="#cb15-623" aria-hidden="true" tabindex="-1"></a>The responses should follow the same template as the sample code provided above but you will submit your code lines in plain text. Peer reviewers will be asked to check whether the different pieces of code have been adequately modified to reflect that :</span>
-<span id="cb15-624"><a href="#cb15-624" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-625"><a href="#cb15-625" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>you generate 800 time points from the AR(1) rather than 500 and plot your simulated data.</span>
-<span id="cb15-626"><a href="#cb15-626" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>your simulated data is from an AR(1) with AR coefficients $\psi = -0.8$ and variance $v = 2$ rather than AR(1) with AR coefficient $\psi = 0.9$ and variance $v = 1$ and</span>
-<span id="cb15-627"><a href="#cb15-627" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>you obtain 5000 rather than 3000 samples from the posterior distribution from the new simulated process.</span>
-<span id="cb15-628"><a href="#cb15-628" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb15-608"><a href="#cb15-608" aria-hidden="true" tabindex="-1"></a><span class="do">## step 2: sample posterior distribution of phi from normal distribution</span></span>
+<span id="cb15-609"><a href="#cb15-609" aria-hidden="true" tabindex="-1"></a>phi_sample<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">0</span>,n_sample)</span>
+<span id="cb15-610"><a href="#cb15-610" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_sample){</span>
+<span id="cb15-611"><a href="#cb15-611" aria-hidden="true" tabindex="-1"></a>phi_sample[i]<span class="ot">=</span><span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> phi_MLE, <span class="at">sd=</span><span class="fu">sqrt</span>(v_sample[i]<span class="sc">/</span><span class="fu">sum</span>(yt[<span class="dv">1</span><span class="sc">:</span>(T<span class="dv">-1</span>)]<span class="sc">^</span><span class="dv">2</span>)))}</span>
+<span id="cb15-612"><a href="#cb15-612" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-613"><a href="#cb15-613" aria-hidden="true" tabindex="-1"></a><span class="do">## plot histogram of posterior samples of phi and v</span></span>
+<span id="cb15-614"><a href="#cb15-614" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>), <span class="at">cex.lab =</span> <span class="fl">1.3</span>)</span>
+<span id="cb15-615"><a href="#cb15-615" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(phi_sample, <span class="at">xlab =</span> <span class="fu">bquote</span>(phi), </span>
+<span id="cb15-616"><a href="#cb15-616" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">bquote</span>(<span class="st">"Posterior for "</span><span class="sc">~</span>phi),<span class="at">xlim=</span><span class="fu">c</span>(<span class="fl">0.75</span>,<span class="fl">1.05</span>), <span class="at">col=</span><span class="st">'lightblue'</span>)</span>
+<span id="cb15-617"><a href="#cb15-617" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> phi, <span class="at">col =</span> <span class="st">'red'</span>)</span>
+<span id="cb15-618"><a href="#cb15-618" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(v_sample, <span class="at">xlab =</span> <span class="fu">bquote</span>(v), <span class="at">col=</span><span class="st">'lightblue'</span>, <span class="at">main =</span> <span class="fu">bquote</span>(<span class="st">"Posterior for "</span><span class="sc">~</span>v))</span>
+<span id="cb15-619"><a href="#cb15-619" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> sd, <span class="at">col =</span> <span class="st">'red'</span>)</span>
+<span id="cb15-620"><a href="#cb15-620" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb15-621"><a href="#cb15-621" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-622"><a href="#cb15-622" aria-hidden="true" tabindex="-1"></a>Using your simulated data from part 1 modify the code above to summarize your posterior inference for $\psi$ and $v$ based on 5000 samples from the joint posterior distribution of $\psi$ and $v$.</span>
+<span id="cb15-623"><a href="#cb15-623" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-624"><a href="#cb15-624" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb15-625"><a href="#cb15-625" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-626"><a href="#cb15-626" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Grading Criteria</span></span>
+<span id="cb15-627"><a href="#cb15-627" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-628"><a href="#cb15-628" aria-hidden="true" tabindex="-1"></a>The responses should follow the same template as the sample code provided above but you will submit your code lines in plain text. Peer reviewers will be asked to check whether the different pieces of code have been adequately modified to reflect that :</span>
 <span id="cb15-629"><a href="#cb15-629" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-630"><a href="#cb15-630" aria-hidden="true" tabindex="-1"></a><span class="fu">### Bayesian Inference in the AR(1), : full likelihood example 📖</span></span>
-<span id="cb15-631"><a href="#cb15-631" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-632"><a href="#cb15-632" aria-hidden="true" tabindex="-1"></a>We consider a prior distribution that assumes that $\phi$ and $v$ are independent:</span>
-<span id="cb15-633"><a href="#cb15-633" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-634"><a href="#cb15-634" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-635"><a href="#cb15-635" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(v) \propto \frac{1}{v},</span>
-<span id="cb15-636"><a href="#cb15-636" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-637"><a href="#cb15-637" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-638"><a href="#cb15-638" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-639"><a href="#cb15-639" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\phi) = \frac{1}{2}, \quad \text{for } \phi \in (-1, 1),</span>
-<span id="cb15-640"><a href="#cb15-640" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-641"><a href="#cb15-641" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-642"><a href="#cb15-642" aria-hidden="true" tabindex="-1"></a>i.e., we assume a Uniform prior for $\phi \in (-1, 1)$. Combining this prior with the full likelihood in the AR(1) case, we obtain the following posterior density:</span>
-<span id="cb15-643"><a href="#cb15-643" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-644"><a href="#cb15-644" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-645"><a href="#cb15-645" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\phi, v \mid y_{1:T}) \propto \frac{(1 - \phi^2)^{1/2} }{v^{T/2 + 1}} \exp\left(-\frac{Q^*(\phi)}{2v}\right), \quad -1 &lt; \phi &lt; 1,</span>
-<span id="cb15-646"><a href="#cb15-646" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-647"><a href="#cb15-647" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-648"><a href="#cb15-648" aria-hidden="true" tabindex="-1"></a>with</span>
-<span id="cb15-649"><a href="#cb15-649" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-650"><a href="#cb15-650" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-651"><a href="#cb15-651" aria-hidden="true" tabindex="-1"></a>Q^*(\phi) = y_1^2(1 - \phi^2) + \sum_{t=2}^{T} (y_t - \phi y_{t-1})^2.</span>
-<span id="cb15-652"><a href="#cb15-652" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-653"><a href="#cb15-653" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-654"><a href="#cb15-654" aria-hidden="true" tabindex="-1"></a>It is not possible to get a closed-form expression for this posterior or to perform direct simulation. Therefore, we use simulation-based Markov Chain Monte Carlo (MCMC) methods to obtain samples from the posterior distribution.</span>
-<span id="cb15-655"><a href="#cb15-655" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-656"><a href="#cb15-656" aria-hidden="true" tabindex="-1"></a><span class="fu">### Transformation of $\phi$</span></span>
-<span id="cb15-657"><a href="#cb15-657" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-658"><a href="#cb15-658" aria-hidden="true" tabindex="-1"></a>We first consider the following transformation on $\phi$:</span>
-<span id="cb15-659"><a href="#cb15-659" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-660"><a href="#cb15-660" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-661"><a href="#cb15-661" aria-hidden="true" tabindex="-1"></a>\eta = \log\left(\frac{1 - \phi}{\phi + 1}\right),</span>
-<span id="cb15-662"><a href="#cb15-662" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-663"><a href="#cb15-663" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-664"><a href="#cb15-664" aria-hidden="true" tabindex="-1"></a>so that $\eta \in (-\infty, \infty)$. The inverse transformation on $\eta$ is:</span>
-<span id="cb15-665"><a href="#cb15-665" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-666"><a href="#cb15-666" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-667"><a href="#cb15-667" aria-hidden="true" tabindex="-1"></a>\phi = \frac{1 - \exp(\eta)}{1 + \exp(\eta)}.</span>
-<span id="cb15-668"><a href="#cb15-668" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-669"><a href="#cb15-669" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-670"><a href="#cb15-670" aria-hidden="true" tabindex="-1"></a>Writing down the posterior density for $\eta$ and $v$, we obtain</span>
-<span id="cb15-671"><a href="#cb15-671" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-672"><a href="#cb15-672" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-673"><a href="#cb15-673" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\eta, v \mid y_{1:T}) \propto\frac{ (1 - \phi^2)^{1/2} }{v^{T/2 + 1}} \exp\left(-\frac{Q^*(\phi)}{2v}\right) \cdot \frac{2 \exp(\eta)}{(1 + \exp(\eta))^2},</span>
-<span id="cb15-674"><a href="#cb15-674" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-675"><a href="#cb15-675" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-676"><a href="#cb15-676" aria-hidden="true" tabindex="-1"></a>with $\phi$ written as a function of $\eta$. We proceed to obtain samples from this posterior distribution using the MCMC algorithm outlined below. Once we have obtained $M$ samples from $\eta$ and $v$ after convergence, we can use the inverse transformation above to obtain posterior samples for $\phi$.</span>
-<span id="cb15-677"><a href="#cb15-677" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-678"><a href="#cb15-678" aria-hidden="true" tabindex="-1"></a><span class="fu">### MCMC Algorithm: Bayesian Inference for AR(1), Full Likelihood</span></span>
-<span id="cb15-679"><a href="#cb15-679" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-680"><a href="#cb15-680" aria-hidden="true" tabindex="-1"></a>**Algorithm**:</span>
-<span id="cb15-681"><a href="#cb15-681" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-682"><a href="#cb15-682" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Initialize $\eta^{(0)}$ and $\beta^{(0)}$.</span>
-<span id="cb15-683"><a href="#cb15-683" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>For $m$ in $1:M$ do:</span>
-<span id="cb15-684"><a href="#cb15-684" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Sample $v^{(m)} \sim \text{IG}\left(\frac{T}{2}, \frac{Q^*(\phi^{(m-1)})}{2}\right)$.</span>
-<span id="cb15-685"><a href="#cb15-685" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Sample $\eta^{(m)}$ using Metropolis-Hastings:</span>
-<span id="cb15-686"><a href="#cb15-686" aria-hidden="true" tabindex="-1"></a><span class="ss">        1.  </span>Sample $\eta^* \sim N(\eta^{(m-1)}, c)$, where $c$ is a tuning parameter.</span>
-<span id="cb15-687"><a href="#cb15-687" aria-hidden="true" tabindex="-1"></a><span class="ss">        2.  </span>Compute the importance ratio:</span>
-<span id="cb15-688"><a href="#cb15-688" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-689"><a href="#cb15-689" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-690"><a href="#cb15-690" aria-hidden="true" tabindex="-1"></a>        r = \frac{p(\eta^*, v^{(m)} \mid y_{1:T})}{p(\eta^{(m-1)}, v^{(m)} \mid y_{1:T})}.</span>
-<span id="cb15-691"><a href="#cb15-691" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-692"><a href="#cb15-692" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-693"><a href="#cb15-693" aria-hidden="true" tabindex="-1"></a><span class="ss"> 3. </span>Set: </span>
-<span id="cb15-694"><a href="#cb15-694" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-695"><a href="#cb15-695" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb15-696"><a href="#cb15-696" aria-hidden="true" tabindex="-1"></a>        \eta^{(m)} =</span>
-<span id="cb15-697"><a href="#cb15-697" aria-hidden="true" tabindex="-1"></a>        \begin{cases}</span>
-<span id="cb15-698"><a href="#cb15-698" aria-hidden="true" tabindex="-1"></a>        \eta^* &amp; \text{with probability } \min(r, 1), <span class="sc">\\</span></span>
-<span id="cb15-699"><a href="#cb15-699" aria-hidden="true" tabindex="-1"></a>        \eta^{(m-1)} &amp; \text{otherwise}.</span>
-<span id="cb15-700"><a href="#cb15-700" aria-hidden="true" tabindex="-1"></a>        \end{cases}</span>
-<span id="cb15-701"><a href="#cb15-701" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-630"><a href="#cb15-630" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>you generate 800 time points from the AR(1) rather than 500 and plot your simulated data.</span>
+<span id="cb15-631"><a href="#cb15-631" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>your simulated data is from an AR(1) with AR coefficients $\psi = -0.8$ and variance $v = 2$ rather than AR(1) with AR coefficient $\psi = 0.9$ and variance $v = 1$ and</span>
+<span id="cb15-632"><a href="#cb15-632" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>you obtain 5000 rather than 3000 samples from the posterior distribution from the new simulated process.</span>
+<span id="cb15-633"><a href="#cb15-633" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb15-634"><a href="#cb15-634" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-635"><a href="#cb15-635" aria-hidden="true" tabindex="-1"></a><span class="fu">### Bayesian Inference in the AR(1), : full likelihood example 📖</span></span>
+<span id="cb15-636"><a href="#cb15-636" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-637"><a href="#cb15-637" aria-hidden="true" tabindex="-1"></a>We consider a prior distribution that assumes that $\phi$ and $v$ are independent:</span>
+<span id="cb15-638"><a href="#cb15-638" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-639"><a href="#cb15-639" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-640"><a href="#cb15-640" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(v) \propto \frac{1}{v},</span>
+<span id="cb15-641"><a href="#cb15-641" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-642"><a href="#cb15-642" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-643"><a href="#cb15-643" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-644"><a href="#cb15-644" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\phi) = \frac{1}{2}, \quad \text{for } \phi \in (-1, 1),</span>
+<span id="cb15-645"><a href="#cb15-645" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-646"><a href="#cb15-646" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-647"><a href="#cb15-647" aria-hidden="true" tabindex="-1"></a>i.e., we assume a Uniform prior for $\phi \in (-1, 1)$. Combining this prior with the full likelihood in the AR(1) case, we obtain the following posterior density:</span>
+<span id="cb15-648"><a href="#cb15-648" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-649"><a href="#cb15-649" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-650"><a href="#cb15-650" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\phi, v \mid y_{1:T}) \propto \frac{(1 - \phi^2)^{1/2} }{v^{T/2 + 1}} \exp\left(-\frac{Q^*(\phi)}{2v}\right), \quad -1 &lt; \phi &lt; 1,</span>
+<span id="cb15-651"><a href="#cb15-651" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-652"><a href="#cb15-652" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-653"><a href="#cb15-653" aria-hidden="true" tabindex="-1"></a>with</span>
+<span id="cb15-654"><a href="#cb15-654" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-655"><a href="#cb15-655" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-656"><a href="#cb15-656" aria-hidden="true" tabindex="-1"></a>Q^*(\phi) = y_1^2(1 - \phi^2) + \sum_{t=2}^{T} (y_t - \phi y_{t-1})^2.</span>
+<span id="cb15-657"><a href="#cb15-657" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-658"><a href="#cb15-658" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-659"><a href="#cb15-659" aria-hidden="true" tabindex="-1"></a>It is not possible to get a closed-form expression for this posterior or to perform direct simulation. Therefore, we use simulation-based Markov Chain Monte Carlo (MCMC) methods to obtain samples from the posterior distribution.</span>
+<span id="cb15-660"><a href="#cb15-660" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-661"><a href="#cb15-661" aria-hidden="true" tabindex="-1"></a><span class="fu">### Transformation of $\phi$</span></span>
+<span id="cb15-662"><a href="#cb15-662" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-663"><a href="#cb15-663" aria-hidden="true" tabindex="-1"></a>We first consider the following transformation on $\phi$:</span>
+<span id="cb15-664"><a href="#cb15-664" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-665"><a href="#cb15-665" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-666"><a href="#cb15-666" aria-hidden="true" tabindex="-1"></a>\eta = \log\left(\frac{1 - \phi}{\phi + 1}\right),</span>
+<span id="cb15-667"><a href="#cb15-667" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-668"><a href="#cb15-668" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-669"><a href="#cb15-669" aria-hidden="true" tabindex="-1"></a>so that $\eta \in (-\infty, \infty)$. The inverse transformation on $\eta$ is:</span>
+<span id="cb15-670"><a href="#cb15-670" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-671"><a href="#cb15-671" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-672"><a href="#cb15-672" aria-hidden="true" tabindex="-1"></a>\phi = \frac{1 - \exp(\eta)}{1 + \exp(\eta)}.</span>
+<span id="cb15-673"><a href="#cb15-673" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-674"><a href="#cb15-674" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-675"><a href="#cb15-675" aria-hidden="true" tabindex="-1"></a>Writing down the posterior density for $\eta$ and $v$, we obtain</span>
+<span id="cb15-676"><a href="#cb15-676" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-677"><a href="#cb15-677" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-678"><a href="#cb15-678" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\eta, v \mid y_{1:T}) \propto\frac{ (1 - \phi^2)^{1/2} }{v^{T/2 + 1}} \exp\left(-\frac{Q^*(\phi)}{2v}\right) \cdot \frac{2 \exp(\eta)}{(1 + \exp(\eta))^2},</span>
+<span id="cb15-679"><a href="#cb15-679" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-680"><a href="#cb15-680" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-681"><a href="#cb15-681" aria-hidden="true" tabindex="-1"></a>with $\phi$ written as a function of $\eta$. We proceed to obtain samples from this posterior distribution using the MCMC algorithm outlined below. Once we have obtained $M$ samples from $\eta$ and $v$ after convergence, we can use the inverse transformation above to obtain posterior samples for $\phi$.</span>
+<span id="cb15-682"><a href="#cb15-682" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-683"><a href="#cb15-683" aria-hidden="true" tabindex="-1"></a><span class="fu">### MCMC Algorithm: Bayesian Inference for AR(1), Full Likelihood</span></span>
+<span id="cb15-684"><a href="#cb15-684" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-685"><a href="#cb15-685" aria-hidden="true" tabindex="-1"></a>**Algorithm**:</span>
+<span id="cb15-686"><a href="#cb15-686" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-687"><a href="#cb15-687" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Initialize $\eta^{(0)}$ and $\beta^{(0)}$.</span>
+<span id="cb15-688"><a href="#cb15-688" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>For $m$ in $1:M$ do:</span>
+<span id="cb15-689"><a href="#cb15-689" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Sample $v^{(m)} \sim \text{IG}\left(\frac{T}{2}, \frac{Q^*(\phi^{(m-1)})}{2}\right)$.</span>
+<span id="cb15-690"><a href="#cb15-690" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Sample $\eta^{(m)}$ using Metropolis-Hastings:</span>
+<span id="cb15-691"><a href="#cb15-691" aria-hidden="true" tabindex="-1"></a><span class="ss">        1.  </span>Sample $\eta^* \sim N(\eta^{(m-1)}, c)$, where $c$ is a tuning parameter.</span>
+<span id="cb15-692"><a href="#cb15-692" aria-hidden="true" tabindex="-1"></a><span class="ss">        2.  </span>Compute the importance ratio:</span>
+<span id="cb15-693"><a href="#cb15-693" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-694"><a href="#cb15-694" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-695"><a href="#cb15-695" aria-hidden="true" tabindex="-1"></a>        r = \frac{p(\eta^*, v^{(m)} \mid y_{1:T})}{p(\eta^{(m-1)}, v^{(m)} \mid y_{1:T})}.</span>
+<span id="cb15-696"><a href="#cb15-696" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-697"><a href="#cb15-697" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-698"><a href="#cb15-698" aria-hidden="true" tabindex="-1"></a><span class="ss"> 3. </span>Set: </span>
+<span id="cb15-699"><a href="#cb15-699" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-700"><a href="#cb15-700" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb15-701"><a href="#cb15-701" aria-hidden="true" tabindex="-1"></a>        \eta^{(m)} =</span>
+<span id="cb15-702"><a href="#cb15-702" aria-hidden="true" tabindex="-1"></a>        \begin{cases}</span>
+<span id="cb15-703"><a href="#cb15-703" aria-hidden="true" tabindex="-1"></a>        \eta^* &amp; \text{with probability } \min(r, 1), <span class="sc">\\</span></span>
+<span id="cb15-704"><a href="#cb15-704" aria-hidden="true" tabindex="-1"></a>        \eta^{(m-1)} &amp; \text{otherwise}.</span>
+<span id="cb15-705"><a href="#cb15-705" aria-hidden="true" tabindex="-1"></a>        \end{cases}</span>
+<span id="cb15-706"><a href="#cb15-706" aria-hidden="true" tabindex="-1"></a>$$</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
