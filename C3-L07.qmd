@@ -10,7 +10,7 @@ keywords:
   - Notes
 ---
 
-Classification is a supervised learning problem where we want to predict the class of a new observation based on its features.
+[**Classification** is *a supervised learning problem where we want to predict the class of a new observation based on its features*.]{.mark}
 
 According to the instructor the main difference from clustering is that in classification we have a training set. I would think the main difference is that we have labels for some of the data, while in clustering we do not have labels at all.
 
@@ -118,28 +118,22 @@ This video walks through the code in @sec-em-algorithm-classification-sample.
 
 ## Sample EM algorithm for classification problems 📖 ℛ{#sec-em-algorithm-classification-sample}
 
-<!-- 
-TODO: 
+In the following code sample we will illustrate how to use the EM algorithm for classification problems.
 
-- [ ] split to chunks 
-- [ ] annotate this code fragment 
+Using mixture models for classification in the wine dataset
+Compare linear and quadratic discriminant analysis and a 
+(semi-supervised) location and scale mixture model with K normals
+Comparing only against the EM algorithm
 
--->
-
+# Semi-supervised, quadratic discriminant analysis 
 
 ```{r}
 #| label: lbl-em-algorithm-classification-initialization
 
-## Using mixture models for classification in the wine dataset
-## Compare linear and quadratic discriminant analysis and a 
-##   (semi-supervised) location and scale mixture model with K normals
-## Comparing only against the EM algorithm
 
-# Semi-supervised, quadratic discriminant analysis 
-
-library(MASS) #<1>
+library(MASS)    #<1>
 library(mvtnorm) #<1>
-wine.training = read.table("data/wine_training.txt", sep=",", header=TRUE) #<2>
+wine.training = read.table("data/wine_training.txt", sep=",", header=TRUE)     #<2>
 wine.test = read.table("data/wine_test.txt", sep=",", header=TRUE) #<2>
 
 # Set up global variables
@@ -147,7 +141,7 @@ n = dim(wine.training)[1]  # <3>
 m = dim(wine.test)[1]      # <4>
 x = rbind(as.matrix(wine.training[,-1]), 
           as.matrix(wine.test[,-1]))   # <5>
-p       = dim(x)[2]              # <6>
+p       = dim(x)[2]                    # <6>
 KK      = 3
 epsilon = 0.00001
 ```
@@ -174,10 +168,10 @@ pairs(wine.training[,-1], col=colscale[wine.training[,1]], pch=wine.training[,1]
 ```{r}
 #| label: lbl-em-algorithm-classification-EM-algorithm
 
-# Initialize the parameters of the algorithm
+## Initialization step
 set.seed(63252) # <8>
 w   = rep(1,KK)/KK  # <9>
-mu  = rmvnorm(KK, apply(x,2,mean), var(x)) #<10>
+mu  = rmvnorm(KK, apply(x,2,mean), var(x)) # <10>
 
 Sigma      = array(0, dim=c(KK,p,p))  # <11>
 Sigma[1,,] = var(x)/KK  
@@ -192,12 +186,15 @@ s      = 0
 while(!sw){
   ## E step
   v = array(0, dim=c(n+m,KK))
-  for(k in 1:KK){  #Compute the log of the weights
+  for(k in 1:KK){  
+    # Compute the log of the weights
     v[1:n,k] = ifelse(wine.training[,1]==k,0,-Inf)  # Training set
     v[(n+1):(n+m),k] = log(w[k]) + mvtnorm::dmvnorm(x[(n+1):(n+m),], mu[k,], Sigma[k,,],log=TRUE)  # Test set
   }
   for(i in 1:(n+m)){
-    v[i,] = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,])))  #Go from logs to actual weights in a numerically stable manner
+    v[i,] = exp(v[i,] - max(v[i,]))/
+            sum(exp(v[i,] - max(v[i,])))  
+    # Go from logs to actual weights in a numerically stable manner
   }
   
   ## M step
@@ -212,16 +209,18 @@ while(!sw){
   Sigma = array(0,dim=c(KK,p,p))
   for(k in 1:KK){
     for(i in 1:(n+m)){
-      Sigma[k,,] = Sigma[k,,] + v[i,k]*(x[i,] - mu[k,])%*%t(x[i,] - mu[k,])
+      Sigma[k,,] = Sigma[k,,] + v[i,k]*(x[i,] - 
+                   mu[k,])%*%t(x[i,] - mu[k,])
     }
     Sigma[k,,] = Sigma[k,,]/sum(v[,k])
   }
 
-  # Check convergence
+  # Convergence Check step
   KLn = 0
   for(i in 1:(n+m)){
     for(k in 1:KK){
-      KLn = KLn + v[i,k]*(log(w[k]) + mvtnorm::dmvnorm(x[i,],mu[k,],Sigma[k,,],log=TRUE)) # <13>
+      KLn = KLn + v[i,k]*(log(w[k]) + 
+            mvtnorm::dmvnorm(x[i,],mu[k,],Sigma[k,,],log=TRUE)) # <13>
     }
   }
   if(abs(KLn-KL)/abs(KLn)<epsilon){
@@ -233,6 +232,7 @@ while(!sw){
   print(paste(s, KLn)) # <15>
 }
 ```
+
 8. Set the random seed for reproducibility
 9. Initialize set equal weights to each component
 10. Cluster centers randomly spread over the support of the data
@@ -241,30 +241,39 @@ while(!sw){
 13. Compute the Kullback-Leibler divergence
 14. If converged, set the flag to True and exit the outer loop
 15. Report iteration and Kullback-Leibler divergence
+
+Next we perform predictions and evaluate the classification.
+
 ```{r}
 #| label: lbl-em-classification-prediction
 #| 
-## Predicted labels
-apply(v, 1, which.max)[(n+1):(n+m)]
-## True labels
-wine.test[,1]
-## Comparison
-apply(v, 1, which.max)[(n+1):(n+m)] == wine.test[,1]
-sum(!(apply(v, 1, which.max)[(n+1):(n+m)] == wine.test[,1])) # One error
+apply(v, 1, which.max)[(n+1):(n+m)] # <16>
+wine.test[,1] # <17>
+apply(v, 1, which.max)[(n+1):(n+m)] == wine.test[,1] # <18>
+sum(!(apply(v, 1, which.max)[(n+1):(n+m)] == wine.test[,1])) # <19> 
 ```
 
+16. Predicted labels for the test set
+17. True labels for the test set
+18. Comparison of predicted labels with true labels
+19. Number of errors in the classification - One error
+
+Using the `qda` and `lda` functions in `R`
+
+First we preform quadratic discriminant analysis using the `qda` function in R, which is part of the MASS package.
+
 ```{r}
-#| label: lbl-em-classification-prediction-qda
-# Using the qda and lda functions in R
+#| label: lbl-em-classification-qda
 # qda
 modqda = qda(grouping=wine.training[,1], x=wine.training[,-1], method="mle")
 ccpredqda = predict(modqda,newdata=wine.test[,-1])
 sum(!(ccpredqda$class == wine.test[,1])) # One error
 ```
 
+Next we perform linear discriminant analysis using the `lda` function in R, which is also part of the MASS package.
+
 ```{r}
-#| label: lbl-em-classification-prediction-lda
-# lda
+#| label: lbl-em-classification-lda
 modlda = lda(grouping=wine.training[,1], x=wine.training[,-1], method="mle")
 ccpredlda = predict(modlda,newdata=wine.test[,-1])
 sum(!(ccpredlda$class == wine.test[,1])) # No errors!!!
