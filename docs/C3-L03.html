@@ -1021,7 +1021,7 @@ window.Quarto = {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L11.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">98</span>&nbsp; <span class="chapter-title">Week 0: Feynman Notebook on Bayesian Time Series Analysis</span></span></a>
+ <span class="menu-text"><span class="chapter-number">98</span>&nbsp; <span class="chapter-title">Week 0: Feynman Notebook on Bayesian Analysis</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -1166,12 +1166,12 @@ window.Quarto = {
 </div>
 <section id="sec-em-algorithm-for-mixture-models" class="level1 page-columns page-full" data-number="69">
 <h1 data-number="69"><span class="header-section-number">69</span> The EM algorithm for Mixture Models 🎥</h1>
-<p> Maximum likelihood estimation is the most common approach to estimate the parameters of statistical models. However, attempting to obtain maximum likelihood estimates (MLEs) <span class="math inline">\hat{\omega}</span> and <span class="math inline">\hat{\theta}</span> by directly maximizing the observed-data likelihood</p>
-<p><span class="math display">
+<p> Maximum likelihood estimation is the most common approach to estimate the parameters of statistical models. However, attempting to obtain maximum likelihood estimates (MLEs) <span class="math inline">\hat{\omega}</span> and <span class="math inline">\hat{\theta}</span> by directly maximizing the observed-data likelihood:</p>
+<p><span id="eq-mle-mixture-likelihood"><span class="math display">
 \mathcal{L}(\omega,\theta) = \arg \max_{\omega,\theta}
 \prod_{i=1}^{n} \sum_{k=1}^{K} \omega_k g_k(x_i|\theta_k)
-</span></p>
-<p>is not feasible, as it is a non-convex optimization problem.</p>
+\tag{69.1}</span></span></p>
+<p>isn’t feasible, as it is a non-convex optimization problem.</p>
 <p> Using numerical optimization methods, such as the Newton-Raphson algorithm, can be challenging due when there are many components in the mixture.</p>
 <p>It worthwhile mentioning that MLE is more of a <strong>frequentist approach</strong>, as it provides point estimates of the parameters rather than a distributional view. In contrast, Bayesian methods we will consider later provide a full posterior distribution of the parameters, which is more informative and allows for uncertainty quantification.</p>
 <section id="em-algorithms-for-mixture-models" class="level2 page-columns page-full" data-number="69.1">
@@ -1212,12 +1212,12 @@ Figure&nbsp;69.3: EM - Deep Dive
 <p>E step: Set</p>
 <p><span id="eq-q-function"><span class="math display">
 Q(\omega,\theta \mid \omega^{(t)}, \theta^{(t)},x) = E_{c \mid \omega^{(t)},\theta^{(t)}, x} \left[ \log \mathbb{P}r(x,c \mid \omega,\theta) \right]
-\tag{69.1}</span></span></p>
+\tag{69.2}</span></span></p>
 <p>Where <span class="math inline">c</span> is the latent variable indicating the component from which each observation was generated, <span class="math inline">\omega</span> are the weights, and <span class="math inline">\theta</span> are the parameters of the Gaussian components (means and standard deviations).</p>
 <p>M step: Set</p>
 <p><span id="eq-mstep"><span class="math display">
 \hat{\omega}^{(t+1)},\hat{\theta}^{(t+1)} = \arg \max_{\omega,\theta} Q(\omega,\theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)},y)
-\tag{69.2}</span></span></p>
+\tag{69.3}</span></span></p>
 <p>where <span class="math inline">\hat{\omega}^{(t)}</span> and <span class="math inline">\hat{\theta}^{(t)}</span> are the current estimates of the parameters, and <span class="math inline">y</span> is the observed data.</p>
 <p>These two steps are repeated until convergence, which is typically defined as the change in the full-data log-likelihood <span class="math inline">Q</span> function being below a certain threshold.</p>
 <p>A key point is that if we condition each component independently on the <span class="math inline">\omega, \theta, x</span> we can write</p>
@@ -2437,411 +2437,410 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a><span class="fu"># The EM algorithm for Mixture Models 🎥{#sec-em-algorithm-for-mixture-models}</span></span>
 <span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>\index{mixture!EM algorithm}</span>
-<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>Maximum likelihood estimation is the most common approach to estimate the parameters of statistical models. However, attempting to obtain maximum likelihood estimates (MLEs) $\hat{\omega}$ and $\hat{\theta}$ by directly maximizing the observed-data likelihood</span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>\index{mixture!EM algorithm} \index{Maximum Likelihood Estimation}</span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>Maximum likelihood estimation is the most common approach to estimate the parameters of statistical models. However, attempting to obtain maximum likelihood estimates (MLEs) $\hat{\omega}$ and $\hat{\theta}$ by directly maximizing the observed-data likelihood:</span>
 <span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>\mathcal{L}(\omega,\theta) = \arg \max_{\omega,\theta} </span>
 <span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>\prod_{i=1}^{n} \sum_{k=1}^{K} \omega_k g_k(x_i|\theta_k)</span>
-<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mle-mixture-likelihood}</span>
 <span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a>is not feasible, as it is a non-convex optimization problem. </span>
+<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a>isn't feasible, as it is a non-convex optimization problem. </span>
 <span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a>\index{optimization}</span>
-<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>\index{Newton-Raphson algorithm}</span>
-<span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a>Using numerical optimization methods, such as the Newton-Raphson algorithm, can be challenging due when there are many components in the mixture.</span>
-<span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a>It worthwhile mentioning that MLE is more of a **frequentist approach**, as it provides point estimates of the parameters rather than a distributional view. In contrast, Bayesian methods we will consider later provide a full posterior distribution of the parameters, which is more informative and allows for uncertainty quantification.</span>
-<span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-43"><a href="#cb35-43" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM algorithms for Mixture Models </span></span>
-<span id="cb35-44"><a href="#cb35-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-45"><a href="#cb35-45" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Challenge](images/c3l2-ss-01-em-for-general-mixtures.png)</span>{#fig-s_01 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a>\index{optimization} \index{Newton-Raphson algorithm}</span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>Using numerical optimization methods, such as the Newton-Raphson algorithm, can be challenging due when there are many components in the mixture.</span>
+<span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a>It worthwhile mentioning that MLE is more of a **frequentist approach**, as it provides point estimates of the parameters rather than a distributional view. In contrast, Bayesian methods we will consider later provide a full posterior distribution of the parameters, which is more informative and allows for uncertainty quantification.</span>
+<span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM algorithms for Mixture Models </span></span>
+<span id="cb35-43"><a href="#cb35-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-44"><a href="#cb35-44" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Challenge](images/c3l2-ss-01-em-for-general-mixtures.png)</span>{#fig-s_01 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-45"><a href="#cb35-45" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-46"><a href="#cb35-46" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-47"><a href="#cb35-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-48"><a href="#cb35-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-49"><a href="#cb35-49" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Steps](images/c3l2-ss-02-em-for-general-mixtures.png)</span>{#fig-s_02 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-48"><a href="#cb35-48" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Steps](images/c3l2-ss-02-em-for-general-mixtures.png)</span>{#fig-s_02 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-49"><a href="#cb35-49" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-50"><a href="#cb35-50" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-51"><a href="#cb35-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-52"><a href="#cb35-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-53"><a href="#cb35-53" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Deep Dive](images/c3l2-ss-03-em-for-general-mixtures.png)</span>{#fig-s_03 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-52"><a href="#cb35-52" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Deep Dive](images/c3l2-ss-03-em-for-general-mixtures.png)</span>{#fig-s_03 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-53"><a href="#cb35-53" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-54"><a href="#cb35-54" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-55"><a href="#cb35-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-56"><a href="#cb35-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-57"><a href="#cb35-57" aria-hidden="true" tabindex="-1"></a>EM algorithm comes up a lot in NLP and other fields so it is worthwhile to understand it the way we will do so in the course.</span>
-<span id="cb35-58"><a href="#cb35-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-59"><a href="#cb35-59" aria-hidden="true" tabindex="-1"></a>It also important that the EM algorithm we use for mixture models is from the 1970s and is not the same as the general EM algorithm. c.f. <span class="co">[</span><span class="ot">@dempster1977maximum</span><span class="co">]</span></span>
-<span id="cb35-60"><a href="#cb35-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-61"><a href="#cb35-61" aria-hidden="true" tabindex="-1"></a>The EM algorithm is iterative and consists of two steps: the E-step and the M-step. The E-step computes the expected value of the complete-data log-likelihood given the observed data and the current parameter estimates, while the M-step maximizes this expected log-likelihood with respect to the parameters. However before we start these steps we need to set initial values for the parameters.</span>
-<span id="cb35-62"><a href="#cb35-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-63"><a href="#cb35-63" aria-hidden="true" tabindex="-1"></a>E step: Set</span>
-<span id="cb35-64"><a href="#cb35-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-65"><a href="#cb35-65" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb35-66"><a href="#cb35-66" aria-hidden="true" tabindex="-1"></a>Q(\omega,\theta \mid \omega^{(t)}, \theta^{(t)},x) = E_{c \mid \omega^{(t)},\theta^{(t)}, x} \left<span class="co">[</span><span class="ot"> \log \mathbb{P}r(x,c \mid \omega,\theta) \right</span><span class="co">]</span></span>
-<span id="cb35-67"><a href="#cb35-67" aria-hidden="true" tabindex="-1"></a>$$ {#eq-q-function}</span>
+<span id="cb35-56"><a href="#cb35-56" aria-hidden="true" tabindex="-1"></a>EM algorithm comes up a lot in NLP and other fields so it is worthwhile to understand it the way we will do so in the course.</span>
+<span id="cb35-57"><a href="#cb35-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-58"><a href="#cb35-58" aria-hidden="true" tabindex="-1"></a>It also important that the EM algorithm we use for mixture models is from the 1970s and is not the same as the general EM algorithm. c.f. <span class="co">[</span><span class="ot">@dempster1977maximum</span><span class="co">]</span></span>
+<span id="cb35-59"><a href="#cb35-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-60"><a href="#cb35-60" aria-hidden="true" tabindex="-1"></a>The EM algorithm is iterative and consists of two steps: the E-step and the M-step. The E-step computes the expected value of the complete-data log-likelihood given the observed data and the current parameter estimates, while the M-step maximizes this expected log-likelihood with respect to the parameters. However before we start these steps we need to set initial values for the parameters.</span>
+<span id="cb35-61"><a href="#cb35-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-62"><a href="#cb35-62" aria-hidden="true" tabindex="-1"></a>E step: Set</span>
+<span id="cb35-63"><a href="#cb35-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-64"><a href="#cb35-64" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb35-65"><a href="#cb35-65" aria-hidden="true" tabindex="-1"></a>Q(\omega,\theta \mid \omega^{(t)}, \theta^{(t)},x) = E_{c \mid \omega^{(t)},\theta^{(t)}, x} \left<span class="co">[</span><span class="ot"> \log \mathbb{P}r(x,c \mid \omega,\theta) \right</span><span class="co">]</span></span>
+<span id="cb35-66"><a href="#cb35-66" aria-hidden="true" tabindex="-1"></a>$$ {#eq-q-function}</span>
+<span id="cb35-67"><a href="#cb35-67" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-68"><a href="#cb35-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-69"><a href="#cb35-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-70"><a href="#cb35-70" aria-hidden="true" tabindex="-1"></a>Where $c$ is the latent variable indicating the component from which each observation was generated, $\omega$ are the weights, and $\theta$ are the parameters of the Gaussian components (means and standard deviations).</span>
+<span id="cb35-69"><a href="#cb35-69" aria-hidden="true" tabindex="-1"></a>Where $c$ is the latent variable indicating the component from which each observation was generated, $\omega$ are the weights, and $\theta$ are the parameters of the Gaussian components (means and standard deviations).</span>
+<span id="cb35-70"><a href="#cb35-70" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-71"><a href="#cb35-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-72"><a href="#cb35-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-73"><a href="#cb35-73" aria-hidden="true" tabindex="-1"></a>M step: Set</span>
-<span id="cb35-74"><a href="#cb35-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-75"><a href="#cb35-75" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb35-76"><a href="#cb35-76" aria-hidden="true" tabindex="-1"></a>\hat{\omega}^{(t+1)},\hat{\theta}^{(t+1)} = \arg \max_{\omega,\theta} Q(\omega,\theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)},y)</span>
-<span id="cb35-77"><a href="#cb35-77" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mstep}</span>
-<span id="cb35-78"><a href="#cb35-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-79"><a href="#cb35-79" aria-hidden="true" tabindex="-1"></a>where $\hat{\omega}^{(t)}$ and $\hat{\theta}^{(t)}$ are the current estimates of the parameters, and $y$ is the observed data.</span>
-<span id="cb35-80"><a href="#cb35-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-81"><a href="#cb35-81" aria-hidden="true" tabindex="-1"></a>These two steps are repeated until convergence, which is typically defined as the change in the full-data log-likelihood $Q$ function being below a certain threshold.</span>
-<span id="cb35-82"><a href="#cb35-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-83"><a href="#cb35-83" aria-hidden="true" tabindex="-1"></a>A key point is that if we condition each component independently on the $\omega, \theta, x$ we can write</span>
-<span id="cb35-84"><a href="#cb35-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-85"><a href="#cb35-85" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb35-86"><a href="#cb35-86" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(c_i=k \mid \omega, \theta, x_i) = \frac{\omega_k g_k(x_i \mid \theta_k)}{\sum_{j=1}^{K} \omega_j g_j(x_i \mid \theta_j)}= v_{ik}(\omega, \theta)</span>
-<span id="cb35-87"><a href="#cb35-87" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb35-88"><a href="#cb35-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-89"><a href="#cb35-89" aria-hidden="true" tabindex="-1"></a>where the value of $v_{ik}$ is interpreted as the probability that the $i$-th observation comes from the $k$-th component of the mixture assuming the population parameters $\omega$ and $\theta$.</span>
+<span id="cb35-72"><a href="#cb35-72" aria-hidden="true" tabindex="-1"></a>M step: Set</span>
+<span id="cb35-73"><a href="#cb35-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-74"><a href="#cb35-74" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb35-75"><a href="#cb35-75" aria-hidden="true" tabindex="-1"></a>\hat{\omega}^{(t+1)},\hat{\theta}^{(t+1)} = \arg \max_{\omega,\theta} Q(\omega,\theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)},y)</span>
+<span id="cb35-76"><a href="#cb35-76" aria-hidden="true" tabindex="-1"></a>$$ {#eq-mstep}</span>
+<span id="cb35-77"><a href="#cb35-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-78"><a href="#cb35-78" aria-hidden="true" tabindex="-1"></a>where $\hat{\omega}^{(t)}$ and $\hat{\theta}^{(t)}$ are the current estimates of the parameters, and $y$ is the observed data.</span>
+<span id="cb35-79"><a href="#cb35-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-80"><a href="#cb35-80" aria-hidden="true" tabindex="-1"></a>These two steps are repeated until convergence, which is typically defined as the change in the full-data log-likelihood $Q$ function being below a certain threshold.</span>
+<span id="cb35-81"><a href="#cb35-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-82"><a href="#cb35-82" aria-hidden="true" tabindex="-1"></a>A key point is that if we condition each component independently on the $\omega, \theta, x$ we can write</span>
+<span id="cb35-83"><a href="#cb35-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-84"><a href="#cb35-84" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb35-85"><a href="#cb35-85" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(c_i=k \mid \omega, \theta, x_i) = \frac{\omega_k g_k(x_i \mid \theta_k)}{\sum_{j=1}^{K} \omega_j g_j(x_i \mid \theta_j)}= v_{ik}(\omega, \theta)</span>
+<span id="cb35-86"><a href="#cb35-86" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb35-87"><a href="#cb35-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-88"><a href="#cb35-88" aria-hidden="true" tabindex="-1"></a>where the value of $v_{ik}$ is interpreted as the probability that the $i$-th observation comes from the $k$-th component of the mixture assuming the population parameters $\omega$ and $\theta$.</span>
+<span id="cb35-89"><a href="#cb35-89" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-90"><a href="#cb35-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-91"><a href="#cb35-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-92"><a href="#cb35-92" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM for general Mixture </span></span>
+<span id="cb35-91"><a href="#cb35-91" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM for general Mixture </span></span>
+<span id="cb35-92"><a href="#cb35-92" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-93"><a href="#cb35-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-94"><a href="#cb35-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-95"><a href="#cb35-95" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM for location Mixture of Gaussians</span></span>
-<span id="cb35-96"><a href="#cb35-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-97"><a href="#cb35-97" aria-hidden="true" tabindex="-1"></a><span class="al">![the responsibility](images/c3l2-ss-04-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_04 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-94"><a href="#cb35-94" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM for location Mixture of Gaussians</span></span>
+<span id="cb35-95"><a href="#cb35-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-96"><a href="#cb35-96" aria-hidden="true" tabindex="-1"></a><span class="al">![the responsibility](images/c3l2-ss-04-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_04 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-97"><a href="#cb35-97" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-98"><a href="#cb35-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-99"><a href="#cb35-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-100"><a href="#cb35-100" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to w](images/c3l2-ss-05-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_05 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-99"><a href="#cb35-99" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to w](images/c3l2-ss-05-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_05 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-100"><a href="#cb35-100" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-101"><a href="#cb35-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-102"><a href="#cb35-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-103"><a href="#cb35-103" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to mu](images/c3l2-ss-06-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_06 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-102"><a href="#cb35-102" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to mu](images/c3l2-ss-06-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_06 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-103"><a href="#cb35-103" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-104"><a href="#cb35-104" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-105"><a href="#cb35-105" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-106"><a href="#cb35-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-107"><a href="#cb35-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-108"><a href="#cb35-108" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to sigma](images/c3l2-ss-07-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_07 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-107"><a href="#cb35-107" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to sigma](images/c3l2-ss-07-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_07 .column-margin width="53mm" group="slides"}</span>
+<span id="cb35-108"><a href="#cb35-108" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-109"><a href="#cb35-109" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-110"><a href="#cb35-110" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-111"><a href="#cb35-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-112"><a href="#cb35-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-113"><a href="#cb35-113" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM example 1 {#sec-em-example-1}</span></span>
-<span id="cb35-114"><a href="#cb35-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-115"><a href="#cb35-115" aria-hidden="true" tabindex="-1"></a>This video covers the code sample given in @lst-em-example-1 below. It is a simple implementation of the EM algorithm for fitting a 2-component Gaussian location mixture model to simulated data.</span>
-<span id="cb35-116"><a href="#cb35-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-117"><a href="#cb35-117" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>This code sample is both cool and awkward. </span>
-<span id="cb35-118"><a href="#cb35-118" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>It is cool because it provides a step-by-step implementation of the EM algorithm, which is a fundamental concept in statistics and machine learning.</span>
-<span id="cb35-119"><a href="#cb35-119" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>It is not broken in to functions lacks useful variables naming which would reduce the amounts of comments and cognitive load.  </span>
-<span id="cb35-120"><a href="#cb35-120" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>However it does provide nice visualizations of the EM algorithm in action - particularly if run inside of RStudio IDE (as shown in the video).</span>
-<span id="cb35-121"><a href="#cb35-121" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>would be interesting to make the number of components be drawn from a distribution rather than fixed at 2, then run the EM algorithm for multiple draws and pick the one with the best fit.</span>
-<span id="cb35-122"><a href="#cb35-122" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Later on we learn about using BIC to select the number of components in a mixture model, which is a more principled approach than simply fixing the number of components at 2. However it stills seems that the number of components might be a RV even if it's prior would be centred at the BIC estimate.</span>
-<span id="cb35-123"><a href="#cb35-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-124"><a href="#cb35-124" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sample code for EM example 1 {#sec-em-code-example-1}</span></span>
-<span id="cb35-125"><a href="#cb35-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-128"><a href="#cb35-128" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb35-129"><a href="#cb35-129" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-em-example-1</span></span>
-<span id="cb35-130"><a href="#cb35-130" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-label: lst-em-example-1</span></span>
-<span id="cb35-131"><a href="#cb35-131" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-cap: "EM algorithm for fitting a 2-component Gaussian location mixture"</span></span>
-<span id="cb35-132"><a href="#cb35-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-133"><a href="#cb35-133" aria-hidden="true" tabindex="-1"></a><span class="do">#### The algorithm is tested using simulated data</span></span>
-<span id="cb35-134"><a href="#cb35-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-135"><a href="#cb35-135" aria-hidden="true" tabindex="-1"></a><span class="do">## Clear the environment and load required libraries</span></span>
-<span id="cb35-136"><a href="#cb35-136" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
-<span id="cb35-137"><a href="#cb35-137" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">81196</span>)    <span class="co"># So that results are reproducible (same simulated data every time)</span></span>
+<span id="cb35-112"><a href="#cb35-112" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM example 1 {#sec-em-example-1}</span></span>
+<span id="cb35-113"><a href="#cb35-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-114"><a href="#cb35-114" aria-hidden="true" tabindex="-1"></a>This video covers the code sample given in @lst-em-example-1 below. It is a simple implementation of the EM algorithm for fitting a 2-component Gaussian location mixture model to simulated data.</span>
+<span id="cb35-115"><a href="#cb35-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-116"><a href="#cb35-116" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>This code sample is both cool and awkward. </span>
+<span id="cb35-117"><a href="#cb35-117" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>It is cool because it provides a step-by-step implementation of the EM algorithm, which is a fundamental concept in statistics and machine learning.</span>
+<span id="cb35-118"><a href="#cb35-118" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>It is not broken in to functions lacks useful variables naming which would reduce the amounts of comments and cognitive load.  </span>
+<span id="cb35-119"><a href="#cb35-119" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>However it does provide nice visualizations of the EM algorithm in action - particularly if run inside of RStudio IDE (as shown in the video).</span>
+<span id="cb35-120"><a href="#cb35-120" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>would be interesting to make the number of components be drawn from a distribution rather than fixed at 2, then run the EM algorithm for multiple draws and pick the one with the best fit.</span>
+<span id="cb35-121"><a href="#cb35-121" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Later on we learn about using BIC to select the number of components in a mixture model, which is a more principled approach than simply fixing the number of components at 2. However it stills seems that the number of components might be a RV even if it's prior would be centred at the BIC estimate.</span>
+<span id="cb35-122"><a href="#cb35-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-123"><a href="#cb35-123" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sample code for EM example 1 {#sec-em-code-example-1}</span></span>
+<span id="cb35-124"><a href="#cb35-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-127"><a href="#cb35-127" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb35-128"><a href="#cb35-128" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-em-example-1</span></span>
+<span id="cb35-129"><a href="#cb35-129" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-label: lst-em-example-1</span></span>
+<span id="cb35-130"><a href="#cb35-130" aria-hidden="true" tabindex="-1"></a><span class="co">#| lst-cap: "EM algorithm for fitting a 2-component Gaussian location mixture"</span></span>
+<span id="cb35-131"><a href="#cb35-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-132"><a href="#cb35-132" aria-hidden="true" tabindex="-1"></a><span class="do">#### The algorithm is tested using simulated data</span></span>
+<span id="cb35-133"><a href="#cb35-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-134"><a href="#cb35-134" aria-hidden="true" tabindex="-1"></a><span class="do">## Clear the environment and load required libraries</span></span>
+<span id="cb35-135"><a href="#cb35-135" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
+<span id="cb35-136"><a href="#cb35-136" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">81196</span>)    <span class="co"># So that results are reproducible (same simulated data every time)</span></span>
+<span id="cb35-137"><a href="#cb35-137" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-138"><a href="#cb35-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-139"><a href="#cb35-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-140"><a href="#cb35-140" aria-hidden="true" tabindex="-1"></a><span class="do">## Step 0 - Generate data from a mixture with 2 components:</span></span>
-<span id="cb35-141"><a href="#cb35-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-142"><a href="#cb35-142" aria-hidden="true" tabindex="-1"></a><span class="do">## Ground Truth parameters initialization</span></span>
-<span id="cb35-143"><a href="#cb35-143" aria-hidden="true" tabindex="-1"></a>KK         <span class="ot">=</span> <span class="dv">2</span>          <span class="co"># Number of components of the mixture</span></span>
-<span id="cb35-144"><a href="#cb35-144" aria-hidden="true" tabindex="-1"></a>w.true     <span class="ot">=</span> <span class="fl">0.6</span>        <span class="co"># GT True weights associated with the components</span></span>
-<span id="cb35-145"><a href="#cb35-145" aria-hidden="true" tabindex="-1"></a>mu.true    <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span>, KK) <span class="co"># initialize the true means list</span></span>
-<span id="cb35-146"><a href="#cb35-146" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">1</span>] <span class="ot">=</span> <span class="dv">0</span>   <span class="co"># GT mean for the first component</span></span>
-<span id="cb35-147"><a href="#cb35-147" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">2</span>] <span class="ot">=</span> <span class="dv">5</span>   <span class="co"># GT mean for the second component</span></span>
-<span id="cb35-148"><a href="#cb35-148" aria-hidden="true" tabindex="-1"></a>sigma.true <span class="ot">=</span> <span class="dv">1</span>   <span class="co"># GT standard deviation of all components</span></span>
-<span id="cb35-149"><a href="#cb35-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-150"><a href="#cb35-150" aria-hidden="true" tabindex="-1"></a>n  <span class="ot">=</span> <span class="dv">120</span>         <span class="co"># Number of synthetic samples to generate</span></span>
-<span id="cb35-151"><a href="#cb35-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-152"><a href="#cb35-152" aria-hidden="true" tabindex="-1"></a><span class="co"># simulate the latent variables for the component indicator function</span></span>
-<span id="cb35-153"><a href="#cb35-153" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>KK, n, <span class="at">replace=</span>T, <span class="at">prob=</span><span class="fu">c</span>(w.true,<span class="dv">1</span><span class="sc">-</span>w.true))</span>
-<span id="cb35-154"><a href="#cb35-154" aria-hidden="true" tabindex="-1"></a>x  <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span>, n)   <span class="co"># initialize the data vector x (or load data)</span></span>
-<span id="cb35-155"><a href="#cb35-155" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-156"><a href="#cb35-156" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){ <span class="co"># for each observation</span></span>
-<span id="cb35-157"><a href="#cb35-157" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sample from a distribution with mean selected by component indicator</span></span>
-<span id="cb35-158"><a href="#cb35-158" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the SD is the same for all components as this is a location mixture</span></span>
-<span id="cb35-159"><a href="#cb35-159" aria-hidden="true" tabindex="-1"></a>  x[i] <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, mu.true[cc[i]], sigma.true)</span>
-<span id="cb35-160"><a href="#cb35-160" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb35-161"><a href="#cb35-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-162"><a href="#cb35-162" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the true density</span></span>
-<span id="cb35-163"><a href="#cb35-163" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
-<span id="cb35-164"><a href="#cb35-164" aria-hidden="true" tabindex="-1"></a>xx.true <span class="ot">=</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">11</span>,<span class="at">length=</span><span class="dv">200</span>)</span>
-<span id="cb35-165"><a href="#cb35-165" aria-hidden="true" tabindex="-1"></a>yy.true <span class="ot">=</span> w.true<span class="sc">*</span><span class="fu">dnorm</span>(xx.true, mu.true[<span class="dv">1</span>], sigma.true) <span class="sc">+</span> </span>
-<span id="cb35-166"><a href="#cb35-166" aria-hidden="true" tabindex="-1"></a>          (<span class="dv">1</span><span class="sc">-</span>w.true)<span class="sc">*</span><span class="fu">dnorm</span>(xx.true, mu.true[<span class="dv">2</span>], sigma.true) </span>
-<span id="cb35-167"><a href="#cb35-167" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xx.true, yy.true, <span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"True density"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-168"><a href="#cb35-168" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(x, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">col=</span>cc)</span>
-<span id="cb35-169"><a href="#cb35-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-170"><a href="#cb35-170" aria-hidden="true" tabindex="-1"></a><span class="do">## Run the actual EM algorithm</span></span>
-<span id="cb35-171"><a href="#cb35-171" aria-hidden="true" tabindex="-1"></a><span class="do">## Initialize the parameters</span></span>
-<span id="cb35-172"><a href="#cb35-172" aria-hidden="true" tabindex="-1"></a>w     <span class="ot">=</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>                         <span class="co">#Assign equal weight to each component to start with</span></span>
-<span id="cb35-173"><a href="#cb35-173" aria-hidden="true" tabindex="-1"></a>mu    <span class="ot">=</span> <span class="fu">rnorm</span>(KK, <span class="fu">mean</span>(x), <span class="fu">sd</span>(x))   <span class="co">#Random cluster centers randomly spread over the support of the data</span></span>
-<span id="cb35-174"><a href="#cb35-174" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">=</span> <span class="fu">sd</span>(x)                       <span class="co">#Initial standard deviation</span></span>
-<span id="cb35-175"><a href="#cb35-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-176"><a href="#cb35-176" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the initial guess for the density</span></span>
-<span id="cb35-177"><a href="#cb35-177" aria-hidden="true" tabindex="-1"></a>xx <span class="ot">=</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">11</span>,<span class="at">length=</span><span class="dv">200</span>)</span>
-<span id="cb35-178"><a href="#cb35-178" aria-hidden="true" tabindex="-1"></a>yy <span class="ot">=</span> w<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">1</span>], sigma) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>w)<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">2</span>], sigma)</span>
-<span id="cb35-179"><a href="#cb35-179" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xx, yy, <span class="at">type=</span><span class="st">"l"</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(yy)), <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"Initial density"</span>)</span>
-<span id="cb35-180"><a href="#cb35-180" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(x, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">col=</span>cc)</span>
-<span id="cb35-181"><a href="#cb35-181" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-182"><a href="#cb35-182" aria-hidden="true" tabindex="-1"></a>s  <span class="ot">=</span> <span class="dv">0</span></span>
-<span id="cb35-183"><a href="#cb35-183" aria-hidden="true" tabindex="-1"></a>sw <span class="ot">=</span> <span class="cn">FALSE</span></span>
-<span id="cb35-184"><a href="#cb35-184" aria-hidden="true" tabindex="-1"></a>QQ <span class="ot">=</span> <span class="sc">-</span><span class="cn">Inf</span></span>
-<span id="cb35-185"><a href="#cb35-185" aria-hidden="true" tabindex="-1"></a>QQ.out <span class="ot">=</span> <span class="cn">NULL</span></span>
-<span id="cb35-186"><a href="#cb35-186" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">=</span> <span class="dv">10</span><span class="sc">^</span>(<span class="sc">-</span><span class="dv">5</span>)</span>
+<span id="cb35-139"><a href="#cb35-139" aria-hidden="true" tabindex="-1"></a><span class="do">## Step 0 - Generate data from a mixture with 2 components:</span></span>
+<span id="cb35-140"><a href="#cb35-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-141"><a href="#cb35-141" aria-hidden="true" tabindex="-1"></a><span class="do">## Ground Truth parameters initialization</span></span>
+<span id="cb35-142"><a href="#cb35-142" aria-hidden="true" tabindex="-1"></a>KK         <span class="ot">=</span> <span class="dv">2</span>          <span class="co"># Number of components of the mixture</span></span>
+<span id="cb35-143"><a href="#cb35-143" aria-hidden="true" tabindex="-1"></a>w.true     <span class="ot">=</span> <span class="fl">0.6</span>        <span class="co"># GT True weights associated with the components</span></span>
+<span id="cb35-144"><a href="#cb35-144" aria-hidden="true" tabindex="-1"></a>mu.true    <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span>, KK) <span class="co"># initialize the true means list</span></span>
+<span id="cb35-145"><a href="#cb35-145" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">1</span>] <span class="ot">=</span> <span class="dv">0</span>   <span class="co"># GT mean for the first component</span></span>
+<span id="cb35-146"><a href="#cb35-146" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">2</span>] <span class="ot">=</span> <span class="dv">5</span>   <span class="co"># GT mean for the second component</span></span>
+<span id="cb35-147"><a href="#cb35-147" aria-hidden="true" tabindex="-1"></a>sigma.true <span class="ot">=</span> <span class="dv">1</span>   <span class="co"># GT standard deviation of all components</span></span>
+<span id="cb35-148"><a href="#cb35-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-149"><a href="#cb35-149" aria-hidden="true" tabindex="-1"></a>n  <span class="ot">=</span> <span class="dv">120</span>         <span class="co"># Number of synthetic samples to generate</span></span>
+<span id="cb35-150"><a href="#cb35-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-151"><a href="#cb35-151" aria-hidden="true" tabindex="-1"></a><span class="co"># simulate the latent variables for the component indicator function</span></span>
+<span id="cb35-152"><a href="#cb35-152" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>KK, n, <span class="at">replace=</span>T, <span class="at">prob=</span><span class="fu">c</span>(w.true,<span class="dv">1</span><span class="sc">-</span>w.true))</span>
+<span id="cb35-153"><a href="#cb35-153" aria-hidden="true" tabindex="-1"></a>x  <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span>, n)   <span class="co"># initialize the data vector x (or load data)</span></span>
+<span id="cb35-154"><a href="#cb35-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-155"><a href="#cb35-155" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){ <span class="co"># for each observation</span></span>
+<span id="cb35-156"><a href="#cb35-156" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sample from a distribution with mean selected by component indicator</span></span>
+<span id="cb35-157"><a href="#cb35-157" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the SD is the same for all components as this is a location mixture</span></span>
+<span id="cb35-158"><a href="#cb35-158" aria-hidden="true" tabindex="-1"></a>  x[i] <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, mu.true[cc[i]], sigma.true)</span>
+<span id="cb35-159"><a href="#cb35-159" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-160"><a href="#cb35-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-161"><a href="#cb35-161" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the true density</span></span>
+<span id="cb35-162"><a href="#cb35-162" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb35-163"><a href="#cb35-163" aria-hidden="true" tabindex="-1"></a>xx.true <span class="ot">=</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">11</span>,<span class="at">length=</span><span class="dv">200</span>)</span>
+<span id="cb35-164"><a href="#cb35-164" aria-hidden="true" tabindex="-1"></a>yy.true <span class="ot">=</span> w.true<span class="sc">*</span><span class="fu">dnorm</span>(xx.true, mu.true[<span class="dv">1</span>], sigma.true) <span class="sc">+</span> </span>
+<span id="cb35-165"><a href="#cb35-165" aria-hidden="true" tabindex="-1"></a>          (<span class="dv">1</span><span class="sc">-</span>w.true)<span class="sc">*</span><span class="fu">dnorm</span>(xx.true, mu.true[<span class="dv">2</span>], sigma.true) </span>
+<span id="cb35-166"><a href="#cb35-166" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xx.true, yy.true, <span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"True density"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-167"><a href="#cb35-167" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(x, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">col=</span>cc)</span>
+<span id="cb35-168"><a href="#cb35-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-169"><a href="#cb35-169" aria-hidden="true" tabindex="-1"></a><span class="do">## Run the actual EM algorithm</span></span>
+<span id="cb35-170"><a href="#cb35-170" aria-hidden="true" tabindex="-1"></a><span class="do">## Initialize the parameters</span></span>
+<span id="cb35-171"><a href="#cb35-171" aria-hidden="true" tabindex="-1"></a>w     <span class="ot">=</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>                         <span class="co">#Assign equal weight to each component to start with</span></span>
+<span id="cb35-172"><a href="#cb35-172" aria-hidden="true" tabindex="-1"></a>mu    <span class="ot">=</span> <span class="fu">rnorm</span>(KK, <span class="fu">mean</span>(x), <span class="fu">sd</span>(x))   <span class="co">#Random cluster centers randomly spread over the support of the data</span></span>
+<span id="cb35-173"><a href="#cb35-173" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">=</span> <span class="fu">sd</span>(x)                       <span class="co">#Initial standard deviation</span></span>
+<span id="cb35-174"><a href="#cb35-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-175"><a href="#cb35-175" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the initial guess for the density</span></span>
+<span id="cb35-176"><a href="#cb35-176" aria-hidden="true" tabindex="-1"></a>xx <span class="ot">=</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">11</span>,<span class="at">length=</span><span class="dv">200</span>)</span>
+<span id="cb35-177"><a href="#cb35-177" aria-hidden="true" tabindex="-1"></a>yy <span class="ot">=</span> w<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">1</span>], sigma) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>w)<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">2</span>], sigma)</span>
+<span id="cb35-178"><a href="#cb35-178" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xx, yy, <span class="at">type=</span><span class="st">"l"</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(yy)), <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"Initial density"</span>)</span>
+<span id="cb35-179"><a href="#cb35-179" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(x, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">col=</span>cc)</span>
+<span id="cb35-180"><a href="#cb35-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-181"><a href="#cb35-181" aria-hidden="true" tabindex="-1"></a>s  <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb35-182"><a href="#cb35-182" aria-hidden="true" tabindex="-1"></a>sw <span class="ot">=</span> <span class="cn">FALSE</span></span>
+<span id="cb35-183"><a href="#cb35-183" aria-hidden="true" tabindex="-1"></a>QQ <span class="ot">=</span> <span class="sc">-</span><span class="cn">Inf</span></span>
+<span id="cb35-184"><a href="#cb35-184" aria-hidden="true" tabindex="-1"></a>QQ.out <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb35-185"><a href="#cb35-185" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">=</span> <span class="dv">10</span><span class="sc">^</span>(<span class="sc">-</span><span class="dv">5</span>)</span>
+<span id="cb35-186"><a href="#cb35-186" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-187"><a href="#cb35-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-188"><a href="#cb35-188" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-189"><a href="#cb35-189" aria-hidden="true" tabindex="-1"></a><span class="do">##Checking convergence of the algorithm</span></span>
-<span id="cb35-190"><a href="#cb35-190" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span>(<span class="sc">!</span>sw){</span>
-<span id="cb35-191"><a href="#cb35-191" aria-hidden="true" tabindex="-1"></a>  <span class="do">## E step</span></span>
-<span id="cb35-192"><a href="#cb35-192" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(n,KK))</span>
-<span id="cb35-193"><a href="#cb35-193" aria-hidden="true" tabindex="-1"></a>  v[,<span class="dv">1</span>] <span class="ot">=</span> <span class="fu">log</span>(w) <span class="sc">+</span> <span class="fu">dnorm</span>(x, mu[<span class="dv">1</span>], sigma, <span class="at">log=</span><span class="cn">TRUE</span>)    <span class="co">#Compute the log of the weights</span></span>
-<span id="cb35-194"><a href="#cb35-194" aria-hidden="true" tabindex="-1"></a>  v[,<span class="dv">2</span>] <span class="ot">=</span> <span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>w) <span class="sc">+</span> <span class="fu">dnorm</span>(x, mu[<span class="dv">2</span>], sigma, <span class="at">log=</span><span class="cn">TRUE</span>)  <span class="co">#Compute the log of the weights</span></span>
-<span id="cb35-195"><a href="#cb35-195" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb35-196"><a href="#cb35-196" aria-hidden="true" tabindex="-1"></a>    v[i,] <span class="ot">=</span> <span class="fu">exp</span>(v[i,] <span class="sc">-</span> <span class="fu">max</span>(v[i,]))<span class="sc">/</span><span class="fu">sum</span>(<span class="fu">exp</span>(v[i,] <span class="sc">-</span> <span class="fu">max</span>(v[i,])))  <span class="co">#Go from logs to actual weights in a numerically stable manner</span></span>
-<span id="cb35-197"><a href="#cb35-197" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-198"><a href="#cb35-198" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb35-199"><a href="#cb35-199" aria-hidden="true" tabindex="-1"></a>  <span class="do">## M step</span></span>
-<span id="cb35-200"><a href="#cb35-200" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Weights</span></span>
-<span id="cb35-201"><a href="#cb35-201" aria-hidden="true" tabindex="-1"></a>  w <span class="ot">=</span> <span class="fu">mean</span>(v[,<span class="dv">1</span>])</span>
-<span id="cb35-202"><a href="#cb35-202" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span>, KK)</span>
-<span id="cb35-203"><a href="#cb35-203" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-204"><a href="#cb35-204" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb35-205"><a href="#cb35-205" aria-hidden="true" tabindex="-1"></a>      mu[k]    <span class="ot">=</span> mu[k] <span class="sc">+</span> v[i,k]<span class="sc">*</span>x[i]</span>
-<span id="cb35-206"><a href="#cb35-206" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb35-207"><a href="#cb35-207" aria-hidden="true" tabindex="-1"></a>    mu[k] <span class="ot">=</span> mu[k]<span class="sc">/</span><span class="fu">sum</span>(v[,k])</span>
-<span id="cb35-208"><a href="#cb35-208" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-209"><a href="#cb35-209" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Standard deviations</span></span>
-<span id="cb35-210"><a href="#cb35-210" aria-hidden="true" tabindex="-1"></a>  sigma <span class="ot">=</span> <span class="dv">0</span></span>
-<span id="cb35-211"><a href="#cb35-211" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb35-212"><a href="#cb35-212" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-213"><a href="#cb35-213" aria-hidden="true" tabindex="-1"></a>      sigma <span class="ot">=</span> sigma <span class="sc">+</span> v[i,k]<span class="sc">*</span>(x[i] <span class="sc">-</span> mu[k])<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb35-214"><a href="#cb35-214" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb35-215"><a href="#cb35-215" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-216"><a href="#cb35-216" aria-hidden="true" tabindex="-1"></a>  sigma <span class="ot">=</span> <span class="fu">sqrt</span>(sigma<span class="sc">/</span><span class="fu">sum</span>(v))</span>
-<span id="cb35-217"><a href="#cb35-217" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb35-218"><a href="#cb35-218" aria-hidden="true" tabindex="-1"></a>  <span class="do">##Check convergence</span></span>
-<span id="cb35-219"><a href="#cb35-219" aria-hidden="true" tabindex="-1"></a>  QQn <span class="ot">=</span> <span class="dv">0</span></span>
-<span id="cb35-220"><a href="#cb35-220" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb35-221"><a href="#cb35-221" aria-hidden="true" tabindex="-1"></a>    QQn <span class="ot">=</span> QQn <span class="sc">+</span> v[i,<span class="dv">1</span>]<span class="sc">*</span>(<span class="fu">log</span>(w) <span class="sc">+</span> <span class="fu">dnorm</span>(x[i], mu[<span class="dv">1</span>], sigma, <span class="at">log=</span><span class="cn">TRUE</span>)) <span class="sc">+</span></span>
-<span id="cb35-222"><a href="#cb35-222" aria-hidden="true" tabindex="-1"></a>                v[i,<span class="dv">2</span>]<span class="sc">*</span>(<span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>w) <span class="sc">+</span> <span class="fu">dnorm</span>(x[i], mu[<span class="dv">2</span>], sigma, <span class="at">log=</span><span class="cn">TRUE</span>))</span>
-<span id="cb35-223"><a href="#cb35-223" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-224"><a href="#cb35-224" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">abs</span>(QQn<span class="sc">-</span>QQ)<span class="sc">/</span><span class="fu">abs</span>(QQn)<span class="sc">&lt;</span>epsilon){</span>
-<span id="cb35-225"><a href="#cb35-225" aria-hidden="true" tabindex="-1"></a>    sw<span class="ot">=</span><span class="cn">TRUE</span></span>
-<span id="cb35-226"><a href="#cb35-226" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-227"><a href="#cb35-227" aria-hidden="true" tabindex="-1"></a>  QQ <span class="ot">=</span> QQn</span>
-<span id="cb35-228"><a href="#cb35-228" aria-hidden="true" tabindex="-1"></a>  QQ.out <span class="ot">=</span> <span class="fu">c</span>(QQ.out, QQ)</span>
-<span id="cb35-229"><a href="#cb35-229" aria-hidden="true" tabindex="-1"></a>  s <span class="ot">=</span> s <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb35-230"><a href="#cb35-230" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">paste</span>(s, QQn))</span>
-<span id="cb35-231"><a href="#cb35-231" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb35-232"><a href="#cb35-232" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Plot current estimate over data</span></span>
-<span id="cb35-233"><a href="#cb35-233" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dv">2</span>,<span class="dv">1</span>), <span class="at">widths=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>), <span class="at">heights=</span><span class="fu">c</span>(<span class="fl">1.3</span>,<span class="dv">3</span>))</span>
-<span id="cb35-234"><a href="#cb35-234" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="fl">3.1</span>,<span class="fl">4.1</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>))</span>
-<span id="cb35-235"><a href="#cb35-235" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(QQ.out[<span class="dv">1</span><span class="sc">:</span>s],<span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fu">max</span>(<span class="dv">10</span>,s)), <span class="at">las=</span><span class="dv">1</span>, <span class="at">ylab=</span><span class="st">"Q"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-236"><a href="#cb35-236" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb35-237"><a href="#cb35-237" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">4</span>,<span class="fl">1.5</span>,<span class="fl">0.5</span>))</span>
-<span id="cb35-238"><a href="#cb35-238" aria-hidden="true" tabindex="-1"></a>  xx <span class="ot">=</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">11</span>,<span class="at">length=</span><span class="dv">200</span>)</span>
-<span id="cb35-239"><a href="#cb35-239" aria-hidden="true" tabindex="-1"></a>  yy <span class="ot">=</span> w<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">1</span>], sigma) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>w)<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">2</span>], sigma)</span>
-<span id="cb35-240"><a href="#cb35-240" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(xx, yy, <span class="at">type=</span><span class="st">"l"</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(<span class="fu">c</span>(yy,yy.true))), <span class="at">main=</span><span class="fu">paste</span>(<span class="st">"s ="</span>,s,<span class="st">"   Q ="</span>, <span class="fu">round</span>(QQ.out[s],<span class="dv">4</span>)), <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"Density"</span>)</span>
-<span id="cb35-241"><a href="#cb35-241" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(xx.true, yy.true, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-242"><a href="#cb35-242" aria-hidden="true" tabindex="-1"></a>  <span class="fu">points</span>(x, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">col=</span>cc)</span>
-<span id="cb35-243"><a href="#cb35-243" aria-hidden="true" tabindex="-1"></a>  <span class="fu">legend</span>(<span class="dv">6</span>,<span class="fl">0.22</span>,<span class="fu">c</span>(<span class="st">"Truth"</span>,<span class="st">"Estimate"</span>),<span class="at">col=</span><span class="fu">c</span>(<span class="st">"black"</span>,<span class="st">"red"</span>), <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb35-244"><a href="#cb35-244" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-188"><a href="#cb35-188" aria-hidden="true" tabindex="-1"></a><span class="do">##Checking convergence of the algorithm</span></span>
+<span id="cb35-189"><a href="#cb35-189" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span>(<span class="sc">!</span>sw){</span>
+<span id="cb35-190"><a href="#cb35-190" aria-hidden="true" tabindex="-1"></a>  <span class="do">## E step</span></span>
+<span id="cb35-191"><a href="#cb35-191" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(n,KK))</span>
+<span id="cb35-192"><a href="#cb35-192" aria-hidden="true" tabindex="-1"></a>  v[,<span class="dv">1</span>] <span class="ot">=</span> <span class="fu">log</span>(w) <span class="sc">+</span> <span class="fu">dnorm</span>(x, mu[<span class="dv">1</span>], sigma, <span class="at">log=</span><span class="cn">TRUE</span>)    <span class="co">#Compute the log of the weights</span></span>
+<span id="cb35-193"><a href="#cb35-193" aria-hidden="true" tabindex="-1"></a>  v[,<span class="dv">2</span>] <span class="ot">=</span> <span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>w) <span class="sc">+</span> <span class="fu">dnorm</span>(x, mu[<span class="dv">2</span>], sigma, <span class="at">log=</span><span class="cn">TRUE</span>)  <span class="co">#Compute the log of the weights</span></span>
+<span id="cb35-194"><a href="#cb35-194" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb35-195"><a href="#cb35-195" aria-hidden="true" tabindex="-1"></a>    v[i,] <span class="ot">=</span> <span class="fu">exp</span>(v[i,] <span class="sc">-</span> <span class="fu">max</span>(v[i,]))<span class="sc">/</span><span class="fu">sum</span>(<span class="fu">exp</span>(v[i,] <span class="sc">-</span> <span class="fu">max</span>(v[i,])))  <span class="co">#Go from logs to actual weights in a numerically stable manner</span></span>
+<span id="cb35-196"><a href="#cb35-196" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-197"><a href="#cb35-197" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb35-198"><a href="#cb35-198" aria-hidden="true" tabindex="-1"></a>  <span class="do">## M step</span></span>
+<span id="cb35-199"><a href="#cb35-199" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Weights</span></span>
+<span id="cb35-200"><a href="#cb35-200" aria-hidden="true" tabindex="-1"></a>  w <span class="ot">=</span> <span class="fu">mean</span>(v[,<span class="dv">1</span>])</span>
+<span id="cb35-201"><a href="#cb35-201" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span>, KK)</span>
+<span id="cb35-202"><a href="#cb35-202" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-203"><a href="#cb35-203" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb35-204"><a href="#cb35-204" aria-hidden="true" tabindex="-1"></a>      mu[k]    <span class="ot">=</span> mu[k] <span class="sc">+</span> v[i,k]<span class="sc">*</span>x[i]</span>
+<span id="cb35-205"><a href="#cb35-205" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb35-206"><a href="#cb35-206" aria-hidden="true" tabindex="-1"></a>    mu[k] <span class="ot">=</span> mu[k]<span class="sc">/</span><span class="fu">sum</span>(v[,k])</span>
+<span id="cb35-207"><a href="#cb35-207" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-208"><a href="#cb35-208" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Standard deviations</span></span>
+<span id="cb35-209"><a href="#cb35-209" aria-hidden="true" tabindex="-1"></a>  sigma <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb35-210"><a href="#cb35-210" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb35-211"><a href="#cb35-211" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-212"><a href="#cb35-212" aria-hidden="true" tabindex="-1"></a>      sigma <span class="ot">=</span> sigma <span class="sc">+</span> v[i,k]<span class="sc">*</span>(x[i] <span class="sc">-</span> mu[k])<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb35-213"><a href="#cb35-213" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb35-214"><a href="#cb35-214" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-215"><a href="#cb35-215" aria-hidden="true" tabindex="-1"></a>  sigma <span class="ot">=</span> <span class="fu">sqrt</span>(sigma<span class="sc">/</span><span class="fu">sum</span>(v))</span>
+<span id="cb35-216"><a href="#cb35-216" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb35-217"><a href="#cb35-217" aria-hidden="true" tabindex="-1"></a>  <span class="do">##Check convergence</span></span>
+<span id="cb35-218"><a href="#cb35-218" aria-hidden="true" tabindex="-1"></a>  QQn <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb35-219"><a href="#cb35-219" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb35-220"><a href="#cb35-220" aria-hidden="true" tabindex="-1"></a>    QQn <span class="ot">=</span> QQn <span class="sc">+</span> v[i,<span class="dv">1</span>]<span class="sc">*</span>(<span class="fu">log</span>(w) <span class="sc">+</span> <span class="fu">dnorm</span>(x[i], mu[<span class="dv">1</span>], sigma, <span class="at">log=</span><span class="cn">TRUE</span>)) <span class="sc">+</span></span>
+<span id="cb35-221"><a href="#cb35-221" aria-hidden="true" tabindex="-1"></a>                v[i,<span class="dv">2</span>]<span class="sc">*</span>(<span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>w) <span class="sc">+</span> <span class="fu">dnorm</span>(x[i], mu[<span class="dv">2</span>], sigma, <span class="at">log=</span><span class="cn">TRUE</span>))</span>
+<span id="cb35-222"><a href="#cb35-222" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-223"><a href="#cb35-223" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">abs</span>(QQn<span class="sc">-</span>QQ)<span class="sc">/</span><span class="fu">abs</span>(QQn)<span class="sc">&lt;</span>epsilon){</span>
+<span id="cb35-224"><a href="#cb35-224" aria-hidden="true" tabindex="-1"></a>    sw<span class="ot">=</span><span class="cn">TRUE</span></span>
+<span id="cb35-225"><a href="#cb35-225" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-226"><a href="#cb35-226" aria-hidden="true" tabindex="-1"></a>  QQ <span class="ot">=</span> QQn</span>
+<span id="cb35-227"><a href="#cb35-227" aria-hidden="true" tabindex="-1"></a>  QQ.out <span class="ot">=</span> <span class="fu">c</span>(QQ.out, QQ)</span>
+<span id="cb35-228"><a href="#cb35-228" aria-hidden="true" tabindex="-1"></a>  s <span class="ot">=</span> s <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb35-229"><a href="#cb35-229" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">paste</span>(s, QQn))</span>
+<span id="cb35-230"><a href="#cb35-230" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb35-231"><a href="#cb35-231" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Plot current estimate over data</span></span>
+<span id="cb35-232"><a href="#cb35-232" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dv">2</span>,<span class="dv">1</span>), <span class="at">widths=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>), <span class="at">heights=</span><span class="fu">c</span>(<span class="fl">1.3</span>,<span class="dv">3</span>))</span>
+<span id="cb35-233"><a href="#cb35-233" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="fl">3.1</span>,<span class="fl">4.1</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>))</span>
+<span id="cb35-234"><a href="#cb35-234" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(QQ.out[<span class="dv">1</span><span class="sc">:</span>s],<span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fu">max</span>(<span class="dv">10</span>,s)), <span class="at">las=</span><span class="dv">1</span>, <span class="at">ylab=</span><span class="st">"Q"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-235"><a href="#cb35-235" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb35-236"><a href="#cb35-236" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">4</span>,<span class="fl">1.5</span>,<span class="fl">0.5</span>))</span>
+<span id="cb35-237"><a href="#cb35-237" aria-hidden="true" tabindex="-1"></a>  xx <span class="ot">=</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">11</span>,<span class="at">length=</span><span class="dv">200</span>)</span>
+<span id="cb35-238"><a href="#cb35-238" aria-hidden="true" tabindex="-1"></a>  yy <span class="ot">=</span> w<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">1</span>], sigma) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>w)<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">2</span>], sigma)</span>
+<span id="cb35-239"><a href="#cb35-239" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(xx, yy, <span class="at">type=</span><span class="st">"l"</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(<span class="fu">c</span>(yy,yy.true))), <span class="at">main=</span><span class="fu">paste</span>(<span class="st">"s ="</span>,s,<span class="st">"   Q ="</span>, <span class="fu">round</span>(QQ.out[s],<span class="dv">4</span>)), <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"Density"</span>)</span>
+<span id="cb35-240"><a href="#cb35-240" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(xx.true, yy.true, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-241"><a href="#cb35-241" aria-hidden="true" tabindex="-1"></a>  <span class="fu">points</span>(x, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">col=</span>cc)</span>
+<span id="cb35-242"><a href="#cb35-242" aria-hidden="true" tabindex="-1"></a>  <span class="fu">legend</span>(<span class="dv">6</span>,<span class="fl">0.22</span>,<span class="fu">c</span>(<span class="st">"Truth"</span>,<span class="st">"Estimate"</span>),<span class="at">col=</span><span class="fu">c</span>(<span class="st">"black"</span>,<span class="st">"red"</span>), <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb35-243"><a href="#cb35-243" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-244"><a href="#cb35-244" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-245"><a href="#cb35-245" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-246"><a href="#cb35-246" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-247"><a href="#cb35-247" aria-hidden="true" tabindex="-1"></a><span class="co">#Plot final estimate over data</span></span>
-<span id="cb35-248"><a href="#cb35-248" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dv">2</span>,<span class="dv">1</span>), <span class="at">widths=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>), <span class="at">heights=</span><span class="fu">c</span>(<span class="fl">1.3</span>,<span class="dv">3</span>))</span>
-<span id="cb35-249"><a href="#cb35-249" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="fl">3.1</span>,<span class="fl">4.1</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>))</span>
-<span id="cb35-250"><a href="#cb35-250" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(QQ.out[<span class="dv">1</span><span class="sc">:</span>s],<span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fu">max</span>(<span class="dv">10</span>,s)), <span class="at">las=</span><span class="dv">1</span>, <span class="at">ylab=</span><span class="st">"Q"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-251"><a href="#cb35-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-252"><a href="#cb35-252" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">4</span>,<span class="fl">1.5</span>,<span class="fl">0.5</span>))</span>
-<span id="cb35-253"><a href="#cb35-253" aria-hidden="true" tabindex="-1"></a>xx <span class="ot">=</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">11</span>,<span class="at">length=</span><span class="dv">200</span>)</span>
-<span id="cb35-254"><a href="#cb35-254" aria-hidden="true" tabindex="-1"></a>yy <span class="ot">=</span> w<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">1</span>], sigma) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>w)<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">2</span>], sigma)</span>
-<span id="cb35-255"><a href="#cb35-255" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xx, yy, <span class="at">type=</span><span class="st">"l"</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(<span class="fu">c</span>(yy,yy.true))), <span class="at">main=</span><span class="fu">paste</span>(<span class="st">"s ="</span>,s,<span class="st">"   Q ="</span>, <span class="fu">round</span>(QQ.out[s],<span class="dv">4</span>)), <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"Density"</span>)</span>
-<span id="cb35-256"><a href="#cb35-256" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(xx.true, yy.true, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-257"><a href="#cb35-257" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(x, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">col=</span>cc)</span>
-<span id="cb35-258"><a href="#cb35-258" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="dv">6</span>,<span class="fl">0.22</span>,<span class="fu">c</span>(<span class="st">"Truth"</span>,<span class="st">"Estimate"</span>),<span class="at">col=</span><span class="fu">c</span>(<span class="st">"black"</span>,<span class="st">"red"</span>), <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>), <span class="at">bty=</span><span class="st">"n"</span>)</span>
-<span id="cb35-259"><a href="#cb35-259" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb35-246"><a href="#cb35-246" aria-hidden="true" tabindex="-1"></a><span class="co">#Plot final estimate over data</span></span>
+<span id="cb35-247"><a href="#cb35-247" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dv">2</span>,<span class="dv">1</span>), <span class="at">widths=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>), <span class="at">heights=</span><span class="fu">c</span>(<span class="fl">1.3</span>,<span class="dv">3</span>))</span>
+<span id="cb35-248"><a href="#cb35-248" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="fl">3.1</span>,<span class="fl">4.1</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>))</span>
+<span id="cb35-249"><a href="#cb35-249" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(QQ.out[<span class="dv">1</span><span class="sc">:</span>s],<span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fu">max</span>(<span class="dv">10</span>,s)), <span class="at">las=</span><span class="dv">1</span>, <span class="at">ylab=</span><span class="st">"Q"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-250"><a href="#cb35-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-251"><a href="#cb35-251" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">4</span>,<span class="fl">1.5</span>,<span class="fl">0.5</span>))</span>
+<span id="cb35-252"><a href="#cb35-252" aria-hidden="true" tabindex="-1"></a>xx <span class="ot">=</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">11</span>,<span class="at">length=</span><span class="dv">200</span>)</span>
+<span id="cb35-253"><a href="#cb35-253" aria-hidden="true" tabindex="-1"></a>yy <span class="ot">=</span> w<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">1</span>], sigma) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>w)<span class="sc">*</span><span class="fu">dnorm</span>(xx, mu[<span class="dv">2</span>], sigma)</span>
+<span id="cb35-254"><a href="#cb35-254" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xx, yy, <span class="at">type=</span><span class="st">"l"</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(<span class="fu">c</span>(yy,yy.true))), <span class="at">main=</span><span class="fu">paste</span>(<span class="st">"s ="</span>,s,<span class="st">"   Q ="</span>, <span class="fu">round</span>(QQ.out[s],<span class="dv">4</span>)), <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"Density"</span>)</span>
+<span id="cb35-255"><a href="#cb35-255" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(xx.true, yy.true, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-256"><a href="#cb35-256" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(x, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">col=</span>cc)</span>
+<span id="cb35-257"><a href="#cb35-257" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="dv">6</span>,<span class="fl">0.22</span>,<span class="fu">c</span>(<span class="st">"Truth"</span>,<span class="st">"Estimate"</span>),<span class="at">col=</span><span class="fu">c</span>(<span class="st">"black"</span>,<span class="st">"red"</span>), <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>), <span class="at">bty=</span><span class="st">"n"</span>)</span>
+<span id="cb35-258"><a href="#cb35-258" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb35-259"><a href="#cb35-259" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-260"><a href="#cb35-260" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-261"><a href="#cb35-261" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-262"><a href="#cb35-262" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM example 2</span></span>
+<span id="cb35-261"><a href="#cb35-261" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM example 2</span></span>
+<span id="cb35-262"><a href="#cb35-262" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-263"><a href="#cb35-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-264"><a href="#cb35-264" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-265"><a href="#cb35-265" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sample code for EM example 2</span></span>
+<span id="cb35-264"><a href="#cb35-264" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sample code for EM example 2</span></span>
+<span id="cb35-265"><a href="#cb35-265" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-266"><a href="#cb35-266" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-267"><a href="#cb35-267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-268"><a href="#cb35-268" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-269"><a href="#cb35-269" aria-hidden="true" tabindex="-1"></a>This variant differs from the code sample above in that it uses the <span class="in">`mvtnorm`</span> package to generate **multivariate normal distributions**. It also uses the <span class="in">`ellipse`</span> package to plot the ellipses around the means of the components.</span>
-<span id="cb35-270"><a href="#cb35-270" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-273"><a href="#cb35-273" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb35-274"><a href="#cb35-274" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-em-example-2</span></span>
-<span id="cb35-275"><a href="#cb35-275" aria-hidden="true" tabindex="-1"></a><span class="do">#### Example of an EM algorithm for fitting a mixtures of K p-variate Gaussian components</span></span>
-<span id="cb35-276"><a href="#cb35-276" aria-hidden="true" tabindex="-1"></a><span class="do">#### The algorithm is tested using simulated data</span></span>
-<span id="cb35-277"><a href="#cb35-277" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-278"><a href="#cb35-278" aria-hidden="true" tabindex="-1"></a><span class="do">## Clear the environment and load required libraries</span></span>
-<span id="cb35-279"><a href="#cb35-279" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
-<span id="cb35-280"><a href="#cb35-280" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mvtnorm)    <span class="co"># Multivariate normals are not default in R</span></span>
-<span id="cb35-281"><a href="#cb35-281" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ellipse)    <span class="co"># Required for plotting</span></span>
-<span id="cb35-282"><a href="#cb35-282" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">63252</span>)     <span class="co"># For reproducibility</span></span>
-<span id="cb35-283"><a href="#cb35-283" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-284"><a href="#cb35-284" aria-hidden="true" tabindex="-1"></a><span class="do">## Generate data from a mixture with 3 components</span></span>
-<span id="cb35-285"><a href="#cb35-285" aria-hidden="true" tabindex="-1"></a>KK      <span class="ot">=</span> <span class="dv">3</span></span>
-<span id="cb35-286"><a href="#cb35-286" aria-hidden="true" tabindex="-1"></a>p       <span class="ot">=</span> <span class="dv">2</span></span>
-<span id="cb35-287"><a href="#cb35-287" aria-hidden="true" tabindex="-1"></a>w.true <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">0.3</span>,<span class="fl">0.2</span>)  <span class="co"># True weights associated with the components</span></span>
-<span id="cb35-288"><a href="#cb35-288" aria-hidden="true" tabindex="-1"></a>mu.true     <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK,p))</span>
-<span id="cb35-289"><a href="#cb35-289" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">1</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>)   <span class="co">#True mean for the first component</span></span>
-<span id="cb35-290"><a href="#cb35-290" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">2</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">5</span>)   <span class="co">#True mean for the second component</span></span>
-<span id="cb35-291"><a href="#cb35-291" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">3</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">3</span>,<span class="dv">7</span>)   <span class="co">#True mean for the third component</span></span>
-<span id="cb35-292"><a href="#cb35-292" aria-hidden="true" tabindex="-1"></a>Sigma.true      <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK,p,p))</span>
-<span id="cb35-293"><a href="#cb35-293" aria-hidden="true" tabindex="-1"></a>Sigma.true[<span class="dv">1</span>,,] <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>),p,p)   <span class="co">#True variance for the first component</span></span>
-<span id="cb35-294"><a href="#cb35-294" aria-hidden="true" tabindex="-1"></a>Sigma.true[<span class="dv">2</span>,,] <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="fl">0.9</span>,<span class="fl">0.9</span>,<span class="dv">1</span>),p,p)   <span class="co">#True variance for the second component</span></span>
-<span id="cb35-295"><a href="#cb35-295" aria-hidden="true" tabindex="-1"></a>Sigma.true[<span class="dv">3</span>,,] <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="sc">-</span><span class="fl">0.9</span>,<span class="sc">-</span><span class="fl">0.9</span>,<span class="dv">4</span>),p,p)   <span class="co">#True variance for the third component</span></span>
-<span id="cb35-296"><a href="#cb35-296" aria-hidden="true" tabindex="-1"></a>n  <span class="ot">=</span> <span class="dv">120</span></span>
-<span id="cb35-297"><a href="#cb35-297" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, n, <span class="at">replace=</span>T, <span class="at">prob=</span>w.true)</span>
-<span id="cb35-298"><a href="#cb35-298" aria-hidden="true" tabindex="-1"></a>x  <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(n,p))</span>
-<span id="cb35-299"><a href="#cb35-299" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb35-300"><a href="#cb35-300" aria-hidden="true" tabindex="-1"></a>  x[i,] <span class="ot">=</span> <span class="fu">rmvnorm</span>(<span class="dv">1</span>, mu.true[cc[i],], Sigma.true[cc[i],,])</span>
-<span id="cb35-301"><a href="#cb35-301" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb35-302"><a href="#cb35-302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-303"><a href="#cb35-303" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
-<span id="cb35-304"><a href="#cb35-304" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="at">col=</span>cc, <span class="at">type=</span><span class="st">"n"</span>, <span class="at">xlab=</span><span class="fu">expression</span>(x[<span class="dv">1</span>]), <span class="at">ylab=</span><span class="fu">expression</span>(x[<span class="dv">2</span>]))</span>
-<span id="cb35-305"><a href="#cb35-305" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="fu">seq</span>(<span class="dv">1</span>,n), <span class="at">col=</span>cc, <span class="at">cex=</span><span class="fl">0.6</span>)</span>
-<span id="cb35-306"><a href="#cb35-306" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-307"><a href="#cb35-307" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma.true[k,,], <span class="at">centre=</span>mu.true[k,], <span class="at">level=</span><span class="fl">0.50</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-308"><a href="#cb35-308" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma.true[k,,], <span class="at">centre=</span>mu.true[k,], <span class="at">level=</span><span class="fl">0.82</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-309"><a href="#cb35-309" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma.true[k,,], <span class="at">centre=</span>mu.true[k,], <span class="at">level=</span><span class="fl">0.95</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-310"><a href="#cb35-310" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb35-311"><a href="#cb35-311" aria-hidden="true" tabindex="-1"></a><span class="co">#title(main="Data + True Components")</span></span>
+<span id="cb35-268"><a href="#cb35-268" aria-hidden="true" tabindex="-1"></a>This variant differs from the code sample above in that it uses the <span class="in">`mvtnorm`</span> package to generate **multivariate normal distributions**. It also uses the <span class="in">`ellipse`</span> package to plot the ellipses around the means of the components.</span>
+<span id="cb35-269"><a href="#cb35-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-272"><a href="#cb35-272" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb35-273"><a href="#cb35-273" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-em-example-2</span></span>
+<span id="cb35-274"><a href="#cb35-274" aria-hidden="true" tabindex="-1"></a><span class="do">#### Example of an EM algorithm for fitting a mixtures of K p-variate Gaussian components</span></span>
+<span id="cb35-275"><a href="#cb35-275" aria-hidden="true" tabindex="-1"></a><span class="do">#### The algorithm is tested using simulated data</span></span>
+<span id="cb35-276"><a href="#cb35-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-277"><a href="#cb35-277" aria-hidden="true" tabindex="-1"></a><span class="do">## Clear the environment and load required libraries</span></span>
+<span id="cb35-278"><a href="#cb35-278" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
+<span id="cb35-279"><a href="#cb35-279" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mvtnorm)    <span class="co"># Multivariate normals are not default in R</span></span>
+<span id="cb35-280"><a href="#cb35-280" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ellipse)    <span class="co"># Required for plotting</span></span>
+<span id="cb35-281"><a href="#cb35-281" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">63252</span>)     <span class="co"># For reproducibility</span></span>
+<span id="cb35-282"><a href="#cb35-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-283"><a href="#cb35-283" aria-hidden="true" tabindex="-1"></a><span class="do">## Generate data from a mixture with 3 components</span></span>
+<span id="cb35-284"><a href="#cb35-284" aria-hidden="true" tabindex="-1"></a>KK      <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb35-285"><a href="#cb35-285" aria-hidden="true" tabindex="-1"></a>p       <span class="ot">=</span> <span class="dv">2</span></span>
+<span id="cb35-286"><a href="#cb35-286" aria-hidden="true" tabindex="-1"></a>w.true <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">0.3</span>,<span class="fl">0.2</span>)  <span class="co"># True weights associated with the components</span></span>
+<span id="cb35-287"><a href="#cb35-287" aria-hidden="true" tabindex="-1"></a>mu.true     <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK,p))</span>
+<span id="cb35-288"><a href="#cb35-288" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">1</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>)   <span class="co">#True mean for the first component</span></span>
+<span id="cb35-289"><a href="#cb35-289" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">2</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">5</span>)   <span class="co">#True mean for the second component</span></span>
+<span id="cb35-290"><a href="#cb35-290" aria-hidden="true" tabindex="-1"></a>mu.true[<span class="dv">3</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">3</span>,<span class="dv">7</span>)   <span class="co">#True mean for the third component</span></span>
+<span id="cb35-291"><a href="#cb35-291" aria-hidden="true" tabindex="-1"></a>Sigma.true      <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK,p,p))</span>
+<span id="cb35-292"><a href="#cb35-292" aria-hidden="true" tabindex="-1"></a>Sigma.true[<span class="dv">1</span>,,] <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>),p,p)   <span class="co">#True variance for the first component</span></span>
+<span id="cb35-293"><a href="#cb35-293" aria-hidden="true" tabindex="-1"></a>Sigma.true[<span class="dv">2</span>,,] <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="fl">0.9</span>,<span class="fl">0.9</span>,<span class="dv">1</span>),p,p)   <span class="co">#True variance for the second component</span></span>
+<span id="cb35-294"><a href="#cb35-294" aria-hidden="true" tabindex="-1"></a>Sigma.true[<span class="dv">3</span>,,] <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="sc">-</span><span class="fl">0.9</span>,<span class="sc">-</span><span class="fl">0.9</span>,<span class="dv">4</span>),p,p)   <span class="co">#True variance for the third component</span></span>
+<span id="cb35-295"><a href="#cb35-295" aria-hidden="true" tabindex="-1"></a>n  <span class="ot">=</span> <span class="dv">120</span></span>
+<span id="cb35-296"><a href="#cb35-296" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, n, <span class="at">replace=</span>T, <span class="at">prob=</span>w.true)</span>
+<span id="cb35-297"><a href="#cb35-297" aria-hidden="true" tabindex="-1"></a>x  <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(n,p))</span>
+<span id="cb35-298"><a href="#cb35-298" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb35-299"><a href="#cb35-299" aria-hidden="true" tabindex="-1"></a>  x[i,] <span class="ot">=</span> <span class="fu">rmvnorm</span>(<span class="dv">1</span>, mu.true[cc[i],], Sigma.true[cc[i],,])</span>
+<span id="cb35-300"><a href="#cb35-300" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-301"><a href="#cb35-301" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-302"><a href="#cb35-302" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb35-303"><a href="#cb35-303" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="at">col=</span>cc, <span class="at">type=</span><span class="st">"n"</span>, <span class="at">xlab=</span><span class="fu">expression</span>(x[<span class="dv">1</span>]), <span class="at">ylab=</span><span class="fu">expression</span>(x[<span class="dv">2</span>]))</span>
+<span id="cb35-304"><a href="#cb35-304" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="fu">seq</span>(<span class="dv">1</span>,n), <span class="at">col=</span>cc, <span class="at">cex=</span><span class="fl">0.6</span>)</span>
+<span id="cb35-305"><a href="#cb35-305" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-306"><a href="#cb35-306" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma.true[k,,], <span class="at">centre=</span>mu.true[k,], <span class="at">level=</span><span class="fl">0.50</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-307"><a href="#cb35-307" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma.true[k,,], <span class="at">centre=</span>mu.true[k,], <span class="at">level=</span><span class="fl">0.82</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-308"><a href="#cb35-308" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma.true[k,,], <span class="at">centre=</span>mu.true[k,], <span class="at">level=</span><span class="fl">0.95</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-309"><a href="#cb35-309" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-310"><a href="#cb35-310" aria-hidden="true" tabindex="-1"></a><span class="co">#title(main="Data + True Components")</span></span>
+<span id="cb35-311"><a href="#cb35-311" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-312"><a href="#cb35-312" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-313"><a href="#cb35-313" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-314"><a href="#cb35-314" aria-hidden="true" tabindex="-1"></a><span class="do">### Run the EM algorithm</span></span>
-<span id="cb35-315"><a href="#cb35-315" aria-hidden="true" tabindex="-1"></a><span class="do">## Initialize the parameters</span></span>
-<span id="cb35-316"><a href="#cb35-316" aria-hidden="true" tabindex="-1"></a>w   <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">1</span>,KK)<span class="sc">/</span>KK  <span class="co">#Assign equal weight to each component to start with</span></span>
-<span id="cb35-317"><a href="#cb35-317" aria-hidden="true" tabindex="-1"></a>mu  <span class="ot">=</span> <span class="fu">rmvnorm</span>(KK, <span class="fu">apply</span>(x,<span class="dv">2</span>,mean), <span class="fu">var</span>(x))   <span class="co">#RandomCluster centers randomly spread over the support of the data</span></span>
-<span id="cb35-318"><a href="#cb35-318" aria-hidden="true" tabindex="-1"></a>Sigma      <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK,p,p))  <span class="co">#Initial variances are assumed to be the same</span></span>
-<span id="cb35-319"><a href="#cb35-319" aria-hidden="true" tabindex="-1"></a>Sigma[<span class="dv">1</span>,,] <span class="ot">=</span> <span class="fu">var</span>(x)<span class="sc">/</span>KK  </span>
-<span id="cb35-320"><a href="#cb35-320" aria-hidden="true" tabindex="-1"></a>Sigma[<span class="dv">2</span>,,] <span class="ot">=</span> <span class="fu">var</span>(x)<span class="sc">/</span>KK</span>
-<span id="cb35-321"><a href="#cb35-321" aria-hidden="true" tabindex="-1"></a>Sigma[<span class="dv">3</span>,,] <span class="ot">=</span> <span class="fu">var</span>(x)<span class="sc">/</span>KK</span>
-<span id="cb35-322"><a href="#cb35-322" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-323"><a href="#cb35-323" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
-<span id="cb35-324"><a href="#cb35-324" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="at">col=</span>cc, <span class="at">xlab=</span><span class="fu">expression</span>(x[<span class="dv">1</span>]), <span class="at">ylab=</span><span class="fu">expression</span>(x[<span class="dv">2</span>]))</span>
-<span id="cb35-325"><a href="#cb35-325" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-326"><a href="#cb35-326" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.50</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-327"><a href="#cb35-327" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.82</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-328"><a href="#cb35-328" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.95</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-329"><a href="#cb35-329" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb35-330"><a href="#cb35-330" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span>(<span class="at">main=</span><span class="st">"Initial estimate + Observations"</span>)</span>
-<span id="cb35-331"><a href="#cb35-331" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-332"><a href="#cb35-332" aria-hidden="true" tabindex="-1"></a>s       <span class="ot">=</span> <span class="dv">0</span></span>
-<span id="cb35-333"><a href="#cb35-333" aria-hidden="true" tabindex="-1"></a>sw      <span class="ot">=</span> <span class="cn">FALSE</span></span>
-<span id="cb35-334"><a href="#cb35-334" aria-hidden="true" tabindex="-1"></a>QQ      <span class="ot">=</span> <span class="sc">-</span><span class="cn">Inf</span></span>
-<span id="cb35-335"><a href="#cb35-335" aria-hidden="true" tabindex="-1"></a>QQ.out  <span class="ot">=</span> <span class="cn">NULL</span></span>
-<span id="cb35-336"><a href="#cb35-336" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">=</span> <span class="dv">10</span><span class="sc">^</span>(<span class="sc">-</span><span class="dv">5</span>)</span>
-<span id="cb35-337"><a href="#cb35-337" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-338"><a href="#cb35-338" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span>(<span class="sc">!</span>sw){</span>
-<span id="cb35-339"><a href="#cb35-339" aria-hidden="true" tabindex="-1"></a>  <span class="do">## E step</span></span>
-<span id="cb35-340"><a href="#cb35-340" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(n,KK))</span>
-<span id="cb35-341"><a href="#cb35-341" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-342"><a href="#cb35-342" aria-hidden="true" tabindex="-1"></a>    v[,k] <span class="ot">=</span> <span class="fu">log</span>(w[k]) <span class="sc">+</span> <span class="fu">dmvnorm</span>(x, mu[k,], Sigma[k,,],<span class="at">log=</span><span class="cn">TRUE</span>)  <span class="co">#Compute the log of the weights</span></span>
-<span id="cb35-343"><a href="#cb35-343" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-344"><a href="#cb35-344" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb35-345"><a href="#cb35-345" aria-hidden="true" tabindex="-1"></a>    v[i,] <span class="ot">=</span> <span class="fu">exp</span>(v[i,] <span class="sc">-</span> <span class="fu">max</span>(v[i,]))<span class="sc">/</span><span class="fu">sum</span>(<span class="fu">exp</span>(v[i,] <span class="sc">-</span> <span class="fu">max</span>(v[i,])))  <span class="co">#Go from logs to actual weights in a numerically stable manner</span></span>
-<span id="cb35-346"><a href="#cb35-346" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-347"><a href="#cb35-347" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb35-348"><a href="#cb35-348" aria-hidden="true" tabindex="-1"></a>  <span class="do">## M step</span></span>
-<span id="cb35-349"><a href="#cb35-349" aria-hidden="true" tabindex="-1"></a>  w     <span class="ot">=</span> <span class="fu">apply</span>(v,<span class="dv">2</span>,mean)</span>
-<span id="cb35-350"><a href="#cb35-350" aria-hidden="true" tabindex="-1"></a>  mu    <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK, p))</span>
-<span id="cb35-351"><a href="#cb35-351" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-352"><a href="#cb35-352" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb35-353"><a href="#cb35-353" aria-hidden="true" tabindex="-1"></a>      mu[k,]    <span class="ot">=</span> mu[k,] <span class="sc">+</span> v[i,k]<span class="sc">*</span>x[i,]</span>
-<span id="cb35-354"><a href="#cb35-354" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb35-355"><a href="#cb35-355" aria-hidden="true" tabindex="-1"></a>    mu[k,] <span class="ot">=</span> mu[k,]<span class="sc">/</span><span class="fu">sum</span>(v[,k])</span>
-<span id="cb35-356"><a href="#cb35-356" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-357"><a href="#cb35-357" aria-hidden="true" tabindex="-1"></a>  Sigma <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK, p, p))</span>
-<span id="cb35-358"><a href="#cb35-358" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-359"><a href="#cb35-359" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb35-360"><a href="#cb35-360" aria-hidden="true" tabindex="-1"></a>      Sigma[k,,] <span class="ot">=</span> Sigma[k,,] <span class="sc">+</span> v[i,k]<span class="sc">*</span>(x[i,] <span class="sc">-</span> mu[k,])<span class="sc">%*%</span><span class="fu">t</span>(x[i,] <span class="sc">-</span> mu[k,])</span>
-<span id="cb35-361"><a href="#cb35-361" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb35-362"><a href="#cb35-362" aria-hidden="true" tabindex="-1"></a>    Sigma[k,,] <span class="ot">=</span> Sigma[k,,]<span class="sc">/</span><span class="fu">sum</span>(v[,k])</span>
-<span id="cb35-363"><a href="#cb35-363" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-364"><a href="#cb35-364" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb35-365"><a href="#cb35-365" aria-hidden="true" tabindex="-1"></a>  <span class="do">##Check convergence</span></span>
-<span id="cb35-366"><a href="#cb35-366" aria-hidden="true" tabindex="-1"></a>  QQn <span class="ot">=</span> <span class="dv">0</span></span>
-<span id="cb35-367"><a href="#cb35-367" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb35-368"><a href="#cb35-368" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-369"><a href="#cb35-369" aria-hidden="true" tabindex="-1"></a>      QQn <span class="ot">=</span> QQn <span class="sc">+</span> v[i,k]<span class="sc">*</span>(<span class="fu">log</span>(w[k]) <span class="sc">+</span> <span class="fu">dmvnorm</span>(x[i,],mu[k,],Sigma[k,,],<span class="at">log=</span><span class="cn">TRUE</span>))</span>
-<span id="cb35-370"><a href="#cb35-370" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb35-371"><a href="#cb35-371" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-372"><a href="#cb35-372" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">abs</span>(QQn<span class="sc">-</span>QQ)<span class="sc">/</span><span class="fu">abs</span>(QQn)<span class="sc">&lt;</span>epsilon){</span>
-<span id="cb35-373"><a href="#cb35-373" aria-hidden="true" tabindex="-1"></a>    sw<span class="ot">=</span><span class="cn">TRUE</span></span>
-<span id="cb35-374"><a href="#cb35-374" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-375"><a href="#cb35-375" aria-hidden="true" tabindex="-1"></a>  QQ <span class="ot">=</span> QQn</span>
-<span id="cb35-376"><a href="#cb35-376" aria-hidden="true" tabindex="-1"></a>  QQ.out <span class="ot">=</span> <span class="fu">c</span>(QQ.out, QQ)</span>
-<span id="cb35-377"><a href="#cb35-377" aria-hidden="true" tabindex="-1"></a>  s <span class="ot">=</span> s <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb35-378"><a href="#cb35-378" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">paste</span>(s, QQn))</span>
-<span id="cb35-379"><a href="#cb35-379" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb35-380"><a href="#cb35-380" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Plot current components over data</span></span>
-<span id="cb35-381"><a href="#cb35-381" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dv">2</span>,<span class="dv">1</span>), <span class="at">widths=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>), <span class="at">heights=</span><span class="fu">c</span>(<span class="fl">1.3</span>,<span class="dv">3</span>))</span>
-<span id="cb35-382"><a href="#cb35-382" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="fl">3.1</span>,<span class="fl">4.1</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>))</span>
-<span id="cb35-383"><a href="#cb35-383" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(QQ.out[<span class="dv">1</span><span class="sc">:</span>s],<span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fu">max</span>(<span class="dv">10</span>,s)), <span class="at">las=</span><span class="dv">1</span>, <span class="at">ylab=</span><span class="st">"Q"</span>)</span>
-<span id="cb35-384"><a href="#cb35-384" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb35-385"><a href="#cb35-385" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="fl">0.5</span>))</span>
-<span id="cb35-386"><a href="#cb35-386" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="at">col=</span>cc, <span class="at">main=</span><span class="fu">paste</span>(<span class="st">"s ="</span>,s,<span class="st">"   Q ="</span>, <span class="fu">round</span>(QQ.out[s],<span class="dv">4</span>)), </span>
-<span id="cb35-387"><a href="#cb35-387" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab=</span><span class="fu">expression</span>(x[<span class="dv">1</span>]), <span class="at">ylab=</span><span class="fu">expression</span>(x[<span class="dv">2</span>]), <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-388"><a href="#cb35-388" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-389"><a href="#cb35-389" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.50</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-390"><a href="#cb35-390" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.82</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-391"><a href="#cb35-391" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.95</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-392"><a href="#cb35-392" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb35-393"><a href="#cb35-393" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb35-394"><a href="#cb35-394" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-395"><a href="#cb35-395" aria-hidden="true" tabindex="-1"></a><span class="co">#Plot current components over data</span></span>
-<span id="cb35-396"><a href="#cb35-396" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dv">2</span>,<span class="dv">1</span>), <span class="at">widths=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>), <span class="at">heights=</span><span class="fu">c</span>(<span class="fl">1.3</span>,<span class="dv">3</span>))</span>
-<span id="cb35-397"><a href="#cb35-397" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="fl">3.1</span>,<span class="fl">4.1</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>))</span>
-<span id="cb35-398"><a href="#cb35-398" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(QQ.out[<span class="dv">1</span><span class="sc">:</span>s],<span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fu">max</span>(<span class="dv">10</span>,s)), <span class="at">las=</span><span class="dv">1</span>, <span class="at">ylab=</span><span class="st">"Q"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-399"><a href="#cb35-399" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-400"><a href="#cb35-400" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="fl">0.5</span>))</span>
-<span id="cb35-401"><a href="#cb35-401" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="at">col=</span>cc, <span class="at">main=</span><span class="fu">paste</span>(<span class="st">"s ="</span>,s,<span class="st">"   Q ="</span>, <span class="fu">round</span>(QQ.out[s],<span class="dv">4</span>)), <span class="at">xlab=</span><span class="fu">expression</span>(x[<span class="dv">1</span>]), <span class="at">ylab=</span><span class="fu">expression</span>(x[<span class="dv">2</span>]))</span>
-<span id="cb35-402"><a href="#cb35-402" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
-<span id="cb35-403"><a href="#cb35-403" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.50</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-404"><a href="#cb35-404" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.82</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-405"><a href="#cb35-405" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.95</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb35-406"><a href="#cb35-406" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb35-407"><a href="#cb35-407" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-408"><a href="#cb35-408" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb35-313"><a href="#cb35-313" aria-hidden="true" tabindex="-1"></a><span class="do">### Run the EM algorithm</span></span>
+<span id="cb35-314"><a href="#cb35-314" aria-hidden="true" tabindex="-1"></a><span class="do">## Initialize the parameters</span></span>
+<span id="cb35-315"><a href="#cb35-315" aria-hidden="true" tabindex="-1"></a>w   <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">1</span>,KK)<span class="sc">/</span>KK  <span class="co">#Assign equal weight to each component to start with</span></span>
+<span id="cb35-316"><a href="#cb35-316" aria-hidden="true" tabindex="-1"></a>mu  <span class="ot">=</span> <span class="fu">rmvnorm</span>(KK, <span class="fu">apply</span>(x,<span class="dv">2</span>,mean), <span class="fu">var</span>(x))   <span class="co">#RandomCluster centers randomly spread over the support of the data</span></span>
+<span id="cb35-317"><a href="#cb35-317" aria-hidden="true" tabindex="-1"></a>Sigma      <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK,p,p))  <span class="co">#Initial variances are assumed to be the same</span></span>
+<span id="cb35-318"><a href="#cb35-318" aria-hidden="true" tabindex="-1"></a>Sigma[<span class="dv">1</span>,,] <span class="ot">=</span> <span class="fu">var</span>(x)<span class="sc">/</span>KK  </span>
+<span id="cb35-319"><a href="#cb35-319" aria-hidden="true" tabindex="-1"></a>Sigma[<span class="dv">2</span>,,] <span class="ot">=</span> <span class="fu">var</span>(x)<span class="sc">/</span>KK</span>
+<span id="cb35-320"><a href="#cb35-320" aria-hidden="true" tabindex="-1"></a>Sigma[<span class="dv">3</span>,,] <span class="ot">=</span> <span class="fu">var</span>(x)<span class="sc">/</span>KK</span>
+<span id="cb35-321"><a href="#cb35-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-322"><a href="#cb35-322" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb35-323"><a href="#cb35-323" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="at">col=</span>cc, <span class="at">xlab=</span><span class="fu">expression</span>(x[<span class="dv">1</span>]), <span class="at">ylab=</span><span class="fu">expression</span>(x[<span class="dv">2</span>]))</span>
+<span id="cb35-324"><a href="#cb35-324" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-325"><a href="#cb35-325" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.50</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-326"><a href="#cb35-326" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.82</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-327"><a href="#cb35-327" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.95</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-328"><a href="#cb35-328" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-329"><a href="#cb35-329" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span>(<span class="at">main=</span><span class="st">"Initial estimate + Observations"</span>)</span>
+<span id="cb35-330"><a href="#cb35-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-331"><a href="#cb35-331" aria-hidden="true" tabindex="-1"></a>s       <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb35-332"><a href="#cb35-332" aria-hidden="true" tabindex="-1"></a>sw      <span class="ot">=</span> <span class="cn">FALSE</span></span>
+<span id="cb35-333"><a href="#cb35-333" aria-hidden="true" tabindex="-1"></a>QQ      <span class="ot">=</span> <span class="sc">-</span><span class="cn">Inf</span></span>
+<span id="cb35-334"><a href="#cb35-334" aria-hidden="true" tabindex="-1"></a>QQ.out  <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb35-335"><a href="#cb35-335" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">=</span> <span class="dv">10</span><span class="sc">^</span>(<span class="sc">-</span><span class="dv">5</span>)</span>
+<span id="cb35-336"><a href="#cb35-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-337"><a href="#cb35-337" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span>(<span class="sc">!</span>sw){</span>
+<span id="cb35-338"><a href="#cb35-338" aria-hidden="true" tabindex="-1"></a>  <span class="do">## E step</span></span>
+<span id="cb35-339"><a href="#cb35-339" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(n,KK))</span>
+<span id="cb35-340"><a href="#cb35-340" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-341"><a href="#cb35-341" aria-hidden="true" tabindex="-1"></a>    v[,k] <span class="ot">=</span> <span class="fu">log</span>(w[k]) <span class="sc">+</span> <span class="fu">dmvnorm</span>(x, mu[k,], Sigma[k,,],<span class="at">log=</span><span class="cn">TRUE</span>)  <span class="co">#Compute the log of the weights</span></span>
+<span id="cb35-342"><a href="#cb35-342" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-343"><a href="#cb35-343" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb35-344"><a href="#cb35-344" aria-hidden="true" tabindex="-1"></a>    v[i,] <span class="ot">=</span> <span class="fu">exp</span>(v[i,] <span class="sc">-</span> <span class="fu">max</span>(v[i,]))<span class="sc">/</span><span class="fu">sum</span>(<span class="fu">exp</span>(v[i,] <span class="sc">-</span> <span class="fu">max</span>(v[i,])))  <span class="co">#Go from logs to actual weights in a numerically stable manner</span></span>
+<span id="cb35-345"><a href="#cb35-345" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-346"><a href="#cb35-346" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb35-347"><a href="#cb35-347" aria-hidden="true" tabindex="-1"></a>  <span class="do">## M step</span></span>
+<span id="cb35-348"><a href="#cb35-348" aria-hidden="true" tabindex="-1"></a>  w     <span class="ot">=</span> <span class="fu">apply</span>(v,<span class="dv">2</span>,mean)</span>
+<span id="cb35-349"><a href="#cb35-349" aria-hidden="true" tabindex="-1"></a>  mu    <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK, p))</span>
+<span id="cb35-350"><a href="#cb35-350" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-351"><a href="#cb35-351" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb35-352"><a href="#cb35-352" aria-hidden="true" tabindex="-1"></a>      mu[k,]    <span class="ot">=</span> mu[k,] <span class="sc">+</span> v[i,k]<span class="sc">*</span>x[i,]</span>
+<span id="cb35-353"><a href="#cb35-353" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb35-354"><a href="#cb35-354" aria-hidden="true" tabindex="-1"></a>    mu[k,] <span class="ot">=</span> mu[k,]<span class="sc">/</span><span class="fu">sum</span>(v[,k])</span>
+<span id="cb35-355"><a href="#cb35-355" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-356"><a href="#cb35-356" aria-hidden="true" tabindex="-1"></a>  Sigma <span class="ot">=</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim=</span><span class="fu">c</span>(KK, p, p))</span>
+<span id="cb35-357"><a href="#cb35-357" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-358"><a href="#cb35-358" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb35-359"><a href="#cb35-359" aria-hidden="true" tabindex="-1"></a>      Sigma[k,,] <span class="ot">=</span> Sigma[k,,] <span class="sc">+</span> v[i,k]<span class="sc">*</span>(x[i,] <span class="sc">-</span> mu[k,])<span class="sc">%*%</span><span class="fu">t</span>(x[i,] <span class="sc">-</span> mu[k,])</span>
+<span id="cb35-360"><a href="#cb35-360" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb35-361"><a href="#cb35-361" aria-hidden="true" tabindex="-1"></a>    Sigma[k,,] <span class="ot">=</span> Sigma[k,,]<span class="sc">/</span><span class="fu">sum</span>(v[,k])</span>
+<span id="cb35-362"><a href="#cb35-362" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-363"><a href="#cb35-363" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb35-364"><a href="#cb35-364" aria-hidden="true" tabindex="-1"></a>  <span class="do">##Check convergence</span></span>
+<span id="cb35-365"><a href="#cb35-365" aria-hidden="true" tabindex="-1"></a>  QQn <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb35-366"><a href="#cb35-366" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb35-367"><a href="#cb35-367" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-368"><a href="#cb35-368" aria-hidden="true" tabindex="-1"></a>      QQn <span class="ot">=</span> QQn <span class="sc">+</span> v[i,k]<span class="sc">*</span>(<span class="fu">log</span>(w[k]) <span class="sc">+</span> <span class="fu">dmvnorm</span>(x[i,],mu[k,],Sigma[k,,],<span class="at">log=</span><span class="cn">TRUE</span>))</span>
+<span id="cb35-369"><a href="#cb35-369" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb35-370"><a href="#cb35-370" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-371"><a href="#cb35-371" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">abs</span>(QQn<span class="sc">-</span>QQ)<span class="sc">/</span><span class="fu">abs</span>(QQn)<span class="sc">&lt;</span>epsilon){</span>
+<span id="cb35-372"><a href="#cb35-372" aria-hidden="true" tabindex="-1"></a>    sw<span class="ot">=</span><span class="cn">TRUE</span></span>
+<span id="cb35-373"><a href="#cb35-373" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-374"><a href="#cb35-374" aria-hidden="true" tabindex="-1"></a>  QQ <span class="ot">=</span> QQn</span>
+<span id="cb35-375"><a href="#cb35-375" aria-hidden="true" tabindex="-1"></a>  QQ.out <span class="ot">=</span> <span class="fu">c</span>(QQ.out, QQ)</span>
+<span id="cb35-376"><a href="#cb35-376" aria-hidden="true" tabindex="-1"></a>  s <span class="ot">=</span> s <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb35-377"><a href="#cb35-377" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">paste</span>(s, QQn))</span>
+<span id="cb35-378"><a href="#cb35-378" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb35-379"><a href="#cb35-379" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Plot current components over data</span></span>
+<span id="cb35-380"><a href="#cb35-380" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dv">2</span>,<span class="dv">1</span>), <span class="at">widths=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>), <span class="at">heights=</span><span class="fu">c</span>(<span class="fl">1.3</span>,<span class="dv">3</span>))</span>
+<span id="cb35-381"><a href="#cb35-381" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="fl">3.1</span>,<span class="fl">4.1</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>))</span>
+<span id="cb35-382"><a href="#cb35-382" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(QQ.out[<span class="dv">1</span><span class="sc">:</span>s],<span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fu">max</span>(<span class="dv">10</span>,s)), <span class="at">las=</span><span class="dv">1</span>, <span class="at">ylab=</span><span class="st">"Q"</span>)</span>
+<span id="cb35-383"><a href="#cb35-383" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb35-384"><a href="#cb35-384" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="fl">0.5</span>))</span>
+<span id="cb35-385"><a href="#cb35-385" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="at">col=</span>cc, <span class="at">main=</span><span class="fu">paste</span>(<span class="st">"s ="</span>,s,<span class="st">"   Q ="</span>, <span class="fu">round</span>(QQ.out[s],<span class="dv">4</span>)), </span>
+<span id="cb35-386"><a href="#cb35-386" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab=</span><span class="fu">expression</span>(x[<span class="dv">1</span>]), <span class="at">ylab=</span><span class="fu">expression</span>(x[<span class="dv">2</span>]), <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-387"><a href="#cb35-387" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-388"><a href="#cb35-388" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.50</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-389"><a href="#cb35-389" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.82</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-390"><a href="#cb35-390" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.95</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-391"><a href="#cb35-391" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-392"><a href="#cb35-392" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-393"><a href="#cb35-393" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-394"><a href="#cb35-394" aria-hidden="true" tabindex="-1"></a><span class="co">#Plot current components over data</span></span>
+<span id="cb35-395"><a href="#cb35-395" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dv">2</span>,<span class="dv">1</span>), <span class="at">widths=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>), <span class="at">heights=</span><span class="fu">c</span>(<span class="fl">1.3</span>,<span class="dv">3</span>))</span>
+<span id="cb35-396"><a href="#cb35-396" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="fl">3.1</span>,<span class="fl">4.1</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>))</span>
+<span id="cb35-397"><a href="#cb35-397" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(QQ.out[<span class="dv">1</span><span class="sc">:</span>s],<span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fu">max</span>(<span class="dv">10</span>,s)), <span class="at">las=</span><span class="dv">1</span>, <span class="at">ylab=</span><span class="st">"Q"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-398"><a href="#cb35-398" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-399"><a href="#cb35-399" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="fl">0.5</span>))</span>
+<span id="cb35-400"><a href="#cb35-400" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x[,<span class="dv">1</span>], x[,<span class="dv">2</span>], <span class="at">col=</span>cc, <span class="at">main=</span><span class="fu">paste</span>(<span class="st">"s ="</span>,s,<span class="st">"   Q ="</span>, <span class="fu">round</span>(QQ.out[s],<span class="dv">4</span>)), <span class="at">xlab=</span><span class="fu">expression</span>(x[<span class="dv">1</span>]), <span class="at">ylab=</span><span class="fu">expression</span>(x[<span class="dv">2</span>]))</span>
+<span id="cb35-401"><a href="#cb35-401" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>KK){</span>
+<span id="cb35-402"><a href="#cb35-402" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.50</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-403"><a href="#cb35-403" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.82</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-404"><a href="#cb35-404" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(<span class="fu">ellipse</span>(<span class="at">x=</span>Sigma[k,,], <span class="at">centre=</span>mu[k,], <span class="at">level=</span><span class="fl">0.95</span>), <span class="at">col=</span><span class="st">"grey"</span>, <span class="at">lty=</span><span class="dv">2</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb35-405"><a href="#cb35-405" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-406"><a href="#cb35-406" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-407"><a href="#cb35-407" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb35-408"><a href="#cb35-408" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-409"><a href="#cb35-409" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-410"><a href="#cb35-410" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-411"><a href="#cb35-411" aria-hidden="true" tabindex="-1"></a><span class="fu">## Mixture of Log Gaussians {#sec-mixture-of-log-gaussians}</span></span>
-<span id="cb35-412"><a href="#cb35-412" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-413"><a href="#cb35-413" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb35-414"><a href="#cb35-414" aria-hidden="true" tabindex="-1"></a><span class="fu">## Prompt {.unnumbered .unlisted}</span></span>
-<span id="cb35-415"><a href="#cb35-415" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-416"><a href="#cb35-416" aria-hidden="true" tabindex="-1"></a>If your data had support on the positive real numbers rather than the whole real line, how could you use the EM algorithm you just learned to instead fit a mixture of log-Gaussian distributions?  Would you need to recode your algorithm?</span>
-<span id="cb35-417"><a href="#cb35-417" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-418"><a href="#cb35-418" aria-hidden="true" tabindex="-1"></a><span class="fu">### Response {.unnumbered .unlisted}</span></span>
-<span id="cb35-419"><a href="#cb35-419" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-420"><a href="#cb35-420" aria-hidden="true" tabindex="-1"></a>Updating the algorithm is nontrivial - it requires derivatives for each parameter.</span>
-<span id="cb35-421"><a href="#cb35-421" aria-hidden="true" tabindex="-1"></a>Depending on the distribution, we may need to add custom code to update each. We also need to update the distribution if these are changed.</span>
-<span id="cb35-422"><a href="#cb35-422" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-423"><a href="#cb35-423" aria-hidden="true" tabindex="-1"></a>So while the algorithm does not change, the code may change quite a bit.</span>
-<span id="cb35-424"><a href="#cb35-424" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb35-410"><a href="#cb35-410" aria-hidden="true" tabindex="-1"></a><span class="fu">## Mixture of Log Gaussians {#sec-mixture-of-log-gaussians}</span></span>
+<span id="cb35-411"><a href="#cb35-411" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-412"><a href="#cb35-412" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb35-413"><a href="#cb35-413" aria-hidden="true" tabindex="-1"></a><span class="fu">## Prompt {.unnumbered .unlisted}</span></span>
+<span id="cb35-414"><a href="#cb35-414" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-415"><a href="#cb35-415" aria-hidden="true" tabindex="-1"></a>If your data had support on the positive real numbers rather than the whole real line, how could you use the EM algorithm you just learned to instead fit a mixture of log-Gaussian distributions?  Would you need to recode your algorithm?</span>
+<span id="cb35-416"><a href="#cb35-416" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-417"><a href="#cb35-417" aria-hidden="true" tabindex="-1"></a><span class="fu">### Response {.unnumbered .unlisted}</span></span>
+<span id="cb35-418"><a href="#cb35-418" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-419"><a href="#cb35-419" aria-hidden="true" tabindex="-1"></a>Updating the algorithm is nontrivial - it requires derivatives for each parameter.</span>
+<span id="cb35-420"><a href="#cb35-420" aria-hidden="true" tabindex="-1"></a>Depending on the distribution, we may need to add custom code to update each. We also need to update the distribution if these are changed.</span>
+<span id="cb35-421"><a href="#cb35-421" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-422"><a href="#cb35-422" aria-hidden="true" tabindex="-1"></a>So while the algorithm does not change, the code may change quite a bit.</span>
+<span id="cb35-423"><a href="#cb35-423" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb35-424"><a href="#cb35-424" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-425"><a href="#cb35-425" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-426"><a href="#cb35-426" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-427"><a href="#cb35-427" aria-hidden="true" tabindex="-1"></a><span class="fu">## Advanced EM algorithms {#sec-advanced-em-algorithms}</span></span>
-<span id="cb35-428"><a href="#cb35-428" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-429"><a href="#cb35-429" aria-hidden="true" tabindex="-1"></a><span class="fu">### HW: The EM for ZIP mixtures</span></span>
-<span id="cb35-430"><a href="#cb35-430" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-431"><a href="#cb35-431" aria-hidden="true" tabindex="-1"></a>Data on the lifetime (in years) of fuses produced by the ACME Corporation is available in the file <span class="in">`fuses.csv`</span>:</span>
-<span id="cb35-432"><a href="#cb35-432" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-433"><a href="#cb35-433" aria-hidden="true" tabindex="-1"></a>Provide the EM algorithm to fit the mixture model</span>
-<span id="cb35-434"><a href="#cb35-434" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-435"><a href="#cb35-435" aria-hidden="true" tabindex="-1"></a><span class="fu">### HW+: The EM for Mixture Models</span></span>
+<span id="cb35-426"><a href="#cb35-426" aria-hidden="true" tabindex="-1"></a><span class="fu">## Advanced EM algorithms {#sec-advanced-em-algorithms}</span></span>
+<span id="cb35-427"><a href="#cb35-427" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-428"><a href="#cb35-428" aria-hidden="true" tabindex="-1"></a><span class="fu">### HW: The EM for ZIP mixtures</span></span>
+<span id="cb35-429"><a href="#cb35-429" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-430"><a href="#cb35-430" aria-hidden="true" tabindex="-1"></a>Data on the lifetime (in years) of fuses produced by the ACME Corporation is available in the file <span class="in">`fuses.csv`</span>:</span>
+<span id="cb35-431"><a href="#cb35-431" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-432"><a href="#cb35-432" aria-hidden="true" tabindex="-1"></a>Provide the EM algorithm to fit the mixture model</span>
+<span id="cb35-433"><a href="#cb35-433" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-434"><a href="#cb35-434" aria-hidden="true" tabindex="-1"></a><span class="fu">### HW+: The EM for Mixture Models</span></span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
