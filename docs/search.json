@@ -2114,7 +2114,7 @@
     "href": "C3-L06.html",
     "title": "75  Clustering - M4L6",
     "section": "",
-    "text": "75.1 Clustering",
+    "text": "75.1 Mixture Models for Clustering 🎥",
     "crumbs": [
       "<span class='chapter-number'>75</span>  <span class='chapter-title'>Clustering - M4L6</span>"
     ]
@@ -3887,6 +3887,36 @@
     "text": "68.5 EM example 2 🎥\nThis video covers the code sample given in ?sec-sec-multivariate-EM below. It is a more advanced implementation of the EM algorithm for fitting a mixture of multivariate Gaussian components to simulated data.",
     "crumbs": [
       "<span class='chapter-number'>68</span>  <span class='chapter-title'>The EM algorithm for Mixture models - M2L3</span>"
+    ]
+  },
+  {
+    "objectID": "C3-L06.html#sec-mixture-clustering",
+    "href": "C3-L06.html#sec-mixture-clustering",
+    "title": "75  Clustering - M4L6",
+    "section": "",
+    "text": "Clustering Mixture Models\n\n\n\n\nClustering Mixture Models\n\n\n\n\nClustering Mixture Models\n\n\n\n\nClustering Mixture Models",
+    "crumbs": [
+      "<span class='chapter-number'>75</span>  <span class='chapter-title'>Clustering - M4L6</span>"
+    ]
+  },
+  {
+    "objectID": "C3-L06.html#clustering-example",
+    "href": "C3-L06.html#clustering-example",
+    "title": "75  Clustering - M4L6",
+    "section": "75.2 Clustering example",
+    "text": "75.2 Clustering example\n\n\n## Using mixture models for clustering in the iris dataset\n## Compare k-means clustering and a location and scale mixture model with K normals\n\n### Loading data and setting up global variables\nrm(list=ls())\nlibrary(mclust)\n\nPackage 'mclust' version 6.1.1\nType 'citation(\"mclust\")' for citing this R package in publications.\n\nlibrary(mvtnorm)\n\n\nAttaching package: 'mvtnorm'\n\n\nThe following object is masked from 'package:mclust':\n\n    dmvnorm\n\n### Defining a custom function to create pair plots\n### This is an alternative to the R function pairs() that allows for \n### more flexibility. In particular, it allows us to use text to label \n### the points\npairs2 = function(x, col=\"black\", pch=16, labels=NULL, names = colnames(x)){\n  n = dim(x)[1]\n  p = dim(x)[2]\n  par(mfrow=c(p,p))\n  for(k in 1:p){\n    for(l in 1:p){\n      if(k!=l){\n        par(mar=c(3,3,1,1)+0.1)\n        plot(x[,k], x[,l], type=\"n\", xlab=\"\", ylab=\"\")\n        if(is.null(labels)){\n          points(x[,k], x[,l], pch=pch, col=col)\n        }else{\n          text(x[,k], x[,l], labels=labels, col=col)\n        }\n      }else{\n        plot(seq(0,5), seq(0,5), type=\"n\", xlab=\"\", ylab=\"\", axes=FALSE)\n        text(2.5,2.5,names[k], cex=1.2)\n      }\n    }\n  }\n}\n\n## Setup data\ndata(iris)\nx       = as.matrix(iris[,-5])\nn       = dim(x)[1]\np       = dim(x)[2]       # Number of features\nKK      = 3\nepsilon = 0.0000001\npar(mfrow=c(1,1))\npar(mar=c(4,4,1,1))\ncolscale = c(\"black\",\"blue\",\"red\")\nshortnam  = c(\"s\",\"c\",\"g\")\npairs2(x, col=colscale[iris[,5]], labels=shortnam[as.numeric(iris[,5])])\n\n\n# Initialize the parameters of the algorithm\nset.seed(63252)\nnumruns = 15\nv.sum   = array(0, dim=c(numruns, n, KK))\nQQ.sum  = rep(0, numruns)\n\nfor(ss in 1:numruns){\n  w   = rep(1,KK)/KK  #Assign equal weight to each component to start with\n  mu  = rmvnorm(KK, apply(x,2,mean), 3*var(x))   #Cluster centers randomly spread over the support of the data\n  Sigma      = array(0, dim=c(KK,p,p))  #Initial variances are assumed to be the same\n  Sigma[1,,] = var(x)\n  Sigma[2,,] = var(x)\n  Sigma[3,,] = var(x)\n  \n  sw     = FALSE\n  QQ     = -Inf\n  QQ.out = NULL\n  s      = 0\n  \n  while(!sw){\n    ## E step\n    v = array(0, dim=c(n,KK))\n    for(k in 1:KK){  #Compute the log of the weights\n      v[,k] = log(w[k]) + mvtnorm::dmvnorm(x, mu[k,], Sigma[k,,], log=TRUE) \n    }\n    for(i in 1:n){\n      v[i,] = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,])))  #Go from logs to actual weights in a numerically stable manner\n    }\n    \n    ## M step\n    w = apply(v,2,mean)\n    mu = matrix(0, nrow=KK, ncol=p)\n    for(k in 1:KK){\n      for(i in 1:n){\n        mu[k,]    = mu[k,] + v[i,k]*x[i,]\n      }\n      mu[k,] = mu[k,]/sum(v[,k])\n    }\n    Sigma = array(0,dim=c(KK, p, p))\n    for(k in 1:KK){\n      for(i in 1:n){\n        Sigma[k,,] = Sigma[k,,] + v[i,k]*(x[i,] - mu[k,])%*%t(x[i,] - mu[k,])\n      }\n      Sigma[k,,] = Sigma[k,,]/sum(v[,k])\n    }\n    \n    ##Check convergence\n    QQn = 0\n    for(i in 1:n){\n      for(k in 1:KK){\n        QQn = QQn + v[i,k]*(log(w[k]) + mvtnorm::dmvnorm(x[i,],mu[k,],Sigma[k,,],log=TRUE))\n      }\n    }\n    if(abs(QQn-QQ)/abs(QQn)&lt;epsilon){\n      sw=TRUE\n    }\n    QQ = QQn\n    QQ.out = c(QQ.out, QQ)\n    s = s + 1\n  }\n  \n  v.sum[ss,,] = v\n  QQ.sum[ss]  = QQ.out[s]\n  print(paste(\"ss =\", ss))\n}\n\n[1] \"ss = 1\"\n[1] \"ss = 2\"\n[1] \"ss = 3\"\n[1] \"ss = 4\"\n[1] \"ss = 5\"\n[1] \"ss = 6\"\n[1] \"ss = 7\"\n[1] \"ss = 8\"\n[1] \"ss = 9\"\n[1] \"ss = 10\"\n[1] \"ss = 11\"\n[1] \"ss = 12\"\n[1] \"ss = 13\"\n[1] \"ss = 14\"\n[1] \"ss = 15\"\n\n## Cluster reconstruction under the mixture model\ncc = apply(v.sum[which.max(QQ.sum),,], 1 ,which.max)\ncolscale = c(\"black\",\"blue\",\"red\")\npairs2(x, col=colscale[cc], labels=cc)\nARImle = adjustedRandIndex(cc, as.numeric(iris[,5]))  # Higher values indicate larger agreement\n\n## Cluster reconstruction under the K-means algorithm\nirisCluster &lt;- kmeans(x, 3, nstart = numruns)\ncolscale = c(\"black\",\"blue\",\"red\")\npairs2(x, col=colscale[irisCluster$cluster], labels=irisCluster$cluster)\nARIkmeans = adjustedRandIndex(irisCluster$cluster, as.numeric(iris[,5]))\n\n\n\n\n\n\n\nFigure 75.1: Clustering the iris dataset using k-means clustering and a location and scale mixture model with K normals.\n\n\n\n\n\n\n\n\n\n\n\nFigure 75.2: Clustering the iris dataset using k-means clustering and a location and scale mixture model with K normals.\n\n\n\n\n\n\n\n\n\n\n\nFigure 75.3: Clustering the iris dataset using k-means clustering and a location and scale mixture model with K normals.",
+    "crumbs": [
+      "<span class='chapter-number'>75</span>  <span class='chapter-title'>Clustering - M4L6</span>"
+    ]
+  },
+  {
+    "objectID": "C4-L05.html#r-code-maximum-likelihood-estimation-arp-conditional-likelihood",
+    "href": "C4-L05.html#r-code-maximum-likelihood-estimation-arp-conditional-likelihood",
+    "title": "92  Bayesian Inference in the AR(p) - M2L5",
+    "section": "92.2 R code: Maximum likelihood estimation, AR(p), conditional likelihood 📖",
+    "text": "92.2 R code: Maximum likelihood estimation, AR(p), conditional likelihood 📖\n\n\n  set.seed(2021)\n# Simulate 300 observations from an AR(2) with one pair of complex-valued reciprocal roots \nr=0.95\nlambda=12 \nphi=numeric(2) \nphi[1]=2*r*cos(2*pi/lambda) \nphi[2]=-r^2\nsd=1 # innovation standard deviation\nT=300 # number of time points\n# generate stationary AR(2) process\nyt=arima.sim(n = T, model = list(ar = phi), sd = sd) \n\n## Compute the MLE for phi and the unbiased estimator for v using the conditional likelihood\np=2\ny=rev(yt[(p+1):T]) # response\nX=t(matrix(yt[rev(rep((1:p),T-p)+rep((0:(T-p-1)),rep(p,T-p)))],p,T-p));\nXtX=t(X)%*%X\nXtX_inv=solve(XtX)\nphi_MLE=XtX_inv%*%t(X)%*%y # MLE for phi\ns2=sum((y - X%*%phi_MLE)^2)/(length(y) - p) #unbiased estimate for v\n\ncat(\"\\n MLE of conditional likelihood for phi: \", phi_MLE, \"\\n\",\n    \"Estimate for v: \", s2, \"\\n\")\n\n\n MLE of conditional likelihood for phi:  1.65272 -0.9189823 \n Estimate for v:  0.9901292",
+    "crumbs": [
+      "<span class='chapter-number'>92</span>  <span class='chapter-title'>Bayesian Inference in the AR(p) -  M2L5</span>"
     ]
   }
 ]
