@@ -43,8 +43,6 @@ keywords:
 
 :::
 
-# The general AR(p) process 🎥
-
 ## Definition and state-space representation 🎥
 
 ![AR(p) process, characteristic polynomial, stability, stationarity and MA representation ](images/m2_0001.png){.column-margin  group="slides" width="53mm"}
@@ -183,7 +181,59 @@ Here, U is any complex valued number.
 ![AR(2) complex roots](images/m2_0013.png){.column-margin  group="slides" width="53mm"}
 
 
-{{< lipsum 3 >}}
+### **AR(1) Process**
+
+* **State-space form**:
+  $X_t = \phi X_{t-1} + \omega_t$
+* **Forecast function**:
+  $\mathbb{E}[y_{t+h} \mid \mathcal{F}_t] = c \cdot \phi^h$
+* **Behavior**:
+  Exponential decay (oscillatory if $\phi < 0$), mimicking the autocorrelation function.
+* **Stability**:
+  $|\phi| < 1$ (reciprocal root $1/\phi$ has modulus > 1).
+
+### **AR(2) Process**
+
+* **Characteristic polynomial**:
+  $1 - \phi_1 z - \phi_2 z^2$
+* **Three root types**:
+
+  1. **Two real distinct reciprocal roots**:
+     Forecast function:
+
+     $$
+     \mathbb{E}[y_{t+h} \mid \mathcal{F}_t] = c_{t1} \alpha_1^h + c_{t2} \alpha_2^h
+     $$
+
+     Exponential decay, dominated by root with larger modulus.
+
+  2. **Two complex conjugate reciprocal roots**:
+     Let roots be \$r e^{\pm i\omega}\$.
+     Forecast function:
+
+     $$
+     \mathbb{E}[y_{t+h} \mid \mathcal{F}_t] = A_t r^h \cos(\omega h + \delta_t)
+     $$
+
+     Behavior: *Quasiperiodic* with exponential envelope.
+
+  3. **Repeated reciprocal root (\$\alpha\$ with multiplicity 2)**:
+     Forecast function:
+
+     $$
+     \mathbb{E}[y_{t+h} \mid \mathcal{F}_t] = (\alpha^h)(a_t + b_t h)
+     $$
+
+     Polynomial-exponential form due to root multiplicity.
+
+### **Key Concepts**
+
+* Forecast structure mirrors the **roots** of the characteristic polynomial.
+* Stability depends on **reciprocal roots** (modulus < 1).
+* Complex roots → sinusoidal terms; repeated roots → polynomial multipliers.
+
+This analysis connects **forecast behavior** to the **algebraic properties** of AR model roots.
+
 
 ## ACF of the AR(p) 🎥
 
@@ -191,16 +241,83 @@ Here, U is any complex valued number.
 
 
 
+For a **stationary AR(p)** process, the **autocorrelation function (ACF)** satisfies a homogeneous linear difference equation whose solution is a sum of terms involving the **reciprocal roots** of the characteristic polynomial. Key points:
 
-{{< lipsum 2 >}}
+* If there are $r$ distinct reciprocal roots $\alpha_1, \ldots, \alpha_r$ with multiplicities $m_1, \ldots, m_r$ such that $\sum m_j = p$, the ACF has the general form:
+
+  $$
+  \rho(h) = \sum_{j=1}^r P_j(h)\alpha_j^h,
+  $$
+
+  where each $P_j(h)$ is a polynomial of degree $m_j - 1$.
+
+* For **distinct reciprocal roots** (common case), all $m_j = 1$, so $\rho(h)$ is a linear combination of powers of the roots.
+
+* **AR(1)**: ACF is $\rho(h) = \phi^h$, where $\phi$ is the AR coefficient.
+
+* **AR(2)**: Three cases arise:
+
+  1. Two distinct real roots → exponential decay.
+  2. Complex conjugate roots → **damped sinusoidal** behavior $r^h \cos(\omega h + \delta)$.
+  3. One real root with multiplicity 2 → decay with polynomial factor.
+
+* ACF decays **exponentially** if all reciprocal roots lie inside the unit circle.
+
+* The **Partial ACF (PACF)** of AR(p) is **zero for all lags > p**.
+
+* PACF values can be computed recursively via the **Durbin–Levinson algorithm**, using sample autocorrelations.
+
 
 ## Simulating data from an AR(p) 🎥
 
-{{< lipsum 2 >}}
+This video goes through the code in the following sections, which simulates data from an AR(p) process and plots the sample ACF and PACF.
+
+
+1. **Characteristic Roots from AR Coefficients**:
+
+   * Given AR coefficients (e.g. for AR(8)), compute characteristic roots using `polyroot()` on the reversed sign polynomial (first term 1, followed by negative AR coefficients).
+   * Reciprocal roots are obtained as $1/\text{root}$.
+   * Use `Mod()` for modulus and `2π / Arg()` for approximate periods of the reciprocal roots.
+
+2. **Example AR(8)**:
+
+   * Yields 4 complex-conjugate pairs.
+   * Most persistent: modulus ≈ 0.97, period ≈ 12.7.
+   * Others show lower modulus and shorter periods, contributing less to persistence.
+
+3. **Simulating AR(2) with Complex Roots**:
+
+   * Reciprocal root modulus 0.95, period 12 → converted to AR coefficients (≈ 1.65, -0.902).
+   * Simulated data shows quasi-periodic behavior.
+   * ACF: decaying sinusoidal pattern.
+   * PACF: significant at lags 1 and 2, then drops, consistent with AR(2).
+
+4. **Simulating AR(2) with Real Roots**:
+
+   * Roots: 0.95 and 0.5.
+   * AR coefficients derived from these.
+   * No quasi-periodic pattern in data; resembles damped random walk.
+   * ACF: smooth decay.
+   * PACF: only first two lags significant.
+
+5. **Simulating AR(3) with Complex + Real Root**:
+
+   * Complex root pair: modulus 0.95, period 12; real root: modulus 0.8.
+   * Three AR coefficients derived.
+   * Simulated series shows quasi-periodic behavior plus extra persistence.
+   * ACF: still shows decaying periodicity.
+   * PACF: more than two significant lags, consistent with AR(3).
+
+**Key Insight**:
+
+The modulus and type (real vs. complex) of reciprocal roots determine persistence and periodicity. The ACF reflects these traits, while the PACF helps identify AR order.
+
 
 ## Computing the roots of the AR polynomial 📖
 
 Compute AR reciprocal roots given the AR coefficients
+
+
 
 ```{r}
 #| label: ar-roots
@@ -309,7 +426,7 @@ pacf(yt, lag.max = 50, main = "sample PACF")
 
 ::: {.callout-info}
 
-### AR(p)
+### AR(p) {.unnumbered}
 
 A time series follows a zero-mean autoregressive process of order $p$, of AR(p), if:
 
@@ -351,7 +468,7 @@ $$
 
 with $\alpha_j$ being the reciprocal roots of the characteristic polynomial. For the process to be stable (and consequently stationary), $|\alpha_j| < 1$ for all $j = 1, \ldots, p$.
 
-#### AR(p): State-space representation
+### AR(p): State-space representation
 
 An AR(p) can also be represented using the following state-space or dynamic linear (DLM) model representation:
 
@@ -384,7 +501,7 @@ $$
 for any $t \ge p$. The eigenvalues of the matrix $G$ are the reciprocal roots of the characteristic polynomial.
 
 ::: {.callout-note}
-##### Eigenvalues
+### Eigenvalues {.unnumbered}
 
 -   The eigenvalues can be real-valued or complex-valued.
 -   If they are Complex-valued the eigenvalues/reciprocal roots appear in conjugate pairs.
@@ -402,7 +519,7 @@ $$
 f_t(h) = \sum_{j=1}^{p} c_{tj} \alpha_j^h.
 $$
 
-#### ACF of AR(p)
+### ACF of AR(p)
 
 For a general AR(p), the ACF is given in terms of the homogeneous difference equation:
 
@@ -418,7 +535,7 @@ $$
 
 with $p_j(h)$ being a polynomial of degree $m_j - 1$.
 
-##### Example: AR(1)
+### Example: AR(1)
 
 We already know that for $h \ge 0$, $\rho(h) = \phi^h$. Using the result above, we have
 
@@ -428,7 +545,7 @@ $$
 
 and so to find $a$, we take $\rho(0) = 1 = a \phi^0$, hence $a = 1$.
 
-##### Example: AR(2)
+### Example: AR(2)
 
 Similarly, using the result above in the case of two complex-valued reciprocal roots, we have
 
@@ -436,7 +553,7 @@ $$
 \rho(h) = a \alpha_1^h + b \alpha_2^h = c r^h \cos(\omega h + d).
 $$
 
-#### PACF of AR(p)
+### PACF of AR(p)
 
 We can use the Durbin-Levinson recursion to obtain the PACF of an AR(p). 
 
