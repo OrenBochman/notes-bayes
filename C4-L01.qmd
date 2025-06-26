@@ -397,57 +397,59 @@ $$ {#eq-seasonal-moving-average}
 
 ## ACF PACF Differencing and Smoothing Examples 🎥 {#sec-differencing-and-smoothing-examples}
 
-This video walks us through the code snippets in @fig-moving-averages-and-differencing and @lst-white-noise-simulation below and provides examples of how to compute the ACF and PACF of a time series, how to use differencing to remove trends, and how to use moving averages to remove seasonality.
+This video walks us through the code snippets in @fig-moving-averages-and-differencing and @fig-white-noise-simulation below and provides examples of how to compute the ACF and PACF of a time series, how to use differencing to remove trends, and how to use moving averages to remove seasonality.
 
 
-- Outline:
-  - We begin by simulating data using the code in @sec-white-noise-simulation
-  - We simulates white noise data using the `rnorm(1:2000,mean=0,sd=1)` function in R
-  - We plot the white noise data which we can see lacks a temporal structure.
-  - We plot the ACF using the `acf` function in R:
-    - we specify the number of lags using the `lag.max=20`
-    - we shows a confidence interval for the ACF values
-  - We plot the PACF using the `pacf` function in R
-  - Next we define some time series objects in R using the `ts` function
-    - we define and plot monthly data starting in January 1960
-    - we define and plot yearly data with one observation per year starting in 1960
-    - we define and plot yearly data with four observations per year starting in 1960
-  - We move on to smoothing and differencing  in @sec-differencing-and-smoothing
-  - We load the CO2 dataset in R and plot it
-  - we plot the ACF and PACF of the CO2 dataset
-  - we use the `filter` function in R to remove the seasonal component of the CO2 dataset we plot the resulting time series highlighting the trend.
-  - To remove the trend we use the `diff` function in R to take the first and second differences of the CO2 dataset
-    - the `diff` function takes a parameter `differences` which specifies the number of differences to take
-  - we plot the resulting time series after taking the first and second differences
-  - the ACF and PACF of the resulting time series are plotted, they look different, in that they no longer have the slow decay characteristic of time series with a trend.
-
-The r-code for the examples is provided below.
+- We begin by simulating data using the code in @sec-white-noise-simulation
+- We simulates white noise data using the `rnorm(1:2000,mean=0,sd=1)` function in `R`
+- We plot the white noise data which we can see lacks a temporal structure.
+- We plot the *ACF* using the `acf` function in `R`:
+  - we specify the number of lags using the `lag.max=20`
+  - we shows a confidence interval for the ACF values
+- We plot the *PACF* using the `pacf` function in `R`
+- Next we define some time series objects in `R` using the `ts` function
+  - we define and plot monthly data starting in January 1960
+  - we define and plot yearly data with one observation per year starting in 1960
+  - we define and plot yearly data with four observations per year starting in 1960
+- We move on to smoothing and differencing  in @sec-differencing-and-smoothing
+- We load the CO2 dataset in `R` and plot it
+- we plot the *ACF* and *PACF* of the CO2 dataset
+- we use the `filter` function in `R` to remove the seasonal component of the CO2 dataset we plot the resulting time series highlighting the trend.
+- To remove the trend we use the `diff` function in `R` to take the first and second differences of the CO2 dataset
+  - the `diff` function takes a parameter `differences` which specifies the number of differences to take
+- we plot the resulting time series after taking the first and second differences
+- the *ACF* and *PACF* of the resulting time series are plotted, they look different, in that they no longer have the slow decay characteristic of time series with a trend.
 
 
-## R code for Differencing and filtering via moving averages 📖 {#sec-differencing-and-smoothing-reading}
+## code for Differencing and filtering via moving averages 📖 ℛ {#sec-differencing-and-smoothing-reading}
 
 \index{dataset!CO2}
 \index{differencing}
 \index{smoothing}
+\index{moving average}
+\index{filtering}
 
 ```{r}
 #| label: fig-moving-averages-and-differencing
 #| lst-label: lst-moving-averages-and-differencing
-#| fig-cap: "R code: for Differencing and filtering via moving averages"
-#| fig.height: 9
+#| fig-cap: "Differencing and filtering via moving averages"
+#| fig-subcap:
+#|  - "the original data"
+#|  - "the first difference (TS - trend), highlightes the seasonality"
+#|  - "the moving averages (TS - seasonality), highlights the trend"
+#| layout-nrows: 3
+#| fig.height: 4
 #| fig.width: 7
 
 data(co2) # <1>
 co2_1stdiff = diff(co2,differences=1) # <2>
 co2_ma = filter(co2,filter=c(1/24,rep(1/12,11),1/24),sides=2) # <3>
 
-par(mfrow = c(3,1),
-    mar   = c(3, 4, 2, 1), 
-    cex.lab=1.2,
-    cex.main=1.2)
-plot(co2) # <4>
-plot(co2_1stdiff) # <5>
-plot(co2_ma) # <6>
+#par(mfrow = c(3,1),  mar   = c(3, 4, 2, 1),  cex.lab=1.2, cex.main=1.2)
+
+plot(co2)           # <4>
+plot(co2_1stdiff)   # <5>
+plot(co2_ma)        # <6>
 ```
 
 1. Load the CO2 dataset in R
@@ -458,7 +460,7 @@ plot(co2_ma) # <6>
 6. plot the filtered series via moving averages (removes the seasonality, highlights the trend)
 
 
-## R Code: Simulate data from a white noise process 📖 {#sec-white-noise-simulation}
+## Code: Simulate data from a white noise process 📖 ℛ {#sec-white-noise-simulation}
 
 \index{white noise}
 \index{process!white noise}
@@ -466,12 +468,19 @@ plot(co2_ma) # <6>
 \index{Brownian motion}
 
 ```{r}
-#| label: lst-white-noise-simulation
+#| label: fig-white-noise-simulation
 #| lst-label: lst-white-noise-simulation
-#| lst-cap: "Simulate data with no temporal structure (white noise)"
-#| fig.height: 9
+#| fig-cap: 
+#|  - "Simulate white noise data"
+#| fig-subcap: 
+#|  - "Simulate data with no temporal structure (white noise)"
+#|  - "Sample AFC"
+#|  - "Sample PACF"
+#| fig.height: 4
 #| fig.width: 7
-#| 
+#| layout-nrows: 2
+
+
 set.seed(2021)
 T=200
 t =1:T
@@ -480,25 +489,26 @@ y_white_noise=rnorm(T, mean=0, sd=1)
 yt=ts(y_white_noise, start=c(1960), frequency=1) # <1>
 
 
-par(mfrow = c(3, 1),
-    mar = c(3, 4, 2, 1), 
-    cex.lab = 1.3, 
-    cex.main = 1.3) 
-yt=ts(y_white_noise, start=c(1960), frequency=1)
-plot(yt, type = 'l', col='red', 
+#par(mfrow = c(3, 1), mar = c(3, 4, 2, 1),  cex.lab = 1.3, cex.main = 1.3) 
+
+plot(yt, type = 'l', col='red', # <2>
      xlab = 'time (t)', 
      ylab = "Y(t)") # <2>
-acf(yt, 
+
+acf(yt, # <3>
     lag.max = 20, 
     xlab = "lag",
     ylab = "Sample ACF",
-    ylim=c(-1,1),main="") # <2>
-pacf(yt, 
-     lag.max = 20,
-     xlab = "lag",
-     ylab = "Sample PACF",
-     ylim=c(-1,1),main="") # <2>
+    ylim=c(-1,1),main="")                       # <3>
+
+pacf(yt, lag.max = 20,                          # <4>
+     xlab = "lag",  ylab = "Sample PACF",       # <4>
+     ylim=c(-1,1),main="")                      # <4>
+
+
 ```
 
 1. Define a time series object in R - Assume the data correspond to annual observations starting in January 1960 
-2. Plot the simulated time series, their sample ACF and their sample PACF
+2. Plot the simulated time series, 
+3. Plot the sample ACF 
+4. Plot the sample PACF
