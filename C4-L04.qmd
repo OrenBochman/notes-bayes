@@ -47,8 +47,9 @@ keywords:
 
 ![AR(p) process, characteristic polynomial, stability, stationarity and MA representation ](images/m2_0001.png){#fig-ar-p-state-space-representation .column-margin  group="slides" width="53mm"}
 
-In this video we will see two important representations of the **AR(p)** process.
+The under tildes used in the slides denote a vector or a matrix rather than a statistical property. They are usually denoted via bold fonts and not by under tildes which have other meanings too so for the sake of clarity I have replaced them with bold font in the outline. I provide detailed derivation in this section but there is a shorter outline in @sec-arp-review which may be easier to review once you know the derivations.
 
+In this segment we will see two important representations of the **AR(p)** process.
 
 ### AR(p) definition {#sec-arp-definition}
 
@@ -159,7 +160,7 @@ The zeros of the characteristic polynomial are the roots of the **AR(p)** proces
 
 $$
 \Phi(u) = \prod_{j=1}^{p} (1 - \alpha_j u) = 0  \implies u = \frac{1}{ \alpha_j} \qquad \text{(reciprocal roots)}
-$$
+$$ {#eq-ar-p-reciprocal-roots}
 
 where: 
 
@@ -181,8 +182,6 @@ It would be nice to state this explicitly and linked to the appropriate sections
 
 
 [Another important representation of the AR(P) process, is based on a state-space representation of the process. This representation is useful because it allows us to study some important properties of the process.]{.mark} We will make some connections with these representations later when we talk about dynamic linear models, is given as follows for an AR(P). 
-
-~~I have my y_t. I can write it as F transpose and then another vector x_t here. Then we're going to have x_t is going to be a function of x_t minus 1. That vector there is going to be an F and a G. I will describe what those are in a second. Then I'm going to have another vector here with some distribution. In our case, we are going to have a normal distribution also for that one. In the case of the AR(P), we're going to have x_t to be y_t, y_t minus 1.~~
 
 $$
 y_t = \operatorname{F}^\top \mathbf{x}_t \qquad \text{(observational equation)}
@@ -222,74 +221,100 @@ G = \begin{pmatrix}
 \end{pmatrix}.
 $$ {#eq-ar-p-state-space-g-matrix}
 
-This state transition matrix G is important because it is related to the characteristic polynomial, in particular, is related to the reciprocal roots representation of the characteristic polynomial that we discussed before. 
-The structure of this G matrix is such that it captures the Markovian dynamics of the autoregressive process, wherein each $x_t$ is a function of $x_{t-1}$. 
+This state transition matrix $\mathbf{G}$ is important because it is related to the characteristic polynomial, in particular, is related to the reciprocal roots representation of the characteristic polynomial that we discussed before. 
+The structure of this $\mathbf{G}$ matrix is such that it captures the Markovian dynamics of the autoregressive process, wherein each $\mathbf{x}_t$ is a function of $\mathbf{x}_{t-1}$. 
 
 The eigenvalues of this matrix correspond precisely to the reciprocal roots of the characteristic polynomial. 
 
-Prado point out that if you perform the matrix operations described in @eq-state-space-observational-equation and @eq-state-space-state-equation, you will get back the form of your autoregressive process from the definition in @eq-ar-p-annotated
+Prado points out that if you perform the matrix operations described in @eq-state-space-observational-equation and @eq-state-space-state-equation, you will recover the form of your autoregressive process from the definition in @eq-ar-p-annotated .
 
 So we have given the state-space representation of an AR(p). One advantage of working with this representation is that we can use with it some definitions that apply to dynamic linear models or state-space models. One such definition is the so-called forecast function.
 
-## Forecast Function of AR(p) 🎥 {#sec-forecast-function-ar-p}
+### The forecast Function of AR(p) {#sec-forecast-function-ar-p}
 
-
-
-The forecast function, we can define it in terms of, I'm going to use here the notation f_t h to denote that is a function f that depends on the time t that you're considering, and then you're looking at forecasting h steps ahead in your time series. 
+\index{AR(p)!forecast function}
+The forecast function, which we denote as $f_t(h)$ is a function $f$ that depends on the time $t$ that you're considering, and then you're looking at forecasting $h$ steps ahead in your time series. 
+If you have observations up to today and you want to look at what is the forecast function five days later, we will set $h=5$ there. The forecast function is just the expected value and we can just think of this as the expected value of $y_{t+h}.$ conditional on all the observations or all the information you have received up to time $t$. 
 
 $$
 \begin{aligned}
-f_t(h) &= E(y_{t+h} \mid y_{1:t}) \\
-       &= F^\top \mathbb{E}[x_{t+h} \mid y_{1:t}] \\
-       &= F^\top G \mathbb{E}[x_{t+h-1} \mid y_{1:t}] \\
-       &= F^\top G^h x_t, \quad h > 0, \quad \forall t \ge p
+f_t(h) &= \mathbb{E}[y_{t+h} \mid y_{1:t}] &\text{(defn)}\\
+       &= \mathbf{F}^\top \mathbb{E}[\mathbf{x}_{t+h} \mid y_{1:t}] &\text{(observation eq.)} \\ 
+       &= \mathbf{F}^\top \mathbf{G} \mathbb{E}[\mathbf{x}_{t+h-1} \mid y_{1:t}] &\text{(state eq.)} \\
+       &= \mathbf{F}^\top \mathbf{G}^h \mathbb{E}[\mathbf{x}_t\mid y_{1:t}], & \text{(repeat)} \\
+       &= \mathbf{F}^\top \mathbf{G}^h \mathbf{x}_t & h > 0, \forall t \ge p
 \end{aligned}
 $$ {#eq-ar-p-forecast-function-derivation}
 
-If you have observations up to today and you want to look at what is the forecast function five days later, you will have h equals 5 there. It's just the expected value and we can just think of this as the expected value of $y_{t+h}.$ Conditional on all the observations or all the information you have received up to time $t$. 
+where:
 
-I'm going to write it just like this. Using the state-space representation, you can see that if I use the first equation and I think about the expected value of y_t plus h is going to be F transpose, and then I have the expected value of the vector x_t plus h in that case.
-I can think of just applying this, then I would have expected value of x_t plus h given y_1 up to t.
-But now when I look at the structure of x_t plus h, if I go to my second equation here, I can see that x_t plus h is going to be dependent on x_t plus h minus 1, and there is a G matrix here.
-I can write this in terms of the expected value of x_t plus h, which is just G, expected value of x_t plus h minus 1, and then I also have plus expected value of the w_t's.
-But because of the structure of the AR process that we defined, we said that all the Epsilon T's are independent normally distributed random variables center at zero. In this case, those are going to be all zero.
-I can write down this as F transpose G, and then I have the expected value of x_t plus h minus 1 given y_1 up to t.
-> If I continue with this process all the way until I get to time t, I'm going to get a product of all these G matrices here, and because we are starting with this lag h, I'm going to have the product of that G matrix h times. 
-> I can write this down as F transpose G to the power of h, and then I'm going to have the expected value of, finally, I get up to here.
->
->This is simply is going to be just my x_t vector. 
-> I can write this down as F transpose G^h, and then I have just my x_t. 
-> Again, why do we care? Now we are going to make that connection with this matrix and the eigenstructure of this matrix. 
-> I said before, one of the features of this matrix is that the eigenstructure is related to the reciprocal roots of the characteristic polynomial. 
-> In particular, the eigenvalues of this matrix correspond to the reciprocal roots of the characteristic polynomial. 
-> If we are working with the case in which we have exactly p different roots. 
-> We have as many different roots as the order of the AR process. 
-> Let's say, p distinct.
-> We can write down then G in terms of its eigendecomposition. 
-> I can write this down as E, a matrix Lambda here, E inverse. 
->
-> Here, Lambda is going to be a diagonal matrix, you just put the reciprocal roots, I'm going to call those Alpha 1 up to Alpha p. 
-> They are all different. 
-> You just put them in the diagonal and you can use any order you want. 
-> But the eigendecomposition, the eigenvectors, have to follow the order that you choose for the eigenvalues. 
-> Then what happens is, regardless of that, you're going to have a unique G. 
-> But here, the E is a matrix of eigenvectors.
+- $y_{1:t}$ is the vector of all observations up to time $t$, 
+- $\mathbf{x}_t$ is the state vector at time $t$.
+- $\mathbf{G}^h$ is the state transition matrix raised to the power $h$, which captures the dynamics of the AR process over $h$ steps ahead. The eigenvalues of this matrix are the reciprocal roots of the characteristic polynomial of the AR(p) process.
 
-> We have the power G to the power of h. 
-> Using that eigendecomposition, we can get to write this in this form. 
-> Whatever elements you have in the matrix of eigenvectors, they are now going to be functions of the reciprocal roots. 
-> The power that appears here, which is the number of steps ahead that you want to forecast in your time series for prediction, I'm just going to have the Alphas to the power of h. 
-> When I do this calculation, I can end up writing the forecast function just by doing that calculation as a sum from j equals 1 up to p of some constants. 
-> Those constants are going to be related to those E matrices but the important point is that what appears here is my Alpha to the power of h.
-> What this means is I'm breaking this expected value of what I'm going to see in the future in terms of a function of the reciprocal roots of the characteristic polynomial. 
-> You can see that if the process is stable, is going to be stationary, all the moduli of my reciprocal roots are going to be below one. 
-> This is going to decay exponentially as a function of h.
-> You're going to have something that decays exponentially. 
-> Depending on whether those reciprocal roots are real-valued or complex-valued, you're going to have behavior here that may be quasiperiodic for complex-valued roots or just non-quasiperiodic for the real valued roots. 
-> The other thing that matters is, if you're working with a stable process, are going to have moduli smaller than one. 
-> The contribution of each of the roots to these forecasts function is going to be dependent on how close that modulus of that reciprocal root is to one or minus one. 
-> For roots that have relatively large values of the modulus, then they are going to have more contribution in terms of what's going to happen in the future. 
-> This provides a way to interpret the AR process.
+- In this derivation:
+  - We start with the expectation and rewrite it expectation using the state-space representation equations:
+  - We start using the observation equation, replacing $y_{t+h}$ with $F^T(\mathbf x_{t+h})$ in that case. 
+  - Next we apply the second (state) equation. 
+    - This introduces $\mathbf{G}$ 
+    - and updates our expected value to the next time step, so we have $\mathbf{X}_{t+h-1}$. 
+    - Note: that since the $w_{t+h-1}$ terms are independent of the past observations, their expected value is zero, so we can leave them out.
+  - We repeat applying the state equation for all the lags until we get to time $t$, ending up with a product of $h$ $\mathbf{G}$ matrices here, so we end up with $\mathbf{G}^h$ and the each time we drop a lag in the expectation of $\mathbf{X}_{t+h}$. 
+  - We end up with the expected value of $\mathbb{E}[\mathbf{x}_t]$ which is just the vector $\mathbf{x}_t$ the current state of the process.
+
+This result is significant because it now allows us to make the connection of $\mathbf{G}$ and its eigenstructure. One of the features of $\mathbf{G}$ is that the eigenstructure is related to the reciprocal roots of the characteristic polynomial. So when we working with the case in which we have exactly p distinct roots. We can further simplify using by rewriting $\mathbf{G}$ in terms of its eigendecomposition.
+We can rewrite $\mathbf{G}$  as $\mathbf{E}$, a matrix $\mathbf{\Lambda}$ here, $\mathbf{E}^{-1}$. 
+
+$$
+\mathbf{G}= \mathbf{E} \mathbf{\Lambda} \mathbf{E}^{-1} \qquad \text{(eigendecomposition)}
+$$ {#eq-ar-p-g-eigendecomposition}
+
+where:
+
+- $\mathbf{\Lambda} = \operatorname{diag}(\alpha_1, \ldots, \alpha_p)$ is a diagonaol matrix consiting of the reciprocal roots $\alpha_i$, from the reciprocal formulation of the characteristic polynomial in @eq-ar-p-reciprocal-roots. 
+  - While the order of the roots doesn't matter but there is a tradition of order eigenvalues them in decreasing value and this can help us  to **identify our model**!
+- $\mathbf{E}$ is a eigenvectors decomposition for the matrix $\mathbf{G}$ 
+  $E = [\mathbf{e}_1 ; \cdots ; \mathbf{e}_p]$, where $\mathbf{e}_i$ is the eigenvector corresponding to $\alpha_i$.   
+  - Since each root is unique the eigenvectors are all different and linearly independent.
+  - Note that the eigendecomposition, i.e. the eigenvectors, has to follow the order set in $\Lambda$ 
+
+We can now rewrite $\mathbf{G}^h$ as:
+
+$$
+\mathbf{G}^h= \mathbf{E} \mathbf{\Lambda}^h \mathbf{E}^{-1} \qquad \text{(eigendecomposition of G)}
+$$ {#eq-ar-p-gh-eigendecomposition}
+
+::: {.callout-caution collapse="true"}
+## Why arn't the eigendecomposition powered up {.unnumbered}
+
+So here is an easy answer 
+
+if $\mathbf{G}= \mathbf{E} \mathbf{\Lambda} \mathbf{E}^{-1}$
+
+if we multiply out the all the $E$ and $E^{-1}$ terms cancel out except the last and first.
+:::
+
+
+Whatever elements have in the matrix of eigenvectors $\mathbf{E}$, they are now going to be functions of the reciprocal roots $u_i=\frac{1}{\phi_j}$. 
+The power that appears here, which is the number of steps ahead that you want to forecast in your time series for prediction,
+
+$$
+f_t(h) = E(y_{t+h} \mid y_{1:t}) = F^\top G^h x_t, \quad h > 0, \quad \forall t \ge p
+$$ {#eq-ar-p-forecast-function}
+
+where:
+
+- $c_t$ are constants that depend on the $E$ matrix.
+- $\alpha_i^h$ are the reciprocal roots raised to the power $h$.
+
+We can see from the form of @eq-ar-p-forecast-function that if the process is stable, i.e. all the  all the moduli of my reciprocal roots are going to be below one. So it is going to decay exponentially as a function of h. And this AR(p) process is going to be stationary.
+
+::: {.callout-important}
+## Interpreting the forecast function {.unnumbered}
+I recall that in physics we often view the eigenvectors as resonances of the system's dynamics, and the eigenvalues as the corresponding resonant frequencies. This is a good analogy to think about the reciprocal roots of the AR(p) process. The contribution of each of the roots $\alpha_i$ to $f(t)$ depends on how close that modulus of that reciprocal root is to 1 or -1. For roots that have relatively large values of the modulus, then they are going to have more contribution in terms of what's going to happen in the future.
+
+Depending on whether those reciprocal roots $\alpha_i$ are real-valued or complex-valued, you're going to have behavior here that may be quasiperiodic for complex-valued roots or just non-quasiperiodic for the real valued roots. 
+:::
 
 ::: {.callout-note collapse="true"}
 ## Video Transcript {.unnumbered}
