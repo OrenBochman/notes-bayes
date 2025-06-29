@@ -49,7 +49,8 @@ keywords:
 
 The under tildes used in the slides denote a vector or a matrix rather than a statistical property. They are usually denoted via bold fonts and not by under tildes which have other meanings too so for the sake of clarity I have replaced them with bold font in the outline. I provide detailed derivation in this section but there is a shorter outline in @sec-arp-review which may be easier to review once you know the derivations.
 
-In this segment we will see two important representations of the **AR(p)** process.
+In this segment we will see two important representations of the **AR(p)** process. 
+You can follow along in [@prado2000bayesian ch. 2]
 
 ### AR(p) definition {#sec-arp-definition}
 
@@ -92,10 +93,11 @@ $$
 \begin{aligned}
        y_t &= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \epsilon_t  && \text{(Ar(p) defn.)} \newline
        y_t &= \phi_1 \operatorname{B} y_t + \phi_2 \operatorname{B}^2 y_t + \ldots + \phi_p \operatorname{B}^p y_t + \epsilon_t && \text{(B defn.)} \newline
-\epsilon_t &= y_t - \phi_1 \operatorname{B} y_t + \phi_2 \operatorname{B}^2 y_t + \ldots + \phi_p \operatorname{B}^p y_t    && \text{(rearranging)} \newline
-\epsilon_t  &= (1- \phi_1 \operatorname{B} + \phi_2 \operatorname{B}^2 + \ldots + \phi_p \operatorname{B}^p) y_t            && \text{(factoring out $y_t$)}
+\epsilon_t &= y_t - \phi_1 \operatorname{B} y_t - \phi_2 \operatorname{B}^2 y_t - \ldots - \phi_p \operatorname{B}^p y_t    && \text{(rearranging)} \newline
+\epsilon_t  &= (1- \phi_1 \operatorname{B} - \phi_2 \operatorname{B}^2 - \ldots - \phi_p \operatorname{B}^p) y_t            && \text{(factoring out $y_t$)}
 \end{aligned}
 $$ {#eq-ar-poly-derivation}
+
 $$
 \Phi(u) = 1 - \phi_1 u - \phi_2 u^2 - \ldots - \phi_p u^p \qquad \text{(Characteristic polynomial)}
 $$ {#eq-ar-poly}
@@ -107,10 +109,36 @@ where:
 
 
 ::: {.callout-caution collapse="true"}
-## Replacing the Backshift operator {.unnumbered}
+## Replacing the Backshift operator by Z {.unnumbered}
 
-As far as the mathematics goes I'm uncertain why we could replace the Backshift operator $B$  with the complex root $z$. 
+As far as the mathematics goes it isn't clear how we get from @eq-ar-poly-derivation to the characteristic polynomial $\Phi(z)$ in @eq-ar-poly.
+
+As far as I can tell we can justify it by saying we have done three things:
+
+1. We set $\epsilon_t = 0$ to study the homogeneous equation. This is not about minimizing residuals but about analyzing the underlying linear recurrence, which governs the dynamics of the AR process without noise.
+2. We assume $y_t \neq 0$. Since $\Phi(B)y_t = 0$, we can treat this as a linear operator equation. By analogy to polynomial equations, if $ab = 0$ and $b \neq 0$, then $a = 0$. Thus, we analyze the operator polynomial $\Phi(B) = 0$ as the condition for nontrivial solutions.
+3. We replace the backshift operator $B$ with a complex number $z$, leading to the characteristic polynomial $\Phi(z)$:
+  - This is justified by assuming exponential solutions of the form $y_t = z^t$, a standard method in solving linear recurrences. Substituting into $\Phi(B)y_t = 0$ yields $\Phi(z^{-1}) = 0$, which we often rewrite as $\Phi(z) = 0$ for convenience.
+  - Alternatively, we view $B$ as a placeholder in a polynomial ring of operators, and replacing $B$ by $z$ evaluates that polynomial. This is a standard algebraic move in analyzing recurrence relations or z-transforms.
+  - Another point is that the backshift operator $B$ is just a linear operator on the space of time series. I.e it can be viewed as a matrix that shifts the time series back by one step.  
+
 :::
+
+Diving a little deeper $\operatorname{B}$ is represented by a nilpotent matrix, which is a matrix that shifts the time series back by one step. This is a standard algebraic move in analyzing recurrence relations or z-transforms.
+
+$$
+B = \begin{pmatrix}
+0 & 0 & 0 & \cdots & 0 \\
+1 & 0 & 0 & \cdots & 0 \\
+0 & 1 & 0 & \cdots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \cdots & 1
+\end{pmatrix}
+$$ {#eq-ar-poly-b-matrix}
+
+This matrix is nilpotent because if you multiply it by itself enough times, it will eventually become the zero matrix. This is a key property that allows us to define the characteristic polynomial in terms of the backshift operator.
+
+Note: that the above derivation wasn't presented in the slides but is my own attempt to clarify the steps involved I hope it is helpful not 100% sure it is correct.
 
 - [This polynomial and its roots tells us a lot about the process and its properties. One of the main characteristics is it allows us to think about things like **quasi-periodic behavior**, whether it's present or not in a particular **AR(p)** process. ]{.mark}
 - It allows us to think about whether a process is **stationary or not**, depending on some properties related to this polynomial. 
@@ -180,8 +208,10 @@ It would be nice to state this explicitly and linked to the appropriate sections
 
 ![A state space representation of Ar(p)](images/m2_0002.png){#fig-ar-p-state-space .column-margin  group="slides" width="53mm"}
 
+This material is covered in [@prado2000bayesian § 2.1.2]
 
 [Another important representation of the AR(P) process, is based on a state-space representation of the process. This representation is useful because it allows us to study some important properties of the process.]{.mark} We will make some connections with these representations later when we talk about dynamic linear models, is given as follows for an AR(P). 
+
 
 $$
 y_t = \operatorname{F}^\top \mathbf{x}_t \qquad \text{(observational equation)}
@@ -271,7 +301,7 @@ $$ {#eq-ar-p-g-eigendecomposition}
 
 where:
 
-- $\mathbf{\Lambda} = \operatorname{diag}(\alpha_1, \ldots, \alpha_p)$ is a diagonaol matrix consiting of the reciprocal roots $\alpha_i$, from the reciprocal formulation of the characteristic polynomial in @eq-ar-p-reciprocal-roots. 
+- $\mathbf{\Lambda} = \operatorname{diag}(\alpha_1, \ldots, \alpha_p)$ is a diagonal matrix consisting of the reciprocal roots $\alpha_i$, from the reciprocal formulation of the characteristic polynomial in @eq-ar-p-reciprocal-roots. 
   - While the order of the roots doesn't matter but there is a tradition of order eigenvalues them in decreasing value and this can help us  to **identify our model**!
 - $\mathbf{E}$ is a eigenvectors decomposition for the matrix $\mathbf{G}$ 
   $E = [\mathbf{e}_1 ; \cdots ; \mathbf{e}_p]$, where $\mathbf{e}_i$ is the eigenvector corresponding to $\alpha_i$.   
@@ -315,6 +345,8 @@ I recall that in physics we often view the eigenvectors as resonances of the sys
 
 Depending on whether those reciprocal roots $\alpha_i$ are real-valued or complex-valued, you're going to have behavior here that may be quasiperiodic for complex-valued roots or just non-quasiperiodic for the real valued roots. 
 :::
+
+In the text book AR(p) forecasting is covered in [@prado2000bayesian § 2.2] and the mean square errors can be estimated using an algorithm by [@brockwell1991time].
 
 ::: {.callout-note collapse="true"}
 ## Video Transcript {.unnumbered}
@@ -386,11 +418,12 @@ Depending on whether those reciprocal roots $\alpha_i$ are real-valued or comple
 
      Polynomial-exponential form due to root multiplicity.
 
-### **Key Concepts**
+### Key Concepts
 
 * Forecast structure mirrors the **roots** of the characteristic polynomial.
 * Stability depends on **reciprocal roots** (modulus < 1).
-* Complex roots → sinusoidal terms; repeated roots → polynomial multipliers.
+* Complex roots → sinusoidal terms; 
+* Repeated roots → polynomial multipliers.
 
 This analysis connects **forecast behavior** to the **algebraic properties** of AR model roots.
 
