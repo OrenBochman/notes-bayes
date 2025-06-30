@@ -414,20 +414,21 @@ bic =bic-min(bic)
 bic
 ```
 
-### draw plot of AIC, BIC, and the marginal likelihood
+### Plot AIC, BIC, and the marginal likelihood
 
 ```{r}
 #| label: fig-ar-2-model-order-selection-plot
-#| fig-cap: AIC and BIC for different AR(p)s
+#| fig-cap: AIC, BIC for different AR(p) model orders
 par(mfrow = c(1, 1), mar = c(3, 4, 2, 1) )
 matplot(1:pmax,matrix(c(aic,bic),pmax,2),ylab='value',
-        xlab='AR order p',pch="ab", col = 'black', main = "AIC and BIC")
+        xlab='AR order p',pch="ab", col = 'black', main = "AIC and BIC for Model Selection")
 # highlight the model order selected by AIC
 text(which.min(aic), aic[which.min(aic)], "a", col = 'red') 
 # highlight the model order selected by BIC
 text(which.min(bic), bic[which.min(bic)], "b", col = 'red') 
 
-########################################################
+legend("topright", legend = c("AIC", "BIC"), col = c("black", "black"), pch = c("a", "b"))
+
 p <- which.min(bic) # We set up the moder order
 print(paste0("The chosen model order by BIC: ", p))
 ```
@@ -442,7 +443,7 @@ The spectral representation of the AR(p) process is a powerful tool for understa
 ::: {.callout-note collapse="true"}
 ## Video Transcript {.unnumbered}
 
-{{< include _C4-L05-T03.qmd >}}
+{{< include _C4-L05-T04.qmd >}}
 
 :::
 
@@ -453,16 +454,21 @@ This video walks through the code in the next section.
 ::: {.callout-note collapse="true"}
 ## Video Transcript {.unnumbered}
 
-{{< include _C4-L05-T03.qmd >}}
+{{< include _C4-L05-T05.qmd >}}
 
 :::
 
 
 ## code: Spectral density of AR(p) 📖 ℛ
 
+\index{AR(p) process!spectral density}
+
+We will now obtain the spectral density of an autoregressive process, as well as visualize posterior distributions of the spectral densities of this AR process just based on data that we have
+
+Simulate 300 observations from an AR(2) process with a pair of complex-valued roots
+
 ```{r}
 #| label: ar-spectral-density
-### Simulate 300 observations from an AR(2) prcess with a pair of complex-valued roots 
 set.seed(2021)
 r=0.95
 lambda=12 
@@ -473,8 +479,13 @@ sd=1 # innovation standard deviation
 T=300 # number of time points
 # sample from the AR(2) process
 yt=arima.sim(n = T, model = list(ar = phi), sd = sd) 
+```
 
-# Compute the MLE of phi and the unbiased estimator of v using the conditional likelihood 
+
+Compute the MLE of phi and the unbiased estimator of v using the conditional likelihood 
+
+```{r}
+#| label: ar-spectral-density-mle
 p=2
 y=rev(yt[(p+1):T])
 X=t(matrix(yt[rev(rep((1:p),T-p)+rep((0:(T-p-1)),rep(p,T-p)))],p,T-p));
@@ -496,15 +507,23 @@ for(i in 1:n_sample){
   phi_sample[i,]=mvrnorm(1,phi_MLE,Sigma=v_sample[i]*XtX_inv)
 }
 
+```
 
-### using spec.ar to draw spectral density based on the data assuming an AR(2)
+using spec.ar to draw spectral density based on the data assuming an AR(2)
+```{r}
+#| label: ar-spectral-density-spec-ar
 spec.ar(yt, order = 2, main = "yt")
+```
 
-### using arma.spec from astsa package to draw spectral density
+using arma.spec from `astsa` package to draw spectral density
+
+plot spectral density of simulated data with posterior sampled ar coefficients and innvovation variance
+
+```{r}
+#| label: fig-ar-spectral-density-arma-spec
+#| fig-cap: Spectral density of AR(2) process using arma.spec
 library("astsa")
 
-## plot spectral density of simulated data with posterior sampled 
-## ar coefficients and innvovation variance
 par(mfrow = c(1, 1), mar = c(3, 4, 2, 1) )
 #result_MLE=arma.spec(ar=phi_MLE, var.noise = s2, log='yes',main = '')
 result_MLE=arma.spec(ar=phi_MLE, var.noise = s2, main = '')
@@ -517,7 +536,11 @@ result=arma.spec(ar=phi_sample[i,], var.noise = v_sample[i],# log='yes',
                  main = '',plot=FALSE)
 spec[i,]=result$spec
 }
+```
 
+```{r}
+#| label: fig-ar-spectral-density-plot
+#| fig-cap: Spectral density of AR(2) process using arma.spec
 plot(2*pi*freq,log(spec[1,]),type='l',ylim=c(-3,12),ylab="log spectra",
      xlab="frequency",col=0)
 #for (i in 1:n_sample){
