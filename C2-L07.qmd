@@ -23,7 +23,7 @@ keywords:
 We discussed linear regression briefly in the previous course. And we fit a few models with non-informative priors. Here, we'll provide a brief review, demonstrate fitting linear regression models in JAGS And discuss a few practical skills that are helpful when fitting linear models in general. 
 
 
-\index{linear model}
+\index{model!linear regression}
 This is not meant to be a comprehensive treatment of **linear models**, which you can find in numerous courses and textbooks. 
 
 Linear regression is perhaps the simplest way to relate a continuous response variable to multiple explanatory variables.
@@ -86,6 +86,7 @@ plt.show()
 ::: {.callout-important}
 ### Understanding the Graphical Models {.unnumbered}
 
+\index{model!graphical model}
 -   This graphical model uses [plate notation](https://en.wikipedia.org/wiki/Plate_notation)
 -   We'll start with a *plate* for all of our different $y$ variables,
     -   It is repeated $i = 1 \ldots N$ times
@@ -251,6 +252,7 @@ More information is available from:
 # Lesson 7.2 Code - Setup & Data {#sec-setup-data}
 
 \index{dataset!Leinhardt} 
+\index{model!linear regression}
 As an example of linear regression, we'll look at the  *Leinhardt* data from the `car` package in R.
 
 ```{r}
@@ -477,6 +479,7 @@ gelman.diag(mod1_sim) # <1>
 ```
 
 1.  Gelman Rubin diagnostics scale reduction close to 1 indicated MCMC convergence
+\index{MCMC!Gelman-Rubin diagnostic}
 
 ```{r}
 #| label: C2-L07-22
@@ -817,11 +820,14 @@ effectiveSize(mod3_sim)
 
 ## Compare models using Deviance information criterion (DIC) {#sec-compare-models-using-deviance-information-criterion-dic}
 
-\index{DIC|see {Deviance information criterion}}
-\index{Deviance information criterion}
-We have now proposed three different models. How do we compare their performance on our data? In the previous course, we discussed estimating parameters in models using the maximum likelihood method. Similarly, we can choose between competing models using the same idea.
+\index{DIC|see {Deviance information criterion}} \index{Deviance information criterion} \index{model selection!DIC}
+We have now proposed three different models. 
+How do we compare their performance on our data? 
+In the previous course, we discussed estimating parameters in models using the maximum likelihood method. 
+Similarly, we can choose between competing models using the same idea.
 
-We will use a quantity known as the deviance information criterion (DIC). It essentially calculates the posterior mean of the log-likelihood and adds a penalty for model complexity.
+We will use a quantity known as the deviance information criterion (DIC). 
+It essentially calculates the posterior mean of the log-likelihood and adds a penalty for model complexity.
 
 Let's calculate the DIC for our first two models:
 
@@ -850,8 +856,7 @@ The first number is the Monte Carlo estimated posterior mean deviance, which equ
 
 Next, we are given a penalty for the complexity of our model. This penalty is necessary because we can always increase the likelihood of the model by making it more complex to fit the data exactly. We don't want to do this because over-fit models generalize poorly. This penalty is roughly equal to the effective number of parameters in your model. You can see this here. With the first model, we had a variance parameter and two betas, for a total of three parameters. In the second model, we added one more beta for the oil effect.
 
-\index{Deviance information criterion}
-\index{model selection}
+\index{model selection} \index{model selection!DIC} \index{DIC} \index{Deviance information criterion}
 We add these two quantities to get the DIC (the last number). The better-fitting model has a lower DIC value. In this case, the gains we receive in deviance by adding the `is_oil` covariate outweigh the penalty for adding an extra parameter. The final DIC for the second model is lower than for the first, so we would prefer using the second model.
 
 We encourage you to explore different model specifications and compare their fit to the data using DIC. [Wikipedia](https://en.wikipedia.org/wiki/Deviance_information_criterion) provides a good introduction to DIC and we can find more details about the `JAGS` implementation through the `rjags` package documentation by entering `?dic.samples` in the `R` console.
@@ -863,6 +868,10 @@ We encourage you to explore different model specifications and compare their fit
 
 ## Regression Diagnostics {#sec-regression-diagnostics}
 
+\index{regression diagnostics}
+\index{regression diagnostics!residuals}
+\index{regression diagnostics!QQ plot}
+\index{regression diagnostics!scale location plot}
 In production we want to flag regression issues in an automated fashion. However while we develop models we should try to examine these issues visually.
 
 Regression diagnostics help identify:
@@ -877,14 +886,17 @@ Regression diagnostics help identify:
 
 we should consider the following issues: 1. testing `heteroscedasticity` with the *Breusch-Pagan* test
 
+
 Let's try to cover the diagnostic plots which help us validate a regression model.
 
-### Residuals vs Fitted {#sec-residuals-vs-fitted}
+### Residuals v.s. Fitted {#sec-residuals-vs-fitted}
+
+\index{regression diagnostics!residuals v.s. fitted}
 
 -   The "residuals versus fits plot" is the most first diagnostic tool we
-
-    should look at to determine if the regression is valid. If the regression assumptions are violated we should be able to identify the issues and possibly correct them.
-
+    should look at to determine if the regression is valid. If the regression 
+    assumptions are violated we should be able to identify the issues and possibly correct them.
+    
 -   It is a scatter plot of residuals on the y axis and fitted values (estimated responses) on the x axis.
 
 -   The plot can be used to detect:
