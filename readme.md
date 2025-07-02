@@ -88,7 +88,7 @@ The fix is basically to stack the correlation plots vertically.
 1. use `\mathrm{Pois}` etc for other distributions.
 
 1. `! LaTeX Error: Not in outer par mode. l.4846 \end{marginfigure}` This error is caused by trying to use a marginfigure in a non outer par mode. This means a image is being placed in the margin inside of a list table etc. THe quick for this fix is to move the image out of the environment or not to put it in the margin.
-`
+
 1. a line with a slash \  created a most cryptic error use l.6678  from index.log and goto that line in index.tex then seach for the location in qmd file to fix.
 ## indexing
 
@@ -114,7 +114,8 @@ use `\index{\ldots\mid(}` `\index{\ldots\mid)}` to define a page range
 ### Different location and text  
 
 `\index{string1@string2}`
-where
+where:
+
 - string1 is used to set the location
 - string2 is used to set the display text
 
@@ -146,4 +147,10 @@ computers is filling up. This drive contains the computer’s
 
 ### references
 
-- https://latex-tutorial.com/creating-index-latex/
+- [creating an index in latex](https://latex-tutorial.com/creating-index-latex/)
+
+### Some icons used in the notes
+
+🎥 - Section on a video lecture
+📖 - Section covering a reading handout etc
+ℛ - Section covering R code
