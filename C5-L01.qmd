@@ -1,8 +1,9 @@
 ---
+date: 2025-07-02
 title: "Probability - M1L1"
 subtitle: "Capstone Project: Bayesian Conjugate Analysis for Autogressive Time Series Models"
 subject: "Bayesian Statistics"
-description: "Outline of probability"
+description: "Capstone Project: Bayesian Conjugate Analysis for Autogressive Time Series Models"
 categories:
   - Bayesian Statistics
   - Capstone Project
@@ -71,30 +72,26 @@ from a mixture distribution.
 
 ## Read Data 📖 ℛ
 
-### Earth Quake Data
-
+### Earth Quake Data ℛ
 
 ```{r}
-
+#| label: lst-capstone-earthquake-data
 ## read data, you need to make sure the data file is in your current working directory 
 earthquakes.dat <- read.delim("data/earthquakes.txt")
 earthquakes.dat$Quakes=as.numeric(earthquakes.dat$Quakes)
-
 
 y.dat=earthquakes.dat$Quakes[1:100] ## this is the training data
 y.new=earthquakes.dat$Quakes[101:103] ## this is the test data
 ```
 
-### Google Search Index Data
+### Google Search Index Data ℛ
 
 
 ```{r}
+#| label: lst-capstone-google-search-index-covid
 ## read data, you need to make sure the data file is in your current working directory 
 covid.dat <- read.delim("data/GoogleSearchIndex.txt")
 covid.dat$Week=as.Date(as.character(covid.dat$Week),format = "%Y-%m-%d")
-
-
-
 
 y.dat=covid.dat$covid[1:57] ## this is the training data
 y.new=covid.dat$covid[58:60] ## this is the test data
@@ -246,6 +243,9 @@ y_t=0.5y_{t-1}+0.4y_{t-2}+\epsilon_t,\quad \epsilon_t\sim N(0,1)
 $$ {#eq-ar2-model}
 
 ```{r}
+#| label: fig-capstone-simulate-data
+#| fig-cap: "Simulated AR(2) data"
+#| 
 ## simulate data
 
 phi1=0.5
@@ -258,8 +258,7 @@ plot.ts(y.sample,ylab=expression(italic(y)[italic(t)]),xlab=expression(italic(t)
         main='')
 ```
 
-Now, we perform a prior sensitivity analysis for the choice of hyperparameters in prior distribution. We choose three sets of prior hyperparameters and plot the posterior distribution for $\mathbb{P}r(\phi_1  ,\phi_2  \mid y_{1:n})$ below. The three sets of prior hyperparameters are :
-
+Now, we perform a prior sensitivity analysis for the choice of hyperparameters in prior distribution. We choose three sets of prior hyperparameters and plot the posterior distribution for $\mathbb{P}r(\phi_1, \phi_2 \mid y_{1:n})$ below. The three sets of prior hyperparameters are :
 
 $$
 \begin{aligned} 
@@ -272,6 +271,8 @@ $$
 In the plot, the left, middle and right panel correspond to the first, second and last sets of hyperparameters, respectively.
 
 ```{r}
+#| label: fig-capstone-prior-sensitivity
+#| fig-cap: "Prior sensitivity analysis of AR coefficients"
 ## prior sensitivity analysis
 ## plot posterior distribution of phi_1 and phi_2 on a grid 
 
@@ -356,7 +357,10 @@ Since we change the value of hyperparameters but the posterior is almost the sam
 
 Posterior Inference
 We now sample 5000 sets of $(\phi_1, \phi_2, \nu)$  from their marginal posterior distributions and plot them. For prior hyperparameters, we take $m_0=(0,0)^\top$, $C_0=I_2$, $n_0=2$, and $d_0=2$.
+
 ```{r}
+#| label: fig-capstone-posterior-sampling
+#| fig-cap: "Posterior sampling of AR coefficients and variance"
 m0=matrix(rep(0,p),ncol=1)
 C0=diag(p)
 n0=2
@@ -400,6 +404,8 @@ To check whether the model fits well, we plot the posterior point and interval e
 
 
 ```{r}
+#| label: lst-capstone-in-sample-predictions
+
 ## get in sample prediction
 post.pred.y=function(s){
   
@@ -415,6 +421,9 @@ y.post.pred.sample=sapply(1:5000, post.pred.y)
 ```
 
 ```{r}
+#| label: fig-capstone-result
+#| fig-cap: "TS with prediction and credible interval"
+
 ## show the result
 summary.vec95=function(vec){
   c(unname(quantile(vec,0.025)),mean(vec),unname(quantile(vec,0.975)))
@@ -428,5 +437,101 @@ lines(summary.y[1,],type='l',col='purple',lty=3)
 lines(summary.y[3,],type='l',col='purple',lty=3)
 legend("topright",legend=c('Truth','Mean','95% C.I.'),lty=1:3,col=c('black','grey','purple'),
        horiz = T,pch=c(16,4,NA))
+```
+
+## Prediction for AR Models 🎥 {#sec-capstone-prediction}
+
+![prediction](images/C5-L01-sl05.png){#fig-capstone-prediction .column-margin  group="slides" width="53mm"}
+$AR(p)$ Model:
+
+$$
+y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \cdots + \phi_p y_{t-p} + \epsilon_t, \qquad \epsilon_t\sim \mathcal{N}(0,\nu)
+$$
+
+where ($\epsilon_t$) follows a normal distribution with mean zero and variance ($\nu$).
+
+
+- First Step Ahead Prediction, $t>T$ :
+$$
+y_{T+1} \sim \mathcal{N}(\phi_1 y_T + \ldots + \phi_p y_{T+1-p}, \nu)
+$$
+
+- General H-Step Ahead Prediction: 
+
+$$
+y_{T+S}^s \sim \mathcal{N}\left(\sum_{j=1}^{p} \phi_j^s y_{T+s-j}^s, \nu^{(s)}\right)
+$$
+
+where ($\phi_j^s$) and ($\nu^{(s)}$) are the posterior samples of the parameters.
+
+
+
+## AR model prediction example 📖ℛ {#sec-capstone-ar-prediction-example}
+
+
+We now give an example for coding the prediction algorithm in R. Consider the simulated data in the previous class, an *AR(2)* model with 200 observations obtained from $y_t=0.5y_{t−1}+0.4y_{t−2}+\epsilon_t,\epsilon_t\sim \mathcal{N}(0,1)$. Before doing the prediction, we have to obtain posterior samples of model parameters 
+$\phi$ and $\nu$, which has been taught in the previous class. Here we just copy the code from previous to obtain 5000 posterior samples of
+
+```{r}
+#| label: lst-capstone-ar-prediction-example
+library(mvtnorm)
+
+## simulate data
+
+phi1<-0.5
+phi2<-0.4
+v<-1
+
+set.seed(1)
+y.sample=arima.sim(n=200,model=list(order=c(2,0,0),ar=c(phi1,phi2),sd=sqrt(v)))
+
+
+## set up
+N<-100
+p<-2 # order of AR process
+n.all=length(y.sample) ## T, total number of data
+
+
+Y=matrix(y.sample[3:n.all],ncol=1)
+Fmtx=matrix(c(y.sample[2:(n.all-1)],y.sample[1:(n.all-2)]),nrow=p,byrow=TRUE)
+n=length(Y)
+
+
+## posterior inference
+
+
+## set the prior
+m0=matrix(rep(0,p),ncol=1)
+C0=diag(p)
+n0=2
+d0=2
+
+
+## calculate parameters that will be reused in the loop
+e=Y-t(Fmtx)%*%m0
+Q=t(Fmtx)%*%C0%*%Fmtx+diag(n)
+Q.inv=chol2inv(chol(Q))
+A=C0%*%Fmtx%*%Q.inv
+m=m0+A%*%e
+C=C0-A%*%Q%*%t(A)
+n.star=n+n0
+d.star=t(Y-t(Fmtx)%*%m0)%*%Q.inv%*%(Y-t(Fmtx)%*%m0)+d0
+
+
+n.sample=5000
+
+## store posterior samples
+nu.sample=rep(0,n.sample)
+phi.sample=matrix(0,nrow=n.sample,ncol=p)
+
+
+for (i in 1:n.sample){
+  set.seed(i)
+  nu.new=1/rgamma(1,shape=n.star/2,rate=d.star/2)
+  nu.sample[i]=nu.new
+  phi.new=rmvnorm(1,mean=m,sigma=nu.new*C)
+  phi.sample[i,]=phi.new
+}
+
 ```
 
