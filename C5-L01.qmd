@@ -96,18 +96,71 @@ y.new=covid.dat$covid[58:60] ## this is the test data
 
 
 $$
-y_t \quad t\in {1...T}
-$$
+y_t \quad t\in {1,2,\ldots,T} \qquad \begin{cases}  T>p \\ T=n+p \\ n>1 \end{cases}
+
+$$ 
 
 *AR(p)*
 
 $$
-y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \cdots + \phi_p y_{t-p} + \varepsilon_t
+\begin{aligned}
+y_t = \sum_{j=1}^p \phi_j y_{t-j} + \underbrace {\varepsilon_t}_{\text{innovations}}
+\qquad
+\begin{cases}
+\varepsilon_t \perp y_\tau\ & \forall \tau<t \\
+\varepsilon_t \stackrel{iid}{\sim} \mathcal{N}(0,\nu) 
+\end{cases}
+\end{aligned}
+$$  {#eq-capstone-ar-model}
+
 $$
+\begin{aligned}
+y_t &= \sum_{j=1}^p \phi_j y_{t-j} +  {\varepsilon_t} & (\text{ normality of innovation})\\
+    &= \sum_{j=1}^p \phi_j y_{t-j} +  \mathcal N(0,\nu) & (\text{linearity}) \\
+    &= \mathcal{N}(\sum_{j=1}^p \phi_j y_{t-j},\nu) & (\text{rewrite using design matrix})\\
+    &= \mathcal{N}(f_t \boldsymbol \phi,\nu) \\
+\end{aligned}
+$$
+
+
+$$
+\begin{aligned}
+\mathbb{P}r(y_{1:T}\mid \phi_1, \ldots, \phi_p, \nu ) 
+ &= \mathbb{P}r(y_{p+1:T})\prod_{t=p+1}^T \mathbb{P}r(y_t \mid y_{t-1},\ldots,y_{t-p},\phi_1,\ldots,\phi_p,\nu) \\
+ &= \prod_{t=p+1}^T \mathcal{N}(f_t\phi,\nu) \\
+ &= \mathcal{N}(F^\top \boldsymbol{\phi},\nu\mathbb{I}_n) \\
+\end{aligned}
+$$ {#eq-capstone-ar-likelihood}
+
+- where 
+  - $\boldsymbol{\phi}=(\phi_1,\ldots,\phi_p)^\top$ is the vector of parameters, and
+  - $\nu$ is the scale parameter. and 
+  - $F$ is the design matrix 
+
+$$
+F= \begin{pmatrix}
+y_{p} & y_{p+1} & \cdots & y_{T-1} \\
+y_{p-1} & y_{p} & \cdots & y_{T-2} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+y_{1} & y_{2} & \cdots & y_{T-p}
+\end{pmatrix}
+$$ {#eq-capstone-design-matrix}
 
 
 ---
 
+Multiple Linear regression model
+
+$$
+y=(y_{p+1},\ldots,y_T) \in \mathbb{R}^n
+$$
+
+$$
+y = F^\top \boldsymbol{\phi} + \varepsilon \qquad \varepsilon \sim \mathcal{N}(0,\nu\mathbb{I}_n)
+$$
+$$
+\mathbb{P}r(y \mid \boldsymbol{\phi},\nu) = \mathcal{N}(F^\top \boldsymbol{\phi},\nu\mathbb{I}_n)
+$$
 $$
 \mathbf{y}\sim \mathcal{N}(\mathbf{F}^\top \boldsymbol{\phi},\nu\mathbf{I}_n),\quad \boldsymbol{\phi}\sim \mathcal{N}(\mathbf{m}_0,\nu\mathbf{C}_0),\quad \nu\sim IG(\frac{n_0}{2},\frac{d_0}{2}) 
 $$ {#eq-model-specification}
@@ -495,7 +548,7 @@ where ($\phi_j^s$) and ($\nu^{(s)}$) are the posterior samples of the parameters
 
 
 
-## AR model prediction example 📖ℛ {#sec-capstone-ar-prediction-example}
+## AR model prediction example 📖 ℛ {#sec-capstone-ar-prediction-example}
 
 
 We now give an example for coding the prediction algorithm in R. Consider the simulated data in the previous class, an *AR(2)* model with 200 observations obtained from $y_t=0.5y_{t−1}+0.4y_{t−2}+\epsilon_t,\epsilon_t\sim \mathcal{N}(0,1)$. 

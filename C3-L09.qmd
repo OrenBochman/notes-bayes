@@ -85,7 +85,8 @@ sigma.sum = rep(0, KKmax-1)      # <9>
 for(KK in 2:KKmax){ # <10>
   ### First, compute the "Maximum Likelihood" density estimate 
   ### associated with a location mixture of 6 Gaussian distributions 
-  ### using the EM algorithm <11>
+  ### using the EM algorithm 
+  # <11>
   w     = rep(1,KK)/KK               # <12>
   mu    = rnorm(KK, mean(x), sd(x))  # <12>
   sigma = sd(x)/KK                   # <12>
@@ -97,7 +98,7 @@ for(KK in 2:KKmax){ # <10>
   KL.out  = NULL                     # <13>
   
   while(!sw){  # <14>
-    # E-step <15>
+    # <15>
     v = array(0, dim=c(n,KK))
     for(k in 1:KK){
       v[,k] = log(w[k]) + dnorm(x, mu[k], sigma,log=TRUE)  
@@ -106,27 +107,26 @@ for(KK in 2:KKmax){ # <10>
       v[i,] = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,])))
     }
     
-    ## M step <16>
-    # Weights <17>
-    w = apply(v,2,mean)
-    mu = rep(0, KK)
-    for(k in 1:KK){ # <18>
-      for(i in 1:n){ # <19>
-        mu[k]    = mu[k] + v[i,k]*x[i] #<20>
+    # <16>    
+    w = apply(v,2,mean) # <17>
+    mu = rep(0, KK)  # <18>
+    for(k in 1:KK){ 
+      for(i in 1:n){ 
+        mu[k] = mu[k] + v[i,k]*x[i] # <19>
       }
-      mu[k] = mu[k]/sum(v[,k]) # <21>
+      mu[k] = mu[k]/sum(v[,k]) # <20>
     }
-    # Standard deviations <22>
+    # <21>  
     sigma = 0
-    for(i in 1:n){ # <23>
-      for(k in 1:KK){ # <24>
-        sigma = sigma + v[i,k]*(x[i] - mu[k])^2
+    for(i in 1:n){     
+      for(k in 1:KK){  
+        sigma = sigma + v[i,k]*(x[i] - mu[k])^2 # <22>
       }
     }
-    sigma = sqrt(sigma/sum(v)) # <25>
+    sigma = sqrt(sigma/sum(v)) # <23>
     
-    ##Check convergence <26>
-        KLn = 0
+    # <24> 
+    KLn = 0
     for(i in 1:n){
       for(k in 1:KK){
         KLn = KLn + v[i,k]*(log(w[k]) + 
@@ -149,19 +149,56 @@ for(KK in 2:KKmax){ # <10>
   sigma.sum[KK-1] = sigma
   
   
-  ## Computing BIC
+  # <25>
   for(i in 1:n){
     BIC[KK-1] = BIC[KK-1] - 2*log(sum(w*dnorm(x[i], mu, sigma)))
   }
   BIC[KK-1] = BIC[KK-1] + ((KK-1) + 1 + KK)*log(n)  ### KK-1 independent weights, one variance, and KK means
 }
 
+```
+
+1. Clear the environment
+2. Loading data
+3. Setting up global variables
+4. Setting a random seed for reproducibility
+5. Setting the maximum number of components to consider
+6. Initializing the BIC vector to store the BIC values for each number of components
+7. Initializing list to store the weights for each number of components
+8. Initializing list to store the means for each number of components
+9. Initializing vector to store the standard deviations for each number of components
+10. Looping over the number of components from 2 to KKmax
+11. Fitting a mixture model using the EM algorithm for each number of components
+12. Initializing the parameters of the mixture model
+13. Initializing the convergence criteria
+14. Running the EM algorithm until convergence
+15. E-step: computing the responsibilities for each component
+16. M-step: updating the weights, means, and standard deviations
+17. Weights are updated based on the responsibilities
+18. Initializing the means for the mixture model
+19. Updating the means based on the responsibilities
+20. Normalizing the means
+21. Computing the standard deviations
+22. Updating the standard deviations based on the responsibilities
+23. Normalizing the standard deviations
+24. Checking convergence of the EM algorithm
+25. Computing the BIC for the current number of components
+
+```{r}
+#| label: fig-bayesian-information-criteria
+#| fig-cap: "What happens with the variance (bandwidth) as K increases"
+
 ## Plot of BIC as a function of K
 par(mar=c(4,4,1,1) + 0.1)
 plot(seq(2,KKmax), BIC, type="l", xlab="K", ylab="BIC", lwd=2)
 abline(v=6, lty=3)
+``` 
 
-## Computing density estimates for various values of K
+Computing density estimates for various values of K
+
+```{r}
+#| label: lst-bayesian-information-criteria-density-estimates
+
 density.est = function(xx, w, mu, sigma){
   KK  = length(w)
   nxx = length(xx)
@@ -210,23 +247,6 @@ legend(26000, 0.00022, c("K = 6","K = 7","K = 8"),
 
 ```
 
-1. Clear the environment
-2. Loading data
-3. Setting up global variables
-4. Setting a random seed for reproducibility
-5. Setting the maximum number of components to consider
-6. Initializing the BIC vector to store the BIC values for each number of components
-7. Initializing list to store the weights for each number of components
-8. Initializing list to store the means for each number of components
-9. Initializing vector to store the standard deviations for each number of components
-10. Looping over the number of components from 2 to KKmax
-11. Fitting a mixture model using the EM algorithm for each number of components
-12. Initializing the parameters of the mixture model
-13. Initializing the convergence criteria
-14. Running the EM algorithm until convergence
-15. E-step: computing the responsibilities for each component
-16. M-step: updating the weights, means, and standard deviations
-17. Checking convergence of the EM algorithm
 
 ```{r}
 #| label: fig-bayesian-information-criteria-variance

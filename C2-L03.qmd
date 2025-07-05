@@ -16,10 +16,10 @@ keywords:
 
 ## Monte Carlo Integration 🎥  {#sec-monte-carlo-integration}
 
-![Monte Carlo Integration](images/c2l03-ss-01-Monte-Carlo-integration.png){.column-margin width="53mm"}
+![Monte Carlo Integration](images/c2l03-ss-01-Monte-Carlo-integration.png){#fig-mc-integration .column-margin group="slides" width="53mm"}
 
 
-\index{Monte Carlo integration} \index{Monte Carlo}
+\index{Monte Carlo!integration}
 Before we learn how to simulate from complicated posterior distributions, let's review some of the basics of Monte Carlo estimation.
 
 Monte Carlo estimation refers to simulating hypothetical draws from a probability distribution in order to calculate important quantities. By "important quantities," we mean things like the *mean*, the *variance*, or the *probability* of some event or distributional property.
@@ -53,7 +53,7 @@ Why can we do this?
 
 Recall from the previous course that if we have a random sample from a distribution, the average of those samples converges in probability to the true mean of that distribution by the **[Law of Large Numbers](A07.qmd)**.
 
-Furthermore, by the **[Central Limit Theorem](A08.qmd)** (CLT), this sample mean $\bar{\theta}^* = \frac{1}{m}\sum_{i=1}^m \theta_i^*$ approximately follows a normal distribution with mean $\mathbb{E}[\theta]$ and variance $\mathbb{V}ar[\theta]/m$ .
+Furthermore, by the **[Central Limit Theorem](@sec-cl-theorem)** (CLT), this sample mean $\bar{\theta}^* = \frac{1}{m}\sum_{i=1}^m \theta_i^*$ approximately follows a normal distribution with mean $\mathbb{E}[\theta]$ and variance $\mathbb{V}ar[\theta]/m$ .
 
 The theoretical variance of $\theta$ is the following integral:
 
@@ -69,7 +69,7 @@ $$ {#eq-gamma-sample-variance-full}
 
 ### Calculating probabilities {#sec-monte-carlo-probabilities}
 
-![Monte Carlo Integration](images/c2l03-ss-02-Monte-Carlo-integration.png){.column-margin width="53mm"}
+![Monte Carlo Integration](images/c2l03-ss-02-Monte-Carlo-integration.png){#fig-monte-carlo-probabilities .column-margin group="slides" width="53mm"}
 
 This method can be used to calculate many different integrals. 
 Say $h(\theta)$ is any function and we want to calculate
@@ -83,6 +83,7 @@ where $\mathbb{P}r(\theta)$ is the probability density function of $\theta$ and 
 **This integral is precisely what is meant by** $\mathbb{E}[h(\theta)]$ , so we can conveniently approximate it by taking the sample mean of $h(\theta_i^*)$. 
 That is, we apply the function h to each simulated sample from the distribution, and take the average of all the results.
 
+\index{Monte Carlo!integration!indicator function}
 One extremely useful example of an h function is is the indicator $I_A(\theta)$ where A is some logical condition about the value of $\theta$. 
 To demonstrate, suppose $h(\theta)=I_{[\theta<5]}(\theta)$, which will give a 1 if $\theta <5$ and return a 0 otherwise. 
 
@@ -105,31 +106,31 @@ This expression is simply counting how many of those samples come out to be less
 
 That's convenient!
 
+\index{Monte Carlo!integration!quantiles}
 Likewise, we can approximate quantiles of a distribution. 
 If we are looking for the value z such that $\mathbb{P}r(\theta < z) = 0.9$ , we simply arrange the samples $\theta^∗_i$ in ascending order and find the smallest drawn value that is greater than 90% of the others.
 
 ## Monte Carlo Error and Marginalization
 
-![Monte Carlo Error and Marginalization](images/c2l03-ss-02-Monte-Carlo-integration.png){.column-margin width="53mm"}
-
-
+![Monte Carlo Error and Marginalization](images/c2l03-ss-02-Monte-Carlo-integration.png){#fig-monte-carlo-error .column-margin group="slides" width="53mm"}
 
 **How good is an approximation by Monte Carlo sampling?**
 
-Again we can turn to the CLT, which tells us that the variance of our estimate is controlled in part by $m$. For a better estimate, we want larger $m$.
+Again we can turn to the [Central Limit Theorem](@sec-cl-theorem), which tells us that the variance of our estimate is controlled in part by $m$. For a better estimate, we want larger $m$.
 
 For example, if we seek $\mathbb{E}[\theta]$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}[\theta]$ and variance $Var[\theta]/m$ . 
 
 The variance tells us how far our estimate might be from the true value. 
 
-One way to approximate $Var[\theta]$ is to replace it with the sample variance. 
+One way to approximate $\mathbb{V}ar[\theta]$ is to replace it with the sample variance. 
 
 The standard deviation of our Monte Carlo estimate is the square root of that, or the sample standard deviation divided by $\sqrt{m}$ . 
 
 If $m$ is large, it is reasonable to assume that the true value will likely be within about two standard deviations of your Monte Carlo estimate.
 
-## Marginalization
+## Marginalization {#sec-mar}
 
+\index{Monte Carlo!marginalization}
 We can also obtain Monte Carlo samples from hierarchical models. 
 
 As a simple example, let's consider a binomial random variable where $y \mid \phi \sim \mathrm{Bin}(10,\phi)$ and further suppose $\phi$ is random (as if it had a prior) and is distributed beta $\phi \sim \mathrm{Beta}(2,2)$ . 
@@ -249,9 +250,9 @@ quantile(x=theta, probs=0.9)
 qgamma(p=0.9, shape=a, rate=b) # true value of 0.9 quantile
 ```
 
-## Monte Carlo error
+## Monte Carlo error {#sec-monte-carlo-error}
 
-We can use the [CLT](A08.qmd) to approximate how accurate our Monte Carlo estimates are. For example, if we seek $E(\theta)$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}(\theta)$ and variance $Var(\theta)/m$ . We will use the sample standard deviation divided by the square root of m to approximate the Monte Carlo standard deviation.
+We can use the [Central limit theorem](@sec-cl-theorem) to approximate how accurate our Monte Carlo estimates are. For example, if we seek $E(\theta)$ , then the sample mean $\bar\theta^∗$ approximately follows a normal distribution with mean $\mathbb{E}(\theta)$ and variance $Var(\theta)/m$ . We will use the sample standard deviation divided by the square root of m to approximate the Monte Carlo standard deviation.
 
 ```{r}
 #| label: lst-mc-se-estimate
@@ -328,7 +329,7 @@ $$ {#eq-markov-chain-factorization-full}
 
 which is much simpler than the original. It consists of an initial distribution for the first variable, $\mathbb{P}r(X_1)$, and n−1 transition probabilities. We usually make one more assumption: that the transition probabilities do not change with time. Hence, the transition from time t to time t+1 depends only on the value of Xt.
 
-## Examples of Markov chains
+## Examples of Markov chains {#sec-examples-of-markov-chains}
 
 ### Discrete Markov chain
 
@@ -372,7 +373,7 @@ for (i in 2:n) {
 plot.ts(x)
 ```
 
-## Transition matrix
+## Transition matrix {#sec-transition-matrix}
 
 Let's return to our example of the discrete Markov chain. If we assume that transition probabilities do not change with time, then there are a total of 25 (52) potential transition probabilities. Potential transition probabilities would be from State 1 to State 2, State 1 to State 3, and so forth. These transition probabilities can be arranged into a matrix Q:
 
