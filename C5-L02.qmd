@@ -1,0 +1,147 @@
+---
+date: 2025-07-05
+title: "Model Selection Criteria - M1L2"
+subtitle: "Bayesian Statistics - Capstone Project"
+description: "Capstone Project: Bayesian Conjugate Analysis for Autogressive Time Series Models"
+categories:
+  - Bayesian Statistics
+  - Capstone Project
+keywords:
+  - Time Series
+---
+
+::: {.callout-note collapse="true"}
+## Learning Objectives
+
+-   [x] Define and compute AIC, BIC and DIC.
+-   [x] Select the order of AR process using AIC and BIC as criteria.
+
+:::
+
+## AIC and BIC in selecting the order of AR process 🎥 {#sec-aic-bic}
+
+
+![AIC and BIC](images/C5-L02-sl10.png){#fig-capstone-model-formulation1 .column-margin group="slides" width="53mm"}
+
+<!--
+![AIC and BIC](images/C5-L02-sl11.png){#fig-capstone-model-formulation1 .column-margin group="slides" width="53mm"}
+-->
+
+
+
+Note: we have already covered Akaike information criteria (AIC) and Bayesian information criteria (BIC) a few times in this specialization. In @sec-mixtures-BIC we discussed how to use BIC to select the number of components in a mixture model. In @sec-aic-bic we will see how to use AIC and BIC to select the order of an AR process. In @sec-arp-order-selection
+we discussed how to use BIC to select the order of an AR process. 
+
+To fit an *AR(p)* model to real data we need to determine the order $p$ of the AR process.
+
+One approach is to treat this as a model selection problem [model selection problem]{.column-margin}, where we want to select the model with the best fit from multiple candidate models with different orders $p$.
+
+\index{AR(p)!AIC} \index{AR(p)!BIC}
+One possible way is to repeat the analysis for different values of model order $p$ and choose the best model based on some criteria. The two most widely known criteria are the so-called Akaike information criteria, AIC and the Bayesian Information criteria, BIC.
+
+
+::: {.callout-note collapse="true"}
+## Is P a parameter of Hyper Parameter
+
+Note: I have pointed out before that while we can approach estimating the the number of component of a Mixture or the order of an AR(p) process as a hyperparameter tuning problem which involves training multiple models and using model selection criteria to pick the best one.  Seems intuitive but is this the best way to do it?
+
+Another approach might be to incorporate the number of components or the order of the AR process as a random variable in our model, and then use Bayesian inference to estimate its posterior distribution. This way we can avoid the need for model selection criteria and instead directly estimate the uncertainty around the number of components or the order of the AR process. I think this is also more or less how this is handled in bayesian switching models, where the number of different phases (stats) in the time series is treated as a random variable and the model is trained to infer the number of phases and their characteristics. C.f. [@davidson2015bayesian chapter 2] where this is called switchpoint detection or change point analysis
+
+:::
+
+Recall that our model in @eq-capstone-model-specification is:
+
+$$
+\mathbf{y}\sim \mathcal{N}(\mathbf{F}^\top \boldsymbol{\phi},\nu\mathbf{I}_n),\quad \boldsymbol{\phi}\sim \mathcal{N}(\mathbf{m}_0,\nu\mathbf{C}_0),\quad \nu\sim IG(\frac{n_0}{2},\frac{d_0}{2})
+\tag{101.4}
+$$
+
+We now describe how to select the order of AR process using AIC or BIC. 
+
+## AIC and BIC example {#sec-aic-bic-example}
+
+### Simulate Data
+We simulate an AR process of order 2, and implement the AIC and BIC criteria to check if the best model selected has order 2.
+
+Firstly, the following code simulate an AR(2) process with 100 observations. The process is simulated from 
+
+$$
+y_t=0.5y_{t−1}+0.4y_{t−2}+\varepsilon_t,\qquad \varepsilon_t\sim\mathcal{N}(0,0.12)
+$$
+
+```{r}
+## simulate data
+
+
+set.seed(1)
+AR.model = list(order = c(2, 0, 0), ar = c(0.5,0.4))
+y.sample = arima.sim(n=100,model=AR.model,sd=0.1)
+
+
+plot(y.sample,type='l',xlab='time',ylab='')
+```
+
+The ACF and PACF plot of the simulated data is shown below.
+
+```{r}
+par(mfrow=c(1,2))
+
+
+acf(y.sample,main="",xlab='Lag')
+
+
+pacf(y.sample,main="",xlab='Lag')
+```
+
+
+### Calculate AIC and BIC
+
+For our case, we fix  $p^∗=15$ as the maximum order of the AR process. The AIC and BIC are calculated for different values of $p$ where $1≤p≤p^∗=15$.
+$$
+T=100
+$$
+we will use the latter 85 observations for the analysis. We plot both AIC and BIC for different values of $p$ where $1≤p≤p^∗=15$ as follows:
+
+
+```{r}
+#| label: lst-capstone-aic-bic
+
+n.all=length(y.sample)
+p.star=15
+Y=matrix(y.sample[(p.star+1):n.all],ncol=1)
+sample.all=matrix(y.sample,ncol=1)
+n=length(Y)
+p=seq(1,p.star,by=1)
+
+design.mtx=function(p_cur){
+  Fmtx=matrix(0,ncol=n,nrow=p_cur)
+  for (i in 1:p_cur) {
+    start.y=p.star+1-i
+    end.y=start.y+n-1
+    Fmtx[i,]=sample.all[start.y:end.y,1]
+  }
+  return(Fmtx)
+}
+
+criteria.ar=function(p_cur){
+  Fmtx=design.mtx(p_cur)
+  beta.hat=chol2inv(chol(Fmtx%*%t(Fmtx)))%*%Fmtx%*%Y
+  R=t(Y-t(Fmtx)%*%beta.hat)%*%(Y-t(Fmtx)%*%beta.hat)
+  sp.square=R/(n-p_cur)
+  aic=2*p_cur+n*log(sp.square)
+  bic=log(n)*p_cur+n*log(sp.square)
+  result=c(aic,bic)
+  return(result)
+}
+
+criteria=sapply(p,criteria.ar)
+
+plot(p,criteria[1,],type='p',pch='a',col='red',xlab='AR order p',ylab='Criterion',main='',
+    ylim=c(min(criteria)-10,max(criteria)+10))
+points(p,criteria[2,],pch='b',col='blue')
+```
+
+Since for AIC and BIC criteria, we both prefer model with smallest criterion, from the plot we will use $p=2$ which is the same as the order we used to simulate the data.
+
+## Deviance information criterion (DIC) {#sec-dic}
+

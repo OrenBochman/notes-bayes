@@ -158,22 +158,22 @@ $$
 \begin{aligned}
 \mathbb{E}_{q(w \mid \mu, \sigma)} (f(w; \mu, \sigma) ) &= \int q(w \mid \mu, \sigma) f(w; \mu, \sigma) \text{d}w \\
 &= \int \frac{1}{\sqrt{2 \pi \sigma^2}} \exp \left( -\frac{1}{2 \sigma^2} (w - \mu)^2 \right) f(w; \mu, \sigma) \text{d}w \\
-&= \int \frac{1}{\sqrt{2 \pi}} \exp \left( -\frac{1}{2} \epsilon^2 \right) f \left( \mu + \sigma \epsilon; \mu, \sigma \right) \text{d}\epsilon \\
-&= \mathbb{E}_{\epsilon \sim N(0, 1)} (f \left( \mu + \sigma \epsilon; \mu, \sigma \right) )
+&= \int \frac{1}{\sqrt{2 \pi}} \exp \left( -\frac{1}{2} \varepsilon^2 \right) f \left( \mu + \sigma \varepsilon; \mu, \sigma \right) \text{d}\varepsilon \\
+&= \mathbb{E}_{\varepsilon \sim N(0, 1)} (f \left( \mu + \sigma \varepsilon; \mu, \sigma \right) )
 \end{aligned}
 $$
 
-where we used the change of variable $w = \mu + \sigma \epsilon$ . Note that the dependence on $\theta = (\mu, \sigma)$ is now only in the integrand and we can take derivatives with respect to $\mu$ and $\sigma$:
+where we used the change of variable $w = \mu + \sigma \varepsilon$ . Note that the dependence on $\theta = (\mu, \sigma)$ is now only in the integrand and we can take derivatives with respect to $\mu$ and $\sigma$:
 
 $$
 \begin{aligned}
-\frac{\partial}{\partial \mu} \mathbb{E}_{q(w \mid \mu, \sigma)} (f(w; \mu, \sigma) ) &= \frac{\partial}{\partial \mu} \mathbb{E}_{\epsilon \sim N(0, 1)} (f \left( w; \mu, \sigma \right) ) = \mathbb{E}_{\epsilon \sim N(0, 1)} \frac{\partial}{\partial \mu} f \left( \mu + \sigma \epsilon; \mu, \sigma \right)
+\frac{\partial}{\partial \mu} \mathbb{E}_{q(w \mid \mu, \sigma)} (f(w; \mu, \sigma) ) &= \frac{\partial}{\partial \mu} \mathbb{E}_{\varepsilon \sim N(0, 1)} (f \left( w; \mu, \sigma \right) ) = \mathbb{E}_{\varepsilon \sim N(0, 1)} \frac{\partial}{\partial \mu} f \left( \mu + \sigma \varepsilon; \mu, \sigma \right)
 \end{aligned}
 $$
 
 $$
 \begin{aligned}
-\frac{\partial}{\partial \sigma} \mathbb{E}_{q(w \mid \mu, \sigma)} (f(w; \mu, \sigma) ) &= \frac{\partial}{\partial \sigma} \mathbb{E}_{\epsilon \sim N(0, 1)} (f \left( w; \mu, \sigma \right) ) = \mathbb{E}_{\epsilon \sim N(0, 1)} \frac{\partial}{\partial \sigma} f \left( \mu + \sigma \epsilon; \mu, \sigma \right)
+\frac{\partial}{\partial \sigma} \mathbb{E}_{q(w \mid \mu, \sigma)} (f(w; \mu, \sigma) ) &= \frac{\partial}{\partial \sigma} \mathbb{E}_{\varepsilon \sim N(0, 1)} (f \left( w; \mu, \sigma \right) ) = \mathbb{E}_{\varepsilon \sim N(0, 1)} \frac{\partial}{\partial \sigma} f \left( \mu + \sigma \varepsilon; \mu, \sigma \right)
 \end{aligned}
 $$
 
@@ -181,11 +181,11 @@ Finally, note that we can approximate the expectation by its Monte Carlo estimat
 
 $$
 \begin{aligned}
-\mathbb{E}_{\epsilon \sim N(0, 1)}  \frac{\partial}{\partial \theta} f \left( \mu + \sigma \epsilon; \mu, \sigma \right) \approx \sum_{i}  \frac{\partial}{\partial \theta} f \left( \mu + \sigma \epsilon_i; \mu, \sigma \right),\qquad \epsilon_i \sim N(0, 1).
+\mathbb{E}_{\varepsilon \sim N(0, 1)}  \frac{\partial}{\partial \theta} f \left( \mu + \sigma \varepsilon; \mu, \sigma \right) \approx \sum_{i}  \frac{\partial}{\partial \theta} f \left( \mu + \sigma \varepsilon_i; \mu, \sigma \right),\qquad \varepsilon_i \sim N(0, 1).
 \end{aligned}
 $$
 
-The above reparameterization trick works in cases where we can write the $w = g(\epsilon, \theta)$ , where the distribution of the random variable $\epsilon$ is independent of $\theta$ .
+The above reparameterization trick works in cases where we can write the $w = g(\varepsilon, \theta)$ , where the distribution of the random variable $\varepsilon$ is independent of $\theta$ .
 
 ### Implementation
 
@@ -203,7 +203,7 @@ $$
 
 $$
 \begin{aligned}
-\frac{\partial}{\partial \sigma} L(\mu, \sigma \mid D) \approx \sum_{i} \left( \frac{\partial f(w_i; \mu, \sigma)}{\partial w_i} \epsilon_i + \frac{\partial f(w_i; \mu, \sigma)}{\partial \sigma} \right)
+\frac{\partial}{\partial \sigma} L(\mu, \sigma \mid D) \approx \sum_{i} \left( \frac{\partial f(w_i; \mu, \sigma)}{\partial w_i} \varepsilon_i + \frac{\partial f(w_i; \mu, \sigma)}{\partial \sigma} \right)
 \end{aligned}
 $$
 
@@ -211,14 +211,14 @@ $$
 f(w; \mu, \sigma) = \log q(w \mid \mu, \sigma) - \log \mathbb{P}r(D \mid w) - \log \mathbb{P}r(w)
 $$
 
-where $w_i = \mu + \sigma \epsilon_i, \, \epsilon_i \sim N(0, 1)$ . In practice, we often only take a single sample $\epsilon_1$ for each training point. This leads to the following backpropagation scheme:
+where $w_i = \mu + \sigma \varepsilon_i, \, \varepsilon_i \sim N(0, 1)$ . In practice, we often only take a single sample $\varepsilon_1$ for each training point. This leads to the following backpropagation scheme:
 
-1.  Sample $\epsilon_i \sim N(0, 1)$ . 2. Let $w_i = \mu + \sigma \epsilon_i$
+1.  Sample $\varepsilon_i \sim N(0, 1)$ . 2. Let $w_i = \mu + \sigma \varepsilon_i$
 
 2.  Calculate
 
 $$
-\nabla_{\mu}f = \frac{\partial f(w_i; \mu, \sigma)}{\partial w_i} + \frac{\partial f(w_i; \mu, \sigma)}{\partial \mu} \hspace{3em} \nabla_{\sigma}f = \frac{\partial f(w_i; \mu, \sigma)}{\partial w_i} \epsilon_i + \frac{\partial f(w_i; \mu, \sigma)}{\partial \sigma}
+\nabla_{\mu}f = \frac{\partial f(w_i; \mu, \sigma)}{\partial w_i} + \frac{\partial f(w_i; \mu, \sigma)}{\partial \mu} \hspace{3em} \nabla_{\sigma}f = \frac{\partial f(w_i; \mu, \sigma)}{\partial w_i} \varepsilon_i + \frac{\partial f(w_i; \mu, \sigma)}{\partial \sigma}
 $$
 
 4.  Update the parameters with some gradient-based optimizer using the above gradients.
@@ -236,7 +236,7 @@ L(\theta \mid D) &= D_{KL} ( q(w \mid \theta) \parallel \mathbb{P}r(w) ) - \math
 \end{aligned}
 $$
 
-where $j$ runs over all the data points in the training data ($N$ in total) and $w_j = \mu + \sigma \epsilon_j$ is sampled using $\epsilon_j \sim N(0, 1)$ (we assume a single sample from the approximate posterior per data point for simplicity).
+where $j$ runs over all the data points in the training data ($N$ in total) and $w_j = \mu + \sigma \varepsilon_j$ is sampled using $\varepsilon_j \sim N(0, 1)$ (we assume a single sample from the approximate posterior per data point for simplicity).
 
 If training occurs in minibatches of size $B$ , typically much smaller than $N$ , we instead have a loss function
 
