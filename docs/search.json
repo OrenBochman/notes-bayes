@@ -1092,41 +1092,41 @@
   {
     "objectID": "C5-L02.html",
     "href": "C5-L02.html",
-    "title": "104  Model Selection Criteria - M1L2",
+    "title": "104  Model Selection Criteria - M2L2",
     "section": "",
     "text": "104.1 AIC and BIC in selecting the order of AR process 🎥\nNote: we have already covered Akaike information criteria (AIC) and Bayesian information criteria (BIC) a few times in this specialization. In Section 82.1 we discussed how to use BIC to select the number of components in a mixture model. In Section 104.1 we will see how to use AIC and BIC to select the order of an AR process. In Section 92.3 we discussed how to use BIC to select the order of an AR process.\nTo fit an AR(p) model to real data we need to determine the order p of the AR process.\nOne possible way is to repeat the analysis for different values of model order p and choose the best model based on some criteria. The two most widely known criteria are the so-called Akaike information criteria, AIC and the Bayesian Information criteria, BIC.\nRecall that our model in Equation 101.4 is:\n\\mathbf{y}\\sim \\mathcal{N}(\\mathbf{F}^\\top \\boldsymbol{\\phi},\\nu\\mathbf{I}_n),\\quad \\boldsymbol{\\phi}\\sim \\mathcal{N}(\\mathbf{m}_0,\\nu\\mathbf{C}_0),\\quad \\nu\\sim IG(\\frac{n_0}{2},\\frac{d_0}{2})\n\\tag{101.4}\nWe now describe how to select the order of AR process using AIC or BIC.",
     "crumbs": [
-      "<span class='chapter-number'>104</span>  <span class='chapter-title'>Model Selection Criteria - M1L2</span>"
+      "<span class='chapter-number'>104</span>  <span class='chapter-title'>Model Selection Criteria - M2L2</span>"
     ]
   },
   {
     "objectID": "C5-L02.html#sec-aic-bic",
     "href": "C5-L02.html#sec-aic-bic",
-    "title": "104  Model Selection Criteria - M1L2",
+    "title": "104  Model Selection Criteria - M2L2",
     "section": "",
     "text": "Figure 104.1: AIC and BIC\n\n\n\n\nOne approach is to treat this as a model selection problem , where we want to select the model with the best fit from multiple candidate models with different orders p.model selection problem\n\n\n\n\n\n\n\nNoteIs P a parameter of Hyper Parameter\n\n\n\n\n\nNote: I have pointed out before that while we can approach estimating the the number of component of a Mixture or the order of an AR(p) process as a hyperparameter tuning problem which involves training multiple models and using model selection criteria to pick the best one. Seems intuitive but is this the best way to do it?\nAnother approach might be to incorporate the number of components or the order of the AR process as a random variable in our model, and then use Bayesian inference to estimate its posterior distribution. This way we can avoid the need for model selection criteria and instead directly estimate the uncertainty around the number of components or the order of the AR process. I think this is also more or less how this is handled in bayesian switching models, where the number of different phases (stats) in the time series is treated as a random variable and the model is trained to infer the number of phases and their characteristics. C.f. (Davidson-Pilon 2015, chap. 2) where this is called switchpoint detection or change point analysis",
     "crumbs": [
-      "<span class='chapter-number'>104</span>  <span class='chapter-title'>Model Selection Criteria - M1L2</span>"
+      "<span class='chapter-number'>104</span>  <span class='chapter-title'>Model Selection Criteria - M2L2</span>"
     ]
   },
   {
     "objectID": "C5-L02.html#sec-aic-bic-example",
     "href": "C5-L02.html#sec-aic-bic-example",
-    "title": "104  Model Selection Criteria - M1L2",
+    "title": "104  Model Selection Criteria - M2L2",
     "section": "104.2 AIC and BIC example",
     "text": "104.2 AIC and BIC example\n\n104.2.1 Simulate Data\nWe simulate an AR process of order 2, and implement the AIC and BIC criteria to check if the best model selected has order 2.\nFirstly, the following code simulate an AR(2) process with 100 observations. The process is simulated from\n\ny_t=0.5y_{t−1}+0.4y_{t−2}+\\varepsilon_t,\\qquad \\varepsilon_t\\sim\\mathcal{N}(0,0.12)\n\n\n## simulate data\n\n\nset.seed(1)\nAR.model = list(order = c(2, 0, 0), ar = c(0.5,0.4))\ny.sample = arima.sim(n=100,model=AR.model,sd=0.1)\n\n\nplot(y.sample,type='l',xlab='time',ylab='')\n\n\n\n\n\n\n\n\nThe ACF and PACF plot of the simulated data is shown below.\n\npar(mfrow=c(1,2))\n\n\nacf(y.sample,main=\"\",xlab='Lag')\n\n\npacf(y.sample,main=\"\",xlab='Lag')\n\n\n\n\n\n\n\n\n\n\n104.2.2 Calculate AIC and BIC\nFor our case, we fix p^∗=15 as the maximum order of the AR process. The AIC and BIC are calculated for different values of p where 1≤p≤p^∗=15. \nT=100\n we will use the latter 85 observations for the analysis. We plot both AIC and BIC for different values of p where 1≤p≤p^∗=15 as follows:\n\nn.all=length(y.sample)\np.star=15\nY=matrix(y.sample[(p.star+1):n.all],ncol=1)\nsample.all=matrix(y.sample,ncol=1)\nn=length(Y)\np=seq(1,p.star,by=1)\n\ndesign.mtx=function(p_cur){\n  Fmtx=matrix(0,ncol=n,nrow=p_cur)\n  for (i in 1:p_cur) {\n    start.y=p.star+1-i\n    end.y=start.y+n-1\n    Fmtx[i,]=sample.all[start.y:end.y,1]\n  }\n  return(Fmtx)\n}\n\ncriteria.ar=function(p_cur){\n  Fmtx=design.mtx(p_cur)\n  beta.hat=chol2inv(chol(Fmtx%*%t(Fmtx)))%*%Fmtx%*%Y\n  R=t(Y-t(Fmtx)%*%beta.hat)%*%(Y-t(Fmtx)%*%beta.hat)\n  sp.square=R/(n-p_cur)\n  aic=2*p_cur+n*log(sp.square)\n  bic=log(n)*p_cur+n*log(sp.square)\n  result=c(aic,bic)\n  return(result)\n}\n\ncriteria=sapply(p,criteria.ar)\n\nplot(p,criteria[1,],type='p',pch='a',col='red',xlab='AR order p',ylab='Criterion',main='',\n    ylim=c(min(criteria)-10,max(criteria)+10))\npoints(p,criteria[2,],pch='b',col='blue')\n\n\n\n\n\n\n\n\nSince for AIC and BIC criteria, we both prefer model with smallest criterion, from the plot we will use p=2 which is the same as the order we used to simulate the data.",
     "crumbs": [
-      "<span class='chapter-number'>104</span>  <span class='chapter-title'>Model Selection Criteria - M1L2</span>"
+      "<span class='chapter-number'>104</span>  <span class='chapter-title'>Model Selection Criteria - M2L2</span>"
     ]
   },
   {
     "objectID": "C5-L02.html#sec-dic",
     "href": "C5-L02.html#sec-dic",
-    "title": "104  Model Selection Criteria - M1L2",
+    "title": "104  Model Selection Criteria - M2L2",
     "section": "104.3 Deviance information criterion (DIC)",
     "text": "104.3 Deviance information criterion (DIC)\n\n\n\n\n\n\nDavidson-Pilon, Cameron. 2015. Bayesian Methods for Hackers: Probabilistic Programming and Bayesian Inference. Addison-Wesley Data & Analytics Series. Pearson Education. https://books.google.co.il/books?id=rMKiCgAAQBAJ.",
     "crumbs": [
-      "<span class='chapter-number'>104</span>  <span class='chapter-title'>Model Selection Criteria - M1L2</span>"
+      "<span class='chapter-number'>104</span>  <span class='chapter-title'>Model Selection Criteria - M2L2</span>"
     ]
   },
   {
@@ -1887,6 +1887,56 @@
     "text": "24.2 Normal likelihood with expectation and variance unknown\n\n\n\n\n\n\n\nFigure 24.2: Normal likelihood with a unknown variance\n\n\n\n\n\n\n\n\nTipChallenging\n\n\n\nThis section is challenging.\n\nThe updating derivation is skipped,\nthe posterior\nupdating rule values are introduced without motivations and explanation.\nThe model is also the most complicated in the course, the note at the end says this can be extended hierarchically if we want to specify hyper priors for m, w and \\beta\nOther text discuss this case using a inverse chi squared distribution\n\nIf we can understand the model the homework is going to make sense. Also this is probably the level needed for the other courses in the specialization.\nIt can help to review some of the books:\n\nSee (Hoff 2009, sec. 5.3) which has some R examples.\nSee (Gelman et al. 2013, sec. 5)\n\n\n\n If both \\mu and \\sigma^2 are unknown, we can specify a conjugate prior in a hierarchical fashion.\n\nX_i \\mid \\mu, \\sigma^2 \\stackrel{iid}\\sim \\mathcal{N}(\\mu, \\sigma^2) \\qquad \\text{(the data given the params) }\n\n\nThis is the level 1 hierarchically model - X_i model our observations.\nWe state on the left, that the RV X is conditioned on the \\mu and \\sigma^2.\nBut the variables \\mu and \\sigma^2 are unknown population statistics which we will need to infer from the data. We can call them latent variables.\n\nNext we add a prior from \\mu conditional on the value for \\sigma^2\n\n\\mu \\mid \\sigma^2 \\sim \\mathcal{N}(m, \\frac{\\sigma^2}{w}) \\qquad \\text{(prior of the mean conditioned on the variance)}\n\nwhere:\n\nw is going to be the ratio of \\sigma^2 and some variance for the Normal distribution. This is the effective sample size of the prior.\nWhy is the mean conditioned on the variance. We can have a model where they are independent too?\nlater on (in the homework) we are told that w can express the confidence in the prior.\nI think this means that Since this is a knowledge of m, i.e. giving w a weight of 1/10 expresses that we value\n\nPerhaps this is due to Central Limit Theorem ?\nThis is level 2 of the model\n\nFinally, the last step is to specify a prior for \\sigma^2. The conjugate prior here is an inverse gamma distribution with parameters \\alpha and \\beta.\n\n\\sigma^2 \\sim \\mathrm{Gamma}^{-1}(\\alpha, \\beta)  \\qquad \\text{prior of the variance}\n\nAfter many calculations… we get the posterior distribution\n\n\\sigma^2 \\mid x \\sim \\mathrm{Gamma}^{-1}(\\alpha + \\frac{n}{2}, \\beta + \\frac{1}{2}\\sum_{i = 1}^n{(x-\\bar{x}^2 + \\frac{nw}{2(n+2)}(\\bar{x} - m)^2)})\n\\tag{24.8}\n\n\\mu \\mid \\sigma^2,x \\sim \\mathcal{N}(\\frac{n\\bar{x}+wm}{n+w}, \\frac{\\sigma^2}{n + w})\n\\tag{24.9}\nWhere the posterior mean can be written as the weighted average of the prior mean and the data mean.\n\n\\frac{n\\bar{x}+wm}{n+w} = \\frac{w}{n + w}m + \\frac{n}{n + w}\\bar{x} \\qquad \\text{post. mean}\n\\tag{24.10}\nIn some cases, we only care about \\mu. We want some inference on \\mu and we may want it such that it does not depend on \\sigma^2. We can marginalize that \\sigma^2 integrating it out. The posterior for \\mu marginally follows a t distribution.\n\n\\mu \\mid x \\sim t\n\nSimilarly, the posterior predictive distribution also is a t distribution.\nFinally, note that we can extend this in various directions, this can be extended to the multivariate normal case that requires matrix vector notations and can be extended hierarchically if we want to specify priors for m, w, \\beta\n\n\n\n\n\n\nGelman, Andrew, John B. Carlin, Hal S. Stern, David B. Dunson, Aki Vehtari, and Donald B. Rubin. 2013. Bayesian Data Analysis, Third Edition. Chapman & Hall/CRC Texts in Statistical Science. Taylor & Francis.\n\n\nHoff, Peter D. 2009. A First Course in Bayesian Statistical Methods. Springer New York. https://doi.org/10.1007/978-0-387-92407-6.",
     "crumbs": [
       "<span class='chapter-number'>24</span>  <span class='chapter-title'>Normally distributed Data - M4L10</span>"
+    ]
+  },
+  {
+    "objectID": "C5-L03.html",
+    "href": "C5-L03.html",
+    "title": "105  Bayesian location mixture of AR(p) models - M3L3",
+    "section": "",
+    "text": "105.1 Prediction for Location Mixture of AR Models 🎥",
+    "crumbs": [
+      "<span class='chapter-number'>105</span>  <span class='chapter-title'>Bayesian location mixture of AR(p) models - M3L3</span>"
+    ]
+  },
+  {
+    "objectID": "C3-L06.html",
+    "href": "C3-L06.html",
+    "title": "75  Clustering - M4L6",
+    "section": "",
+    "text": "75.1 Mixture Models for Clustering 🎥\nClustering, or unsupervised classification, aims to partition heterogeneous data into homogeneous groups (clusters). Common in biology and other domains, clustering helps identify underlying structure, such as species based on physiological features.\nA widely-used method is K-means clustering, which:\nThis process iterates until assignments stabilize.\nK-means is closely related to a mixture of Gaussians with:\nIf components are well-separated, EM approximates hard assignments similar to K-means.",
+    "crumbs": [
+      "<span class='chapter-number'>75</span>  <span class='chapter-title'>Clustering - M4L6</span>"
+    ]
+  },
+  {
+    "objectID": "C3-L06.html#sec-mixture-clustering",
+    "href": "C3-L06.html#sec-mixture-clustering",
+    "title": "75  Clustering - M4L6",
+    "section": "",
+    "text": "Figure 75.1: Clustering Mixture Models 1\n\n\n\n\n\n\n\n\nFigure 75.2: Clustering Mixture Models 2\n\n\n\n\n\n\n\n\nFigure 75.3: Clustering Mixture Models 3\n\n\n\n\n\n\n\n\nFigure 75.4: Clustering Mixture Models 4\n\n\n\n\n\n\n\n\nFixes the number of clusters K\nAlternates between:\n\nAssignment step: Assigns each data point to its nearest cluster center.\nUpdate step: Recomputes centers as means of assigned points.\n\n\n\n\n\nEqual component weights \\omega_k = 1/K\nShared spherical covariance \\Sigma_k = \\sigma^2 I\nFitted via the EM algorithm, where:\n\nE-step: compute soft assignment probabilities V_{ik}\nM-step: update cluster means using weighted averages\n\n\n\n\n75.1.1 Limitations of K-means:\n\nAssumes equal-sized spherical clusters\nFails with:\n\nCorrelated features\nDifferent variances per dimension\nUnequal cluster sizes\n\n\n\n\n75.1.2 Advantages of Mixture Models:\n\nAllow flexible covariances \\Sigma_k\nEstimate weights \\omega_k\nCan use alternative kernels (e.g., t-distributions)\nEnable Bayesian clustering via MCMC\n\nThus, viewing K-means as a special case of Gaussian mixture models clarifies its assumptions and guides principled extensions.",
+    "crumbs": [
+      "<span class='chapter-number'>75</span>  <span class='chapter-title'>Clustering - M4L6</span>"
+    ]
+  },
+  {
+    "objectID": "C3-L06.html#sec-mixture-clustering-example",
+    "href": "C3-L06.html#sec-mixture-clustering-example",
+    "title": "75  Clustering - M4L6",
+    "section": "75.2 Clustering example 🎥",
+    "text": "75.2 Clustering example 🎥\nThis video demonstrates clustering using the iris dataset, comparing K-means and a location and scale mixture model with K normals. It highlights how mixture models can flexibly adapt to data structure, unlike K-means’ rigid assumptions. The code is provided in",
+    "crumbs": [
+      "<span class='chapter-number'>75</span>  <span class='chapter-title'>Clustering - M4L6</span>"
+    ]
+  },
+  {
+    "objectID": "C3-L06.html#sec-clustering-code",
+    "href": "C3-L06.html#sec-clustering-code",
+    "title": "75  Clustering - M4L6",
+    "section": "75.3 Clustering example 📖 ℛ",
+    "text": "75.3 Clustering example 📖 ℛ\n\n\n## Using mixture models for clustering in the iris dataset\n## Compare k-means clustering and a location and scale mixture model with K normals\n\n### Loading data and setting up global variables\nrm(list=ls())\nlibrary(mclust)\n\nPackage 'mclust' version 6.1.1\nType 'citation(\"mclust\")' for citing this R package in publications.\n\nlibrary(mvtnorm)\n\n\nAttaching package: 'mvtnorm'\n\n\nThe following object is masked from 'package:mclust':\n\n    dmvnorm\n\n### Defining a custom function to create pair plots\n### This is an alternative to the R function pairs() that allows for \n### more flexibility. In particular, it allows us to use text to label \n### the points\npairs2 = function(x, col=\"black\", pch=16, labels=NULL, names = colnames(x)){\n  n = dim(x)[1]\n  p = dim(x)[2]\n  par(mfrow=c(p,p))\n  for(k in 1:p){\n    for(l in 1:p){\n      if(k!=l){\n        par(mar=c(3,3,1,1)+0.1)\n        plot(x[,k], x[,l], type=\"n\", xlab=\"\", ylab=\"\")\n        if(is.null(labels)){\n          points(x[,k], x[,l], pch=pch, col=col)\n        }else{\n          text(x[,k], x[,l], labels=labels, col=col)\n        }\n      }else{\n        plot(seq(0,5), seq(0,5), type=\"n\", xlab=\"\", ylab=\"\", axes=FALSE)\n        text(2.5,2.5,names[k], cex=1.2)\n      }\n    }\n  }\n}\n\n## Setup data\ndata(iris)\nx       = as.matrix(iris[,-5])\nn       = dim(x)[1]\np       = dim(x)[2]       # Number of features\nKK      = 3\nepsilon = 0.0000001\npar(mfrow=c(1,1))\npar(mar=c(4,4,1,1))\ncolscale = c(\"black\",\"blue\",\"red\")\nshortnam  = c(\"s\",\"c\",\"g\")\npairs2(x, col=colscale[iris[,5]], labels=shortnam[as.numeric(iris[,5])])\n\n\n# Initialize the parameters of the algorithm\nset.seed(63252)\nnumruns = 15\nv.sum   = array(0, dim=c(numruns, n, KK))\nQQ.sum  = rep(0, numruns)\n\nfor(ss in 1:numruns){\n  w   = rep(1,KK)/KK  #Assign equal weight to each component to start with\n  mu  = rmvnorm(KK, apply(x,2,mean), 3*var(x))   #Cluster centers randomly spread over the support of the data\n  Sigma      = array(0, dim=c(KK,p,p))  #Initial variances are assumed to be the same\n  Sigma[1,,] = var(x)\n  Sigma[2,,] = var(x)\n  Sigma[3,,] = var(x)\n  \n  sw     = FALSE\n  QQ     = -Inf\n  QQ.out = NULL\n  s      = 0\n  \n  while(!sw){\n    ## E step\n    v = array(0, dim=c(n,KK))\n    for(k in 1:KK){  #Compute the log of the weights\n      v[,k] = log(w[k]) + mvtnorm::dmvnorm(x, mu[k,], Sigma[k,,], log=TRUE) \n    }\n    for(i in 1:n){\n      v[i,] = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,])))  #Go from logs to actual weights in a numerically stable manner\n    }\n    \n    ## M step\n    w = apply(v,2,mean)\n    mu = matrix(0, nrow=KK, ncol=p)\n    for(k in 1:KK){\n      for(i in 1:n){\n        mu[k,]    = mu[k,] + v[i,k]*x[i,]\n      }\n      mu[k,] = mu[k,]/sum(v[,k])\n    }\n    Sigma = array(0,dim=c(KK, p, p))\n    for(k in 1:KK){\n      for(i in 1:n){\n        Sigma[k,,] = Sigma[k,,] + v[i,k]*(x[i,] - mu[k,])%*%t(x[i,] - mu[k,])\n      }\n      Sigma[k,,] = Sigma[k,,]/sum(v[,k])\n    }\n    \n    ##Check convergence\n    QQn = 0\n    for(i in 1:n){\n      for(k in 1:KK){\n        QQn = QQn + v[i,k]*(log(w[k]) + mvtnorm::dmvnorm(x[i,],mu[k,],Sigma[k,,],log=TRUE))\n      }\n    }\n    if(abs(QQn-QQ)/abs(QQn)&lt;epsilon){\n      sw=TRUE\n    }\n    QQ = QQn\n    QQ.out = c(QQ.out, QQ)\n    s = s + 1\n  }\n  \n  v.sum[ss,,] = v\n  QQ.sum[ss]  = QQ.out[s]\n  print(paste(\"ss =\", ss))\n}\n\n[1] \"ss = 1\"\n[1] \"ss = 2\"\n[1] \"ss = 3\"\n[1] \"ss = 4\"\n[1] \"ss = 5\"\n[1] \"ss = 6\"\n[1] \"ss = 7\"\n[1] \"ss = 8\"\n[1] \"ss = 9\"\n[1] \"ss = 10\"\n[1] \"ss = 11\"\n[1] \"ss = 12\"\n[1] \"ss = 13\"\n[1] \"ss = 14\"\n[1] \"ss = 15\"\n\n## Cluster reconstruction under the mixture model\ncc = apply(v.sum[which.max(QQ.sum),,], 1 ,which.max)\ncolscale = c(\"black\",\"blue\",\"red\")\npairs2(x, col=colscale[cc], labels=cc)\nARImle = adjustedRandIndex(cc, as.numeric(iris[,5]))  # Higher values indicate larger agreement\n\n## Cluster reconstruction under the K-means algorithm\nirisCluster &lt;- kmeans(x, 3, nstart = numruns)\ncolscale = c(\"black\",\"blue\",\"red\")\npairs2(x, col=colscale[irisCluster$cluster], labels=irisCluster$cluster)\nARIkmeans = adjustedRandIndex(irisCluster$cluster, as.numeric(iris[,5]))\n\n\n\n\n\n\n\nFigure 75.5: Clustering the iris dataset using k-means clustering and a location and scale mixture model with K normals.\n\n\n\n\n\n\n\n\n\n\n\nFigure 75.6: Clustering the iris dataset using k-means clustering and a location and scale mixture model with K normals.\n\n\n\n\n\n\n\n\n\n\n\nFigure 75.7: Clustering the iris dataset using k-means clustering and a location and scale mixture model with K normals.",
+    "crumbs": [
+      "<span class='chapter-number'>75</span>  <span class='chapter-title'>Clustering - M4L6</span>"
     ]
   }
 ]
