@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.11">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Oren Bochman">
+<meta name="keywords" content="Gibbs sampling, Markov Chain Monte Carlo, Full conditional distributions, Bayesian inference, MCMC, Conditional distributions, Conjugate priors, Normal distribution, Inverse gamma distribution, Scaled inverse chi-square distribution, R programming, Statistical modeling, Bayesian statistics">
+<meta name="description" content="An introduction to the Gibbs sampling algorithm for sampling from complex probability distributions.">
+
+<title>36&nbsp; Gibbs sampling - M2L5 – Bayesian Statistics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./C2-L05-Ex1.html" rel="next">
+<link href="./C2-L04-Ex1.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-279bd408c6dfe7bd56e8b154fe269440.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-923206e44a13b4518db4dede9f4ebdc9.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-279bd408c6dfe7bd56e8b154fe269440.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-84d0c58e965b114532ef2814536305ab.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-987387ce273b62b48f1747d606bce1d5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-84d0c58e965b114532ef2814536305ab.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+
+      .quarto-title-block .quarto-title-banner {
+        background-image: url(images/banner_deep.jpg);
+background-size: cover;
+      }
+</style>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar floating slimcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C2-L05.html"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Gibbs sampling - M2L5</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Gibbs sampling - M2L5</span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+            <p class="subtitle lead">Bayesian Statistics: Techniques and Models</p>
+                  <div>
+        <div class="description">
+          An introduction to the Gibbs sampling algorithm for sampling from complex probability distributions.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">Monte Carlo Estimation</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Oren Bochman </p>
+            </div>
+    </div>
+      
+    
+      
+    </div>
+    
+
+  <div>
+    <div class="keywords">
+      <div class="block-title">Keywords</div>
+      <p>Gibbs sampling, Markov Chain Monte Carlo, Full conditional distributions, Bayesian inference, MCMC, Conditional distributions, Conjugate priors, Normal distribution, Inverse gamma distribution, Scaled inverse chi-square distribution, R programming, Statistical modeling, Bayesian statistics</p>
+    </div>
+  </div>
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Bayesian Statistics</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to Bayesian Statistics</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Probability - M1L1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L01-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Paradigms of probability - M1L1HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Bayes’ Theorem - M1L2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L02-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Conditional Probability and Bayes’ Law - M1L2HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L02-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Probability and Bayes’ Theorem - M1L2HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Distributions - M1L3</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L03-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Random Variables - M1L3HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L03-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Homework on Distributions - M1L3HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Frequentist Inference - M2L4</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L04-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Frequentist MLE - M2L3HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Bayesian Inference - M2L5</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L05-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Homework on Likelihoods and MLEs - M2L5HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L05-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Homework on Bayesian Inference - M2L5HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Priors - M3L6</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L06-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Homework Posterior Probabilities - M3L6HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">M3L7 - Binomial Data</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L07-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Homework on Priors - M2L7HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Poisson Data - M3L8</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L08-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Homework on Poisson Data - M3L8HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L08-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Beta Bernoulli - M3L8HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">M4L9 - Exponential Data</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L09-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Homework on Exponential Data - M4L9HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Normally distributed Data - M4L10</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L10-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Homework on Normal Data - M4L10HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Non-Informative Priors - M4L11</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L11-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">Homework Alternative Priors - M4L11HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L12.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Brief Review of Regression - M4L12</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L12-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Homework Regression - M4L12HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-L12-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Homework Regression - M4L12HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Statistical Modeling - M1L1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">M1L2 - Bayesian Modeling</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Monte Carlo estimation - M1L3</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Metropolis-Hastings - M2L4</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L04-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Homework on the Metropolis-Hastings algorithm - M2L4HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L05.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Gibbs sampling - M2L5</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L05-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Homework Gibbs-Sampling algorithm - M2L22HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Assessing Convergence - M2L5</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L06-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">39</span>&nbsp; <span class="chapter-title">Homework on the Gibbs-Sampling algorithm - M2L5HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L06-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Homework on M-H algorithm M2L5HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Linear regression - M3L7</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L07-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">42</span>&nbsp; <span class="chapter-title">Homework on Linear Regression Model Part 1 - M2L5HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L07-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">43</span>&nbsp; <span class="chapter-title">Homework on Deviance information criterion - M2L5HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">44</span>&nbsp; <span class="chapter-title">ANOVA - M3L8</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L08-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">45</span>&nbsp; <span class="chapter-title">Homework on ANOVA - M3L8HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L08-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">46</span>&nbsp; <span class="chapter-title">Homework on Multiple Factor ANOVA - M3L8HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Logistic regression - M3L9</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L09-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">Homework on Logistic Regression - M3L9HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">Poisson regression - M4L10</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L10-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">50</span>&nbsp; <span class="chapter-title">Homework on Poisson regression - M4L10HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">Hierarchical modeling - M4L11</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L11-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">52</span>&nbsp; <span class="chapter-title">Homework on Hierarchical Models - M4L11HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L11-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">53</span>&nbsp; <span class="chapter-title">Homework on Non-Normal Hierarchical Models - M4L11HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L12.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">54</span>&nbsp; <span class="chapter-title">Capstone Project - M4L12</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C2-L12-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">55</span>&nbsp; <span class="chapter-title">Homework on Predictive distributions and mixture models - M4L12HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">56</span>&nbsp; <span class="chapter-title">Definitions of Mixture Models - M1L1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex1-Basic-Definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">57</span>&nbsp; <span class="chapter-title">Basic Concepts of Mixture Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex2-Gaussian-mixtures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">58</span>&nbsp; <span class="chapter-title">Mixtures of Gaussians</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex3-Zero-Inflated-distribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">59</span>&nbsp; <span class="chapter-title">Zero inflated distributions</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L01-Ex4-Def-mixture-models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">60</span>&nbsp; <span class="chapter-title">Definition of Mixture Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">61</span>&nbsp; <span class="chapter-title">Likelihood functions for Mixture Models - M1L2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">62</span>&nbsp; <span class="chapter-title">Homework The Likelihood function - M1L2HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">63</span>&nbsp; <span class="chapter-title">Homework Identifiability - M1L2HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02-Ex3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">64</span>&nbsp; <span class="chapter-title">Homework The likelihood function M1L2HW3</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02-Ex4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">65</span>&nbsp; <span class="chapter-title">Homework on simulating from a Poisson Mixture Model - M1L2HW4</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02-Ex5.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">66</span>&nbsp; <span class="chapter-title">HW - Simulation of Poisson mixture model - M1L2HW5</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L02-Ex6.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">67</span>&nbsp; <span class="chapter-title">Homework Sim mixture of exponential distributions - M1L2HW6</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">68</span>&nbsp; <span class="chapter-title">The EM algorithm for Mixture models - M2L3</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L03-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">69</span>&nbsp; <span class="chapter-title">The EM algorithm for Zero-Inflated Mixtures</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L03-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">70</span>&nbsp; <span class="chapter-title">The EM algorithm for Mixture Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">71</span>&nbsp; <span class="chapter-title">MCMC for Mixture Models - M4L1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L04-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">72</span>&nbsp; <span class="chapter-title">The MCMC algorithm for Zero-Inflated Mixtures - M4L1HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L04-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">73</span>&nbsp; <span class="chapter-title">Markov chain Monte Carlo algorithms for Mixture Models - M4L1HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">74</span>&nbsp; <span class="chapter-title">Density Estimation - M4L5</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">75</span>&nbsp; <span class="chapter-title">Clustering - M4L6</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">76</span>&nbsp; <span class="chapter-title">Classification - M4L7</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L07-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">77</span>&nbsp; <span class="chapter-title">Old Faithful eruptions density estimation with the EM algorithm - M4L7HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L07-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">78</span>&nbsp; <span class="chapter-title">Old Faithful eruptions density estimation with the MCMC algorithms - M4L7HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L07-Ex3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">79</span>&nbsp; <span class="chapter-title">Homework on Bayesian Mixture Models for Classification of Banknotes - M4L7HW3</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">80</span>&nbsp; <span class="chapter-title">Computational Considerations - M5L8</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L08-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">81</span>&nbsp; <span class="chapter-title">Computational considerations for Mixture Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">82</span>&nbsp; <span class="chapter-title">Determining the number of components - M5L9</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L09-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">83</span>&nbsp; <span class="chapter-title">Homework on Bayesian Information Criteria (BIC) - M5L09HW1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L09-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">84</span>&nbsp; <span class="chapter-title">Homework on Estimating the number of components in Bayesian settings - M5L09HW2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L09-Ex3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">85</span>&nbsp; <span class="chapter-title">Homework on Estimating the partition structure in Bayesian models - M5L09HW3</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C3-L09-Ex4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">86</span>&nbsp; <span class="chapter-title">Homework on BIC for zero-inflated mixtures - M5L09HW4</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L00.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">87</span>&nbsp; <span class="chapter-title">Week 0: Introductions to time series analysis and the AR(1) process</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">88</span>&nbsp; <span class="chapter-title">Stationarity, The ACF and the PCF M1L1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">89</span>&nbsp; <span class="chapter-title">The AR(1) process: definitions and properties - M1L2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">90</span>&nbsp; <span class="chapter-title">The AR(1): MLE and Bayesian inference - M1L3</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">91</span>&nbsp; <span class="chapter-title">The AR(p) process - M2L4</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">92</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(p) - M2L5</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L05-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">Quiz: Spectral representation of the AR(p) - M2L5</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L05-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">94</span>&nbsp; <span class="chapter-title">Graded Assignment: Bayesian analysis of an EEG dataset using an AR(p) - M2L5</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Normal Dynamic Linear Models, Part 1 - M3L6</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">96</span>&nbsp; <span class="chapter-title">Bayesian Inference in the NDLM: Part 1 M3L7</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">97</span>&nbsp; <span class="chapter-title">Seasonal NDLMs M4L8</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">98</span>&nbsp; <span class="chapter-title">Bayesian Inference in the NDLM: Part 2 - M4L9</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">99</span>&nbsp; <span class="chapter-title">Final Project</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C4-L11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">100</span>&nbsp; <span class="chapter-title">Week 0: Feynman Notebook on Bayesian Analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C5-L01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">101</span>&nbsp; <span class="chapter-title">Bayesian Conjugate Analysis for Autogressive Time Series Models - M1L1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C5-L01-Ex1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">102</span>&nbsp; <span class="chapter-title">Homework - Practice Quiz for Week 1 – M1L1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C5-L01-Ex2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">103</span>&nbsp; <span class="chapter-title">Homework - first-step-for-the-project – M1L1</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C5-L02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">104</span>&nbsp; <span class="chapter-title">Model Selection Criteria - M1L2</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">105</span>&nbsp; <span class="chapter-title">Appendix: Notation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">106</span>&nbsp; <span class="chapter-title">Appendix: Discrete Distributions</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">107</span>&nbsp; <span class="chapter-title">Appendix: Continuous Distributions</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">108</span>&nbsp; <span class="chapter-title">Appendix: Exponents &amp; Logarithms</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">109</span>&nbsp; <span class="chapter-title">Appendix: The Law of Large Numbers</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">110</span>&nbsp; <span class="chapter-title">Appendix: The Central Limit Theorem</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">111</span>&nbsp; <span class="chapter-title">Appendix: Conjugate Priors</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">112</span>&nbsp; <span class="chapter-title">Appendix: Link Function</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">113</span>&nbsp; <span class="chapter-title">Appendix: Bayes by backprop</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A12.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">114</span>&nbsp; <span class="chapter-title">Bayesian Books in R &amp; Python</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A13.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">115</span>&nbsp; <span class="chapter-title">Appendix: Yule-Walker Equations &amp; Durbin-Levinson Recursion</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A14.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">116</span>&nbsp; <span class="chapter-title">Moore-Penrose Inversion &amp; Cholesky Decomposition</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A15.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">117</span>&nbsp; <span class="chapter-title">Appendix: Inequalities</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">118</span>&nbsp; <span class="chapter-title">Appendix: Wold’s theorem</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">119</span>&nbsp; <span class="chapter-title">References</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-multiple-parameter-sampling" id="toc-sec-multiple-parameter-sampling" class="nav-link active" data-scroll-target="#sec-multiple-parameter-sampling"><span class="header-section-number">36.0.1</span> Multiple parameter sampling and full conditional distributions 🎥</a></li>
+  <li><a href="#full-conditional-distributions" id="toc-full-conditional-distributions" class="nav-link" data-scroll-target="#full-conditional-distributions"><span class="header-section-number">36.0.2</span> Full conditional distributions</a></li>
+  <li><a href="#gibbs-sampler" id="toc-gibbs-sampler" class="nav-link" data-scroll-target="#gibbs-sampler"><span class="header-section-number">36.0.3</span> Gibbs sampler</a></li>
+  <li><a href="#sec-conditionally-conjugate-prior-with-normal-likelihood" id="toc-sec-conditionally-conjugate-prior-with-normal-likelihood" class="nav-link" data-scroll-target="#sec-conditionally-conjugate-prior-with-normal-likelihood"><span class="header-section-number">36.1</span> Conditionally conjugate prior example with Normal likelihood 🎥</a>
+  <ul class="collapse">
+  <li><a href="#normal-likelihood-unknown-mean-and-variance" id="toc-normal-likelihood-unknown-mean-and-variance" class="nav-link" data-scroll-target="#normal-likelihood-unknown-mean-and-variance"><span class="header-section-number">36.1.1</span> Normal likelihood, unknown mean and variance</a></li>
+  </ul></li>
+  <li><a href="#computing-example-with-normal-likelihood" id="toc-computing-example-with-normal-likelihood" class="nav-link" data-scroll-target="#computing-example-with-normal-likelihood"><span class="header-section-number">36.2</span> Computing example with Normal likelihood</a>
+  <ul class="collapse">
+  <li><a href="#sec-conditionally-conjugate-priors-for-mean" id="toc-sec-conditionally-conjugate-priors-for-mean" class="nav-link" data-scroll-target="#sec-conditionally-conjugate-priors-for-mean"><span class="header-section-number">36.2.1</span> Conditionally conjugate priors for the mean 🎥</a></li>
+  <li><a href="#conditionally-conjugate-priors-for-the-variance" id="toc-conditionally-conjugate-priors-for-the-variance" class="nav-link" data-scroll-target="#conditionally-conjugate-priors-for-the-variance"><span class="header-section-number">36.2.2</span> conditionally conjugate priors for the variance</a></li>
+  <li><a href="#gibbs-sampler-in-r" id="toc-gibbs-sampler-in-r" class="nav-link" data-scroll-target="#gibbs-sampler-in-r"><span class="header-section-number">36.2.3</span> Gibbs sampler in <code>R</code></a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content">
+
+
+
+
+
+
+<p>Gibbs sampling is a Gibbs sampling is named after the physicist Josiah Willard Gibbs, in reference to an analogy between the sampling algorithm and statistical physics. The algorithm was described in <span class="citation" data-cites="geman1984">(<a href="#ref-geman1984" role="doc-biblioref">Geman and Geman 1984</a>)</span> by brothers <em>Stuart and Donald Geman</em>, and became popularized in the statistics community for calculating marginal probability distribution, especially the posterior distribution. Gibbs sampling is better suited for sampling from models with many variables by sampling them one at a time from a full conditional distribution.</p>
+
+<div class="no-row-height column-margin column-container"><div id="fig-gibbs-sampler" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-gibbs-sampler-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/c2l05-fig-01-Gibbs-sampler.jpg" class="lightbox" data-gallery="slides" title="Figure&nbsp;36.1: Gibbs sampler"><img src="images/c2l05-fig-01-Gibbs-sampler.jpg" class="img-fluid figure-img" style="width:53mm"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gibbs-sampler-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;36.1: Gibbs sampler
+</figcaption>
+</figure>
+</div></div><div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>How does the Gibbs sampling simplify updating multiple parameters in MCMC?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>It divides the process into updating one parameter at a time using (potentially convenient) full conditional distributions. The price we pay for this convenience is</p>
+<ol type="1">
+<li>the work required to find full conditional distributions and</li>
+<li>the sampler may require more iterations to fully explore the posterior distribution as the draws tend to be more correlated since they share information in the form of parameters.</li>
+</ol>
+<p>It is also possible to run a Gibbs sampler that draws from the “full” conditional distribution of multiple parameters. We would then cycle through and update blocks of parameters.</p>
+</div>
+</div>
+<section id="sec-multiple-parameter-sampling" class="level3 page-columns page-full" data-number="36.0.1">
+<h3 data-number="36.0.1" class="anchored" data-anchor-id="sec-multiple-parameter-sampling"><span class="header-section-number">36.0.1</span> Multiple parameter sampling and full conditional distributions 🎥</h3>
+
+<div class="no-row-height column-margin column-container"><div id="fig-multiple-parameter-sampling" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-multiple-parameter-sampling-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/c2l05-ss-02-Multiple-parameter-sampling-and-full-conditional-distributions.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;36.2: Multiple parameter sampling and full conditional distributions"><img src="images/c2l05-ss-02-Multiple-parameter-sampling-and-full-conditional-distributions.png" class="img-fluid figure-img" style="width:53mm"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-multiple-parameter-sampling-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;36.2: Multiple parameter sampling and full conditional distributions
+</figcaption>
+</figure>
+</div></div><p>So far, we have demonstrated MCMC for a single parameter.</p>
+<p>What if we seek the posterior distribution of multiple parameters, and that posterior distribution does not have a standard form?</p>
+<p>One option is to perform Metropolis-Hastings (M-H) by sampling candidates for all parameters at once, and accepting or rejecting all of those candidates together. While this is possible, it can get complicated.</p>
+<p>Another (simpler) option is to sample the parameters one at a time.</p>
+<p>As a simple example, suppose we have a joint posterior distribution for two parameters <span class="math inline">\theta</span> and <span class="math inline">\phi</span>, written <span class="math inline">\mathbb{P}r(\theta, \phi \mid y) \propto g(\theta, \phi)</span>. If we knew the value of <span class="math inline">\phi</span>, then we would just draw a candidate for <span class="math inline">\theta</span> and use <span class="math inline">g(\theta, \phi)</span> to compute our Metropolis-Hastings ratio, and possibly accept the candidate. Before moving on to the next iteration, if we don’t know <span class="math inline">\phi</span>, then we can perform a similar update for it. Draw a candidate for <span class="math inline">\phi</span> using some proposal distribution and again use <span class="math inline">g(\theta, \phi)</span> to compute our Metropolis-Hastings ratio. Here we pretend we know the value of <span class="math inline">\theta</span> by substituting its current iteration from the Markov chain. Once we’ve drawn for both <span class="math inline">\theta</span> and <span class="math inline">\phi</span>, that completes one iteration and we begin the next iteration by drawing a new <span class="math inline">\theta</span>. In other words, we’re just going back and forth, updating the parameters one at a time, plugging the current value of the other parameter into <span class="math inline">g(\theta, \phi)</span>.</p>
+<p>This idea of one-at-a-time updates is used in what we call <em>Gibbs sampling</em>, which also produces a stationary Markov chain (whose stationary distribution is the posterior). If you recall, this is the namesake of <code>JAGS</code>, “just another Gibbs sampler.”</p>
+</section>
+<section id="full-conditional-distributions" class="level3 page-columns page-full" data-number="36.0.2">
+<h3 data-number="36.0.2" class="anchored" data-anchor-id="full-conditional-distributions"><span class="header-section-number">36.0.2</span> Full conditional distributions</h3>
+<p>Before describing the full <strong>Gibbs sampling algorithm</strong> , there’s one more thing we can do. Using the chain rule of probability, we have</p>
+<p><span class="math display">
+\mathbb{P}r(\theta, \phi \mid y) = \mathbb{P}r(\theta \mid \phi, y) \cdot \mathbb{P}r(\phi \mid y)
+</span></p>
+<p>Notice that the only difference between <span class="math inline">\mathbb{P}r(\theta, \phi \mid y)</span> and <span class="math inline">\mathbb{P}r(\theta \mid \phi, y)</span> is multiplication by a factor that doesn’t involve <span class="math inline">\theta</span>. Since the <span class="math inline">g(\theta, \phi)</span> function above, when viewed as a function of <span class="math inline">\theta</span> is proportional to both these expressions, we might as well have replaced it with <span class="math inline">\mathbb{P}r(\theta \mid \phi, y)</span> in our update for <span class="math inline">\theta</span>.</p>
+<div class="page-columns page-full"><p>This distribution <span class="math inline">\mathbb{P}r(\theta \mid \phi, y)</span> is called the <strong>full conditional distribution</strong>  for <span class="math inline">\theta</span>. </p><div class="no-row-height column-margin column-container"><span class=""><strong>Full conditional distribution</strong></span></div></div>
+<p>Why use <span class="math inline">\mathbb{P}r(\theta \mid \phi, y)</span> instead of <span class="math inline">g(\theta, \phi)</span>?</p>
+<p>In some cases, the full conditional distribution is a standard distribution we know how to sample. If that happens, we no longer need to draw a candidate and decide whether to accept it. In fact, if we treat the full conditional distribution as a candidate proposal distribution, the resulting Metropolis-Hastings acceptance probability becomes exactly 1.</p>
+<p>Gibbs samplers require a little more work up front because you need to find the full conditional distribution for each parameter. The good news is that all full conditional distributions have the same starting point: the full joint posterior distribution. Using the example above, we have</p>
+<p><span class="math display">
+\mathbb{P}r(\theta \mid \phi, y) \propto \mathbb{P}r(\theta, \phi \mid y)
+</span></p>
+<p>where we simply now treat <span class="math inline">\phi</span> as a known number. Likewise, the other full conditional is <span class="math inline">\mathbb{P}r(\phi \mid \theta, y) \propto \mathbb{P}r(\theta, \phi \mid y)</span> where here, we consider <span class="math inline">\theta</span> to be a known number. We always start with the full posterior distribution. Thus, the process of finding full conditional distributions is the same as finding the posterior distribution of each parameter, pretending that all other parameters are known.</p>
+</section>
+<section id="gibbs-sampler" class="level3" data-number="36.0.3">
+<h3 data-number="36.0.3" class="anchored" data-anchor-id="gibbs-sampler"><span class="header-section-number">36.0.3</span> Gibbs sampler</h3>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The idea of Gibbs sampling is that we can <strong>update multiple parameters by sampling just one parameter at a time</strong>, cycling through all parameters and repeating. To perform the update for one particular parameter, we substitute in the current values of all other parameters.</p>
+</div>
+</div>
+<p>Here is the algorithm. Suppose we have a joint posterior distribution for two parameters <span class="math inline">\theta</span> and <span class="math inline">\phi</span>, written <span class="math inline">\mathbb{P}r(\theta, \phi \mid y)</span>. If we can find the distribution of each parameter at a time, i.e., <span class="math inline">\mathbb{P}r(\theta \mid \phi, y)</span> and <span class="math inline">\mathbb{P}r(\phi \mid \theta, y)</span>, then we can take turns sampling these distributions like so:</p>
+<ol type="1">
+<li>Using <span class="math inline">\phi_{i-1}</span>, draw <span class="math inline">\theta_i</span> from <span class="math inline">\mathbb{P}r(\theta \mid \phi = \phi_{i-1}, y)</span>.</li>
+<li>Using <span class="math inline">\theta_i</span>, draw <span class="math inline">\phi_i</span> from <span class="math inline">\mathbb{P}r(\phi \mid \theta = \theta_i, y)</span>.</li>
+</ol>
+<p>Together, steps 1 and 2 complete one cycle of the Gibbs sampler and produce the draw for <span class="math inline">(\theta_i, \phi_i)</span> in one iteration of a MCMC sampler. If there are more than two parameters, we can handle that also. One Gibbs cycle would include an update for each of the parameters.</p>
+<p>In the following segments, we will provide a concrete example of finding full conditional distributions and constructing a Gibbs sampler.</p>
+</section>
+<section id="sec-conditionally-conjugate-prior-with-normal-likelihood" class="level2 page-columns page-full" data-number="36.1">
+<h2 data-number="36.1" class="anchored" data-anchor-id="sec-conditionally-conjugate-prior-with-normal-likelihood"><span class="header-section-number">36.1</span> Conditionally conjugate prior example with Normal likelihood 🎥</h2>
+<section id="normal-likelihood-unknown-mean-and-variance" class="level3 page-columns page-full" data-number="36.1.1">
+<h3 data-number="36.1.1" class="anchored" data-anchor-id="normal-likelihood-unknown-mean-and-variance"><span class="header-section-number">36.1.1</span> Normal likelihood, unknown mean and variance</h3>
+
+<div class="no-row-height column-margin column-container"><div id="fig-normal-likelihood-unknown-mean-and-variance" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-normal-likelihood-unknown-mean-and-variance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/c2l05-ss-03-conditionally-conjugate-prior-example-with-Normal-likelihood.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;36.3: Normal likelihood, unknown mean and variance"><img src="images/c2l05-ss-03-conditionally-conjugate-prior-example-with-Normal-likelihood.png" class="img-fluid figure-img" style="width:53mm"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-normal-likelihood-unknown-mean-and-variance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;36.3: Normal likelihood, unknown mean and variance
+</figcaption>
+</figure>
+</div><div id="fig-normal-likelihood-conjugate-prior" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-normal-likelihood-conjugate-prior-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/c2l05-ss-04-conditionally-conjugate-prior-example-with-Normal-likelihood.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;36.4: Normal likelihood conjugate prior"><img src="images/c2l05-ss-04-conditionally-conjugate-prior-example-with-Normal-likelihood.png" class="img-fluid figure-img" style="width:53mm"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-normal-likelihood-conjugate-prior-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;36.4: Normal likelihood conjugate prior
+</figcaption>
+</figure>
+</div></div>
+<p>Let’s return to the example at the end of Lesson 2 where we have normal likelihood with unknown mean and unknown variance. The model is:</p>
+<p><span class="math display">
+\begin{aligned}
+y_i \mid \mu, \sigma^2 &amp;\overset{\text{iid}}{\sim} \mathcal{N} ( \mu, \sigma^2 ), \quad i=1,\ldots,n \\
+\mu &amp;\sim \mathcal{N}(\mu_0, \sigma_0^2) \\
+\sigma^2 &amp;\sim \mathcal{IG}(\nu_0, \beta_0)
+\end{aligned}
+</span></p>
+<p>We chose a normal prior for <span class="math inline">\mu</span> because, in the case where <span class="math inline">\sigma^2</span> is known, the normal is the conjugate prior for <span class="math inline">\mu</span>. Likewise, in the case where <span class="math inline">\mu</span> is known, the inverse-gamma is the conjugate prior for <span class="math inline">\sigma^2</span>. This will give us convenient full conditional distributions in a Gibbs sampler.</p>
+<p>Let’s first work out the form of the full posterior distribution. When we begin analyzing data, the <code>JAGS</code> software will complete this step for us. However, it is extremely valuable to see and understand how this works.</p>
+<p><span class="math display">
+\begin{aligned}
+\mathbb{P}r( \mu, \sigma^2 \mid y_1, y_2, \ldots, y_n ) &amp;\propto
+\mathbb{P}r(y_1, y_2, \ldots, y_n \mid \mu, \sigma^2) \mathbb{P}r(\mu) \mathbb{P}r(\sigma^2)
+\\ &amp;= \prod_{i=1}^n \mathcal{N} ( y_i \mid \mu, \sigma^2 ) \times \mathcal{N}( \mu \mid \mu_0, \sigma_0^2) \times \mathcal{IG}(\sigma^2 \mid \nu_0, \beta_0)
+\\ &amp;= \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}}\exp \left[ -\frac{(y_i - \mu)^2}{2\sigma^2} \right]
+\\ &amp; \qquad \times\frac{1}{\sqrt{2\pi\sigma_0^2}} \exp \left[ -\frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right]
+\\ &amp; \qquad \times \frac{\beta_0^{\nu_0}}{\Gamma(\nu_0)}(\sigma^2)^{-(\nu_0 + 1)} \exp \left[ -\frac{\beta_0}{\sigma^2} \right] \mathbb{I}_{\sigma^2 &gt; 0}(\sigma^2)
+\\ &amp;\propto (\sigma^2)^{-n/2} \exp \left[ -\frac{\sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} \right]
+\\ &amp; \qquad \times \exp \left[ -\frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right] (\sigma^2)^{-(\nu_0 + 1)}
+\\ &amp; \qquad \times \exp \left[ -\frac{\beta_0}{\sigma^2} \right] \mathbb{I}_{\sigma^2 &gt; 0}(\sigma^2)
+\end{aligned}
+</span></p>
+<p>From here, it is easy to continue on to find the two full conditional distributions we need.</p>
+<p>First let’s look at <span class="math inline">\mu</span>, assuming <span class="math inline">\sigma^2</span> is known (in which case it becomes a constant and is absorbed into the normalizing constant):</p>
+<p><span id="eq-full-conditional-update-for-mean-derivation"><span class="math display">
+\begin{aligned}
+\mathbb{P}r(\mu \mid \sigma^2, y_1, \ldots, y_n) &amp;\propto \mathbb{P}r( \mu, \sigma^2 \mid y_1, \ldots, y_n )
+\\ &amp;\propto \exp \left[ -\frac{\sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} \right] \exp \left[ -\frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right]
+\\ &amp;\propto \exp \left[ -\frac{1}{2} \left( \frac{ \sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} + \frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right) \right]
+\\ &amp;\propto \text{N} \left( \mu \mid \frac{n\bar{y}/\sigma^2 + \mu_0/\sigma_0^2}{n/\sigma^2 + 1/\sigma_0^2} \frac{1}{n/\sigma^2 + 1/\sigma_0^2} \right)
+\end {aligned}
+\tag{36.1}</span></span></p>
+<p>which we derived in the supplementary material of the last course. So, given the data and <span class="math inline">\sigma^2</span>, <span class="math inline">\mu</span> follows this normal distribution.</p>
+<p>Now let’s look at <span class="math inline">\sigma^2</span>, assuming <span class="math inline">\mu</span> is known:</p>
+<p><span id="eq-full-conditional-update-for-variance-derivation"><span class="math display">
+\begin{aligned}
+\mathbb{P}r(\sigma^2 \mid \mu, y_1, \ldots, y_n) &amp; \propto \mathbb{P}r( \mu, \sigma^2 \mid y_1, \ldots, y_n )
+\\ &amp;\propto (\sigma^2)^{-n/2} \exp \left[ -\frac{\sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} \right] (\sigma^2)^{-(\nu_0 + 1)} \exp \left[ -\frac{\beta_0}{\sigma^2} \right] I_{\sigma^2 &gt; 0}(\sigma^2)
+\\ &amp;\propto (\sigma^2)^{-(\nu_0 + n/2 + 1)} \exp \left[ -\frac{1}{\sigma^2} \left( \beta_0 + \frac{\sum_{i=1}^n (y_i - \mu)^2}{2} \right) \right] I_{\sigma^2 &gt; 0}(\sigma^2)
+\\ &amp;\propto \text{IG}\left( \sigma^2 \mid \nu_0 + \frac{n}{2}, \, \beta_0 + \frac{\sum_{i=1}^n (y_i - \mu)^2}{2} \right)
+\end{aligned}
+\tag{36.2}</span></span></p>
+<p>These two distributions provide the basis of a Gibbs sampler to simulate from a Markov chain whose stationary distribution is the full posterior of both <span class="math inline">\mu</span> and <span class="math inline">\sigma^2</span>. We simply alternate draws between these two parameters, using the most recent draw of one parameter to update the other.</p>
+<p>We will do this in <code>R</code> in the next segment.</p>
+</section>
+</section>
+<section id="computing-example-with-normal-likelihood" class="level2 page-columns page-full" data-number="36.2">
+<h2 data-number="36.2" class="anchored" data-anchor-id="computing-example-with-normal-likelihood"><span class="header-section-number">36.2</span> Computing example with Normal likelihood</h2>
+<div class="page-columns page-full"><p>To implement the Gibbs sampler we just described, let’s return to our running example where the data are the percent change in total personnel from last year to this year for <span class="math inline">n=10</span> companies.  We’ll still use a <strong>normal likelihood</strong>, but now we’ll <em>relax the assumption that we know the variance of growth between companies</em>, <span class="math inline">\sigma^2</span>, and estimate that variance. Instead of the <span class="math inline">t</span> prior from earlier, we will use the <strong>conditionally conjugate priors</strong>, normal for <span class="math inline">\mu</span> and inverse-gamma for <span class="math inline">\sigma^2</span>.</p><div class="no-row-height column-margin column-container"><span class=""><strong>Company personnel</strong></span></div></div>
+<p>The first step will be to write functions to simulate from the full conditional distributions we derived in the previous segment. The full conditional for <span class="math inline">\mu</span>, given <span class="math inline">\sigma^2</span> and data is</p>
+<section id="sec-conditionally-conjugate-priors-for-mean" class="level3" data-number="36.2.1">
+<h3 data-number="36.2.1" class="anchored" data-anchor-id="sec-conditionally-conjugate-priors-for-mean"><span class="header-section-number">36.2.1</span> Conditionally conjugate priors for the mean 🎥</h3>
+<p><span id="eq-full-conditional-update-for-mean"><span class="math display">
+\text{N} \left( \mu \mid \frac{n\bar{y}/\sigma^2 + \mu_0/\sigma_0^2}{n/\sigma^2 + 1/\sigma_0^2}, \, \frac{1}{n/\sigma^2 + 1/\sigma_0^2} \right)
+\tag{36.3}</span></span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-1"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' update_mu</span></span>
+<span id="annotated-cell-1-2"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="annotated-cell-1-3"><a href="#annotated-cell-1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param n - sample size</span></span>
+<span id="annotated-cell-1-4"><a href="#annotated-cell-1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param ybar - sample mean</span></span>
+<span id="annotated-cell-1-5"><a href="#annotated-cell-1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param sig2 - current sigma squared</span></span>
+<span id="annotated-cell-1-6"><a href="#annotated-cell-1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param mu_0 - mean hyper-parameter</span></span>
+<span id="annotated-cell-1-7"><a href="#annotated-cell-1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param sig2_0 - variance  hyper-parameter</span></span>
+<span id="annotated-cell-1-8"><a href="#annotated-cell-1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#' </span></span>
+<span id="annotated-cell-1-9"><a href="#annotated-cell-1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#' @output - updated  value for mu the mean</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="1">1</button><span id="annotated-cell-1-10" class="code-annotation-target"><a href="#annotated-cell-1-10" aria-hidden="true" tabindex="-1"></a>update_mu <span class="ot">=</span> <span class="cf">function</span>(n, ybar, sig2, mu_0, sig2_0) {</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="2">2</button><span id="annotated-cell-1-11" class="code-annotation-target"><a href="#annotated-cell-1-11" aria-hidden="true" tabindex="-1"></a>  sig2_1 <span class="ot">=</span> <span class="fl">1.0</span> <span class="sc">/</span> (n <span class="sc">/</span> sig2 <span class="sc">+</span> <span class="fl">1.0</span> <span class="sc">/</span> sig2_0)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="3">3</button><span id="annotated-cell-1-12" class="code-annotation-target"><a href="#annotated-cell-1-12" aria-hidden="true" tabindex="-1"></a>  mu_1 <span class="ot">=</span> sig2_1 <span class="sc">*</span> (n <span class="sc">*</span> ybar <span class="sc">/</span> sig2 <span class="sc">+</span> mu_0 <span class="sc">/</span> sig2_0)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="4">4</button><span id="annotated-cell-1-13" class="code-annotation-target"><a href="#annotated-cell-1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rnorm</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">mean=</span>mu_1, <span class="at">sd=</span><span class="fu">sqrt</span>(sig2_1))</span>
+<span id="annotated-cell-1-14"><a href="#annotated-cell-1-14" aria-hidden="true" tabindex="-1"></a>}</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-1" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="10" data-code-annotation="1">we don’t need the data <code>y</code></span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="11" data-code-annotation="2">where: <br> <code>sig2_1</code> is <span class="math inline">\sigma^2_1</span> the right term in <a href="#eq-full-conditional-update-for-mean" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-full-conditional-update-for-mean</span></a> <br> <code>sig2</code> is the current <span class="math inline">\sigma_2</span> which we update in <code>update_sigma</code> below using <a href="#eq-full-conditional-update-for-variance" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-full-conditional-update-for-variance</span></a> <br> <code>sig2_0</code> is the hyper parameter for <span class="math inline">\sigma^2_0</span></span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="12" data-code-annotation="3"><code>mu_1</code> is <span class="math inline">\sigma^2_1</span> the left term in <a href="#eq-full-conditional-update-for-mean" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-full-conditional-update-for-mean</span></a> which uses <code>sig2_1</code> we just computed</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="13" data-code-annotation="4">we now draw from the a <span class="math inline">N(\mu_1,\sigma_1^2)</span> for <code>update_sig2</code> and the <code>trace</code>.</span>
+</dd>
+</dl>
+</div>
+</div>
+</section>
+<section id="conditionally-conjugate-priors-for-the-variance" class="level3" data-number="36.2.2">
+<h3 data-number="36.2.2" class="anchored" data-anchor-id="conditionally-conjugate-priors-for-the-variance"><span class="header-section-number">36.2.2</span> conditionally conjugate priors for the variance</h3>
+<p>The full conditional for <span class="math inline">\sigma^2</span> given <span class="math inline">\mu</span> and data is</p>
+<p><span id="eq-full-conditional-update-for-variance"><span class="math display">
+\text{IG}\left( \sigma^2 \mid \nu_0 + \frac{n}{2}, \, \beta_0 + \frac{\sum_{i=1}^n (y_i - \mu)^2}{2} \right)
+\tag{36.4}</span></span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-2"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-2-1"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' update_sig2</span></span>
+<span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="annotated-cell-2-3"><a href="#annotated-cell-2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param n - sample size</span></span>
+<span id="annotated-cell-2-4"><a href="#annotated-cell-2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param y - the data</span></span>
+<span id="annotated-cell-2-5"><a href="#annotated-cell-2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param nu_0 - nu hyper-parameter</span></span>
+<span id="annotated-cell-2-6"><a href="#annotated-cell-2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param beta_0 - beta hyper-parameter</span></span>
+<span id="annotated-cell-2-7"><a href="#annotated-cell-2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#' </span></span>
+<span id="annotated-cell-2-8"><a href="#annotated-cell-2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#' @output - updated  value for sigma2 the variance</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1">1</button><span id="annotated-cell-2-9" class="code-annotation-target"><a href="#annotated-cell-2-9" aria-hidden="true" tabindex="-1"></a>update_sig2 <span class="ot">=</span> <span class="cf">function</span>(n, y, mu, nu_0, beta_0) {</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="2">2</button><span id="annotated-cell-2-10" class="code-annotation-target"><a href="#annotated-cell-2-10" aria-hidden="true" tabindex="-1"></a>  nu_1 <span class="ot">=</span> nu_0 <span class="sc">+</span> n <span class="sc">/</span> <span class="fl">2.0</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="3">3</button><span id="annotated-cell-2-11" class="code-annotation-target"><a href="#annotated-cell-2-11" aria-hidden="true" tabindex="-1"></a>  sumsq <span class="ot">=</span> <span class="fu">sum</span>( (y <span class="sc">-</span> mu)<span class="sc">^</span><span class="dv">2</span> )</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="4">4</button><span id="annotated-cell-2-12" class="code-annotation-target"><a href="#annotated-cell-2-12" aria-hidden="true" tabindex="-1"></a>  beta_1 <span class="ot">=</span> beta_0 <span class="sc">+</span> sumsq <span class="sc">/</span> <span class="fl">2.0</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="5">5</button><span id="annotated-cell-2-13" class="code-annotation-target"><a href="#annotated-cell-2-13" aria-hidden="true" tabindex="-1"></a>  out_gamma <span class="ot">=</span> <span class="fu">rgamma</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">shape=</span>nu_1, <span class="at">rate=</span>beta_1)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="6">6</button><span id="annotated-cell-2-14" class="code-annotation-target"><a href="#annotated-cell-2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.0</span> <span class="sc">/</span> out_gamma</span>
+<span id="annotated-cell-2-15"><a href="#annotated-cell-2-15" aria-hidden="true" tabindex="-1"></a>}</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-2" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="9" data-code-annotation="1">we need the data to update beta</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="10" data-code-annotation="2"><code>nu_1</code> the left term in <a href="#eq-full-conditional-update-for-variance" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-full-conditional-update-for-variance</span></a></span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="11" data-code-annotation="3">vectorized</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="12" data-code-annotation="4"><code>beta_1</code> the right term in <a href="#eq-full-conditional-update-for-variance" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-full-conditional-update-for-variance</span></a></span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="13" data-code-annotation="5">draw a gamma sample with updated <code>rate</code> for <span class="math inline">\text{Gamma}()</span> is <code>shape</code> for <span class="math inline">\text{IG}()</span> inv-gamma</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="14" data-code-annotation="6">since there is no <code>rinvgamma</code> in <code>R</code> we use the reciprocal of a gamma random variable which is distributed inv-gamma</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>With functions for drawing from the full conditionals, we are ready to write a function to perform Gibbs sampling.</p>
+</section>
+<section id="gibbs-sampler-in-r" class="level3" data-number="36.2.3">
+<h3 data-number="36.2.3" class="anchored" data-anchor-id="gibbs-sampler-in-r"><span class="header-section-number">36.2.3</span> Gibbs sampler in <code>R</code></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-3"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-3-1"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a>gibbs <span class="ot">=</span> <span class="cf">function</span>(y, n_iter, init, prior) {</span>
+<span id="annotated-cell-3-2"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a>  ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
+<span id="annotated-cell-3-3"><a href="#annotated-cell-3-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
+<span id="annotated-cell-3-4"><a href="#annotated-cell-3-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="annotated-cell-3-5"><a href="#annotated-cell-3-5" aria-hidden="true" tabindex="-1"></a>  <span class="do">## initialize</span></span>
+<span id="annotated-cell-3-6"><a href="#annotated-cell-3-6" aria-hidden="true" tabindex="-1"></a>  mu_out <span class="ot">=</span> <span class="fu">numeric</span>(n_iter)</span>
+<span id="annotated-cell-3-7"><a href="#annotated-cell-3-7" aria-hidden="true" tabindex="-1"></a>  sig2_out <span class="ot">=</span> <span class="fu">numeric</span>(n_iter)</span>
+<span id="annotated-cell-3-8"><a href="#annotated-cell-3-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="annotated-cell-3-9"><a href="#annotated-cell-3-9" aria-hidden="true" tabindex="-1"></a>  mu_now <span class="ot">=</span> init<span class="sc">$</span>mu</span>
+<span id="annotated-cell-3-10"><a href="#annotated-cell-3-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="annotated-cell-3-11"><a href="#annotated-cell-3-11" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Gibbs sampler</span></span>
+<span id="annotated-cell-3-12"><a href="#annotated-cell-3-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_iter) {</span>
+<span id="annotated-cell-3-13"><a href="#annotated-cell-3-13" aria-hidden="true" tabindex="-1"></a>    sig2_now <span class="ot">=</span> <span class="fu">update_sig2</span>(<span class="at">n=</span>n, <span class="at">y=</span>y, <span class="at">mu=</span>mu_now, <span class="at">nu_0=</span>prior<span class="sc">$</span>nu_0, <span class="at">beta_0=</span>prior<span class="sc">$</span>beta_0)</span>
+<span id="annotated-cell-3-14"><a href="#annotated-cell-3-14" aria-hidden="true" tabindex="-1"></a>    mu_now <span class="ot">=</span> <span class="fu">update_mu</span>(<span class="at">n=</span>n, <span class="at">ybar=</span>ybar, <span class="at">sig2=</span>sig2_now, <span class="at">mu_0=</span>prior<span class="sc">$</span>mu_0, <span class="at">sig2_0=</span>prior<span class="sc">$</span>sig2_0)</span>
+<span id="annotated-cell-3-15"><a href="#annotated-cell-3-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="annotated-cell-3-16"><a href="#annotated-cell-3-16" aria-hidden="true" tabindex="-1"></a>    sig2_out[i] <span class="ot">=</span> sig2_now</span>
+<span id="annotated-cell-3-17"><a href="#annotated-cell-3-17" aria-hidden="true" tabindex="-1"></a>    mu_out[i] <span class="ot">=</span> mu_now</span>
+<span id="annotated-cell-3-18"><a href="#annotated-cell-3-18" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="annotated-cell-3-19"><a href="#annotated-cell-3-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="1">1</button><span id="annotated-cell-3-20" class="code-annotation-target"><a href="#annotated-cell-3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="at">mu=</span>mu_out, <span class="at">sig2=</span>sig2_out)</span>
+<span id="annotated-cell-3-21"><a href="#annotated-cell-3-21" aria-hidden="true" tabindex="-1"></a>}</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-3" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-3" data-code-lines="20" data-code-annotation="1"><code>cbind</code> for column bind will take a lists of list and convert them into a matrix of collumns.</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>Now we are ready to set up the problem in <code>R</code>.</p>
+<p><span id="eq-gibbs-sampler-model-summary"><span class="math display">
+\begin{aligned}
+  y_i \mid \mu, \sigma &amp;\stackrel {iid} \sim \mathcal{N}(\mu,\sigma^2), \quad i=1,\ldots,n
+  \\ \mu &amp;\sim \mathcal{N}(\mu_0,\sigma^2_0)
+  \\ \sigma^2 &amp; \sim \mathcal{IG}(\nu,\beta_0)
+\end{aligned}
+\tag{36.5}</span></span></p>
+<p> We also need to create the prior hyperparameters for <span class="math inline">\sigma^2</span>, <span class="math inline">\nu_0</span> and <span class="math inline">\beta_0</span>. If we chose these hyperperameters carefully, they are interpretable as a prior guess for sigma squared, as well as a prior effective sample size to go with that guess.</p>
+<p>The prior effective sample size. Which we’ll call <span class="math inline">n_0</span>, is two times this <span class="math inline">\nu_0</span> parameter. So in other words, the nu parameter will be the prior sample size Divided by 2. We’re also going to create an initial guess for sigma squared, let’s call it <span class="math inline">s^2_0</span>. The relationship between <span class="math inline">\beta_0</span> and these two numbers is the following: It is the prior sample size times the prior guess divided by 2.</p>
+<p>This particular parameterization of the <em>Inverse gamma</em> distribution is called the <strong>Scaled Inverse Chi Square Distribution</strong>, where the two parameters are <span class="math inline">n_0</span> and <span class="math inline">s^2_0</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-4"><pre class="sourceCode r code-annotation-code code-with-copy"><code class="sourceCode r"><span id="annotated-cell-4-1"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">1.2</span>, <span class="fl">1.4</span>, <span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.9</span>, <span class="fl">2.3</span>, <span class="fl">1.0</span>, <span class="fl">0.1</span>, <span class="fl">1.3</span>, <span class="fl">1.9</span>)</span>
+<span id="annotated-cell-4-2"><a href="#annotated-cell-4-2" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
+<span id="annotated-cell-4-3"><a href="#annotated-cell-4-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
+<span id="annotated-cell-4-4"><a href="#annotated-cell-4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-4-5"><a href="#annotated-cell-4-5" aria-hidden="true" tabindex="-1"></a><span class="do">## prior</span></span>
+<span id="annotated-cell-4-6"><a href="#annotated-cell-4-6" aria-hidden="true" tabindex="-1"></a>prior <span class="ot">=</span> <span class="fu">list</span>()</span>
+<span id="annotated-cell-4-7"><a href="#annotated-cell-4-7" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>mu_0 <span class="ot">=</span> <span class="fl">0.0</span></span>
+<span id="annotated-cell-4-8"><a href="#annotated-cell-4-8" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>sig2_0 <span class="ot">=</span> <span class="fl">1.0</span></span>
+<span id="annotated-cell-4-9"><a href="#annotated-cell-4-9" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>n_0 <span class="ot">=</span> <span class="fl">2.0</span> <span class="co"># prior effective sample size for sig2</span></span>
+<span id="annotated-cell-4-10"><a href="#annotated-cell-4-10" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>s2_0 <span class="ot">=</span> <span class="fl">1.0</span> <span class="co"># prior point estimate for sig2</span></span>
+<span id="annotated-cell-4-11"><a href="#annotated-cell-4-11" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>nu_0 <span class="ot">=</span> prior<span class="sc">$</span>n_0 <span class="sc">/</span> <span class="fl">2.0</span> <span class="co"># prior parameter for inverse-gamma</span></span>
+<span id="annotated-cell-4-12"><a href="#annotated-cell-4-12" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>beta_0 <span class="ot">=</span> prior<span class="sc">$</span>n_0 <span class="sc">*</span> prior<span class="sc">$</span>s2_0 <span class="sc">/</span> <span class="fl">2.0</span> <span class="co"># prior parameter for inverse-gamma</span></span>
+<span id="annotated-cell-4-13"><a href="#annotated-cell-4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-4-14"><a href="#annotated-cell-4-14" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(y, <span class="at">freq=</span><span class="cn">FALSE</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.0</span>, <span class="fl">3.0</span>)) <span class="co"># histogram of the data</span></span>
+<span id="annotated-cell-4-15"><a href="#annotated-cell-4-15" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(<span class="fu">dnorm</span>(<span class="at">x=</span>x, <span class="at">mean =</span> prior<span class="sc">$</span>mu_0, <span class="at">sd=</span><span class="fu">sqrt</span>(prior<span class="sc">$</span>sig2_0)), <span class="at">lty=</span><span class="dv">2</span>, <span class="at">add=</span><span class="cn">TRUE</span>) <span class="co"># prior for mu</span></span>
+<span id="annotated-cell-4-16"><a href="#annotated-cell-4-16" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(y, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">pch=</span><span class="dv">1</span>) <span class="co"># individual data points</span></span>
+<span id="annotated-cell-4-17"><a href="#annotated-cell-4-17" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(ybar, <span class="dv">0</span>, <span class="at">pch=</span><span class="dv">19</span>) <span class="co"># sample mean</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L05_files/figure-html/C2-L05-4-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="C2-L05_files/figure-html/C2-L05-4-1.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Finally, we can initialize and run the sampler!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">53</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>init <span class="ot">=</span> <span class="fu">list</span>()</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>init<span class="sc">$</span>mu <span class="ot">=</span> <span class="fl">0.0</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>post <span class="ot">=</span> <span class="fu">gibbs</span>(<span class="at">y=</span>y, <span class="at">n_iter=</span><span class="fl">1e3</span>, <span class="at">init=</span>init, <span class="at">prior=</span>prior)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(post)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            mu      sig2
+[1,] 0.3746992 1.5179144
+[2,] 0.4900277 0.8532821
+[3,] 0.2536817 1.4325174
+[4,] 1.1378504 1.2337821
+[5,] 1.0016641 0.8409815
+[6,] 1.1576873 0.7926196</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"coda"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">as.mcmc</span>(post))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="C2-L05_files/figure-html/C2-L05-7-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="C2-L05_files/figure-html/C2-L05-7-1.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">as.mcmc</span>(post))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Iterations = 1:1000
+Thinning interval = 1 
+Number of chains = 1 
+Sample size per chain = 1000 
+
+1. Empirical mean and standard deviation for each variable,
+   plus standard error of the mean:
+
+       Mean     SD Naive SE Time-series SE
+mu   0.9051 0.2868  0.00907        0.00907
+sig2 0.9282 0.5177  0.01637        0.01810
+
+2. Quantiles for each variable:
+
+       2.5%    25%    50%   75% 97.5%
+mu   0.3024 0.7244 0.9089 1.090 1.481
+sig2 0.3577 0.6084 0.8188 1.094 2.141</code></pre>
+</div>
+</div>
+<p>As with the Metropolis-Hastings example, these chains appear to have converged. In the next lesson, we will discuss convergence in more detail.</p>
+
+
+<!-- -->
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-geman1984" class="csl-entry" role="listitem">
+Geman, Stuart, and Donald Geman. 1984. <span>“Stochastic Relaxation, Gibbs Distributions, and the Bayesian Restoration of Images.”</span> <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em> PAMI-6 (6): 721–41. <a href="https://doi.org/10.1109/tpami.1984.4767596">https://doi.org/10.1109/tpami.1984.4767596</a>.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script type="text/javascript">
+
+// replace cmd keyboard shortcut w/ control on non-Mac platforms
+const kPlatformMac = typeof navigator !== 'undefined' ? /Mac/.test(navigator.platform) : false;
+if (!kPlatformMac) {
+   var kbds = document.querySelectorAll("kbd")
+   kbds.forEach(function(kbd) {
+      kbd.innerHTML = kbd.innerHTML.replace(/⌘/g, '⌃');
+   });
+}
+
+// tweak headings in pymd
+document.querySelectorAll(".pymd span.co").forEach(el => {
+   if (!el.innerText.startsWith("#|")) {
+      el.style.fontWeight = 1000;
+   }
+});
+
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
+        for (let i=0; i<annoteTargets.length; i++) {
+          const annoteTarget = annoteTargets[i];
+          const targetCell = annoteTarget.getAttribute("data-target-cell");
+          const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
+          const contentFn = () => {
+            const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+            if (content) {
+              const tipContent = content.cloneNode(true);
+              tipContent.classList.add("code-annotation-tip-content");
+              return tipContent.outerHTML;
+            }
+          }
+          const config = {
+            allowHTML: true,
+            content: contentFn,
+            onShow: (instance) => {
+              selectCodeLines(instance.reference);
+              instance.reference.classList.add('code-annotation-active');
+              window.tippy.hideAll();
+            },
+            onHide: (instance) => {
+              unselectCodeLines();
+              instance.reference.classList.remove('code-annotation-active');
+            },
+            maxWidth: 300,
+            delay: [50, 0],
+            duration: [200, 0],
+            offset: [5, 10],
+            arrow: true,
+            appendTo: function(el) {
+              return el.parentElement.parentElement.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'quarto',
+            placement: 'right',
+            popperOptions: {
+              modifiers: [
+              {
+                name: 'flip',
+                options: {
+                  flipVariations: false, // true by default
+                  allowedAutoPlacements: ['right'],
+                  fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
+                },
+              },
+              {
+                name: 'preventOverflow',
+                options: {
+                  mainAxis: false,
+                  altAxis: false
+                }
+              }
+              ]        
+            }      
+          };
+          window.tippy(annoteTarget, config); 
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./C2-L04-Ex1.html" class="pagination-link" aria-label="Homework on the Metropolis-Hastings algorithm - M2L4HW1">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Homework on the Metropolis-Hastings algorithm - M2L4HW1</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./C2-L05-Ex1.html" class="pagination-link" aria-label="Homework Gibbs-Sampling algorithm - M2L22HW1">
+        <span class="nav-page-text"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Homework Gibbs-Sampling algorithm - M2L22HW1</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb7" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Gibbs sampling - M2L5"</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Bayesian Statistics: Techniques and Models"</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "An introduction to the Gibbs sampling algorithm for sampling from complex probability distributions."</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">  - Monte Carlo Estimation</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="an">keywords:</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - Gibbs sampling</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">  - Markov Chain Monte Carlo</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">  - Full conditional distributions</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">  - Bayesian inference</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">  - MCMC</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">  - Conditional distributions</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co">  - Conjugate priors</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">  - Normal distribution</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co">  - Inverse gamma distribution</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co">  - Scaled inverse chi-square distribution</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co">  - R programming</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co">  - Statistical modeling</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co">  - Bayesian statistics  </span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>Gibbs sampling is a Gibbs sampling is named after the physicist Josiah Willard Gibbs, in reference to an analogy between the sampling algorithm and statistical physics. The algorithm was described in <span class="co">[</span><span class="ot">@geman1984</span><span class="co">]</span> by brothers *Stuart and Donald Geman*, and became popularized in the statistics community for calculating marginal probability distribution, especially the posterior distribution. Gibbs sampling is better suited for sampling from models with many variables by sampling them one at a time from a full conditional distribution.</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="al">![Gibbs sampler](images/c2l05-fig-01-Gibbs-sampler.jpg)</span>{ #fig-gibbs-sampler .column-margin group="slides" width="53mm"}</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="fu">### How does the Gibbs sampling simplify updating multiple parameters in MCMC?</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>It divides the process into updating one parameter at a time using (potentially convenient) full conditional distributions. The price we pay for this convenience is</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>the work required to find full conditional distributions and</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>the sampler may require more iterations to fully explore the posterior distribution as the draws tend to be more correlated since they share information in the form of parameters.</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>It is also possible to run a Gibbs sampler that draws from the "full" conditional distribution of multiple parameters. We would then cycle through and update blocks of parameters.</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a><span class="fu">### Multiple parameter sampling and full conditional distributions 🎥 {#sec-multiple-parameter-sampling}</span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a><span class="al">![Multiple parameter sampling and full conditional distributions](images/c2l05-ss-02-Multiple-parameter-sampling-and-full-conditional-distributions.png)</span>{#fig-multiple-parameter-sampling .column-margin group="slides" width="53mm"}</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>So far, we have demonstrated MCMC for a single parameter.</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>What if we seek the posterior distribution of multiple parameters, and that posterior distribution does not have a standard form?</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>One option is to perform Metropolis-Hastings (M-H) by sampling candidates for all parameters at once, and accepting or rejecting all of those candidates together. While this is possible, it can get complicated.</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>Another (simpler) option is to sample the parameters one at a time.</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>As a simple example, suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $\mathbb{P}r(\theta, \phi \mid y) \propto g(\theta, \phi)$. </span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>If we knew the value of $\phi$, then we would just draw a candidate for $\theta$ and use $g(\theta, \phi)$ to compute our Metropolis-Hastings ratio, and possibly accept the candidate. </span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>Before moving on to the next iteration, if we don't know $\phi$, then we can perform a similar update for it. </span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>Draw a candidate for $\phi$ using some proposal distribution and again use $g(\theta, \phi)$ to compute our Metropolis-Hastings ratio. </span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>Here we pretend we know the value of $\theta$ by substituting its current iteration from the Markov chain. </span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>Once we've drawn for both $\theta$ and $\phi$, that completes one iteration and we begin the next iteration by drawing a new $\theta$. </span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>In other words, we're just going back and forth, updating the parameters one at a time, plugging the current value of the other parameter into $g(\theta, \phi)$.</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>This idea of one-at-a-time updates is used in what we call *Gibbs sampling*, which also produces a stationary Markov chain (whose stationary distribution is the posterior). </span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>If you recall, this is the namesake of <span class="in">`JAGS`</span>, "just another Gibbs sampler."</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="fu">### Full conditional distributions</span></span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>Before describing the full **Gibbs sampling algorithm** \index{Gibbs sampling algorithm}, there's one more thing we can do. Using the chain rule of probability, we have</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\theta, \phi \mid y) = \mathbb{P}r(\theta \mid \phi, y) \cdot \mathbb{P}r(\phi \mid y)</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>Notice that the only difference between $\mathbb{P}r(\theta, \phi \mid y)$ and $\mathbb{P}r(\theta \mid \phi, y)$ is multiplication by a factor that doesn't involve $\theta$. Since the $g(\theta, \phi)$ function above, when viewed as a function of $\theta$ is proportional to both these expressions, we might as well have replaced it with $\mathbb{P}r(\theta \mid \phi, y)$ in our update for $\theta$.</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>This distribution $\mathbb{P}r(\theta \mid \phi, y)$ is called the **full conditional distribution** [**Full conditional distribution**]{.column-margin} for $\theta$. \index{distribution!full conditional }</span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>Why use $\mathbb{P}r(\theta \mid \phi, y)$ instead of $g(\theta, \phi)$?</span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>In some cases, the full conditional distribution is a standard distribution we know how to sample. If that happens, we no longer need to draw a candidate and decide whether to accept it. In fact, if we treat the full conditional distribution as a candidate proposal distribution, the resulting Metropolis-Hastings acceptance probability becomes exactly 1.</span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>Gibbs samplers require a little more work up front because you need to find the full conditional distribution for each parameter. The good news is that all full conditional distributions have the same starting point: the full joint posterior distribution. Using the example above, we have</span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\theta \mid \phi, y) \propto \mathbb{P}r(\theta, \phi \mid y)</span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a>where we simply now treat $\phi$ as a known number. Likewise, the other full conditional is $\mathbb{P}r(\phi \mid \theta, y) \propto \mathbb{P}r(\theta, \phi \mid y)$ where here, we consider $\theta$ to be a known number. We always start with the full posterior distribution. Thus, the process of finding full conditional distributions is the same as finding the posterior distribution of each parameter, pretending that all other parameters are known.</span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a><span class="fu">### Gibbs sampler</span></span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a>The idea of Gibbs sampling is that we can **update multiple parameters by sampling just one parameter at a time**, cycling through all parameters and repeating. To perform the update for one particular parameter, we substitute in the current values of all other parameters.</span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>Here is the algorithm. Suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $\mathbb{P}r(\theta, \phi \mid y)$. If we can find the distribution of each parameter at a time, i.e., $\mathbb{P}r(\theta \mid \phi, y)$ and $\mathbb{P}r(\phi \mid \theta, y)$, then we can take turns sampling these distributions like so:</span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Using $\phi_{i-1}$, draw $\theta_i$ from $\mathbb{P}r(\theta \mid \phi = \phi_{i-1}, y)$.</span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Using $\theta_i$, draw $\phi_i$ from $\mathbb{P}r(\phi \mid \theta = \theta_i, y)$.</span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a>Together, steps 1 and 2 complete one cycle of the Gibbs sampler and produce the draw for $(\theta_i, \phi_i)$ in one iteration of a MCMC sampler. If there are more than two parameters, we can handle that also. One Gibbs cycle would include an update for each of the parameters.</span>
+<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>In the following segments, we will provide a concrete example of finding full conditional distributions and constructing a Gibbs sampler.</span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conditionally conjugate prior example with Normal likelihood 🎥 {#sec-conditionally-conjugate-prior-with-normal-likelihood}</span></span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a><span class="fu">### Normal likelihood, unknown mean and variance</span></span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a><span class="al">![Normal likelihood, unknown mean and variance](images/c2l05-ss-03-conditionally-conjugate-prior-example-with-Normal-likelihood.png)</span>{#fig-normal-likelihood-unknown-mean-and-variance .column-margin group="slides" width="53mm"}</span>
+<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a><span class="al">![Normal likelihood conjugate prior](images/c2l05-ss-04-conditionally-conjugate-prior-example-with-Normal-likelihood.png)</span>{#fig-normal-likelihood-conjugate-prior .column-margin group="slides" width="53mm"}</span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a>Let's return to the example at the end of Lesson 2 where we have normal likelihood with unknown mean and unknown variance. The model is:</span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a>y_i \mid \mu, \sigma^2 &amp;\overset{\text{iid}}{\sim} \mathcal{N} ( \mu, \sigma^2 ), \quad i=1,\ldots,n <span class="sc">\\</span> </span>
+<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a>\mu &amp;\sim \mathcal{N}(\mu_0, \sigma_0^2) <span class="sc">\\</span> </span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a>\sigma^2 &amp;\sim \mathcal{IG}(\nu_0, \beta_0) </span>
+<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a>We chose a normal prior for $\mu$ because, in the case where $\sigma^2$ is known, the normal is the conjugate prior for $\mu$. Likewise, in the case where $\mu$ is known, the inverse-gamma is the conjugate prior for $\sigma^2$. This will give us convenient full conditional distributions in a Gibbs sampler.</span>
+<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a>Let's first work out the form of the full posterior distribution. When we begin analyzing data, the <span class="in">`JAGS`</span> software will complete this step for us. However, it is extremely valuable to see and understand how this works.</span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r( \mu, \sigma^2 \mid y_1, y_2, \ldots, y_n ) &amp;\propto</span>
+<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(y_1, y_2, \ldots, y_n \mid \mu, \sigma^2) \mathbb{P}r(\mu) \mathbb{P}r(\sigma^2) </span>
+<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp;= \prod_{i=1}^n \mathcal{N} ( y_i \mid \mu, \sigma^2 ) \times \mathcal{N}( \mu \mid \mu_0, \sigma_0^2) \times \mathcal{IG}(\sigma^2 \mid \nu_0, \beta_0) </span>
+<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp;= \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}}\exp \left<span class="co">[</span><span class="ot"> -\frac{(y_i - \mu)^2}{2\sigma^2} \right</span><span class="co">]</span> </span>
+<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp; \qquad \times\frac{1}{\sqrt{2\pi\sigma_0^2}} \exp \left<span class="co">[</span><span class="ot"> -\frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right</span><span class="co">]</span> </span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp; \qquad \times \frac{\beta_0^{\nu_0}}{\Gamma(\nu_0)}(\sigma^2)^{-(\nu_0 + 1)} \exp \left<span class="co">[</span><span class="ot"> -\frac{\beta_0}{\sigma^2} \right</span><span class="co">]</span> \mathbb{I}_{\sigma^2 &gt; 0}(\sigma^2) </span>
+<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp;\propto (\sigma^2)^{-n/2} \exp \left<span class="co">[</span><span class="ot"> -\frac{\sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} \right</span><span class="co">]</span> </span>
+<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp; \qquad \times \exp \left<span class="co">[</span><span class="ot"> -\frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right</span><span class="co">]</span> (\sigma^2)^{-(\nu_0 + 1)} </span>
+<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp; \qquad \times \exp \left<span class="co">[</span><span class="ot"> -\frac{\beta_0}{\sigma^2} \right</span><span class="co">]</span> \mathbb{I}_{\sigma^2 &gt; 0}(\sigma^2)</span>
+<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a>From here, it is easy to continue on to find the two full conditional distributions we need.</span>
+<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a>First let's look at $\mu$, assuming $\sigma^2$ is known (in which case it becomes a constant and is absorbed into the normalizing constant):</span>
+<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\mu \mid \sigma^2, y_1, \ldots, y_n) &amp;\propto \mathbb{P}r( \mu, \sigma^2 \mid y_1, \ldots, y_n ) </span>
+<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp;\propto \exp \left<span class="co">[</span><span class="ot"> -\frac{\sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} \right</span><span class="co">]</span> \exp \left<span class="co">[</span><span class="ot"> -\frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right</span><span class="co">]</span> </span>
+<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp;\propto \exp \left<span class="co">[</span><span class="ot"> -\frac{1}{2} \left( \frac{ \sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} + \frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right) \right</span><span class="co">]</span> </span>
+<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp;\propto \text{N} \left( \mu \mid \frac{n\bar{y}/\sigma^2 + \mu_0/\sigma_0^2}{n/\sigma^2 + 1/\sigma_0^2} \frac{1}{n/\sigma^2 + 1/\sigma_0^2} \right)</span>
+<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a>\end {aligned}</span>
+<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a>$$ {#eq-full-conditional-update-for-mean-derivation}</span>
+<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a>which we derived in the supplementary material of the last course. So, given the data and $\sigma^2$, $\mu$ follows this normal distribution.</span>
+<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a>Now let's look at $\sigma^2$, assuming $\mu$ is known:</span>
+<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(\sigma^2 \mid \mu, y_1, \ldots, y_n) &amp; \propto \mathbb{P}r( \mu, \sigma^2 \mid y_1, \ldots, y_n ) </span>
+<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp;\propto (\sigma^2)^{-n/2} \exp \left<span class="co">[</span><span class="ot"> -\frac{\sum_{i=1}^n (y_i - \mu)^2}{2\sigma^2} \right</span><span class="co">]</span> (\sigma^2)^{-(\nu_0 + 1)} \exp \left<span class="co">[</span><span class="ot"> -\frac{\beta_0}{\sigma^2} \right</span><span class="co">]</span> I_{\sigma^2 &gt; 0}(\sigma^2) </span>
+<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp;\propto (\sigma^2)^{-(\nu_0 + n/2 + 1)} \exp \left<span class="co">[</span><span class="ot"> -\frac{1}{\sigma^2} \left( \beta_0 + \frac{\sum_{i=1}^n (y_i - \mu)^2}{2} \right) \right</span><span class="co">]</span> I_{\sigma^2 &gt; 0}(\sigma^2) </span>
+<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a><span class="sc">\\</span> &amp;\propto \text{IG}\left( \sigma^2 \mid \nu_0 + \frac{n}{2}, \, \beta_0 + \frac{\sum_{i=1}^n (y_i - \mu)^2}{2} \right) </span>
+<span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a>$$ {#eq-full-conditional-update-for-variance-derivation}</span>
+<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a>These two distributions provide the basis of a Gibbs sampler to simulate from a Markov chain whose stationary distribution is the full posterior of both $\mu$ and $\sigma^2$. We simply alternate draws between these two parameters, using the most recent draw of one parameter to update the other.</span>
+<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a>We will do this in <span class="in">`R`</span> in the next segment.</span>
+<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a><span class="fu">## Computing example with Normal likelihood</span></span>
+<span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a>To implement the Gibbs sampler we just described, let's return to our running example where the data are the percent change in total personnel from last year to this year for $n=10$ companies. <span class="co">[</span><span class="ot">**Company personnel**</span><span class="co">]</span>{.column-margin} We'll still use a **normal likelihood**, but now we'll *relax the assumption that we know the variance of growth between companies*, $\sigma^2$, and estimate that variance. Instead of the $t$ prior from earlier, we will use the **conditionally conjugate priors**, normal for $\mu$ and inverse-gamma for $\sigma^2$.</span>
+<span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a>The first step will be to write functions to simulate from the full conditional distributions we derived in the previous segment. The full conditional for $\mu$, given $\sigma^2$ and data is</span>
+<span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a><span class="fu">### Conditionally conjugate priors for the mean 🎥 {#sec-conditionally-conjugate-priors-for-mean}</span></span>
+<span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-184"><a href="#cb7-184" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-185"><a href="#cb7-185" aria-hidden="true" tabindex="-1"></a>\text{N} \left( \mu \mid \frac{n\bar{y}/\sigma^2 + \mu_0/\sigma_0^2}{n/\sigma^2 + 1/\sigma_0^2}, \, \frac{1}{n/\sigma^2 + 1/\sigma_0^2} \right)</span>
+<span id="cb7-186"><a href="#cb7-186" aria-hidden="true" tabindex="-1"></a>$$ {#eq-full-conditional-update-for-mean}</span>
+<span id="cb7-187"><a href="#cb7-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-190"><a href="#cb7-190" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-191"><a href="#cb7-191" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L05-1</span></span>
+<span id="cb7-192"><a href="#cb7-192" aria-hidden="true" tabindex="-1"></a><span class="co">#' update_mu</span></span>
+<span id="cb7-193"><a href="#cb7-193" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb7-194"><a href="#cb7-194" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param n - sample size</span></span>
+<span id="cb7-195"><a href="#cb7-195" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param ybar - sample mean</span></span>
+<span id="cb7-196"><a href="#cb7-196" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param sig2 - current sigma squared</span></span>
+<span id="cb7-197"><a href="#cb7-197" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param mu_0 - mean hyper-parameter</span></span>
+<span id="cb7-198"><a href="#cb7-198" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param sig2_0 - variance  hyper-parameter</span></span>
+<span id="cb7-199"><a href="#cb7-199" aria-hidden="true" tabindex="-1"></a><span class="co">#' </span></span>
+<span id="cb7-200"><a href="#cb7-200" aria-hidden="true" tabindex="-1"></a><span class="co">#' @output - updated  value for mu the mean</span></span>
+<span id="cb7-201"><a href="#cb7-201" aria-hidden="true" tabindex="-1"></a>update_mu <span class="ot">=</span> <span class="cf">function</span>(n, ybar, sig2, mu_0, sig2_0) {   <span class="co"># &lt;1&gt;</span></span>
+<span id="cb7-202"><a href="#cb7-202" aria-hidden="true" tabindex="-1"></a>  sig2_1 <span class="ot">=</span> <span class="fl">1.0</span> <span class="sc">/</span> (n <span class="sc">/</span> sig2 <span class="sc">+</span> <span class="fl">1.0</span> <span class="sc">/</span> sig2_0)            <span class="co"># &lt;2&gt;</span></span>
+<span id="cb7-203"><a href="#cb7-203" aria-hidden="true" tabindex="-1"></a>  mu_1 <span class="ot">=</span> sig2_1 <span class="sc">*</span> (n <span class="sc">*</span> ybar <span class="sc">/</span> sig2 <span class="sc">+</span> mu_0 <span class="sc">/</span> sig2_0)   <span class="co"># &lt;3&gt;</span></span>
+<span id="cb7-204"><a href="#cb7-204" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rnorm</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">mean=</span>mu_1, <span class="at">sd=</span><span class="fu">sqrt</span>(sig2_1))              <span class="co"># &lt;4&gt;</span></span>
+<span id="cb7-205"><a href="#cb7-205" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-206"><a href="#cb7-206" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-207"><a href="#cb7-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-208"><a href="#cb7-208" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>we don't need the data <span class="in">`y`</span></span>
+<span id="cb7-209"><a href="#cb7-209" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>where: <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> <span class="in">`sig2_1`</span> is $\sigma^2_1$ the right term in @eq-full-conditional-update-for-mean <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> <span class="in">`sig2`</span> is the current $\sigma_2$ which we update in <span class="in">`update_sigma`</span> below using @eq-full-conditional-update-for-variance <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> <span class="in">`sig2_0`</span> is the hyper parameter for $\sigma^2_0$</span>
+<span id="cb7-210"><a href="#cb7-210" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span><span class="in">`mu_1`</span> is $\sigma^2_1$ the left term in @eq-full-conditional-update-for-mean which uses <span class="in">`sig2_1`</span> we just computed</span>
+<span id="cb7-211"><a href="#cb7-211" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>we now draw from the a $N(\mu_1,\sigma_1^2)$ for <span class="in">`update_sig2`</span> and the <span class="in">`trace`</span>.</span>
+<span id="cb7-212"><a href="#cb7-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-213"><a href="#cb7-213" aria-hidden="true" tabindex="-1"></a><span class="fu">### conditionally conjugate priors for the variance</span></span>
+<span id="cb7-214"><a href="#cb7-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-215"><a href="#cb7-215" aria-hidden="true" tabindex="-1"></a>The full conditional for $\sigma^2$ given $\mu$ and data is</span>
+<span id="cb7-216"><a href="#cb7-216" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-217"><a href="#cb7-217" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-218"><a href="#cb7-218" aria-hidden="true" tabindex="-1"></a>\text{IG}\left( \sigma^2 \mid \nu_0 + \frac{n}{2}, \, \beta_0 + \frac{\sum_{i=1}^n (y_i - \mu)^2}{2} \right)</span>
+<span id="cb7-219"><a href="#cb7-219" aria-hidden="true" tabindex="-1"></a>$$ {#eq-full-conditional-update-for-variance}</span>
+<span id="cb7-220"><a href="#cb7-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-223"><a href="#cb7-223" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-224"><a href="#cb7-224" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L05-2</span></span>
+<span id="cb7-225"><a href="#cb7-225" aria-hidden="true" tabindex="-1"></a><span class="co">#' update_sig2</span></span>
+<span id="cb7-226"><a href="#cb7-226" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb7-227"><a href="#cb7-227" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param n - sample size</span></span>
+<span id="cb7-228"><a href="#cb7-228" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param y - the data</span></span>
+<span id="cb7-229"><a href="#cb7-229" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param nu_0 - nu hyper-parameter</span></span>
+<span id="cb7-230"><a href="#cb7-230" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param beta_0 - beta hyper-parameter</span></span>
+<span id="cb7-231"><a href="#cb7-231" aria-hidden="true" tabindex="-1"></a><span class="co">#' </span></span>
+<span id="cb7-232"><a href="#cb7-232" aria-hidden="true" tabindex="-1"></a><span class="co">#' @output - updated  value for sigma2 the variance</span></span>
+<span id="cb7-233"><a href="#cb7-233" aria-hidden="true" tabindex="-1"></a>update_sig2 <span class="ot">=</span> <span class="cf">function</span>(n, y, mu, nu_0, beta_0) {   <span class="co"># &lt;1&gt;</span></span>
+<span id="cb7-234"><a href="#cb7-234" aria-hidden="true" tabindex="-1"></a>  nu_1 <span class="ot">=</span> nu_0 <span class="sc">+</span> n <span class="sc">/</span> <span class="fl">2.0</span>                            <span class="co"># &lt;2&gt;</span></span>
+<span id="cb7-235"><a href="#cb7-235" aria-hidden="true" tabindex="-1"></a>  sumsq <span class="ot">=</span> <span class="fu">sum</span>( (y <span class="sc">-</span> mu)<span class="sc">^</span><span class="dv">2</span> )                        <span class="co"># &lt;3&gt;</span></span>
+<span id="cb7-236"><a href="#cb7-236" aria-hidden="true" tabindex="-1"></a>  beta_1 <span class="ot">=</span> beta_0 <span class="sc">+</span> sumsq <span class="sc">/</span> <span class="fl">2.0</span>                    <span class="co"># &lt;4&gt;</span></span>
+<span id="cb7-237"><a href="#cb7-237" aria-hidden="true" tabindex="-1"></a>  out_gamma <span class="ot">=</span> <span class="fu">rgamma</span>(<span class="at">n=</span><span class="dv">1</span>, <span class="at">shape=</span>nu_1, <span class="at">rate=</span>beta_1) <span class="co"># &lt;5&gt; </span></span>
+<span id="cb7-238"><a href="#cb7-238" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.0</span> <span class="sc">/</span> out_gamma <span class="co"># &lt;6&gt; </span></span>
+<span id="cb7-239"><a href="#cb7-239" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-240"><a href="#cb7-240" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-241"><a href="#cb7-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-242"><a href="#cb7-242" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>we need the data to update beta</span>
+<span id="cb7-243"><a href="#cb7-243" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span><span class="in">`nu_1`</span> the left term in @eq-full-conditional-update-for-variance</span>
+<span id="cb7-244"><a href="#cb7-244" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>vectorized</span>
+<span id="cb7-245"><a href="#cb7-245" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span><span class="in">`beta_1`</span> the right term in @eq-full-conditional-update-for-variance</span>
+<span id="cb7-246"><a href="#cb7-246" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>draw a gamma sample with updated <span class="in">`rate`</span> for $\text{Gamma}()$ is <span class="in">`shape`</span> for $\text{IG}()$ inv-gamma</span>
+<span id="cb7-247"><a href="#cb7-247" aria-hidden="true" tabindex="-1"></a><span class="ss">6.  </span>since there is no <span class="in">`rinvgamma`</span> in <span class="in">`R`</span> we use the reciprocal of a gamma random variable which is distributed inv-gamma</span>
+<span id="cb7-248"><a href="#cb7-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-249"><a href="#cb7-249" aria-hidden="true" tabindex="-1"></a>With functions for drawing from the full conditionals, we are ready to write a function to perform Gibbs sampling.</span>
+<span id="cb7-250"><a href="#cb7-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-251"><a href="#cb7-251" aria-hidden="true" tabindex="-1"></a><span class="fu">### Gibbs sampler in `R`</span></span>
+<span id="cb7-252"><a href="#cb7-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-255"><a href="#cb7-255" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-256"><a href="#cb7-256" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L05-3</span></span>
+<span id="cb7-257"><a href="#cb7-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-258"><a href="#cb7-258" aria-hidden="true" tabindex="-1"></a>gibbs <span class="ot">=</span> <span class="cf">function</span>(y, n_iter, init, prior) {</span>
+<span id="cb7-259"><a href="#cb7-259" aria-hidden="true" tabindex="-1"></a>  ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
+<span id="cb7-260"><a href="#cb7-260" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
+<span id="cb7-261"><a href="#cb7-261" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-262"><a href="#cb7-262" aria-hidden="true" tabindex="-1"></a>  <span class="do">## initialize</span></span>
+<span id="cb7-263"><a href="#cb7-263" aria-hidden="true" tabindex="-1"></a>  mu_out <span class="ot">=</span> <span class="fu">numeric</span>(n_iter)</span>
+<span id="cb7-264"><a href="#cb7-264" aria-hidden="true" tabindex="-1"></a>  sig2_out <span class="ot">=</span> <span class="fu">numeric</span>(n_iter)</span>
+<span id="cb7-265"><a href="#cb7-265" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-266"><a href="#cb7-266" aria-hidden="true" tabindex="-1"></a>  mu_now <span class="ot">=</span> init<span class="sc">$</span>mu</span>
+<span id="cb7-267"><a href="#cb7-267" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-268"><a href="#cb7-268" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Gibbs sampler</span></span>
+<span id="cb7-269"><a href="#cb7-269" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_iter) {</span>
+<span id="cb7-270"><a href="#cb7-270" aria-hidden="true" tabindex="-1"></a>    sig2_now <span class="ot">=</span> <span class="fu">update_sig2</span>(<span class="at">n=</span>n, <span class="at">y=</span>y, <span class="at">mu=</span>mu_now, <span class="at">nu_0=</span>prior<span class="sc">$</span>nu_0, <span class="at">beta_0=</span>prior<span class="sc">$</span>beta_0)</span>
+<span id="cb7-271"><a href="#cb7-271" aria-hidden="true" tabindex="-1"></a>    mu_now <span class="ot">=</span> <span class="fu">update_mu</span>(<span class="at">n=</span>n, <span class="at">ybar=</span>ybar, <span class="at">sig2=</span>sig2_now, <span class="at">mu_0=</span>prior<span class="sc">$</span>mu_0, <span class="at">sig2_0=</span>prior<span class="sc">$</span>sig2_0)</span>
+<span id="cb7-272"><a href="#cb7-272" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-273"><a href="#cb7-273" aria-hidden="true" tabindex="-1"></a>    sig2_out[i] <span class="ot">=</span> sig2_now</span>
+<span id="cb7-274"><a href="#cb7-274" aria-hidden="true" tabindex="-1"></a>    mu_out[i] <span class="ot">=</span> mu_now</span>
+<span id="cb7-275"><a href="#cb7-275" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-276"><a href="#cb7-276" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-277"><a href="#cb7-277" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="at">mu=</span>mu_out, <span class="at">sig2=</span>sig2_out) <span class="co"># &lt;1&gt;</span></span>
+<span id="cb7-278"><a href="#cb7-278" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-279"><a href="#cb7-279" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-280"><a href="#cb7-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-281"><a href="#cb7-281" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span><span class="in">`cbind`</span> for column bind will take a lists of list and convert them into a matrix of collumns.</span>
+<span id="cb7-282"><a href="#cb7-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-283"><a href="#cb7-283" aria-hidden="true" tabindex="-1"></a>Now we are ready to set up the problem in <span class="in">`R`</span>.</span>
+<span id="cb7-284"><a href="#cb7-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-285"><a href="#cb7-285" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-286"><a href="#cb7-286" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb7-287"><a href="#cb7-287" aria-hidden="true" tabindex="-1"></a>  y_i \mid \mu, \sigma &amp;\stackrel {iid} \sim \mathcal{N}(\mu,\sigma^2), \quad i=1,\ldots,n</span>
+<span id="cb7-288"><a href="#cb7-288" aria-hidden="true" tabindex="-1"></a>  <span class="sc">\\</span> \mu &amp;\sim \mathcal{N}(\mu_0,\sigma^2_0)</span>
+<span id="cb7-289"><a href="#cb7-289" aria-hidden="true" tabindex="-1"></a>  <span class="sc">\\</span> \sigma^2 &amp; \sim \mathcal{IG}(\nu,\beta_0)</span>
+<span id="cb7-290"><a href="#cb7-290" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb7-291"><a href="#cb7-291" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gibbs-sampler-model-summary}</span>
+<span id="cb7-292"><a href="#cb7-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-293"><a href="#cb7-293" aria-hidden="true" tabindex="-1"></a>\index{MCMC!effective sample size}</span>
+<span id="cb7-294"><a href="#cb7-294" aria-hidden="true" tabindex="-1"></a>We also need to create the prior hyperparameters for $\sigma^2$, $\nu_0$ and $\beta_0$. If we chose these hyperperameters carefully, they are interpretable as a prior guess for sigma squared, as well as a prior effective sample size to go with that guess.</span>
+<span id="cb7-295"><a href="#cb7-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-296"><a href="#cb7-296" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-297"><a href="#cb7-297" aria-hidden="true" tabindex="-1"></a>The prior effective sample size. Which we'll call $n_0$, is two times this $\nu_0$ parameter. So in other words, the nu parameter will be the prior sample size Divided by 2. We're also going to create an initial guess for sigma squared, let's call it $s^2_0$. The relationship between $\beta_0$ and these two numbers is the following: It is the prior sample size times the prior guess divided by 2.</span>
+<span id="cb7-298"><a href="#cb7-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-299"><a href="#cb7-299" aria-hidden="true" tabindex="-1"></a>This particular parameterization of the *Inverse gamma* distribution is called the **Scaled Inverse Chi Square Distribution**, where the two parameters are $n_0$ and $s^2_0$.</span>
+<span id="cb7-300"><a href="#cb7-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-303"><a href="#cb7-303" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-304"><a href="#cb7-304" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L05-4</span></span>
+<span id="cb7-305"><a href="#cb7-305" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">1.2</span>, <span class="fl">1.4</span>, <span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.9</span>, <span class="fl">2.3</span>, <span class="fl">1.0</span>, <span class="fl">0.1</span>, <span class="fl">1.3</span>, <span class="fl">1.9</span>) <span class="co"># &lt;1&gt;</span></span>
+<span id="cb7-306"><a href="#cb7-306" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">=</span> <span class="fu">mean</span>(y)</span>
+<span id="cb7-307"><a href="#cb7-307" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">length</span>(y)</span>
+<span id="cb7-308"><a href="#cb7-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-309"><a href="#cb7-309" aria-hidden="true" tabindex="-1"></a><span class="do">## prior</span></span>
+<span id="cb7-310"><a href="#cb7-310" aria-hidden="true" tabindex="-1"></a>prior <span class="ot">=</span> <span class="fu">list</span>()</span>
+<span id="cb7-311"><a href="#cb7-311" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>mu_0 <span class="ot">=</span> <span class="fl">0.0</span></span>
+<span id="cb7-312"><a href="#cb7-312" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>sig2_0 <span class="ot">=</span> <span class="fl">1.0</span></span>
+<span id="cb7-313"><a href="#cb7-313" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>n_0 <span class="ot">=</span> <span class="fl">2.0</span> <span class="co"># prior effective sample size for sig2</span></span>
+<span id="cb7-314"><a href="#cb7-314" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>s2_0 <span class="ot">=</span> <span class="fl">1.0</span> <span class="co"># prior point estimate for sig2</span></span>
+<span id="cb7-315"><a href="#cb7-315" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>nu_0 <span class="ot">=</span> prior<span class="sc">$</span>n_0 <span class="sc">/</span> <span class="fl">2.0</span> <span class="co"># prior parameter for inverse-gamma</span></span>
+<span id="cb7-316"><a href="#cb7-316" aria-hidden="true" tabindex="-1"></a>prior<span class="sc">$</span>beta_0 <span class="ot">=</span> prior<span class="sc">$</span>n_0 <span class="sc">*</span> prior<span class="sc">$</span>s2_0 <span class="sc">/</span> <span class="fl">2.0</span> <span class="co"># prior parameter for inverse-gamma</span></span>
+<span id="cb7-317"><a href="#cb7-317" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-318"><a href="#cb7-318" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(y, <span class="at">freq=</span><span class="cn">FALSE</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.0</span>, <span class="fl">3.0</span>)) <span class="co"># histogram of the data</span></span>
+<span id="cb7-319"><a href="#cb7-319" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(<span class="fu">dnorm</span>(<span class="at">x=</span>x, <span class="at">mean =</span> prior<span class="sc">$</span>mu_0, <span class="at">sd=</span><span class="fu">sqrt</span>(prior<span class="sc">$</span>sig2_0)), <span class="at">lty=</span><span class="dv">2</span>, <span class="at">add=</span><span class="cn">TRUE</span>) <span class="co"># prior for mu</span></span>
+<span id="cb7-320"><a href="#cb7-320" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(y, <span class="fu">rep</span>(<span class="dv">0</span>,n), <span class="at">pch=</span><span class="dv">1</span>) <span class="co"># individual data points</span></span>
+<span id="cb7-321"><a href="#cb7-321" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(ybar, <span class="dv">0</span>, <span class="at">pch=</span><span class="dv">19</span>) <span class="co"># sample mean</span></span>
+<span id="cb7-322"><a href="#cb7-322" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-323"><a href="#cb7-323" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-324"><a href="#cb7-324" aria-hidden="true" tabindex="-1"></a>Finally, we can initialize and run the sampler!</span>
+<span id="cb7-325"><a href="#cb7-325" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-328"><a href="#cb7-328" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-329"><a href="#cb7-329" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L05-5</span></span>
+<span id="cb7-330"><a href="#cb7-330" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">53</span>)</span>
+<span id="cb7-331"><a href="#cb7-331" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-332"><a href="#cb7-332" aria-hidden="true" tabindex="-1"></a>init <span class="ot">=</span> <span class="fu">list</span>()</span>
+<span id="cb7-333"><a href="#cb7-333" aria-hidden="true" tabindex="-1"></a>init<span class="sc">$</span>mu <span class="ot">=</span> <span class="fl">0.0</span></span>
+<span id="cb7-334"><a href="#cb7-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-335"><a href="#cb7-335" aria-hidden="true" tabindex="-1"></a>post <span class="ot">=</span> <span class="fu">gibbs</span>(<span class="at">y=</span>y, <span class="at">n_iter=</span><span class="fl">1e3</span>, <span class="at">init=</span>init, <span class="at">prior=</span>prior)</span>
+<span id="cb7-336"><a href="#cb7-336" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-337"><a href="#cb7-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-340"><a href="#cb7-340" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-341"><a href="#cb7-341" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L05-6</span></span>
+<span id="cb7-342"><a href="#cb7-342" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(post)</span>
+<span id="cb7-343"><a href="#cb7-343" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-344"><a href="#cb7-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-347"><a href="#cb7-347" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-348"><a href="#cb7-348" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L05-7</span></span>
+<span id="cb7-349"><a href="#cb7-349" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"coda"</span>)</span>
+<span id="cb7-350"><a href="#cb7-350" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">as.mcmc</span>(post))</span>
+<span id="cb7-351"><a href="#cb7-351" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-352"><a href="#cb7-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-355"><a href="#cb7-355" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-356"><a href="#cb7-356" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: C2-L05-8</span></span>
+<span id="cb7-357"><a href="#cb7-357" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">as.mcmc</span>(post))</span>
+<span id="cb7-358"><a href="#cb7-358" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-359"><a href="#cb7-359" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-360"><a href="#cb7-360" aria-hidden="true" tabindex="-1"></a>As with the Metropolis-Hastings example, these chains appear to have converged. In the next lesson, we will discuss convergence in more detail.</span>
+</code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"fade","descPosition":"bottom","loop":true,"openEffect":"fade","selector":".lightbox","skin":"my-css-class"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
