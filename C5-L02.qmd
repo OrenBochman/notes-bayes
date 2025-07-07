@@ -36,16 +36,16 @@ To fit an *AR(p)* model to real data we need to determine the order $p$ of the A
 
 One approach is to treat this as a model selection problem [model selection problem]{.column-margin}, where we want to select the model with the best fit from multiple candidate models with different orders $p$.
 
-\index{AR(p)!AIC} \index{AR(p)!BIC}
-One possible way is to repeat the analysis for different values of model order $p$ and choose the best model based on some criteria. The two most widely known criteria are the so-called Akaike information criteria, AIC and the Bayesian Information criteria, BIC.
+\index{AR(p)!AIC} \index{AR(p)!BIC} 
+One possible way is to repeat the analysis for different values of model order $p$ and choose the best model based on some criteria. The two most widely known criteria are the so-called *Akaike information criteria*, *AIC* and the *Bayesian Information criteria*, *BIC*.
 
 
 ::: {.callout-note collapse="true"}
-## Is P a parameter of Hyper Parameter
+## Overthinking: Is P a parameter of Hyper Parameter?
 
-Note: I have pointed out before that while we can approach estimating the the number of component of a Mixture or the order of an AR(p) process as a hyperparameter tuning problem which involves training multiple models and using model selection criteria to pick the best one.  Seems intuitive but is this the best way to do it?
+Note: I have pointed out before that while we can approach estimating the the number of component of a Mixture or the order of an AR(p) process as a hyperparameter tuning problem which involves training multiple models and using model selection criteria to pick the best one. Seems intuitive but is this the best way to do it?
 
-Another approach might be to incorporate the number of components or the order of the AR process as a random variable in our model, and then use Bayesian inference to estimate its posterior distribution. This way we can avoid the need for model selection criteria and instead directly estimate the uncertainty around the number of components or the order of the AR process. I think this is also more or less how this is handled in bayesian switching models, where the number of different phases (stats) in the time series is treated as a random variable and the model is trained to infer the number of phases and their characteristics. C.f. [@davidson2015bayesian chapter 2] where this is called switchpoint detection or change point analysis
+Another approach might be to incorporate the number of components or the order of the AR process as a random variable in our model, and then use Bayesian inference to estimate its posterior distribution. This way we can avoid the need for model selection criteria and instead directly estimate the uncertainty around the number of components or the order of the AR process. I think this is also more or less how this is handled in bayesian switching models, where the number of different phases (stats) in the time series is treated as a random variable and the model is trained to infer the number of phases and their characteristics. C.f. [@davidson2015bayesian chapter 2] where this is called switch point detection or change point analysis
 
 :::
 
@@ -97,10 +97,12 @@ pacf(y.sample,main="",xlab='Lag')
 ### Calculate AIC and BIC
 
 For our case, we fix  $p^∗=15$ as the maximum order of the AR process. The AIC and BIC are calculated for different values of $p$ where $1≤p≤p^∗=15$.
+
 $$
 T=100
 $$
-we will use the latter 85 observations for the analysis. We plot both AIC and BIC for different values of $p$ where $1≤p≤p^∗=15$ as follows:
+
+we will use the latter 85 observations for the analysis. We plot both *AIC* and *BIC* for different values of $p$ where $1≤p≤p^∗=15$ as follows:
 
 
 ```{r}
@@ -141,7 +143,202 @@ plot(p,criteria[1,],type='p',pch='a',col='red',xlab='AR order p',ylab='Criterion
 points(p,criteria[2,],pch='b',col='blue')
 ```
 
-Since for AIC and BIC criteria, we both prefer model with smallest criterion, from the plot we will use $p=2$ which is the same as the order we used to simulate the data.
+Since for *AIC* and *BIC* criteria, we both prefer model with smallest criterion, from the plot we will use $p=2$ which is the same as the order we used to simulate the data.
 
-## Deviance information criterion (DIC) {#sec-dic}
 
+## Deviance information criterion (DIC) 🎥
+
+![DIC](images/C5-L02-sl12.png){#fig-capstone-DIC .column-margin group="slides" width="53mm"}
+
+DIC is a somewhat Bayesian version of $AIC$. 
+We will use *DIC* later to determine the number of mixture component after introducing the mixture AR model for time series. 
+
+Suppose we have some data y and we assume y is generated from some distribution, as follows:
+
+
+$$
+y\sim \mathbb{P}r(y\mid \theta) \qquad y \sim \mathcal{N}(F^\top \boldsymbol{\phi},\nu\mathbf{I}),
+$$
+
+The general formula for calculating DIC arises from the modal estimation of expected log density, defined as $\widehat{elpd}_{DIC}$
+
+expected loss density function (elpd) which is given by:
+$$
+\widehat{elpd}_{DIC} = log(p(y\mid \hat{\theta}_{Bayes}))- P_{DIC}
+$$
+
+where $\hat{\theta}_{Bayes}$ is the posterior mean of $\theta$ given $y$, defined as:
+
+$$
+\hat{\theta}_{Bayes} = \mathbb{E}[\theta \mid y]
+$$
+
+and $P_{DIC}$ is the effective number of parameters, which is defined as:
+$$
+P_{DIC} = 2 \log(Pr(y\mid \hat{\theta}_{Bayes})) - \mathbb{E}_{post} \log(Pr(y \mid \hat{\theta})) 
+$$
+
+This expectation is an average of $\theta$ taken over the posterior distribution. This posterior distribution does not in general have a closed form solution. However, we can approximate it using Monte Carlo sampling, i.e. we can use posterior samples $\hat{\theta}^{(s)}$ to approximate the expectation as follows:
+
+$$
+\text{For samples } \theta^{(s)}: S=1...s
+$$
+
+$$
+\text{Computed } P_{DIC} = 2 \log(\mathbb{P}r(y\mid \hat{\theta}_{Bayes})) - \frac{1}{S}\sum_{s=1}^{S} \log(\mathbb{P}r(y\mid \hat{\theta}^{(s)}))
+$$
+
+
+$$
+DIC = -2\log(\mathbb{P}r(y\mid \hat{\theta}_{Bayes})) + 2P_{DIC}
+$$
+
+*DIC* is a modal comparison criteria, its value may not be very useful by itself. But later on when we also compute the assay for serum mixture models, we can compare the *DIC* value for every model and select the best model by choosing the model with the smallest DIC.
+
+## DIC Example 📖 ℛ {#sec-dic-example}
+
+### Simulate Data
+
+
+We use the same simulated data as an example to illustrate how we can compute DIC in R. That is, we simulate 100 observations from
+
+$$
+y_t=0.5y_{t-1}+0.4y_{t-2}+\epsilon_t,\quad \epsilon_t\sim N(0,0.1^2)
+$$
+
+```{r}
+#| label: fig-capstone-dic-simulate-data
+
+## simulate data
+
+
+set.seed(1)
+AR.model = list(order = c(2, 0, 0), ar = c(0.5,0.4))
+y.sample = arima.sim(n=100,model=AR.model,sd=0.1)
+
+
+plot(y.sample,type='l',xlab='time',ylab='')
+```
+
+Posterior Inference
+From previous analysis, we already know we should fit an AR(2) model to the data. Using the Bayesian conjugate analysis of AR model learned from the first module, we fit AR(2) model with prior
+$$
+m_0 = (0, 0)^T, \quad C_0 = I_2, \quad n_0 = 2, \quad d_0 = 2
+$$
+
+We obtain 5000 posterior samples and plot their empirical distribution as follows.
+
+
+```{r}
+#| label: fig-capstone-dic-posterior-inference
+library(mvtnorm)
+
+
+n.all=length(y.sample)
+p=2
+m0=matrix(rep(0,p),ncol=1)
+C0=diag(p)
+n0=2
+d0=2
+
+Y=matrix(y.sample[3:n.all],ncol=1)
+Fmtx=matrix(c(y.sample[2:(n.all-1)],y.sample[1:(n.all-2)]),nrow=p,byrow=TRUE)
+n=length(Y)
+
+e=Y-t(Fmtx)%*%m0
+Q=t(Fmtx)%*%C0%*%Fmtx+diag(n)
+Q.inv=chol2inv(chol(Q))
+A=C0%*%Fmtx%*%Q.inv
+m=m0+A%*%e
+C=C0-A%*%Q%*%t(A)
+n.star=n+n0
+d.star=t(Y-t(Fmtx)%*%m0)%*%Q.inv%*%(Y-t(Fmtx)%*%m0)+d0
+
+n.sample=5000
+
+
+nu.sample=rep(0,n.sample)
+phi.sample=matrix(0,nrow=n.sample,ncol=p)
+
+
+for (i in 1:n.sample) {
+  set.seed(i)
+  nu.new=1/rgamma(1,shape=n.star/2,rate=d.star/2)
+  nu.sample[i]=nu.new
+  phi.new=rmvnorm(1,mean=m,sigma=nu.new*C)
+  phi.sample[i,]=phi.new
+}
+
+
+par(mfrow=c(1,3))
+hist(phi.sample[,1],freq=FALSE,xlab=expression(phi[1]),main="")
+lines(density(phi.sample[,1]),type='l',col='red')
+hist(phi.sample[,2],freq=FALSE,xlab=expression(phi[2]),main="")
+lines(density(phi.sample[,2]),type='l',col='red')
+hist(nu.sample,freq=FALSE,xlab=expression(nu),main="")
+lines(density(nu.sample),type='l',col='red')
+```
+
+### Calculate DIC
+
+
+Now using the formula for DIC, we first need to compute 
+$\log p(y\mid \hat{\theta}_{Bayes})$ . 
+In our example, this is 
+
+$$
+\sum_{t=p+1}^{T} \log(N(y_t \mid f_t^T \phi_{Bayes}, \nu_{Bayes}))
+$$ {#sec-capstone-dic-log-py}
+
+which can be computed as follows:
+
+```{r}
+#| label: lst-capstone-dic-log-py
+
+cal_log_likelihood=function(phi,nu){
+  mu.y=t(Fmtx)%*%phi
+  log.lik=sapply(1:length(mu.y), function(k){dnorm(Y[k,1],mu.y[k],sqrt(nu),log=TRUE)})
+  sum(log.lik)
+}
+
+
+phi.bayes=colMeans(phi.sample)
+nu.bayes=mean(nu.sample)
+
+
+log.lik.bayes=cal_log_likelihood(phi.bayes,nu.bayes)
+cat("log.lik.bayes=",log.lik.bayes,"\n")
+```
+
+Then, to calculate $p_{DIC}$, we need to calculate 
+
+$$
+\frac{1}{S}\sum_{s=1}^{S}\log p(y\mid \hat{\theta}^{(s)})
+$$
+
+which in our case is 
+
+$$
+\frac{1}{S}\sum_{s=1}^{S}\sum_{t=p+1}^{T}\log(N(y_t\mid f_t^T\phi^{(s)},\nu^{(s)}))
+$$
+
+It can be calculated by the following code:
+
+```{r}
+#| label: lst-capstone-dic-pd
+post.log.lik=sapply(1:5000, function(k){cal_log_likelihood(phi.sample[k,],nu.sample[k])})
+E.post.log.lik=mean(post.log.lik)
+
+
+p_DIC=2*(log.lik.bayes-E.post.log.lik)
+cat("p_DIC=",p_DIC,"\n")
+```
+
+Now, using the formula for DIC, we can finally compute it. The value of DIC may not make sense now. It will be useful later when we compute DIC for mixture models and select the best model among them.
+
+
+```{r}
+#| label: lst-capstone-dic-dic
+DIC=-2*log.lik.bayes+2*p_DIC
+cat("DIC=",DIC,"\n")
+```

@@ -1240,7 +1240,12 @@ window.Quarto = {
   <li><a href="#simulate-data" id="toc-simulate-data" class="nav-link" data-scroll-target="#simulate-data"><span class="header-section-number">102.2.1</span> Simulate Data</a></li>
   <li><a href="#calculate-aic-and-bic" id="toc-calculate-aic-and-bic" class="nav-link" data-scroll-target="#calculate-aic-and-bic"><span class="header-section-number">102.2.2</span> Calculate AIC and BIC</a></li>
   </ul></li>
-  <li><a href="#sec-dic" id="toc-sec-dic" class="nav-link" data-scroll-target="#sec-dic"><span class="header-section-number">102.3</span> Deviance information criterion (DIC)</a></li>
+  <li><a href="#deviance-information-criterion-dic" id="toc-deviance-information-criterion-dic" class="nav-link" data-scroll-target="#deviance-information-criterion-dic"><span class="header-section-number">102.3</span> Deviance information criterion (DIC) 🎥</a></li>
+  <li><a href="#sec-dic-example" id="toc-sec-dic-example" class="nav-link" data-scroll-target="#sec-dic-example"><span class="header-section-number">102.4</span> DIC Example 📖 ℛ</a>
+  <ul class="collapse">
+  <li><a href="#simulate-data-1" id="toc-simulate-data-1" class="nav-link" data-scroll-target="#simulate-data-1"><span class="header-section-number">102.4.1</span> Simulate Data</a></li>
+  <li><a href="#calculate-dic" id="toc-calculate-dic" class="nav-link" data-scroll-target="#calculate-dic"><span class="header-section-number">102.4.2</span> Calculate DIC</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1289,21 +1294,21 @@ Figure&nbsp;102.1: AIC and BIC
 </div></div><p>Note: we have already covered Akaike information criteria (AIC) and Bayesian information criteria (BIC) a few times in this specialization. In <a href="C3-L09.html#sec-mixtures-BIC" class="quarto-xref"><span>Section 81.1</span></a> we discussed how to use BIC to select the number of components in a mixture model. In <a href="#sec-aic-bic" class="quarto-xref"><span>Section 102.1</span></a> we will see how to use AIC and BIC to select the order of an AR process. In <a href="C4-L05.html#sec-arp-order-selection" class="quarto-xref"><span>Section 90.3</span></a> we discussed how to use BIC to select the order of an AR process.</p>
 <p>To fit an <em>AR(p)</em> model to real data we need to determine the order <span class="math inline">p</span> of the AR process.</p>
 <div class="page-columns page-full"><p>One approach is to treat this as a model selection problem , where we want to select the model with the best fit from multiple candidate models with different orders <span class="math inline">p</span>.</p><div class="no-row-height column-margin column-container"><span class="">model selection problem</span></div></div>
-<p> One possible way is to repeat the analysis for different values of model order <span class="math inline">p</span> and choose the best model based on some criteria. The two most widely known criteria are the so-called Akaike information criteria, AIC and the Bayesian Information criteria, BIC.</p>
+<p> One possible way is to repeat the analysis for different values of model order <span class="math inline">p</span> and choose the best model based on some criteria. The two most widely known criteria are the so-called <em>Akaike information criteria</em>, <em>AIC</em> and the <em>Bayesian Information criteria</em>, <em>BIC</em>.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Is P a parameter of Hyper Parameter
+<span class="screen-reader-only">Note</span>Overthinking: Is P a parameter of Hyper Parameter?
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Note: I have pointed out before that while we can approach estimating the the number of component of a Mixture or the order of an AR(p) process as a hyperparameter tuning problem which involves training multiple models and using model selection criteria to pick the best one. Seems intuitive but is this the best way to do it?</p>
-<p>Another approach might be to incorporate the number of components or the order of the AR process as a random variable in our model, and then use Bayesian inference to estimate its posterior distribution. This way we can avoid the need for model selection criteria and instead directly estimate the uncertainty around the number of components or the order of the AR process. I think this is also more or less how this is handled in bayesian switching models, where the number of different phases (stats) in the time series is treated as a random variable and the model is trained to infer the number of phases and their characteristics. C.f. <span class="citation" data-cites="davidson2015bayesian">(<a href="references.html#ref-davidson2015bayesian" role="doc-biblioref">Davidson-Pilon 2015, chap. 2</a>)</span> where this is called switchpoint detection or change point analysis</p>
+<p>Another approach might be to incorporate the number of components or the order of the AR process as a random variable in our model, and then use Bayesian inference to estimate its posterior distribution. This way we can avoid the need for model selection criteria and instead directly estimate the uncertainty around the number of components or the order of the AR process. I think this is also more or less how this is handled in bayesian switching models, where the number of different phases (stats) in the time series is treated as a random variable and the model is trained to infer the number of phases and their characteristics. C.f. <span class="citation" data-cites="davidson2015bayesian">(<a href="references.html#ref-davidson2015bayesian" role="doc-biblioref">Davidson-Pilon 2015, chap. 2</a>)</span> where this is called switch point detection or change point analysis</p>
 </div>
 </div>
 </div>
@@ -1361,9 +1366,11 @@ y_t=0.5y_{t−1}+0.4y_{t−2}+\varepsilon_t,\qquad \varepsilon_t\sim\mathcal{N}(
 </section>
 <section id="calculate-aic-and-bic" class="level3" data-number="102.2.2">
 <h3 data-number="102.2.2" class="anchored" data-anchor-id="calculate-aic-and-bic"><span class="header-section-number">102.2.2</span> Calculate AIC and BIC</h3>
-<p>For our case, we fix <span class="math inline">p^∗=15</span> as the maximum order of the AR process. The AIC and BIC are calculated for different values of <span class="math inline">p</span> where <span class="math inline">1≤p≤p^∗=15</span>. <span class="math display">
+<p>For our case, we fix <span class="math inline">p^∗=15</span> as the maximum order of the AR process. The AIC and BIC are calculated for different values of <span class="math inline">p</span> where <span class="math inline">1≤p≤p^∗=15</span>.</p>
+<p><span class="math display">
 T=100
-</span> we will use the latter 85 observations for the analysis. We plot both AIC and BIC for different values of <span class="math inline">p</span> where <span class="math inline">1≤p≤p^∗=15</span> as follows:</p>
+</span></p>
+<p>we will use the latter 85 observations for the analysis. We plot both <em>AIC</em> and <em>BIC</em> for different values of <span class="math inline">p</span> where <span class="math inline">1≤p≤p^∗=15</span> as follows:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>n.all<span class="ot">=</span><span class="fu">length</span>(y.sample)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>p.star<span class="ot">=</span><span class="dv">15</span></span>
@@ -1406,11 +1413,198 @@ T=100
 </div>
 </div>
 </div>
-<p>Since for AIC and BIC criteria, we both prefer model with smallest criterion, from the plot we will use <span class="math inline">p=2</span> which is the same as the order we used to simulate the data.</p>
+<p>Since for <em>AIC</em> and <em>BIC</em> criteria, we both prefer model with smallest criterion, from the plot we will use <span class="math inline">p=2</span> which is the same as the order we used to simulate the data.</p>
 </section>
 </section>
-<section id="sec-dic" class="level2" data-number="102.3">
-<h2 data-number="102.3" class="anchored" data-anchor-id="sec-dic"><span class="header-section-number">102.3</span> Deviance information criterion (DIC)</h2>
+<section id="deviance-information-criterion-dic" class="level2 page-columns page-full" data-number="102.3">
+<h2 data-number="102.3" class="anchored" data-anchor-id="deviance-information-criterion-dic"><span class="header-section-number">102.3</span> Deviance information criterion (DIC) 🎥</h2>
+
+<div class="no-row-height column-margin column-container"><div id="fig-capstone-DIC" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-capstone-DIC-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/C5-L02-sl12.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;102.2: DIC"><img src="images/C5-L02-sl12.png" class="img-fluid figure-img" style="width:53mm"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-capstone-DIC-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;102.2: DIC
+</figcaption>
+</figure>
+</div></div><p>DIC is a somewhat Bayesian version of <span class="math inline">AIC</span>. We will use <em>DIC</em> later to determine the number of mixture component after introducing the mixture AR model for time series.</p>
+<p>Suppose we have some data y and we assume y is generated from some distribution, as follows:</p>
+<p><span class="math display">
+y\sim \mathbb{P}r(y\mid \theta) \qquad y \sim \mathcal{N}(F^\top \boldsymbol{\phi},\nu\mathbf{I}),
+</span></p>
+<p>The general formula for calculating DIC arises from the modal estimation of expected log density, defined as <span class="math inline">\widehat{elpd}_{DIC}</span></p>
+<p>expected loss density function (elpd) which is given by: <span class="math display">
+\widehat{elpd}_{DIC} = log(p(y\mid \hat{\theta}_{Bayes}))- P_{DIC}
+</span></p>
+<p>where <span class="math inline">\hat{\theta}_{Bayes}</span> is the posterior mean of <span class="math inline">\theta</span> given <span class="math inline">y</span>, defined as:</p>
+<p><span class="math display">
+\hat{\theta}_{Bayes} = \mathbb{E}[\theta \mid y]
+</span></p>
+<p>and <span class="math inline">P_{DIC}</span> is the effective number of parameters, which is defined as: <span class="math display">
+P_{DIC} = 2 \log(Pr(y\mid \hat{\theta}_{Bayes})) - \mathbb{E}_{post} \log(Pr(y \mid \hat{\theta}))
+</span></p>
+<p>This expectation is an average of <span class="math inline">\theta</span> taken over the posterior distribution. This posterior distribution does not in general have a closed form solution. However, we can approximate it using Monte Carlo sampling, i.e.&nbsp;we can use posterior samples <span class="math inline">\hat{\theta}^{(s)}</span> to approximate the expectation as follows:</p>
+<p><span class="math display">
+\text{For samples } \theta^{(s)}: S=1...s
+</span></p>
+<p><span class="math display">
+\text{Computed } P_{DIC} = 2 \log(\mathbb{P}r(y\mid \hat{\theta}_{Bayes})) - \frac{1}{S}\sum_{s=1}^{S} \log(\mathbb{P}r(y\mid \hat{\theta}^{(s)}))
+</span></p>
+<p><span class="math display">
+DIC = -2\log(\mathbb{P}r(y\mid \hat{\theta}_{Bayes})) + 2P_{DIC}
+</span></p>
+<p><em>DIC</em> is a modal comparison criteria, its value may not be very useful by itself. But later on when we also compute the assay for serum mixture models, we can compare the <em>DIC</em> value for every model and select the best model by choosing the model with the smallest DIC.</p>
+</section>
+<section id="sec-dic-example" class="level2" data-number="102.4">
+<h2 data-number="102.4" class="anchored" data-anchor-id="sec-dic-example"><span class="header-section-number">102.4</span> DIC Example 📖 ℛ</h2>
+<section id="simulate-data-1" class="level3" data-number="102.4.1">
+<h3 data-number="102.4.1" class="anchored" data-anchor-id="simulate-data-1"><span class="header-section-number">102.4.1</span> Simulate Data</h3>
+<p>We use the same simulated data as an example to illustrate how we can compute DIC in R. That is, we simulate 100 observations from</p>
+<p><span class="math display">
+y_t=0.5y_{t-1}+0.4y_{t-2}+\epsilon_t,\quad \epsilon_t\sim N(0,0.1^2)
+</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="do">## simulate data</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>AR.model <span class="ot">=</span> <span class="fu">list</span>(<span class="at">order =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>), <span class="at">ar =</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">0.4</span>))</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>y.sample <span class="ot">=</span> <span class="fu">arima.sim</span>(<span class="at">n=</span><span class="dv">100</span>,<span class="at">model=</span>AR.model,<span class="at">sd=</span><span class="fl">0.1</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y.sample,<span class="at">type=</span><span class="st">'l'</span>,<span class="at">xlab=</span><span class="st">'time'</span>,<span class="at">ylab=</span><span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-capstone-dic-simulate-data" class="quarto-float quarto-figure quarto-figure-center anchored" width="672">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-capstone-dic-simulate-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="C5-L02_files/figure-html/fig-capstone-dic-simulate-data-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;102.3: "><img src="C5-L02_files/figure-html/fig-capstone-dic-simulate-data-1.png" id="fig-capstone-dic-simulate-data" class="img-fluid figure-img" width="672"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-capstone-dic-simulate-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;102.3
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Posterior Inference From previous analysis, we already know we should fit an AR(2) model to the data. Using the Bayesian conjugate analysis of AR model learned from the first module, we fit AR(2) model with prior <span class="math display">
+m_0 = (0, 0)^T, \quad C_0 = I_2, \quad n_0 = 2, \quad d_0 = 2
+</span></p>
+<p>We obtain 5000 posterior samples and plot their empirical distribution as follows.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mvtnorm)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>n.all<span class="ot">=</span><span class="fu">length</span>(y.sample)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>p<span class="ot">=</span><span class="dv">2</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>m0<span class="ot">=</span><span class="fu">matrix</span>(<span class="fu">rep</span>(<span class="dv">0</span>,p),<span class="at">ncol=</span><span class="dv">1</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>C0<span class="ot">=</span><span class="fu">diag</span>(p)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>n0<span class="ot">=</span><span class="dv">2</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>d0<span class="ot">=</span><span class="dv">2</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>Y<span class="ot">=</span><span class="fu">matrix</span>(y.sample[<span class="dv">3</span><span class="sc">:</span>n.all],<span class="at">ncol=</span><span class="dv">1</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>Fmtx<span class="ot">=</span><span class="fu">matrix</span>(<span class="fu">c</span>(y.sample[<span class="dv">2</span><span class="sc">:</span>(n.all<span class="dv">-1</span>)],y.sample[<span class="dv">1</span><span class="sc">:</span>(n.all<span class="dv">-2</span>)]),<span class="at">nrow=</span>p,<span class="at">byrow=</span><span class="cn">TRUE</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>n<span class="ot">=</span><span class="fu">length</span>(Y)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>e<span class="ot">=</span>Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>m0</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>Q<span class="ot">=</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>C0<span class="sc">%*%</span>Fmtx<span class="sc">+</span><span class="fu">diag</span>(n)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>Q.inv<span class="ot">=</span><span class="fu">chol2inv</span>(<span class="fu">chol</span>(Q))</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>A<span class="ot">=</span>C0<span class="sc">%*%</span>Fmtx<span class="sc">%*%</span>Q.inv</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>m<span class="ot">=</span>m0<span class="sc">+</span>A<span class="sc">%*%</span>e</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>C<span class="ot">=</span>C0<span class="sc">-</span>A<span class="sc">%*%</span>Q<span class="sc">%*%</span><span class="fu">t</span>(A)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>n.star<span class="ot">=</span>n<span class="sc">+</span>n0</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>d.star<span class="ot">=</span><span class="fu">t</span>(Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>m0)<span class="sc">%*%</span>Q.inv<span class="sc">%*%</span>(Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>m0)<span class="sc">+</span>d0</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>n.sample<span class="ot">=</span><span class="dv">5000</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>nu.sample<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">0</span>,n.sample)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>phi.sample<span class="ot">=</span><span class="fu">matrix</span>(<span class="dv">0</span>,<span class="at">nrow=</span>n.sample,<span class="at">ncol=</span>p)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n.sample) {</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(i)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  nu.new<span class="ot">=</span><span class="dv">1</span><span class="sc">/</span><span class="fu">rgamma</span>(<span class="dv">1</span>,<span class="at">shape=</span>n.star<span class="sc">/</span><span class="dv">2</span>,<span class="at">rate=</span>d.star<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  nu.sample[i]<span class="ot">=</span>nu.new</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  phi.new<span class="ot">=</span><span class="fu">rmvnorm</span>(<span class="dv">1</span>,<span class="at">mean=</span>m,<span class="at">sigma=</span>nu.new<span class="sc">*</span>C)</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  phi.sample[i,]<span class="ot">=</span>phi.new</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(phi.sample[,<span class="dv">1</span>],<span class="at">freq=</span><span class="cn">FALSE</span>,<span class="at">xlab=</span><span class="fu">expression</span>(phi[<span class="dv">1</span>]),<span class="at">main=</span><span class="st">""</span>)</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">density</span>(phi.sample[,<span class="dv">1</span>]),<span class="at">type=</span><span class="st">'l'</span>,<span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(phi.sample[,<span class="dv">2</span>],<span class="at">freq=</span><span class="cn">FALSE</span>,<span class="at">xlab=</span><span class="fu">expression</span>(phi[<span class="dv">2</span>]),<span class="at">main=</span><span class="st">""</span>)</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">density</span>(phi.sample[,<span class="dv">2</span>]),<span class="at">type=</span><span class="st">'l'</span>,<span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(nu.sample,<span class="at">freq=</span><span class="cn">FALSE</span>,<span class="at">xlab=</span><span class="fu">expression</span>(nu),<span class="at">main=</span><span class="st">""</span>)</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">density</span>(nu.sample),<span class="at">type=</span><span class="st">'l'</span>,<span class="at">col=</span><span class="st">'red'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-capstone-dic-posterior-inference" class="quarto-float quarto-figure quarto-figure-center anchored" width="672">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-capstone-dic-posterior-inference-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="C5-L02_files/figure-html/fig-capstone-dic-posterior-inference-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;102.4: "><img src="C5-L02_files/figure-html/fig-capstone-dic-posterior-inference-1.png" id="fig-capstone-dic-posterior-inference" class="img-fluid figure-img" width="672"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-capstone-dic-posterior-inference-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;102.4
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="calculate-dic" class="level3" data-number="102.4.2">
+<h3 data-number="102.4.2" class="anchored" data-anchor-id="calculate-dic"><span class="header-section-number">102.4.2</span> Calculate DIC</h3>
+<p>Now using the formula for DIC, we first need to compute <span class="math inline">\log p(y\mid \hat{\theta}_{Bayes})</span> . In our example, this is</p>
+<p><span class="math display">
+\sum_{t=p+1}^{T} \log(N(y_t \mid f_t^T \phi_{Bayes}, \nu_{Bayes}))
+</span> {#sec-capstone-dic-log-py}</p>
+<p>which can be computed as follows:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>cal_log_likelihood<span class="ot">=</span><span class="cf">function</span>(phi,nu){</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  mu.y<span class="ot">=</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>phi</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  log.lik<span class="ot">=</span><span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(mu.y), <span class="cf">function</span>(k){<span class="fu">dnorm</span>(Y[k,<span class="dv">1</span>],mu.y[k],<span class="fu">sqrt</span>(nu),<span class="at">log=</span><span class="cn">TRUE</span>)})</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>(log.lik)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>phi.bayes<span class="ot">=</span><span class="fu">colMeans</span>(phi.sample)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>nu.bayes<span class="ot">=</span><span class="fu">mean</span>(nu.sample)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>log.lik.bayes<span class="ot">=</span><span class="fu">cal_log_likelihood</span>(phi.bayes,nu.bayes)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"log.lik.bayes="</span>,log.lik.bayes,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>log.lik.bayes= 62.34778 </code></pre>
+</div>
+</div>
+<p>Then, to calculate <span class="math inline">p_{DIC}</span>, we need to calculate</p>
+<p><span class="math display">
+\frac{1}{S}\sum_{s=1}^{S}\log p(y\mid \hat{\theta}^{(s)})
+</span></p>
+<p>which in our case is</p>
+<p><span class="math display">
+\frac{1}{S}\sum_{s=1}^{S}\sum_{t=p+1}^{T}\log(N(y_t\mid f_t^T\phi^{(s)},\nu^{(s)}))
+</span></p>
+<p>It can be calculated by the following code:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>post.log.lik<span class="ot">=</span><span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5000</span>, <span class="cf">function</span>(k){<span class="fu">cal_log_likelihood</span>(phi.sample[k,],nu.sample[k])})</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>E.post.log.lik<span class="ot">=</span><span class="fu">mean</span>(post.log.lik)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>p_DIC<span class="ot">=</span><span class="dv">2</span><span class="sc">*</span>(log.lik.bayes<span class="sc">-</span>E.post.log.lik)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"p_DIC="</span>,p_DIC,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>p_DIC= 0.8483731 </code></pre>
+</div>
+</div>
+<p>Now, using the formula for DIC, we can finally compute it. The value of DIC may not make sense now. It will be useful later when we compute DIC for mixture models and select the best model among them.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>DIC<span class="ot">=</span><span class="sc">-</span><span class="dv">2</span><span class="sc">*</span>log.lik.bayes<span class="sc">+</span><span class="dv">2</span><span class="sc">*</span>p_DIC</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"DIC="</span>,DIC,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>DIC= -122.9988 </code></pre>
+</div>
+</div>
 
 
 <!-- -->
@@ -1420,6 +1614,7 @@ T=100
 Davidson-Pilon, Cameron. 2015. <em>Bayesian Methods for Hackers: Probabilistic Programming and Bayesian Inference</em>. Addison-Wesley Data &amp; Analytics Series. Pearson Education. <a href="https://books.google.co.il/books?id=rMKiCgAAQBAJ">https://books.google.co.il/books?id=rMKiCgAAQBAJ</a>.
 </div>
 </div>
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -1956,152 +2151,350 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb4" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2025-07-05</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Model Selection Criteria - M2L2"</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Bayesian Statistics - Capstone Project"</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "Capstone Project: Bayesian Conjugate Analysis for Autogressive Time Series Models"</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - Bayesian Statistics</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - Capstone Project</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="an">keywords:</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">  - Time Series</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="fu">## Learning Objectives</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Define and compute AIC, BIC and DIC.</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Select the order of AR process using AIC and BIC as criteria.</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="fu">## AIC and BIC in selecting the order of AR process 🎥 {#sec-aic-bic}</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="al">![AIC and BIC](images/C5-L02-sl10.png)</span>{#fig-capstone-model-formulation1 .column-margin group="slides" width="53mm"}</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!--</span></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="co">![AIC and BIC](images/C5-L02-sl11.png){#fig-capstone-model-formulation1 .column-margin group="slides" width="53mm"}</span></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="co">--&gt;</span></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>Note: we have already covered Akaike information criteria (AIC) and Bayesian information criteria (BIC) a few times in this specialization. In @sec-mixtures-BIC we discussed how to use BIC to select the number of components in a mixture model. In @sec-aic-bic we will see how to use AIC and BIC to select the order of an AR process. In @sec-arp-order-selection</span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>we discussed how to use BIC to select the order of an AR process. </span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>To fit an *AR(p)* model to real data we need to determine the order $p$ of the AR process.</span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>One approach is to treat this as a model selection problem <span class="co">[</span><span class="ot">model selection problem</span><span class="co">]</span>{.column-margin}, where we want to select the model with the best fit from multiple candidate models with different orders $p$.</span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!AIC} \index{AR(p)!BIC}</span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>One possible way is to repeat the analysis for different values of model order $p$ and choose the best model based on some criteria. The two most widely known criteria are the so-called Akaike information criteria, AIC and the Bayesian Information criteria, BIC.</span>
-<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a><span class="fu">## Is P a parameter of Hyper Parameter</span></span>
-<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>Note: I have pointed out before that while we can approach estimating the the number of component of a Mixture or the order of an AR(p) process as a hyperparameter tuning problem which involves training multiple models and using model selection criteria to pick the best one.  Seems intuitive but is this the best way to do it?</span>
-<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>Another approach might be to incorporate the number of components or the order of the AR process as a random variable in our model, and then use Bayesian inference to estimate its posterior distribution. This way we can avoid the need for model selection criteria and instead directly estimate the uncertainty around the number of components or the order of the AR process. I think this is also more or less how this is handled in bayesian switching models, where the number of different phases (stats) in the time series is treated as a random variable and the model is trained to infer the number of phases and their characteristics. C.f. <span class="co">[</span><span class="ot">@davidson2015bayesian chapter 2</span><span class="co">]</span> where this is called switchpoint detection or change point analysis</span>
-<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>Recall that our model in @eq-capstone-model-specification is:</span>
-<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>\mathbf{y}\sim \mathcal{N}(\mathbf{F}^\top \boldsymbol{\phi},\nu\mathbf{I}_n),\quad \boldsymbol{\phi}\sim \mathcal{N}(\mathbf{m}_0,\nu\mathbf{C}_0),\quad \nu\sim IG(\frac{n_0}{2},\frac{d_0}{2})</span>
-<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>\tag{101.4}</span>
-<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>We now describe how to select the order of AR process using AIC or BIC. </span>
-<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a><span class="fu">## AIC and BIC example {#sec-aic-bic-example}</span></span>
-<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a><span class="fu">### Simulate Data</span></span>
-<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>We simulate an AR process of order 2, and implement the AIC and BIC criteria to check if the best model selected has order 2.</span>
-<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>Firstly, the following code simulate an AR(2) process with 100 observations. The process is simulated from </span>
-<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>y_t=0.5y_{t−1}+0.4y_{t−2}+\varepsilon_t,\qquad \varepsilon_t\sim\mathcal{N}(0,0.12)</span>
-<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a><span class="do">## simulate data</span></span>
-<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>AR.model <span class="ot">=</span> <span class="fu">list</span>(<span class="at">order =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>), <span class="at">ar =</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">0.4</span>))</span>
-<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>y.sample <span class="ot">=</span> <span class="fu">arima.sim</span>(<span class="at">n=</span><span class="dv">100</span>,<span class="at">model=</span>AR.model,<span class="at">sd=</span><span class="fl">0.1</span>)</span>
-<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y.sample,<span class="at">type=</span><span class="st">'l'</span>,<span class="at">xlab=</span><span class="st">'time'</span>,<span class="at">ylab=</span><span class="st">''</span>)</span>
-<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>The ACF and PACF plot of the simulated data is shown below.</span>
-<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a><span class="fu">acf</span>(y.sample,<span class="at">main=</span><span class="st">""</span>,<span class="at">xlab=</span><span class="st">'Lag'</span>)</span>
-<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a><span class="fu">pacf</span>(y.sample,<span class="at">main=</span><span class="st">""</span>,<span class="at">xlab=</span><span class="st">'Lag'</span>)</span>
-<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a><span class="fu">### Calculate AIC and BIC</span></span>
-<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>For our case, we fix  $p^∗=15$ as the maximum order of the AR process. The AIC and BIC are calculated for different values of $p$ where $1≤p≤p^∗=15$.</span>
-<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>T=100</span>
-<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>we will use the latter 85 observations for the analysis. We plot both AIC and BIC for different values of $p$ where $1≤p≤p^∗=15$ as follows:</span>
-<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-capstone-aic-bic</span></span>
-<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>n.all<span class="ot">=</span><span class="fu">length</span>(y.sample)</span>
-<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a>p.star<span class="ot">=</span><span class="dv">15</span></span>
-<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a>Y<span class="ot">=</span><span class="fu">matrix</span>(y.sample[(p.star<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>n.all],<span class="at">ncol=</span><span class="dv">1</span>)</span>
-<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a>sample.all<span class="ot">=</span><span class="fu">matrix</span>(y.sample,<span class="at">ncol=</span><span class="dv">1</span>)</span>
-<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>n<span class="ot">=</span><span class="fu">length</span>(Y)</span>
-<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a>p<span class="ot">=</span><span class="fu">seq</span>(<span class="dv">1</span>,p.star,<span class="at">by=</span><span class="dv">1</span>)</span>
-<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>design.mtx<span class="ot">=</span><span class="cf">function</span>(p_cur){</span>
-<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a>  Fmtx<span class="ot">=</span><span class="fu">matrix</span>(<span class="dv">0</span>,<span class="at">ncol=</span>n,<span class="at">nrow=</span>p_cur)</span>
-<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>p_cur) {</span>
-<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a>    start.y<span class="ot">=</span>p.star<span class="sc">+</span><span class="dv">1</span><span class="sc">-</span>i</span>
-<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a>    end.y<span class="ot">=</span>start.y<span class="sc">+</span>n<span class="dv">-1</span></span>
-<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a>    Fmtx[i,]<span class="ot">=</span>sample.all[start.y<span class="sc">:</span>end.y,<span class="dv">1</span>]</span>
-<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(Fmtx)</span>
-<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a>criteria.ar<span class="ot">=</span><span class="cf">function</span>(p_cur){</span>
-<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a>  Fmtx<span class="ot">=</span><span class="fu">design.mtx</span>(p_cur)</span>
-<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a>  beta.hat<span class="ot">=</span><span class="fu">chol2inv</span>(<span class="fu">chol</span>(Fmtx<span class="sc">%*%</span><span class="fu">t</span>(Fmtx)))<span class="sc">%*%</span>Fmtx<span class="sc">%*%</span>Y</span>
-<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a>  R<span class="ot">=</span><span class="fu">t</span>(Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>beta.hat)<span class="sc">%*%</span>(Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>beta.hat)</span>
-<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a>  sp.square<span class="ot">=</span>R<span class="sc">/</span>(n<span class="sc">-</span>p_cur)</span>
-<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a>  aic<span class="ot">=</span><span class="dv">2</span><span class="sc">*</span>p_cur<span class="sc">+</span>n<span class="sc">*</span><span class="fu">log</span>(sp.square)</span>
-<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a>  bic<span class="ot">=</span><span class="fu">log</span>(n)<span class="sc">*</span>p_cur<span class="sc">+</span>n<span class="sc">*</span><span class="fu">log</span>(sp.square)</span>
-<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a>  result<span class="ot">=</span><span class="fu">c</span>(aic,bic)</span>
-<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
-<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a>criteria<span class="ot">=</span><span class="fu">sapply</span>(p,criteria.ar)</span>
-<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(p,criteria[<span class="dv">1</span>,],<span class="at">type=</span><span class="st">'p'</span>,<span class="at">pch=</span><span class="st">'a'</span>,<span class="at">col=</span><span class="st">'red'</span>,<span class="at">xlab=</span><span class="st">'AR order p'</span>,<span class="at">ylab=</span><span class="st">'Criterion'</span>,<span class="at">main=</span><span class="st">''</span>,</span>
-<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim=</span><span class="fu">c</span>(<span class="fu">min</span>(criteria)<span class="sc">-</span><span class="dv">10</span>,<span class="fu">max</span>(criteria)<span class="sc">+</span><span class="dv">10</span>))</span>
-<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(p,criteria[<span class="dv">2</span>,],<span class="at">pch=</span><span class="st">'b'</span>,<span class="at">col=</span><span class="st">'blue'</span>)</span>
-<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a>Since for AIC and BIC criteria, we both prefer model with smallest criterion, from the plot we will use $p=2$ which is the same as the order we used to simulate the data.</span>
-<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a><span class="fu">## Deviance information criterion (DIC) {#sec-dic}</span></span>
+<div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2025-07-05</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Model Selection Criteria - M2L2"</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Bayesian Statistics - Capstone Project"</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "Capstone Project: Bayesian Conjugate Analysis for Autogressive Time Series Models"</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - Bayesian Statistics</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - Capstone Project</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="an">keywords:</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">  - Time Series</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="fu">## Learning Objectives</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Define and compute AIC, BIC and DIC.</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="va">[x]</span> Select the order of AR process using AIC and BIC as criteria.</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="fu">## AIC and BIC in selecting the order of AR process 🎥 {#sec-aic-bic}</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="al">![AIC and BIC](images/C5-L02-sl10.png)</span>{#fig-capstone-model-formulation1 .column-margin group="slides" width="53mm"}</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!--</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="co">![AIC and BIC](images/C5-L02-sl11.png){#fig-capstone-model-formulation1 .column-margin group="slides" width="53mm"}</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="co">--&gt;</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>Note: we have already covered Akaike information criteria (AIC) and Bayesian information criteria (BIC) a few times in this specialization. In @sec-mixtures-BIC we discussed how to use BIC to select the number of components in a mixture model. In @sec-aic-bic we will see how to use AIC and BIC to select the order of an AR process. In @sec-arp-order-selection</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>we discussed how to use BIC to select the order of an AR process. </span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>To fit an *AR(p)* model to real data we need to determine the order $p$ of the AR process.</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>One approach is to treat this as a model selection problem <span class="co">[</span><span class="ot">model selection problem</span><span class="co">]</span>{.column-margin}, where we want to select the model with the best fit from multiple candidate models with different orders $p$.</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!AIC} \index{AR(p)!BIC} </span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>One possible way is to repeat the analysis for different values of model order $p$ and choose the best model based on some criteria. The two most widely known criteria are the so-called *Akaike information criteria*, *AIC* and the *Bayesian Information criteria*, *BIC*.</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overthinking: Is P a parameter of Hyper Parameter?</span></span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>Note: I have pointed out before that while we can approach estimating the the number of component of a Mixture or the order of an AR(p) process as a hyperparameter tuning problem which involves training multiple models and using model selection criteria to pick the best one. Seems intuitive but is this the best way to do it?</span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>Another approach might be to incorporate the number of components or the order of the AR process as a random variable in our model, and then use Bayesian inference to estimate its posterior distribution. This way we can avoid the need for model selection criteria and instead directly estimate the uncertainty around the number of components or the order of the AR process. I think this is also more or less how this is handled in bayesian switching models, where the number of different phases (stats) in the time series is treated as a random variable and the model is trained to infer the number of phases and their characteristics. C.f. <span class="co">[</span><span class="ot">@davidson2015bayesian chapter 2</span><span class="co">]</span> where this is called switch point detection or change point analysis</span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>Recall that our model in @eq-capstone-model-specification is:</span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>\mathbf{y}\sim \mathcal{N}(\mathbf{F}^\top \boldsymbol{\phi},\nu\mathbf{I}_n),\quad \boldsymbol{\phi}\sim \mathcal{N}(\mathbf{m}_0,\nu\mathbf{C}_0),\quad \nu\sim IG(\frac{n_0}{2},\frac{d_0}{2})</span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a>\tag{101.4}</span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>We now describe how to select the order of AR process using AIC or BIC. </span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a><span class="fu">## AIC and BIC example {#sec-aic-bic-example}</span></span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a><span class="fu">### Simulate Data</span></span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>We simulate an AR process of order 2, and implement the AIC and BIC criteria to check if the best model selected has order 2.</span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a>Firstly, the following code simulate an AR(2) process with 100 observations. The process is simulated from </span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>y_t=0.5y_{t−1}+0.4y_{t−2}+\varepsilon_t,\qquad \varepsilon_t\sim\mathcal{N}(0,0.12)</span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a><span class="do">## simulate data</span></span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a>AR.model <span class="ot">=</span> <span class="fu">list</span>(<span class="at">order =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>), <span class="at">ar =</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">0.4</span>))</span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a>y.sample <span class="ot">=</span> <span class="fu">arima.sim</span>(<span class="at">n=</span><span class="dv">100</span>,<span class="at">model=</span>AR.model,<span class="at">sd=</span><span class="fl">0.1</span>)</span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y.sample,<span class="at">type=</span><span class="st">'l'</span>,<span class="at">xlab=</span><span class="st">'time'</span>,<span class="at">ylab=</span><span class="st">''</span>)</span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a>The ACF and PACF plot of the simulated data is shown below.</span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a><span class="fu">acf</span>(y.sample,<span class="at">main=</span><span class="st">""</span>,<span class="at">xlab=</span><span class="st">'Lag'</span>)</span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a><span class="fu">pacf</span>(y.sample,<span class="at">main=</span><span class="st">""</span>,<span class="at">xlab=</span><span class="st">'Lag'</span>)</span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a><span class="fu">### Calculate AIC and BIC</span></span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>For our case, we fix  $p^∗=15$ as the maximum order of the AR process. The AIC and BIC are calculated for different values of $p$ where $1≤p≤p^∗=15$.</span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a>T=100</span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>we will use the latter 85 observations for the analysis. We plot both *AIC* and *BIC* for different values of $p$ where $1≤p≤p^∗=15$ as follows:</span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-capstone-aic-bic</span></span>
+<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-117"><a href="#cb12-117" aria-hidden="true" tabindex="-1"></a>n.all<span class="ot">=</span><span class="fu">length</span>(y.sample)</span>
+<span id="cb12-118"><a href="#cb12-118" aria-hidden="true" tabindex="-1"></a>p.star<span class="ot">=</span><span class="dv">15</span></span>
+<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a>Y<span class="ot">=</span><span class="fu">matrix</span>(y.sample[(p.star<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>n.all],<span class="at">ncol=</span><span class="dv">1</span>)</span>
+<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a>sample.all<span class="ot">=</span><span class="fu">matrix</span>(y.sample,<span class="at">ncol=</span><span class="dv">1</span>)</span>
+<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a>n<span class="ot">=</span><span class="fu">length</span>(Y)</span>
+<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a>p<span class="ot">=</span><span class="fu">seq</span>(<span class="dv">1</span>,p.star,<span class="at">by=</span><span class="dv">1</span>)</span>
+<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a>design.mtx<span class="ot">=</span><span class="cf">function</span>(p_cur){</span>
+<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a>  Fmtx<span class="ot">=</span><span class="fu">matrix</span>(<span class="dv">0</span>,<span class="at">ncol=</span>n,<span class="at">nrow=</span>p_cur)</span>
+<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>p_cur) {</span>
+<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a>    start.y<span class="ot">=</span>p.star<span class="sc">+</span><span class="dv">1</span><span class="sc">-</span>i</span>
+<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a>    end.y<span class="ot">=</span>start.y<span class="sc">+</span>n<span class="dv">-1</span></span>
+<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a>    Fmtx[i,]<span class="ot">=</span>sample.all[start.y<span class="sc">:</span>end.y,<span class="dv">1</span>]</span>
+<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb12-131"><a href="#cb12-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(Fmtx)</span>
+<span id="cb12-132"><a href="#cb12-132" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-133"><a href="#cb12-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-134"><a href="#cb12-134" aria-hidden="true" tabindex="-1"></a>criteria.ar<span class="ot">=</span><span class="cf">function</span>(p_cur){</span>
+<span id="cb12-135"><a href="#cb12-135" aria-hidden="true" tabindex="-1"></a>  Fmtx<span class="ot">=</span><span class="fu">design.mtx</span>(p_cur)</span>
+<span id="cb12-136"><a href="#cb12-136" aria-hidden="true" tabindex="-1"></a>  beta.hat<span class="ot">=</span><span class="fu">chol2inv</span>(<span class="fu">chol</span>(Fmtx<span class="sc">%*%</span><span class="fu">t</span>(Fmtx)))<span class="sc">%*%</span>Fmtx<span class="sc">%*%</span>Y</span>
+<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a>  R<span class="ot">=</span><span class="fu">t</span>(Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>beta.hat)<span class="sc">%*%</span>(Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>beta.hat)</span>
+<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>  sp.square<span class="ot">=</span>R<span class="sc">/</span>(n<span class="sc">-</span>p_cur)</span>
+<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a>  aic<span class="ot">=</span><span class="dv">2</span><span class="sc">*</span>p_cur<span class="sc">+</span>n<span class="sc">*</span><span class="fu">log</span>(sp.square)</span>
+<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a>  bic<span class="ot">=</span><span class="fu">log</span>(n)<span class="sc">*</span>p_cur<span class="sc">+</span>n<span class="sc">*</span><span class="fu">log</span>(sp.square)</span>
+<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a>  result<span class="ot">=</span><span class="fu">c</span>(aic,bic)</span>
+<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
+<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a>criteria<span class="ot">=</span><span class="fu">sapply</span>(p,criteria.ar)</span>
+<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(p,criteria[<span class="dv">1</span>,],<span class="at">type=</span><span class="st">'p'</span>,<span class="at">pch=</span><span class="st">'a'</span>,<span class="at">col=</span><span class="st">'red'</span>,<span class="at">xlab=</span><span class="st">'AR order p'</span>,<span class="at">ylab=</span><span class="st">'Criterion'</span>,<span class="at">main=</span><span class="st">''</span>,</span>
+<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim=</span><span class="fu">c</span>(<span class="fu">min</span>(criteria)<span class="sc">-</span><span class="dv">10</span>,<span class="fu">max</span>(criteria)<span class="sc">+</span><span class="dv">10</span>))</span>
+<span id="cb12-149"><a href="#cb12-149" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(p,criteria[<span class="dv">2</span>,],<span class="at">pch=</span><span class="st">'b'</span>,<span class="at">col=</span><span class="st">'blue'</span>)</span>
+<span id="cb12-150"><a href="#cb12-150" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-151"><a href="#cb12-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-152"><a href="#cb12-152" aria-hidden="true" tabindex="-1"></a>Since for *AIC* and *BIC* criteria, we both prefer model with smallest criterion, from the plot we will use $p=2$ which is the same as the order we used to simulate the data.</span>
+<span id="cb12-153"><a href="#cb12-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-154"><a href="#cb12-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-155"><a href="#cb12-155" aria-hidden="true" tabindex="-1"></a><span class="fu">## Deviance information criterion (DIC) 🎥</span></span>
+<span id="cb12-156"><a href="#cb12-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-157"><a href="#cb12-157" aria-hidden="true" tabindex="-1"></a><span class="al">![DIC](images/C5-L02-sl12.png)</span>{#fig-capstone-DIC .column-margin group="slides" width="53mm"}</span>
+<span id="cb12-158"><a href="#cb12-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-159"><a href="#cb12-159" aria-hidden="true" tabindex="-1"></a>DIC is a somewhat Bayesian version of $AIC$. </span>
+<span id="cb12-160"><a href="#cb12-160" aria-hidden="true" tabindex="-1"></a>We will use *DIC* later to determine the number of mixture component after introducing the mixture AR model for time series. </span>
+<span id="cb12-161"><a href="#cb12-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-162"><a href="#cb12-162" aria-hidden="true" tabindex="-1"></a>Suppose we have some data y and we assume y is generated from some distribution, as follows:</span>
+<span id="cb12-163"><a href="#cb12-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-164"><a href="#cb12-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-165"><a href="#cb12-165" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-166"><a href="#cb12-166" aria-hidden="true" tabindex="-1"></a>y\sim \mathbb{P}r(y\mid \theta) \qquad y \sim \mathcal{N}(F^\top \boldsymbol{\phi},\nu\mathbf{I}),</span>
+<span id="cb12-167"><a href="#cb12-167" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-168"><a href="#cb12-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-169"><a href="#cb12-169" aria-hidden="true" tabindex="-1"></a>The general formula for calculating DIC arises from the modal estimation of expected log density, defined as $\widehat{elpd}_{DIC}$</span>
+<span id="cb12-170"><a href="#cb12-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-171"><a href="#cb12-171" aria-hidden="true" tabindex="-1"></a>expected loss density function (elpd) which is given by:</span>
+<span id="cb12-172"><a href="#cb12-172" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-173"><a href="#cb12-173" aria-hidden="true" tabindex="-1"></a>\widehat{elpd}_{DIC} = log(p(y\mid \hat{\theta}_{Bayes}))- P_{DIC}</span>
+<span id="cb12-174"><a href="#cb12-174" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-175"><a href="#cb12-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-176"><a href="#cb12-176" aria-hidden="true" tabindex="-1"></a>where $\hat{\theta}_{Bayes}$ is the posterior mean of $\theta$ given $y$, defined as:</span>
+<span id="cb12-177"><a href="#cb12-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-178"><a href="#cb12-178" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-179"><a href="#cb12-179" aria-hidden="true" tabindex="-1"></a>\hat{\theta}_{Bayes} = \mathbb{E}<span class="co">[</span><span class="ot">\theta \mid y</span><span class="co">]</span></span>
+<span id="cb12-180"><a href="#cb12-180" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-181"><a href="#cb12-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-182"><a href="#cb12-182" aria-hidden="true" tabindex="-1"></a>and $P_{DIC}$ is the effective number of parameters, which is defined as:</span>
+<span id="cb12-183"><a href="#cb12-183" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-184"><a href="#cb12-184" aria-hidden="true" tabindex="-1"></a>P_{DIC} = 2 \log(Pr(y\mid \hat{\theta}_{Bayes})) - \mathbb{E}_{post} \log(Pr(y \mid \hat{\theta})) </span>
+<span id="cb12-185"><a href="#cb12-185" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-186"><a href="#cb12-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-187"><a href="#cb12-187" aria-hidden="true" tabindex="-1"></a>This expectation is an average of $\theta$ taken over the posterior distribution. This posterior distribution does not in general have a closed form solution. However, we can approximate it using Monte Carlo sampling, i.e. we can use posterior samples $\hat{\theta}^{(s)}$ to approximate the expectation as follows:</span>
+<span id="cb12-188"><a href="#cb12-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-189"><a href="#cb12-189" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-190"><a href="#cb12-190" aria-hidden="true" tabindex="-1"></a>\text{For samples } \theta^{(s)}: S=1...s</span>
+<span id="cb12-191"><a href="#cb12-191" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-192"><a href="#cb12-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-193"><a href="#cb12-193" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-194"><a href="#cb12-194" aria-hidden="true" tabindex="-1"></a>\text{Computed } P_{DIC} = 2 \log(\mathbb{P}r(y\mid \hat{\theta}_{Bayes})) - \frac{1}{S}\sum_{s=1}^{S} \log(\mathbb{P}r(y\mid \hat{\theta}^{(s)}))</span>
+<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-196"><a href="#cb12-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-197"><a href="#cb12-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-198"><a href="#cb12-198" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-199"><a href="#cb12-199" aria-hidden="true" tabindex="-1"></a>DIC = -2\log(\mathbb{P}r(y\mid \hat{\theta}_{Bayes})) + 2P_{DIC}</span>
+<span id="cb12-200"><a href="#cb12-200" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-201"><a href="#cb12-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-202"><a href="#cb12-202" aria-hidden="true" tabindex="-1"></a>*DIC* is a modal comparison criteria, its value may not be very useful by itself. But later on when we also compute the assay for serum mixture models, we can compare the *DIC* value for every model and select the best model by choosing the model with the smallest DIC.</span>
+<span id="cb12-203"><a href="#cb12-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-204"><a href="#cb12-204" aria-hidden="true" tabindex="-1"></a><span class="fu">## DIC Example 📖 ℛ {#sec-dic-example}</span></span>
+<span id="cb12-205"><a href="#cb12-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-206"><a href="#cb12-206" aria-hidden="true" tabindex="-1"></a><span class="fu">### Simulate Data</span></span>
+<span id="cb12-207"><a href="#cb12-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-208"><a href="#cb12-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-209"><a href="#cb12-209" aria-hidden="true" tabindex="-1"></a>We use the same simulated data as an example to illustrate how we can compute DIC in R. That is, we simulate 100 observations from</span>
+<span id="cb12-210"><a href="#cb12-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-211"><a href="#cb12-211" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-212"><a href="#cb12-212" aria-hidden="true" tabindex="-1"></a>y_t=0.5y_{t-1}+0.4y_{t-2}+\epsilon_t,\quad \epsilon_t\sim N(0,0.1^2)</span>
+<span id="cb12-213"><a href="#cb12-213" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-214"><a href="#cb12-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-217"><a href="#cb12-217" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-218"><a href="#cb12-218" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-capstone-dic-simulate-data</span></span>
+<span id="cb12-219"><a href="#cb12-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-220"><a href="#cb12-220" aria-hidden="true" tabindex="-1"></a><span class="do">## simulate data</span></span>
+<span id="cb12-221"><a href="#cb12-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-222"><a href="#cb12-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-223"><a href="#cb12-223" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb12-224"><a href="#cb12-224" aria-hidden="true" tabindex="-1"></a>AR.model <span class="ot">=</span> <span class="fu">list</span>(<span class="at">order =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>), <span class="at">ar =</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">0.4</span>))</span>
+<span id="cb12-225"><a href="#cb12-225" aria-hidden="true" tabindex="-1"></a>y.sample <span class="ot">=</span> <span class="fu">arima.sim</span>(<span class="at">n=</span><span class="dv">100</span>,<span class="at">model=</span>AR.model,<span class="at">sd=</span><span class="fl">0.1</span>)</span>
+<span id="cb12-226"><a href="#cb12-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-227"><a href="#cb12-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-228"><a href="#cb12-228" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y.sample,<span class="at">type=</span><span class="st">'l'</span>,<span class="at">xlab=</span><span class="st">'time'</span>,<span class="at">ylab=</span><span class="st">''</span>)</span>
+<span id="cb12-229"><a href="#cb12-229" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-230"><a href="#cb12-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-231"><a href="#cb12-231" aria-hidden="true" tabindex="-1"></a>Posterior Inference</span>
+<span id="cb12-232"><a href="#cb12-232" aria-hidden="true" tabindex="-1"></a>From previous analysis, we already know we should fit an AR(2) model to the data. Using the Bayesian conjugate analysis of AR model learned from the first module, we fit AR(2) model with prior</span>
+<span id="cb12-233"><a href="#cb12-233" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-234"><a href="#cb12-234" aria-hidden="true" tabindex="-1"></a>m_0 = (0, 0)^T, \quad C_0 = I_2, \quad n_0 = 2, \quad d_0 = 2</span>
+<span id="cb12-235"><a href="#cb12-235" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-236"><a href="#cb12-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-237"><a href="#cb12-237" aria-hidden="true" tabindex="-1"></a>We obtain 5000 posterior samples and plot their empirical distribution as follows.</span>
+<span id="cb12-238"><a href="#cb12-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-239"><a href="#cb12-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-242"><a href="#cb12-242" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-243"><a href="#cb12-243" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-capstone-dic-posterior-inference</span></span>
+<span id="cb12-244"><a href="#cb12-244" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mvtnorm)</span>
+<span id="cb12-245"><a href="#cb12-245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-246"><a href="#cb12-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-247"><a href="#cb12-247" aria-hidden="true" tabindex="-1"></a>n.all<span class="ot">=</span><span class="fu">length</span>(y.sample)</span>
+<span id="cb12-248"><a href="#cb12-248" aria-hidden="true" tabindex="-1"></a>p<span class="ot">=</span><span class="dv">2</span></span>
+<span id="cb12-249"><a href="#cb12-249" aria-hidden="true" tabindex="-1"></a>m0<span class="ot">=</span><span class="fu">matrix</span>(<span class="fu">rep</span>(<span class="dv">0</span>,p),<span class="at">ncol=</span><span class="dv">1</span>)</span>
+<span id="cb12-250"><a href="#cb12-250" aria-hidden="true" tabindex="-1"></a>C0<span class="ot">=</span><span class="fu">diag</span>(p)</span>
+<span id="cb12-251"><a href="#cb12-251" aria-hidden="true" tabindex="-1"></a>n0<span class="ot">=</span><span class="dv">2</span></span>
+<span id="cb12-252"><a href="#cb12-252" aria-hidden="true" tabindex="-1"></a>d0<span class="ot">=</span><span class="dv">2</span></span>
+<span id="cb12-253"><a href="#cb12-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-254"><a href="#cb12-254" aria-hidden="true" tabindex="-1"></a>Y<span class="ot">=</span><span class="fu">matrix</span>(y.sample[<span class="dv">3</span><span class="sc">:</span>n.all],<span class="at">ncol=</span><span class="dv">1</span>)</span>
+<span id="cb12-255"><a href="#cb12-255" aria-hidden="true" tabindex="-1"></a>Fmtx<span class="ot">=</span><span class="fu">matrix</span>(<span class="fu">c</span>(y.sample[<span class="dv">2</span><span class="sc">:</span>(n.all<span class="dv">-1</span>)],y.sample[<span class="dv">1</span><span class="sc">:</span>(n.all<span class="dv">-2</span>)]),<span class="at">nrow=</span>p,<span class="at">byrow=</span><span class="cn">TRUE</span>)</span>
+<span id="cb12-256"><a href="#cb12-256" aria-hidden="true" tabindex="-1"></a>n<span class="ot">=</span><span class="fu">length</span>(Y)</span>
+<span id="cb12-257"><a href="#cb12-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-258"><a href="#cb12-258" aria-hidden="true" tabindex="-1"></a>e<span class="ot">=</span>Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>m0</span>
+<span id="cb12-259"><a href="#cb12-259" aria-hidden="true" tabindex="-1"></a>Q<span class="ot">=</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>C0<span class="sc">%*%</span>Fmtx<span class="sc">+</span><span class="fu">diag</span>(n)</span>
+<span id="cb12-260"><a href="#cb12-260" aria-hidden="true" tabindex="-1"></a>Q.inv<span class="ot">=</span><span class="fu">chol2inv</span>(<span class="fu">chol</span>(Q))</span>
+<span id="cb12-261"><a href="#cb12-261" aria-hidden="true" tabindex="-1"></a>A<span class="ot">=</span>C0<span class="sc">%*%</span>Fmtx<span class="sc">%*%</span>Q.inv</span>
+<span id="cb12-262"><a href="#cb12-262" aria-hidden="true" tabindex="-1"></a>m<span class="ot">=</span>m0<span class="sc">+</span>A<span class="sc">%*%</span>e</span>
+<span id="cb12-263"><a href="#cb12-263" aria-hidden="true" tabindex="-1"></a>C<span class="ot">=</span>C0<span class="sc">-</span>A<span class="sc">%*%</span>Q<span class="sc">%*%</span><span class="fu">t</span>(A)</span>
+<span id="cb12-264"><a href="#cb12-264" aria-hidden="true" tabindex="-1"></a>n.star<span class="ot">=</span>n<span class="sc">+</span>n0</span>
+<span id="cb12-265"><a href="#cb12-265" aria-hidden="true" tabindex="-1"></a>d.star<span class="ot">=</span><span class="fu">t</span>(Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>m0)<span class="sc">%*%</span>Q.inv<span class="sc">%*%</span>(Y<span class="sc">-</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>m0)<span class="sc">+</span>d0</span>
+<span id="cb12-266"><a href="#cb12-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-267"><a href="#cb12-267" aria-hidden="true" tabindex="-1"></a>n.sample<span class="ot">=</span><span class="dv">5000</span></span>
+<span id="cb12-268"><a href="#cb12-268" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-269"><a href="#cb12-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-270"><a href="#cb12-270" aria-hidden="true" tabindex="-1"></a>nu.sample<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">0</span>,n.sample)</span>
+<span id="cb12-271"><a href="#cb12-271" aria-hidden="true" tabindex="-1"></a>phi.sample<span class="ot">=</span><span class="fu">matrix</span>(<span class="dv">0</span>,<span class="at">nrow=</span>n.sample,<span class="at">ncol=</span>p)</span>
+<span id="cb12-272"><a href="#cb12-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-273"><a href="#cb12-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-274"><a href="#cb12-274" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n.sample) {</span>
+<span id="cb12-275"><a href="#cb12-275" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(i)</span>
+<span id="cb12-276"><a href="#cb12-276" aria-hidden="true" tabindex="-1"></a>  nu.new<span class="ot">=</span><span class="dv">1</span><span class="sc">/</span><span class="fu">rgamma</span>(<span class="dv">1</span>,<span class="at">shape=</span>n.star<span class="sc">/</span><span class="dv">2</span>,<span class="at">rate=</span>d.star<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb12-277"><a href="#cb12-277" aria-hidden="true" tabindex="-1"></a>  nu.sample[i]<span class="ot">=</span>nu.new</span>
+<span id="cb12-278"><a href="#cb12-278" aria-hidden="true" tabindex="-1"></a>  phi.new<span class="ot">=</span><span class="fu">rmvnorm</span>(<span class="dv">1</span>,<span class="at">mean=</span>m,<span class="at">sigma=</span>nu.new<span class="sc">*</span>C)</span>
+<span id="cb12-279"><a href="#cb12-279" aria-hidden="true" tabindex="-1"></a>  phi.sample[i,]<span class="ot">=</span>phi.new</span>
+<span id="cb12-280"><a href="#cb12-280" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-281"><a href="#cb12-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-282"><a href="#cb12-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-283"><a href="#cb12-283" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))</span>
+<span id="cb12-284"><a href="#cb12-284" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(phi.sample[,<span class="dv">1</span>],<span class="at">freq=</span><span class="cn">FALSE</span>,<span class="at">xlab=</span><span class="fu">expression</span>(phi[<span class="dv">1</span>]),<span class="at">main=</span><span class="st">""</span>)</span>
+<span id="cb12-285"><a href="#cb12-285" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">density</span>(phi.sample[,<span class="dv">1</span>]),<span class="at">type=</span><span class="st">'l'</span>,<span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb12-286"><a href="#cb12-286" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(phi.sample[,<span class="dv">2</span>],<span class="at">freq=</span><span class="cn">FALSE</span>,<span class="at">xlab=</span><span class="fu">expression</span>(phi[<span class="dv">2</span>]),<span class="at">main=</span><span class="st">""</span>)</span>
+<span id="cb12-287"><a href="#cb12-287" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">density</span>(phi.sample[,<span class="dv">2</span>]),<span class="at">type=</span><span class="st">'l'</span>,<span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb12-288"><a href="#cb12-288" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(nu.sample,<span class="at">freq=</span><span class="cn">FALSE</span>,<span class="at">xlab=</span><span class="fu">expression</span>(nu),<span class="at">main=</span><span class="st">""</span>)</span>
+<span id="cb12-289"><a href="#cb12-289" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">density</span>(nu.sample),<span class="at">type=</span><span class="st">'l'</span>,<span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb12-290"><a href="#cb12-290" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-291"><a href="#cb12-291" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-292"><a href="#cb12-292" aria-hidden="true" tabindex="-1"></a><span class="fu">### Calculate DIC</span></span>
+<span id="cb12-293"><a href="#cb12-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-294"><a href="#cb12-294" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-295"><a href="#cb12-295" aria-hidden="true" tabindex="-1"></a>Now using the formula for DIC, we first need to compute </span>
+<span id="cb12-296"><a href="#cb12-296" aria-hidden="true" tabindex="-1"></a>$\log p(y\mid \hat{\theta}_{Bayes})$ . </span>
+<span id="cb12-297"><a href="#cb12-297" aria-hidden="true" tabindex="-1"></a>In our example, this is </span>
+<span id="cb12-298"><a href="#cb12-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-299"><a href="#cb12-299" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-300"><a href="#cb12-300" aria-hidden="true" tabindex="-1"></a>\sum_{t=p+1}^{T} \log(N(y_t \mid f_t^T \phi_{Bayes}, \nu_{Bayes}))</span>
+<span id="cb12-301"><a href="#cb12-301" aria-hidden="true" tabindex="-1"></a>$$ {#sec-capstone-dic-log-py}</span>
+<span id="cb12-302"><a href="#cb12-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-303"><a href="#cb12-303" aria-hidden="true" tabindex="-1"></a>which can be computed as follows:</span>
+<span id="cb12-304"><a href="#cb12-304" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-307"><a href="#cb12-307" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-308"><a href="#cb12-308" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-capstone-dic-log-py</span></span>
+<span id="cb12-309"><a href="#cb12-309" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-310"><a href="#cb12-310" aria-hidden="true" tabindex="-1"></a>cal_log_likelihood<span class="ot">=</span><span class="cf">function</span>(phi,nu){</span>
+<span id="cb12-311"><a href="#cb12-311" aria-hidden="true" tabindex="-1"></a>  mu.y<span class="ot">=</span><span class="fu">t</span>(Fmtx)<span class="sc">%*%</span>phi</span>
+<span id="cb12-312"><a href="#cb12-312" aria-hidden="true" tabindex="-1"></a>  log.lik<span class="ot">=</span><span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(mu.y), <span class="cf">function</span>(k){<span class="fu">dnorm</span>(Y[k,<span class="dv">1</span>],mu.y[k],<span class="fu">sqrt</span>(nu),<span class="at">log=</span><span class="cn">TRUE</span>)})</span>
+<span id="cb12-313"><a href="#cb12-313" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>(log.lik)</span>
+<span id="cb12-314"><a href="#cb12-314" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-315"><a href="#cb12-315" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-316"><a href="#cb12-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-317"><a href="#cb12-317" aria-hidden="true" tabindex="-1"></a>phi.bayes<span class="ot">=</span><span class="fu">colMeans</span>(phi.sample)</span>
+<span id="cb12-318"><a href="#cb12-318" aria-hidden="true" tabindex="-1"></a>nu.bayes<span class="ot">=</span><span class="fu">mean</span>(nu.sample)</span>
+<span id="cb12-319"><a href="#cb12-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-320"><a href="#cb12-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-321"><a href="#cb12-321" aria-hidden="true" tabindex="-1"></a>log.lik.bayes<span class="ot">=</span><span class="fu">cal_log_likelihood</span>(phi.bayes,nu.bayes)</span>
+<span id="cb12-322"><a href="#cb12-322" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"log.lik.bayes="</span>,log.lik.bayes,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb12-323"><a href="#cb12-323" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-324"><a href="#cb12-324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-325"><a href="#cb12-325" aria-hidden="true" tabindex="-1"></a>Then, to calculate $p_{DIC}$, we need to calculate </span>
+<span id="cb12-326"><a href="#cb12-326" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-327"><a href="#cb12-327" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-328"><a href="#cb12-328" aria-hidden="true" tabindex="-1"></a>\frac{1}{S}\sum_{s=1}^{S}\log p(y\mid \hat{\theta}^{(s)})</span>
+<span id="cb12-329"><a href="#cb12-329" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-330"><a href="#cb12-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-331"><a href="#cb12-331" aria-hidden="true" tabindex="-1"></a>which in our case is </span>
+<span id="cb12-332"><a href="#cb12-332" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-333"><a href="#cb12-333" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-334"><a href="#cb12-334" aria-hidden="true" tabindex="-1"></a>\frac{1}{S}\sum_{s=1}^{S}\sum_{t=p+1}^{T}\log(N(y_t\mid f_t^T\phi^{(s)},\nu^{(s)}))</span>
+<span id="cb12-335"><a href="#cb12-335" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb12-336"><a href="#cb12-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-337"><a href="#cb12-337" aria-hidden="true" tabindex="-1"></a>It can be calculated by the following code:</span>
+<span id="cb12-338"><a href="#cb12-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-341"><a href="#cb12-341" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-342"><a href="#cb12-342" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-capstone-dic-pd</span></span>
+<span id="cb12-343"><a href="#cb12-343" aria-hidden="true" tabindex="-1"></a>post.log.lik<span class="ot">=</span><span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5000</span>, <span class="cf">function</span>(k){<span class="fu">cal_log_likelihood</span>(phi.sample[k,],nu.sample[k])})</span>
+<span id="cb12-344"><a href="#cb12-344" aria-hidden="true" tabindex="-1"></a>E.post.log.lik<span class="ot">=</span><span class="fu">mean</span>(post.log.lik)</span>
+<span id="cb12-345"><a href="#cb12-345" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-346"><a href="#cb12-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-347"><a href="#cb12-347" aria-hidden="true" tabindex="-1"></a>p_DIC<span class="ot">=</span><span class="dv">2</span><span class="sc">*</span>(log.lik.bayes<span class="sc">-</span>E.post.log.lik)</span>
+<span id="cb12-348"><a href="#cb12-348" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"p_DIC="</span>,p_DIC,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb12-349"><a href="#cb12-349" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-350"><a href="#cb12-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-351"><a href="#cb12-351" aria-hidden="true" tabindex="-1"></a>Now, using the formula for DIC, we can finally compute it. The value of DIC may not make sense now. It will be useful later when we compute DIC for mixture models and select the best model among them.</span>
+<span id="cb12-352"><a href="#cb12-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-353"><a href="#cb12-353" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-356"><a href="#cb12-356" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-357"><a href="#cb12-357" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: lst-capstone-dic-dic</span></span>
+<span id="cb12-358"><a href="#cb12-358" aria-hidden="true" tabindex="-1"></a>DIC<span class="ot">=</span><span class="sc">-</span><span class="dv">2</span><span class="sc">*</span>log.lik.bayes<span class="sc">+</span><span class="dv">2</span><span class="sc">*</span>p_DIC</span>
+<span id="cb12-359"><a href="#cb12-359" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"DIC="</span>,DIC,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb12-360"><a href="#cb12-360" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
