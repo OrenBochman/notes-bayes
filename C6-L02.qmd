@@ -1,0 +1,188 @@
+---
+date: 2025-07-02
+title: "Gaussian Processes for Regression"
+subtitle: "Bayesian Statistics - Nonparametric Methods"
+description: "Gaussian Processes Tutorial"
+categories:
+  - Bayesian Statistics
+  - Nonparametric Methods
+keywords:
+  - Gaussian Processes
+  - Kriging
+  - Optimal Interpolation
+---
+
+::: {.callout-note}
+## Credit
+the following material is based on the [Gaussian Processes for Regression](https://tamarabroderick.com/tutorial_2024_cps-fr.html) and tutorial and code by Tamara Broderick. [](https://tamarabroderick.com/tutorial_2025_asa_cirs_webinar.html) Note that the [code](https://github.com/tbroderick/gps_tutorial/blob/2025asa_cirs/demos.ipynb) is under the [MIT license]()
+
+:::
+
+## Nonparametric Bayes
+
+- Bayesian statistics that is not parametric
+- Bayesian:
+$$ 
+\underbrace{
+  \mathbb{P}r(parameters \mid data) }_{
+    \substack{
+      \text{Given the data we’ve seen} \\ 
+      \text{what do we know about } \\ 
+      \text{the underlying function?} 
+    }
+  }
+\propto 
+\underbrace{
+  \mathbb{P}r(data \mid parameters) 
+  \mathbb{P}r(parameters)}_{  
+    \substack{
+      \text{A (statistical) model} \\
+      \text{that can generate} \\
+      \text{functions and data} \\
+      \text{of interest}
+    }
+  }
+$$
+
+- Not parametric (i.e. not finite parameter, unbounded/growing/infinite number of parameters)
+
+- examples:
+  - Wikipedia articles 
+  - Species 
+  - density estimation [Escobar, West 1995; Ghosal et al 1999]
+  - survival analysis curves
+  - Fitness exercises [Fox  et al 2014]
+  - Genetics [Ewens 1972; Hartl, Clark 2003]
+  - Newborn babies [saria et al 2010]
+  - Social networks [Llyod et all 2012; Miller et al 2010]
+  - Images [Sudderth, Jordan 2009]
+
+
+Nonparametric Bayes 
+
+- A theoretical motivation: De Finetti’s Theorem
+- A data sequence is infinitely exchangeable if the distribution of any N data points doesn’t change when permuted:
+
+$$
+p(X_1, \ldots , X_N ) = p(X_{\sigma(1)} , \ldots , X_{\sigma(N)} )
+$$
+
+- De Finetti’s Theorem (roughly): A sequence is infinitely exchangeable if and only if, for all N and some distribution P
+$$
+p(X_1, \ldots , X_N ) = \int_\theta \prod_{}^N p(X_n\mid\theta)P(d\theta)
+$$
+
+- Motivates:
+  -  Parameters and likelihoods
+  -  Priors
+  -  "Nonparametric Bayesian" priors
+
+[Hewitt, Savage 1955; Aldous 1983]
+
+Note the statement that De Finetti's theorem wasn't proved until 1955, but the idea was around since the 1930s and he supplied a proof in 1931.
+L. J. Savage  and Hewitt extended the result from finite to infinite exchangeability in 1955. Aldous proved the result for countably infinite exchangeability in 1983.
+
+## Generative Model
+
+$$ 
+\underbrace{
+  \mathbb{P}r(parameters \mid data) }_{
+    \substack{
+      \text{Given the data we’ve seen} \\ 
+      \text{what do we know about } \\ 
+      \text{the underlying function?} 
+    }
+  }
+\propto 
+\underbrace{
+  \mathbb{P}r(data \mid parameters) 
+  \mathbb{P}r(parameters)}_{  
+    \substack{
+      \text{A (statistical) model} \\
+      \text{that can generate} \\
+      \text{functions and data} \\
+      \text{of interest}
+    }
+  }
+$$
+
+- Finite Gaussian mixture model (K=2 clusters)
+$$
+z_n \stackrel{iid}{\sim} \text{Categorical}(\rho_1, \rho_2)
+$$
+
+$$
+x_n \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma)
+$$
+
+-  Don’t know $\mu_1 , \mu_2$
+$$
+\mu_k \stackrel{iid}{\sim} \mathcal{N}(\mu_0, \sigma_0^2) \quad k=1,2
+$$
+-  Don’t know $\rho_1 , \rho_2$
+$$
+\rho_1 \sim \text{Beta}(\alpha_0, \beta_0) 
+$$
+
+$$
+\rho_2 = 1 - \rho_1
+$$
+
+Inference goal: assignments of data points to clusters, cluster parameters
+
+## Beta distribution review
+
+\index{distribution!Beta}
+$$
+\text{Beta}(\rho |\alpha_1, \alpha_2) = \frac{\Gamma(\alpha_1 + \alpha_2)}{\Gamma(\alpha_1)\Gamma(\alpha_2)} \rho^{\alpha_1 - 1} (1 - \rho)^{\alpha_2 - 1} 
+$$
+-  $\alpha_1, \alpha_2 > 0$
+-  $\rho \in [0,1]$
+
+-  Gamma function $\Gamma$
+  - integer m: $\Gamma(m+1) = m!$
+  - for x > 0: $\Gamma(x+1) = x\Gamma(x)$
+  - What happens?
+    - $a = a_1 = a_2 \to 0$
+    - $a = a_1 = a_2 \to \infty$
+    - $a_1 > a_2$
+- Beta is conjugate to Cat
+
+$$
+\rho \sim \text{Beta}(\alpha_1, \alpha_2),\qquad z \sim \text{Cat}(\rho_1, \rho_2)
+$$
+
+$$
+p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1}} (1 - \rho_1 )^{\mathbb{1}_{z=2}} \rho_1^{a_1 -1} (1 - \rho_1 )^{a_2 -1}
+$$
+
+
+$$
+p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1-1}} (1 - \rho_1 )^{\mathbb{1}_{z=2}-1} \propto \text{Beta}(\rho_1 | a_1 + \mathbb{1}_{z=1}, a_2 + \mathbb{1}_{z=2})
+$$
+
+## Generative Model
+
+$$ 
+\underbrace{
+  \mathbb{P}r(parameters \mid data) }_{
+    \substack{
+      \text{Given the data we’ve seen} \\ 
+      \text{what do we know about } \\ 
+      \text{the underlying function?} 
+    }
+  }
+\propto 
+\underbrace{
+  \mathbb{P}r(data \mid parameters) 
+  \mathbb{P}r(parameters)}_{  
+    \substack{
+      \text{A (statistical) model} \\
+      \text{that can generate} \\
+      \text{functions and data} \\
+      \text{of interest}
+    }
+  }
+$$
+
+## Dirichlet distribution review
