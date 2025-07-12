@@ -38,8 +38,8 @@ $$
     \prod_{k=1}^K \omega_k^{a_k-1} 
   }_{
     \text{Prior for the weights }\omega
-    }
-  \underbrace{
+    }\\
+  &\quad \qquad \underbrace{
     \prod_{k=1}^K \mathcal{N}(\beta_k \mid m_0, \nu C_0) 
     }_{
       \text{Prior for the AR coefficients}
@@ -51,8 +51,6 @@ $$
   }
 \end{split}
 $$ {#eq-capstone-lm-full-conditional}
-
-
 
 
 ![full posterior distribution](images/C5-L3-SL07.png){#fig-capstone-lm-formulas .column-margin group="slides" width="53mm"}
@@ -92,24 +90,115 @@ $$ {#eq-capstone-lm-full-conditional}
 
 ![weights](images/C5-L3-SL02.png){#fig-capstone-lm-weights .column-margin group="slides" width="53mm"}
 
+$$
+\begin{split}
+\mathbb{P}r(\omega,\beta,L,\nu \mid y) &\propto \prod_{k=1}^K  
+  \underbrace{
+    \prod_{t:L_t=k} \mathcal{N}(y_t \mid f_t^\top \beta_k,\nu)  
+    }_{
+    \text{Likelihood of the data }  \mid \theta
+    }
+  \underbrace{
+    \color{blue}\prod_{k=1}^K \omega_k^{\sum_{t=1}^T \mathbb{1}_{(L_t=k)}} 
+    \color{blue}\prod_{k=1}^K \omega_k^{a_k-1} 
+  }_{
+    \text{Prior for the weights }\omega
+    }
+  \underbrace{
+    \prod_{k=1}^K \mathcal{N}(\beta_k \mid m_0, \nu C_0) 
+    }_{
+      \text{Prior for the AR coefficients}
+  }
+  \underbrace{
+      \mathcal{IG}(\nu \mid \frac{n_0}{2},\frac{d_0}{2})
+  }_{
+    \text{Prior for the variance }\nu
+  }
+\end{split} 
+$$
 
 $$
-$$
+\begin{split}
+\omega: \quad \mathbb{P}r(\omega\mid\cdots) &\sim
+  \prod_{k=1}^K \omega_k^{\sum_{t=1}^T \mathbb{1}_{(L_t=k)}} 
+  \prod_{k=1}^K \omega_k^{a_k-1} \\
+  &\sim \prod_{k=1}^K \omega_k^{\sum_{t=1}^T \mathbb{1}_{(L_t=k)}+a_k-1}  \\
+  &\sim Dir(a_1+\sum_{t=1}^T \mathbb{1}_{(L_t=1)}, \ldots, a_K+\sum_{t=1}^T \mathbb{1}_{(L_t=K)})
+\end{split}
+$$ {#eq-capstone-lm-omega-full-conditional}
 
-![ar](images/C5-L3-SL03.png){#fig-capstone-lm-ar .column-margin group="slides" width="53mm"}
+![L_t](images/C5-L3-SL03.png){#fig-capstone-lm-ar .column-margin group="slides" width="53mm"}
+
+$$
+L_t: \quad \mathbb{P}r(L_t=k \mid \cdots) \sim \omega_k \mathcal{N}(y_t \mid f_t^\top \beta_k, \nu) \quad k=1,\ldots,K
+$$ {#eq-capstone-lm-Lt-full-conditional}
+
+$$
+L_t| \cdots \sim \textrm{Discrete}(1,\ldots,K)
+$$ {#eq-capstone-lm-Lt-discrete}
+
+$$
+Pr(L_t=k \mid \cdots) = \frac{\omega_k \mathcal{N}(y_t \mid f_t^\top \beta_k, \nu)}{\sum_{j=1}^K \omega_j \mathcal{N}(y_t \mid f_t^\top \beta_j, \nu)}
+$$ {#eq-capstone-lm-Lt-probability}
 
 
 ![nu](images/C5-L3-SL04.png){#fig-capstone-lm-nu .column-margin group="slides" width="53mm"}
 
+$$
+\begin{split}
+
+\mathbb{P}r(\nu \mid \cdots) &\propto 
+  \prod_{k=1}^K 
+    \prod_{t:L_t=k} \mathcal{N}(y_t \mid f_t^\top \beta_k,\nu)  \\
+  & \qquad \prod_{k=1}^K \mathcal{N}(\beta_k \mid m_0, \nu C_0)\quad  \mathcal{IG}(\nu \mid \frac{n_0}{2},\frac{d_0}{2}) \\
+  & \propto \nu^{-\frac{T-p}{2}} \exp\left( -\frac{\sum_{k=1}^K \sum_{t:L_t=k} (y_t - f_t^\top \beta_k)^2}{2\nu}\right) \\
+  & \quad \nu ^ {-\frac{pK}{2}} \exp\left( -\frac{1}{2\nu}\sum_{k=1}^K (\beta_k - m_0)^\top C_0^{-1} (\beta_k-m_0) (\beta_k - m_0)\right) \\
+  & \quad \nu ^{-\frac{n_0}{2} -1} \exp\left( -\frac{d_0}{2\nu}\right)\\
+  & \propto \nu^{-\frac{T-p+pK+n_0}{2}-1} 
+            \exp\left( -\frac{ \sum_{k=1}^K\sum_{t:L_t=k} (y_t - f_t^\top \beta_k)^2 
+                              +\sum_{k=1}^K (\beta_k - m_0)^\top C_0^{-1} (\beta_k - m_0) +d_0 }{2\nu}\right)
+\end{split}
+$$
+
+$$
+\nu \mid \cdots \sim \mathcal{IG}\left(\frac{n^*}{2}, \frac{d^*}{2}\right)
+$$
+
+$$
+n^* = T - p + n_0 \quad d^* = d_0 + \sum_{k=1}^K \sum_{t:L_t=k} (y_t - f_t^\top \beta_k)^2
+$$
 
 ![beta](images/C5-L3-SL05.png){#fig-capstone-lm-beta .column-margin group="slides" width="53mm"}
 
+$$
+\begin{split}
+\mathbb{P}r(\beta_k \mid \cdots) &\propto 
+  \prod_{t:L_t=k} \mathcal{N}(y_t \mid f_t^\top \beta_k,\nu) 
+  \mathcal{N}(\beta_k \mid m_0, \nu C_0)\\
+\end{split}
+$$
+
+We can think of this as a single component ARP model using only the part of data that satisfies this $L_t=k$  criteria. 
+$$
+\tilde{y}_k = y_{t:L_t=k} \qquad  \tilde{F}_k \qquad n_k = \sum_{t:L_t=k} \mathbb{1}_{(L_t=k)}
+$$
+
+$$
+  \beta_k \mid \cdots \sim \mathcal{N}(m_k, C_k) 
+$$
+
+$$
+ m = m_0 + C_0 \tilde{F}_k [\tilde{F}_k^\top C_0 \tilde{F}_k + I_n]^{-1} (\tilde{y}_k - \tilde{F}_k^\top m_0) 
+$$
+
+$$
+C = C_0 - C_0 \tilde{F}_k^\top [\tilde{F}_k C_0 \tilde{F}_k^\top + I_n]^{-1} \tilde{F}_k C_0
+$$
+
 
 ![summary](images/C5-L3-SL06.png){#fig-capstone-lm-summary .column-margin group="slides" width="53mm"}
 
-
-![summary](images/C5-L3-SL06.png){#fig-capstone-lm-summary .column-margin group="slides" width="53mm"}
-
+After we obtain posterior samples of model parameters, it is obvious to get ensemble posterior predictions.
 
 $$
 \begin{aligned}
@@ -121,6 +210,8 @@ y_t^{(s)} \sim N(f_t^\top \beta_{L_t^{(s)}},\nu_{L_t^{(s)}})
 $$
 
 ![full posterior distribution](images/C5-L3-SL07.png){#fig-capstone-lm-posterior .column-margin group="slides" width="53mm"}
+
+
 
 
 In this class, we will discuss the Gibbs sampler for obtaining posterior samples of model parameters as well as obtaining in-sample posterior predictions. Last time, we have derived for the mixture model, the full posterior distribution of model parameters have these huge form. We will start from here to find the full conditional distributions for each parameter. Let us start with the weight vector $\omega$. The full posterior distribution of $\omega^{(s)} \mid \cdots$, we will use this three dot to represent the correct conditioning.
