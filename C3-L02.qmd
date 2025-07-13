@@ -42,11 +42,11 @@ $$ {#eq-mixture-marginal-cdf}
   - $C$ is a categorical random variable with $K$ categories, and $\mathbb{P}r(C=k) = \omega_k$ is the probability of selecting the $k$^th^ component of the mixture.
 
 
-### Code for simulating from a Mixture Model :notebook: $\mathcal{R}$ :snake:
+## Code for simulating from a Mixture Model :notebook: $\mathcal{R}$ :snake:
 
 ::: {.panel-tabset}
 
-## R
+### R
 
 ```{r}
 #| label: lst-simulate-two-gaussian-mixture-R
@@ -72,7 +72,7 @@ plot(xx, yy, type="l", ylab="Density", xlab="x", las=1, lwd=2)
 points(x, y=rep(0,n), pch=1, col=cc)
 ```
 
-## Python
+### Python
 
 ```{python}
 #| label: generate-mixture-python
@@ -111,33 +111,30 @@ plt.show()
 
 :::
 
+
 ## The Likelihood function :movie_camera: {#sec-likelihood-function}
 
 
-- We are now moving on to inferring the parameters of the mixture model from the observed data.
+- We are now moving on to **inferring the parameters** of the *mixture model* from the observed data.
 - We can estimate these using the maximum likelihood estimation or with Bayesian estimation.
 - In both cases we will need to compute the likelihood of the observed data.
 
--   There are two types of likelihoods:
-    -   the **observed data likelihood** is the probability of observing the data given the parameters of the model.
-    -   the **complete data likelihood** is the probability of observing the data and the latent variables given the parameters of the model.
+-   We can construct two different types of likelihood function:
+    1.   the **observed data likelihood**, which just uses the original representation of the mixture model as a weighted sum, is the probability of observing the data given the parameters of the model.
+    2.  the **complete data likelihood** is the probability of observing the data and the latent variables given the parameters of the model. discuss what's called the complete data likelihood that relies on the hierarchical representation that we discussed in the previous lecture
 
-### Observed data likelihood
+### Observed data likelihood {#sec-mixture-observed-data-likelihood}
 
 
 ![observed data likelihood](images/c3l01-ss-10-mixtures-observed-likelihood.png){#fig-observed-data-likelihood .column-margin width="53mm"} 
 
 
+Our assumption is that we have a set of observations $\mathbf{x} = (x_1, \ldots, x_n)$, which are independent and identically distributed (i.i.d.) samples from the mixture distribution. We can write this as:
 
-
-$$
-\mathbf{x} = x_1, \ldots, x_n \implies \text{the collected observations}
-$$ {#eq-observed-data}
-
-The observation $\mathbf{x}$, are independent and identically distributed (i.i.d.) samples from the mixture distribution. We model them using a mixture as we have seen before in @eq-finite-mixture-cdf-hierarchical-2.
+We model them using a mixture as we have seen before in @eq-mixture-marginal-cdf.
 
 $$
-\mathbf{x} \sim f(\mathbf{x} ) = \sum_{k=1}^K w_k \cdot g_k(x_i \mid \theta)
+\mathbf{x}_i \sim f \qquad f(\mathbf{x} ) = \sum_{k=1}^K w_k \cdot g_k(x_i \mid \boldsymbol{\theta_k})
 $$ {#eq-finite-mixture-likelihood}
 
 - where:
@@ -145,7 +142,9 @@ $$ {#eq-finite-mixture-likelihood}
   - $g_k(x_i \mid \theta)$ is the probability density function of the $k$^th^ mixture component, and 
   - $\boldsymbol{\theta}$ are the parameters of the components.
 
-The **observed data likelihood** is the probability of observing the data given the parameters of the model
+The likelihood function is proportional to the joint distribution so we can construct it by taking the product of the probability density functions of the individual components, weighted by their respective weights which gives us the **observed data likelihood**. Note that this is possible because we have assumed that the observations are independent and identically distributed (i.i.d.).^[de Finetti's theorem might allow us to make this step using a weaker assumption on the exchangeability of the observations.]
+
+The observed data likelihood is the probability of observing the data given the parameters of the model
 
 $$
 \mathcal{L}(\boldsymbol{\omega},\boldsymbol{\theta} \mid  \mathbf{x}) = \prod_{i=1}^n \sum_{k=1}^K w_k \cdot g_k(x_i \mid \theta)
@@ -156,11 +155,54 @@ $$ {#eq-observed-data-likelihood}
   - $\boldsymbol{\omega}$ are the weights of the mixture components.
   - $\boldsymbol{\theta}$ are the parameters of the components.
 
-### Complete data likelihood
+We call this the **observed data likelihood** because we have already observed the data
+and so the parameters for this likelihood are the weights and the parameters of the components.
+
+Unfortunately, the observed data likelihood is not easy to work with because it involves a sum over the components of the mixture. 
+This is why we often use the **complete data likelihood** which is easier to work with.
+
+### Complete data likelihood {#sec-mixture-complete-data-likelihood}
 
 ![complete data likelihood](images/c3l01-ss-11-mixtures-complete-data-likelihood.png){#fig-complete-data-likelihood .column-margin width="53mm"}
 
 
+we will now introduce the latent variable $C_i$ which indicates which component generated the observation $x_i$.
+$$
+x_i \mid C_i \sim g_{C_i}(x_i \mid \theta_{C_i}) \qquad \mathbb{P}r(C_i=k) = w_k \qquad C_i \stackrel{i.i.d.}{\sim} \text{Categorical}(\boldsymbol{\omega})
+$$
+
+we can now introduce an indicator variable based on $C_i$ that indicates which component generated the observation $x_i$.
+
+$$
+\mathbb{1}_{(C_i=k)} = \begin{cases}
+1 & \text{if } C_i=k \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+$$
+\begin{split}
+\mathcal{L}(\boldsymbol{\omega},\boldsymbol{\theta}, \mathbf{C}) &= \prod_{i=1}^n \prod_{k=1}^K [\omega_k g_k(x_i)]^{\mathbb{1}_{(C_i=k)}}  \\
+&=
+\prod_{i=1}^n \prod_{k=1}^K [ g_k(x_i)]^{\mathbb{1}_{(C_i=k)}} 
+\prod_{i=1}^n \prod_{k=1}^K \omega_k ^{\mathbb{1}_{(C_i=k)}} \\
+&=
+\prod_{i=1}^n \prod_{k=1}^K [ g_k(x_i)]^{\mathbb{1}_{(C_i=k)}} 
+\prod_{k=1}^K \omega_k ^{\sum_{i=1}^n \mathbb{1}_{(C_i=k)}}
+\end{split}
+$$
+
+The last step is possible because the basis of this expression is the same for every $i$, allowing the right double product can also be written as a single product. 
+If we think about what the sum represents, the sum just represents the number of observations in the sample that belong to up to component k. 
+So that provides a very nice break, and a very nice interpretation for the likelihood function, and for a complete data likelihood function. 
+You have one piece of the likelihood function that corresponds to the distribution of the observations.
+
+Basically, if you know what component generated each observation, you just use the density of that component in this product. 
+So this simplifies this expression substantially. You are going for each $i$. to retain one of the key terms that corresponds to the exponent that is equal to one. Then, you have a second term that corresponds to this product of the weights. In every case, the weight is going to be raised to essentially the number of observations, that belong to that component.
+
+
+
+This allows us to write the complete data likelihood as a product of the likelihoods of the individual components, weighted by their respective weights.
 
 
 ## Parameter identifiability :movie_camera: {#sec-parameter-identifiability}
