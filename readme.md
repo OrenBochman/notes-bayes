@@ -151,6 +151,10 @@ computers is filling up. This drive contains the computer’s
 
 ### Some icons used in the notes
 
-🎥 - Section on a video lecture
-📖 - Section covering a reading handout etc
-ℛ - Section covering R code
+|short code|emoji|notes|
+|---|---|---|
+|:movie_camera: | 🎥 | - Section on a video lecture
+ - Section on a video lecture
+|:spiral_notepad:| 📖 | - Section covering a reading handout etc
+|:snake:| 🐍 | - Section covering Python code
+|$\mathcal{R}$| ℛ | - Section covering R code
