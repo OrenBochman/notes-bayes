@@ -1,0 +1,392 @@
+---
+date: 2025-07-02
+title: "Homework - Calculate DIC for single AR model -- M2L2"
+subtitle: "Capstone Project: Bayesian Conjugate Analysis for Autogressive Time Series Models"
+description: ""
+categories: 
+  - Bayesian Statistics
+  - Time Series
+keywords: 
+  - Time Series
+  - R code
+fig-caption: Notes about ... Bayesian Statistics
+title-block-banner: images/banner_deep.jpg
+---
+
+
+
+
+::::: {.content-visible unless-profile="HC"}
+
+::: {.callout-caution}
+Section omitted to comply with the Honor Code
+:::
+
+:::::
+
+::::: {.content-hidden unless-profile="HC"}
+
+
+## AR(3)
+
+1. For the earthquake data from the previous analysis, you should conclude that the data should be fitted with an AR(3) model. Now fit the data using an AR(3) model, using prior $m_0=(0,0,0)^T,C_0=10I_3, n_0= d_0= 0.02$. Obtain 5000 posterior samples for all the model parameters and then calculate the DIC using these 5000 posterior sample. What is the DIC value you get?
+
+
+```{r}
+#| label: lst-capstone-earthquake-data
+
+
+## read data, you need to make sure the data file is in your current working directory 
+earthquakes.dat <- read.delim("data/earthquakes.txt")
+earthquakes.dat$Quakes=as.numeric(earthquakes.dat$Quakes)
+
+y.dat=earthquakes.dat$Quakes[1:100] ## this is the training data
+y.new=earthquakes.dat$Quakes[101:103] ## this is the test data
+y.sample=y.dat
+```
+
+
+```{r}
+#| label: fig-capstone-posterior-inference-earthquake-ar(3)
+#| fig-cap: "DIC for Earthquake Data"
+## fit AR(p) with p=3 and sample from posterior
+
+## 1. setup
+library(mvtnorm)
+
+n.all=length(y.sample)      # Total number of observations
+p=3                         # AR order
+m0=matrix(rep(0,p),ncol=1)  # Prior mean of AR coefficients
+C0=diag(p)*10               # Prior covariance (diffuse)
+n0=0.02; d0=0.02            # Prior parameters for innovation variance (Inverse-Gamma)
+
+## 2. prepare data matrices
+Y = matrix(y.sample[(p+1):n.all], ncol=1)
+#Fmtx = matrix(c(y.sample[2:(n.all-1)],y.sample[1:(n.all-p)]),nrow=p,byrow=TRUE)
+Fmtx = t(embed(y.sample, p+1)[, 2:(p+1)])
+
+n=length(Y)
+
+## 3. Posterior update
+e = Y - t(Fmtx) %*% m0           # residuals under prior mean
+Q = t(Fmtx) %*% C0 %*% Fmtx + diag(n)  # precision-like matrix
+Q.inv = chol2inv(chol(Q))        # inverse via Cholesky
+
+A = C0 %*% Fmtx %*% Q.inv       # Kalman gain-like update
+m = m0 + A %*% e                # posterior mean of phi
+C = C0 - A %*% Q %*% t(A)        # posterior covariance of phi
+
+n.star = n + n0                  # post parameters for innovation variance
+d.star = t(Y - t(Fmtx) %*% m0) %*% Q.inv %*% (Y - t(Fmtx) %*% m0) + d0 # post parameters for variance
+
+
+n.sample=5000
+
+nu.sample=rep(0,n.sample)
+phi.sample=matrix(0,nrow=n.sample,ncol=p)
+
+for (i in 1:n.sample){
+  set.seed(i)
+  nu.new=1/rgamma(1,shape=n.star/2,rate=d.star/2)
+  nu.sample[i]=nu.new
+  phi.new=rmvnorm(1,mean=m,sigma=nu.new*C)
+  phi.sample[i,]=phi.new
+}
+```
+
+
+
+```{r}
+#| label: fig-capstone-histogram-earthquake-parameters-ar(3)
+#| fig-cap: "Posterior samples of AR(3) parameters for Earthquake Data"
+par(mfrow=c(2,2))
+hist(phi.sample[,1],freq=FALSE,xlab=expression(phi[1]),main="")
+lines(density(phi.sample[,1]),type='l',col='red')
+hist(phi.sample[,2],freq=FALSE,xlab=expression(phi[2]),main="")
+lines(density(phi.sample[,2]),type='l',col='red')
+hist(phi.sample[,2],freq=FALSE,xlab=expression(phi[3]),main="")
+lines(density(phi.sample[,2]),type='l',col='red')
+hist(nu.sample,freq=FALSE,xlab=expression(nu),main="")
+lines(density(nu.sample),type='l',col='red')
+```
+
+
+```{r}
+#| label: fig-capstone-dic-earthquake-ar(3)
+cal_log_likelihood=function(phi,nu){
+  mu.y = t(Fmtx)%*%phi
+  log.lik=sapply(1:length(mu.y),function(k){dnorm(Y[k,1],mu.y[k],sqrt(nu),log=TRUE)})
+  sum(log.lik)
+}
+phi.bayes=colMeans(phi.sample)
+nu.bayes=mean(nu.sample)
+log.lik.bayes=cal_log_likelihood(phi.bayes,nu.bayes)
+cat(log.lik.bayes)
+```
+
+```{r}
+#| label: lst-capstone-posterior-inference-earthquake-ar(3)-check
+## get in sample prediction
+post.pred.y=function(s){
+  
+  beta.cur=matrix(phi.sample[s,],ncol=1)
+  nu.cur=nu.sample[s]
+  mu.y=t(Fmtx)%*%beta.cur
+  sapply(1:length(mu.y), function(k){rnorm(1,mu.y[k],sqrt(nu.cur))})
+}
+
+y.post.pred.sample=sapply(1:5000, post.pred.y)
+```
+
+
+```{r}
+#| label: fig-capstone-posterior-inference-earthquake-ar(3)-check
+## show the result
+summary.vec95=function(vec){
+  c(unname(quantile(vec,0.025)),mean(vec),unname(quantile(vec,0.975)))
+}
+
+summary.y=apply(y.post.pred.sample,MARGIN=1,summary.vec95)
+
+plot(Y,type='b',xlab='Time',ylab='',ylim=c(-10,35),pch=16)
+lines(summary.y[2,],type='b',col='grey',lty=2,pch=4)
+lines(summary.y[1,],type='l',col='purple',lty=3)
+lines(summary.y[3,],type='l',col='purple',lty=3)
+legend("topright",legend=c('Truth','Mean','95% C.I.'),lty=1:3,col=c('black','grey','purple'),
+       horiz = T,pch=c(16,4,NA))
+```
+
+```{r}
+#| label: fig-capstone-dic-earthquake-DIC-ar(3)
+post.log.lik=sapply(1:5000, function(k){cal_log_likelihood(phi.sample[k,],nu.sample[k])})
+E.post.log.lik=mean(post.log.lik)
+
+p_DIC=2*(log.lik.bayes-E.post.log.lik)
+
+DIC=-2*log.lik.bayes+2*p_DIC
+cat(DIC)
+```
+
+## AR(1)
+
+2. For the earthquake data from the previous analysis, you should conclude that the data should be fitted with an AR(1) model. Now fit the data using an AR(1) model, using prior $m_0=(0),C_0=10,n_0=d_0=0.02$. Obtain 5000 posterior samples for all the model parameters and then calculate the DIC using these 5000 posterior sample. What is the DIC value you get?
+
+```{r}
+#| label: fig-capstone-posterior-inference-earthquake-ar(1)
+#| fig-cap: "AR(1) parameters for Earthquake Data"
+## fit AR(p) with p=3 and sample from posterior
+
+
+## read data, you need to make sure the data file is in your current working directory 
+earthquakes.dat <- read.delim("data/earthquakes.txt")
+earthquakes.dat$Quakes=as.numeric(earthquakes.dat$Quakes)
+
+y.dat=earthquakes.dat$Quakes[1:100] ## this is the training data
+y.new=earthquakes.dat$Quakes[101:103] ## this is the test data
+y.sample=y.dat
+
+## 1. setup
+library(mvtnorm)
+
+n.all=length(y.sample)      # Total number of observations
+p=1                         # AR order
+m0=0  # Prior mean of AR coefficients
+C0=10               # Prior covariance (diffuse)
+n0=0.02; d0=0.02            # Prior parameters for innovation variance (Inverse-Gamma)
+
+## 2. prepare data matrices
+Y = matrix(y.sample[(p+1):n.all], ncol=1)
+#Fmtx = matrix(c(y.sample[1:(n.all - 1)]),nrow=p,byrow=TRUE)
+Fmtx = matrix(y.sample[1:(n.all - 1)], ncol = 1)
+#Fmtx = matrix(y.sample[1:(n.all - 1)], ncol = 1)
+#Fmtx = matrix(c(y.sample[2:(n.all-1)],y.sample[1:(n.all-p)]),nrow=p,byrow=TRUE)
+#Fmtx = t(embed(y.sample, p+1)[, 2:(p+1)])
+
+n=length(Y)
+
+## 3. Posterior update
+#e = Y - t(Fmtx) %*% m0           # residuals under prior mean
+e = Y - Fmtx %*% m0
+
+#Q = t(Fmtx) %*% C0 %*% Fmtx + diag(n)  # precision-like matrix
+#Q = C0 * Fmtx %*% t(Fmtx)  + diag(n)
+Q = as.numeric(C0) * sum(Fmtx^2) + 1
+cat(Q)
+Q.inv = 1 / Q
+
+A = C0 %*% t(Fmtx) * Q.inv  # (1×1) * (1×n) = (1×n)
+m = m0 + A %*% (Y - Fmtx %*% m0)  # m0: (1×1), A: (1×n), rest: (n×1)
+C = C0 - A %*% t(A) * Q  # (1×1) - (1×n)(n×1) * (scalar)
+
+n.star = n + n0                  # post parameters for innovation variance
+#d.star = t(Y - t(Fmtx) %*% m) %*% Q.inv %*% (Y - t(Fmtx) %*% m0) + d0 # post parameters for variance
+#d.star = t(Y - t(Fmtx) %*% m) %*% (Y - t(Fmtx) %*% m) + d0
+mu.m = Fmtx %*% m    # fitted values under posterior mean
+mu.0 = Fmtx %*% m0   # fitted values under prior mean
+res1 = Y - mu.m
+res2 = Y - mu.0
+d.star = as.numeric(t(Y - mu.m) %*% (Y - mu.m)) + d0
+
+
+n.sample=5000
+
+nu.sample=rep(0,n.sample)
+phi.sample=matrix(0,nrow=n.sample,ncol=p)
+
+for (i in 1:n.sample){
+  set.seed(i)
+  nu.new=1/rgamma(1,shape=n.star/2,rate=d.star/2)
+  nu.sample[i]=nu.new
+  phi.new=rmvnorm(1,mean=m,sigma=nu.new*C)
+  phi.sample[i,]=phi.new
+}
+```
+
+
+
+```{r}
+#| label: fig-capstone-histogram-earthquake-parameters-ar(1)
+
+par(mfrow=c(1,2))
+hist(phi.sample[,1],freq=FALSE,xlab=expression(phi[1]),main="")
+lines(density(phi.sample[,1]),type='l',col='red')
+hist(nu.sample,freq=FALSE,xlab=expression(nu),main="")
+lines(density(nu.sample),type='l',col='red')
+```
+
+### Model Checking by In-sample Point and Interval Estimation
+
+To check whether the model fits well, we plot the posterior point and interval estimate for each point.
+
+```{r}
+#| label: lst-capstone-posterior-inference-earthquake-ar(1)-check
+## get in sample prediction
+post.pred.y=function(s){
+  
+  beta.cur=matrix(phi.sample[s,],ncol=1)
+  nu.cur=nu.sample[s]
+  #mu.y=t(Fmtx)%*%beta.cur
+  mu.y = Fmtx %*% beta.cur
+
+  sapply(1:length(mu.y), function(k){rnorm(1,mu.y[k],sqrt(nu.cur))})
+}
+
+y.post.pred.sample=sapply(1:5000, post.pred.y)
+```
+
+
+```{r}
+#| label: fig-capstone-posterior-inference-earthquake-ar(1)-check
+## show the result
+summary.vec95=function(vec){
+  c(unname(quantile(vec,0.025)),mean(vec),unname(quantile(vec,0.975)))
+}
+
+summary.y=apply(y.post.pred.sample,MARGIN=1,summary.vec95)
+
+plot(Y,type='b',xlab='Time',ylab='',ylim=c(-10,35),pch=16)
+lines(summary.y[2,],type='b',col='grey',lty=2,pch=4)
+lines(summary.y[1,],type='l',col='purple',lty=3)
+lines(summary.y[3,],type='l',col='purple',lty=3)
+legend("topright",legend=c('Truth','Mean','95% C.I.'),lty=1:3,col=c('black','grey','purple'),
+       horiz = T,pch=c(16,4,NA))
+```
+
+```{r}
+#| label: fig-capstone-dic-earthquake-ar(1)
+cal_log_likelihood=function(phi,nu){
+  #mu.y = t(Fmtx)%*%phi
+  mu.y = Fmtx %*% phi
+  log.lik=sapply(1:length(mu.y),function(k){dnorm(Y[k,1],mu.y[k],sqrt(nu),log=TRUE)})
+  sum(log.lik)
+}
+phi.bayes=colMeans(phi.sample)
+nu.bayes=mean(nu.sample)
+log.lik.bayes=cal_log_likelihood(phi.bayes,nu.bayes)
+cat(log.lik.bayes)
+```
+
+```{r}
+#| label: fig-capstone-dic-earthquake-DIC-ar(1)
+post.log.lik=sapply(1:5000, function(k){cal_log_likelihood(phi.sample[k,],nu.sample[k])})
+E.post.log.lik=mean(post.log.lik)
+cat("E.post.log.lik=",E.post.log.lik)
+
+p_DIC=2*(log.lik.bayes-E.post.log.lik)
+cat(" p_DIC=",p_DIC)
+DIC=-2*log.lik.bayes+2*p_DIC
+cat(" DIC=",DIC)
+```
+
+
+```{r}
+y <- read.delim("data/earthquakes.txt")
+y <- as.numeric(y$Quakes)  # Use the first 100 observations
+
+p <- 1
+#m0 <- matrix(0, ncol=1)
+m0=0
+C0 <- 10
+n0 <- d0 <- 0.02
+#Y <- matrix(y[2:100], ncol=1)
+Y <- matrix(y[(p+1):length(y)], ncol = 1)
+#Fmtx <- matrix(y[1:99], ncol=1)
+Fmtx <- matrix(y[1:(length(y)-p)], ncol = 1)
+
+n <- length(Y)
+
+#Q <- as.numeric(t(Fmtx) %*% C0 %*% Fmtx + 1)
+Q <- as.numeric(C0) * sum(Fmtx^2) + 1
+
+Qinv <- 1 / Q
+#A <- C0 %*% t(Fmtx) * Qinv
+A <- (C0 * Qinv) * t(Fmtx)  # A is (1 × n)
+
+m <- m0 + A %*% (Y - Fmtx %*% m0)
+#C <- C0 - A %*% t(A) * Q
+C <- C0 - C0^2 * sum(Fmtx^2) * Qinv
+
+
+res <- Y - Fmtx %*% m
+d.star <- as.numeric(t(res) %*% res) + d0
+n.star <- n + n0
+
+library(mvtnorm)
+n.sample <- 5000
+phi.sample <- numeric(n.sample)
+nu.sample <- numeric(n.sample)
+
+set.seed(1)
+for (i in 1:n.sample) {
+  nu <- 1 / rgamma(1, shape = n.star / 2, rate = d.star / 2)
+  #phi <- rmvnorm(1, mean = m, sigma = nu * C)
+  phi <- rnorm(1, mean = m, sd = sqrt(nu * C))
+  phi.sample[i] <- phi
+  nu.sample[i] <- nu
+}
+
+loglik <- function(phi, nu) {
+  mu <- Fmtx %*% phi
+  sum(dnorm(Y, mean = mu, sd = sqrt(nu), log = TRUE))
+}
+
+phi.bayes <- mean(phi.sample)
+nu.bayes <- mean(nu.sample)
+
+loglik.bayes <- loglik(phi.bayes, nu.bayes)
+post.loglik <- sapply(1:n.sample, function(i) loglik(phi.sample[i], nu.sample[i]))
+E.loglik <- mean(post.loglik)
+
+pDIC <- 2 * (loglik.bayes - E.loglik)
+DIC <- -2 * loglik.bayes + 2 * pDIC
+
+#DIC <- -2 * -203.777     + 2 * 1.983
+
+cat("E.post.log.lik:", E.loglik, "\n",
+    "p_DIC:", pDIC, "\n",
+    "DIC:", DIC, "\n")
+```
+
+:::::
+
+
