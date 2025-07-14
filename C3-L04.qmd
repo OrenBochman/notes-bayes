@@ -15,7 +15,7 @@ Markov chain Monte Carlo (MCMC) algorithm are typically used to perform Bayesian
 In MCMC algorithms we repeatedly sample from the full conditional distributions of each block of parameters given fixed values for the rest. 
 After an appropriate burn-in period, they generate samples that are dependent but identically distributed according to the posterior distribution of interest.
 
-## Markov Chain Monte Carlo algorithms part 1
+## Markov Chain Monte Carlo algorithms part 1 ::video_camera::
 
 ![MCMC - Priors of convenience](images/c3l3-ss-01-mcmc-part1.png){#fig-s_01 .column-margin width="53mm" group="slides"}
 
@@ -96,22 +96,36 @@ In the last line we remove $\omega$ on from the left term based on independence.
 
 [We're going to move from frequentist inference which we were interested only on finding the point estimate for the parameters in the model to a situation in which we are going to try to explore a full posterior distribution for those parameters.]{.mark} 
 
-[Recall that the mixture model we are working with is going to take the form or the density of that mixture model.]{.mark} It is going to take the form of f of x is the sum over k components of weight multiplied by the components in the mixture. Those components are indexed by this parameter theta k, and we may have components that are all belong to the same family or that they belong to different families. If we are going to do Bayesian inference for this model, we need to compliment this density that is going to give us the likelihood with priors on the unknown parameters. In particular, we're going to need priors for the weights, and we are going to need priors for the data suitcase. What is typically done in these situations is to use a priors of convenience.
+[Recall that the mixture model we are working with is going to take the form or the density of that mixture model.]{.mark} 
+It is going to take the form of f of x is the sum over k components of weight multiplied by the components in the mixture. 
+Those components are indexed by this parameter theta k, and we may have components that are all belong to the same family or that they belong to different families. 
+If we are going to do Bayesian inference for this model, we need to compliment this density that is going to give us the likelihood with priors on the unknown parameters. 
+In particular, we're going to need priors for the weights, and we are going to need priors for the data suitcase. What is typically done in these situations is to use a priors of convenience.
  
 Where are those priors of convenience? 
 [Well, first for the weights remember that we have a constraint that the sum of the weights needs to be equal to one.]{.mark}
  
 [Obviously each one of them individually needs to be between zero and one. So a natural prior for that type of parameters is a Dirichlet prior and that is precisely what we are going to use.]{.mark}
-So we're going to assume that the prior for the vector that includes all these weights just follows a Dirichlet distribution, with parameters a1 all the way to $a_k$. Just as a quick reminder they expected value of each one of these parameters individually is just given by the corresponding a divided by the sum of the a's. 
-[So in other words, the values of the a's just constrains a prior that is the relative size of the different weights. ]{.mark}
-In particular if you make them all the same, then you are saying that a prior you believe that all the weights are the same. We also know that as a special case if you make $a_1=a_2= \ldots = a_k$ and in particular equal to one then we just have the Uniform distribution on the simplex.
 
-Which is actually one of the typical choices used for the hyperparameters when fearing mixture models. Now, this is our priori of convenience for the omegas and we will see that in addition to having a very nice interpretation it will also allow us to do computation in a very straight forward manner. Now, the other set of priors that we need is the priors for the data case. What is typically done here is that if they admit a conjugate prior under gk then that prior is used.
+So we're going to assume that the prior for the vector that includes all these weights just follows a Dirichlet distribution, with parameters a1 all the way to $a_k$. 
+Just as a quick reminder they expected value of each one of these parameters individually is just given by the corresponding a divided by the sum of the a's.
+
+[So in other words, the values of the a's just constrains a prior that is the relative size of the different weights. ]{.mark}
+
+In particular if you make them all the same, then you are saying that a prior you believe that all the weights are the same. 
+We also know that as a special case if you make $a_1=a_2= \ldots = a_k$ and in particular equal to one then we just have the Uniform distribution on the simplex.
+
+Which is actually one of the typical choices used for the hyperparameters when fearing mixture models. 
+Now, this is our priori of convenience for the omegas and we will see that in addition to having a very nice interpretation it will also allow us to do computation in a very straight forward manner. 
+Now, the other set of priors that we need is the priors for the data case. 
+What is typically done here is that if they admit a conjugate prior under gk then that prior is used.
 
 [The reason for that is that even though for the full mixture this conjugate prior on the $g_k1$ conjugate for the full model it will be conditionally conjugate under our sampling scheme that we will derive in a minute.]{.mark} 
+
 So it will make computation for the parameters theta k much simpler if we can find that conjugate prior under theta k. 
 After we have set up priors for the model the next thing that we need to do before deriving our Gibbs sampler is to write down the complete data likelihood in a slightly more convenient way. 
-If you remember the complete data likelihood that we used extensively for deriving the EM Algorithm has the form of the distribution of the data in all those indicators CSU either just tells you which component you belong to conditional on the weight, and all the Thetas is just going to take the form of a double product. 
+If you remember the complete data likelihood that we used extensively for deriving the EM Algorithm has the form of the distribution of the data in all those indicators CSU either just tells you which component you belong to conditional on the weight, and all the Thetas is just going to take the form of a double product.
+
 So the product over the observations followed by the product over the components of omega sub k g sub k of x sub y given Theta k raised to the indicator function of ci equals to k. 
 In other words, rather than write the complete sum that we had before, we replaced that completes sum by a product where each one of the terms is now raised to this indicator function that just depends on whether the component was generated, the observation was generated by the k component in the mixture. 
 This complete data likelihood that we use extensively can now be written in a couple of different ways, and one that is going to be particularly helpful for us involves breaking this expression into two pieces, one that has to do with their omega's, and one that has to do with g's. 
@@ -125,14 +139,17 @@ The entries of this matrix are just g of x i given theta k.
 So different combinations of i and different combinations of k gives you the values that you are going to put into this matrix. 
 Now, what is this important? 
 Because if you think about what they indicator or function up here is doing is it's telling you well you need to compute the whole matrix but you're actually not going to use the full matrix, you are just going to pick a few elements of it, and in particular you are going to pick one element in each row according to what the value of ci case. 
-So for example, if the first observation belongs to the second component you'd be picking this value, second observation the first component you will pick this value, third observation with third component here and so on. So the values of the ci can be interpreted as giving you a way to select elements in this matrix, and in particular one per row. 
-[So another way to write the product over all the observations is used to think about grouping rows together according to which column is being selected. In particular, for example, we could put all the observations that have the first column being selected together, then all the observations that have the second column being selected together and so on.  ]{.mark}
+So for example, if the first observation belongs to the second component you'd be picking this value, second observation the first component you will pick this value, third observation with third component here and so on. 
+So the values of the ci can be interpreted as giving you a way to select elements in this matrix, and in particular one per row.
+
+[So another way to write the product over all the observations is used to think about grouping rows together according to which column is being selected. In particular, for example, we could put all the observations that have the first column being selected together, then all the observations that have the second column being selected together and so on.]{.mark}
 
 One way to write that mathematically is to say that we're going to do a product over the i's but grouped together according to the value of k. 
 Then we can get rid of the indicator and the numerator and write this as g sub k, xi given theta sub k. 
-So this is one piece of this expression up here or one way to rewrite this expression up here or one piece of it that involves the g subcase. 
+So this is one piece of this expression up here or one way to rewrite this expression up here or one piece of it that involves the g-subcase. 
 Of course we have a second piece that involves the omegas, that second piece that involves the omegas we can write as the product. 
-Again, I'm going to consider the product over the case first. Then for a given k, omega k is exactly the same argument for all of them. 
+Again, I'm going to consider the product over the case first. 
+Then for a given k, omega k is exactly the same argument for all of them. 
 So I can just write omega k and the product of omega k to the indicators just becomes omega k raised to the sum of the indicators.
  
 Well, once I have written the expression in this way, I can essentially think about this piece as being the distribution of the observations if I knew the indicators, the omegas, and the thetas. 
@@ -142,7 +159,7 @@ In this expression here you can interpret as the distribution of the c's given t
 
 Again, in the particular structure of this model this happens to just depend on the weights omega. 
 So we know that the product of these two quantities is just by the total law of probability the expression that we wanted in the beginning that is the distribution of the Theta and indicators together. 
-So this particular form for the distribution is going to be particularly useful in terms of deriving the posterior distribution that we need for the Gibbs sampler. 
+So this particular form for the distribution is going to be particularly useful in terms of deriving the posterior distribution that we need for the Gibbs sampler.
 One last observation that I want to make that will be useful in the future is that if you think about what is the form of this piece down here the distribution or the Indicators even the weights, what you have is a form that resembles the kernel of multinomial distribution. 
 So this is similar to the kernel of a multinomial.
 
@@ -152,7 +169,7 @@ So it will be particularly useful in terms of deriving the algorithm using the f
 :::
 
 
-## Markov Chain Monte Carlo algorithms part 2
+## Markov Chain Monte Carlo algorithms part 2 ::video_camera::
 
 ![posterior distribution - weights](images/c3l3-ss-03-mcmc-part2.png){#fig-s_03 .column-margin width="53mm" group="slides"}
 
@@ -728,7 +745,3 @@ cat("Posterior mean of lambda:", mean(lambda.post), "\n")
 ```
 
 ## Honors Peer-graded Assignment: Markov chain Monte Carlo algorithms for Mixture Models
-
-```{r}
-
-```
