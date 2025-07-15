@@ -320,9 +320,12 @@ cat(" DIC=",DIC)
 
 
 ```{r}
-y <- read.delim("data/earthquakes.txt")
-y <- as.numeric(y$Quakes)  # Use the first 100 observations
-
+covid.dat <- read.delim("data/GoogleSearchIndex.txt")
+covid.dat$Week=as.Date(as.character(covid.dat$Week),format = "%Y-%m-%d")
+y.dat=covid.dat$covid[1:57] ## this is the training data
+y.new=covid.dat$covid[58:60] ## this is the test data
+y=y.dat
+n.all=length(y)
 p <- 1
 #m0 <- matrix(0, ncol=1)
 m0=0
@@ -332,30 +335,22 @@ n0 <- d0 <- 0.02
 Y <- matrix(y[(p+1):length(y)], ncol = 1)
 #Fmtx <- matrix(y[1:99], ncol=1)
 Fmtx <- matrix(y[1:(length(y)-p)], ncol = 1)
-
 n <- length(Y)
-
 #Q <- as.numeric(t(Fmtx) %*% C0 %*% Fmtx + 1)
 Q <- as.numeric(C0) * sum(Fmtx^2) + 1
-
 Qinv <- 1 / Q
 #A <- C0 %*% t(Fmtx) * Qinv
 A <- (C0 * Qinv) * t(Fmtx)  # A is (1 × n)
-
 m <- m0 + A %*% (Y - Fmtx %*% m0)
 #C <- C0 - A %*% t(A) * Q
 C <- C0 - C0^2 * sum(Fmtx^2) * Qinv
-
-
 res <- Y - Fmtx %*% m
 d.star <- as.numeric(t(res) %*% res) + d0
 n.star <- n + n0
-
-library(mvtnorm)
+#library(mvtnorm)
 n.sample <- 5000
 phi.sample <- numeric(n.sample)
 nu.sample <- numeric(n.sample)
-
 set.seed(1)
 for (i in 1:n.sample) {
   nu <- 1 / rgamma(1, shape = n.star / 2, rate = d.star / 2)
@@ -364,27 +359,23 @@ for (i in 1:n.sample) {
   phi.sample[i] <- phi
   nu.sample[i] <- nu
 }
-
 loglik <- function(phi, nu) {
   mu <- Fmtx %*% phi
   sum(dnorm(Y, mean = mu, sd = sqrt(nu), log = TRUE))
 }
-
 phi.bayes <- mean(phi.sample)
 nu.bayes <- mean(nu.sample)
-
 loglik.bayes <- loglik(phi.bayes, nu.bayes)
 post.loglik <- sapply(1:n.sample, function(i) loglik(phi.sample[i], nu.sample[i]))
 E.loglik <- mean(post.loglik)
-
 pDIC <- 2 * (loglik.bayes - E.loglik)
 DIC <- -2 * loglik.bayes + 2 * pDIC
-
 #DIC <- -2 * -203.777     + 2 * 1.983
-
 cat("E.post.log.lik:", E.loglik, "\n",
     "p_DIC:", pDIC, "\n",
     "DIC:", DIC, "\n")
+Goal_DIC <- -2 * -203.777     + 2 * 1.983    
+cat("Goal DIC:", Goal_DIC, "\n")
 ```
 
 :::::
