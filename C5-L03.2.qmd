@@ -12,8 +12,9 @@ execute:
 ---
 
 
-## Determine the number of components
+## Determine the number of mixture components {#sec-capstone-lm-mix-comp}
 
+First I simulate the data using a mixture of AR processes.
 
 ```{r}
 #| label: lst-capstone-lm-sim
@@ -36,6 +37,13 @@ for (i in 3:n.all) {
   y=c(y,y.new)
 }
 ```
+
+The following code is used to determine the number of mixing components in the mixture model. 
+It uses a Gibbs sampler to sample from the posterior distribution of the model parameters and calculates the Deviance Information Criterion (DIC) for models with different numbers of mixing components (2 to 5). 
+The function `model_comp_mix` takes the total number of components as an argument and returns the DIC for that model.
+
+Most of the code is identical to the code in the previous section. 
+What we have added is the calculation of the DIC for the mixture model.
 
 ```{r}
 #| label: lst-capstone-lm-mix-comp
@@ -206,9 +214,36 @@ mix.model.all=sapply(2:5,model_comp_mix)
 
 ```
 
+1. This code takes a rather long time to run. 
+It would be a good idea to save the output as a csv with k, DIC
+Second it requires access to the variables `y`, `n.all`, and `p` 
+I defined these variables in the previous section, so you can run this code after running the previous section.
+
+2. Second we get to use this code in the @sec-capstone-lm-infer-mix-comp 
+It works fine for the earthquake data which is an Ar(p) with p>1. 
+But for the google tends data for covid which is an ar(1) process it has multiple issues.
+The first group were related to algebra - certain vectors and matrices are incompatible...
+Next I found that gibs sampler crashed due to numerical instability when the variance is too small.
+
+I mention all this as the feedback asked to refer back to this section and added that the choice of prior is important.
+We actually saw earlier in @sec-capstone-ar-fitting how to check the robustness of our model via prior sensitivity analysis! 
+However the exercise has an explicit prior in it code so it seems strange that it is leads to bad DIC values.
+
+In fact, if we think about it, if DIC should be able to inform us regarding the best model parameters. However we may need to 
+use it in a bayesian optimization framework to find the best set of parameters and hyperparameters.
+
+I hope I can figure out this matter soon however I am now moving on to the final project and will have to come back to this later, time permitting.
+
+However one useful point is that I will prefer to tackle the earthquake data first as the code works fine for it and for the google trends data, it 
+seems a bit of a trivial task to fit an AR(1) for the final project.
+
 ## Prediction for location mixture of AR model {#sec-capstone-lm-prediction}
 
 ![full posterior distribution](images/C5-L3-SL08.png){.column-margin group="slides" width="53mm"}
+
+
+The following code can be used to obtain the h-step ahead prediction of the time series $y$ using the posterior samples from the mixture model. The function `y_pred_h_step` takes two arguments: `h.step`, which is the number of steps ahead for prediction, and `s`, which is the index of the posterior sample to use for prediction.
+
 
 ```{r}
 #| label: lst-capstone-loc-mix-hstep-prediction
