@@ -18,43 +18,39 @@ execute:
 -   [x] Write down the location mixture of AR models under Bayesian conjugate setting. Specify the likelihood function and prior distribution.
 -   [x] Derive the full conditional distributions and develop the Gibbs sampler for posterior inference of model parameters.
 -   [x] Implement in the R environment Markov chain Monte Carlo algorithms for fitting mixture models.
-
 :::
 
+## The Location Mixture of AR Models :movie_camera: {#sec-capstone-prediction-location}
 
-## The Location Mixture of AR Models  :movie_camera:  {#sec-capstone-prediction-location}
+Unfortunately the course was missing the video with the derivation of the posterior from the hierarchical model of the location mixture of $AR(p)$ models. However I have endeavored to fill this in using based on the final reading covering the more sophisticated location and scale mixture of $AR(p)$.
 
-Unfortunately the course was missing the video with the derivation of the posterior 
-from the hierarchical model of the location mixture of $AR(p)$ models. However I 
-have endeavoured to fill this in using based on the final reading covering the more
-sophisticated location and scale mixture of $AR(p)$.
-
-
-The location mixture of $AR(p)$ model for the data can be written hierarchically as follows: 
+The location mixture of $AR(p)$ model for the data can be written hierarchically as follows:
 
 $$
 \begin{aligned} 
 &y_t\sim\sum_{k=1}^K\omega_kN(\mathbf{f}^T_t\boldsymbol{\beta}_k,\nu),\quad \mathbf{f}^T_t=(y_{t-1},\cdots,y_{t-p})^T,\quad t=p+1,\cdots,T\\ 
-&\omega_k\sim Dir(a_1,\cdots,a_k),\quad \boldsymbol{\beta}_k\sim N(\mathbf{m}_0,\nu_k\mathbf{C}_0),\quad \nu \sim IG(\frac{n_0}{2},\frac{d_0}{2}) 
+&\omega_k\sim Dir(a_1,\cdots,a_k),\quad \boldsymbol{\beta}_k\sim \mathcal{N}(\mathbf{m}_0,\nu_k\mathbf{C}_0),\quad \nu \sim \mathcal{IG}(\frac{n_0}{2},\frac{d_0}{2}) 
 \end{aligned}
 $$ {#eq-capstone-loc-arp-mixture}
 
-- where:
-  - $\mathbf{f}_t$ is the design matrix of the AR model, 
-  - $\boldsymbol{\beta}_k$ is the coefficient vector for the $k$-th component, 
-  - $\nu_k$ is the variance for the $k$-th component, and 
-  - $\omega_k$ is the weight for the $k$-th component.
+-   where:
+    -   $\mathbf{f}_t$ is the design matrix of the AR model,
+    -   $\boldsymbol{\beta}_k$ is the coefficient vector for the $k$-th component,
+    -   $\nu_k$ is the variance for the $k$-th component, and
+    -   $\omega_k$ is the weight for the $k$-th component.
 
-Introducing latent configuration variable 
+Introducing a latent configuration variable
 
 $$
-L_t \in \{1,2,\cdots,K\} \qquad L_t=k \iff y_t\sim N(\mathbf{f}^T_t\boldsymbol{\beta}_k,\nu)
+\begin{aligned}
+L_t &: t \in \{1,2,\cdots,K\} \\
+L_t &=k \iff y_t\sim N(\mathbf{f}^T_t\boldsymbol{\beta}_k,\nu)
+\end{aligned}
 $$ {#eq-capstone-lm-Lt}
 
-We denote:
-$$
+We denote: $$
 \boldsymbol{\beta}=(\beta_1,\cdots,\beta_K) \qquad \boldsymbol{\omega}=(\omega_1,\cdots,\omega_K)
-$$ 
+$$
 
 $$
 \mathbf{L}=(L_1,\cdots,L_T)
@@ -68,10 +64,9 @@ $$ {#eq-capstone-lm-posterior}
 
 where:
 
-we can write the full posterior distribution as 
-$$ 
+we can write the full posterior distribution as $$ 
 \begin{aligned} 
-& \mathbb{P}r(\boldsymbol{\omega},\boldsymbol{\beta},\nu,\mathbf{L}|\mathbf{y}) \\
+& \mathbb{P}r(\boldsymbol{\omega},\boldsymbol{\beta},\nu,\mathbf{L}|\mathbf{y},\mathbf{F}) \\
 &\qquad \propto \mathbb{P}r(\mathbf{y}|\boldsymbol{\omega},\boldsymbol{\beta},\nu,\mathbf{L}) \\
 &\qquad\qquad \mathbb{P}r(\mathbf{L}|\boldsymbol{\omega}) \\
 &\qquad\qquad \mathbb{P}r(\boldsymbol{\omega}) \\
@@ -110,12 +105,9 @@ $$
 \end{aligned}
 $$ {#eq-capstone-lm-posterior-annotated}
 
+![formulas](images/C5-L3-SL07.png){#fig-capstone-lm-formulas .column-margin group="slides" width="53mm"}
 
-![full posterior distribution](images/C5-L3-SL07.png){#fig-capstone-lm-formulas .column-margin group="slides" width="53mm"}
-
-
-## Full conditional distributions of model parameters  :movie_camera:  {#sec-capstone-fc}
-
+## Full conditional distributions of model parameters :movie_camera: {#sec-capstone-fc}
 
 ![full posterior distribution](images/C5-L3-SL01.png){#fig-capstone-lm-posterior .column-margin group="slides" width="53mm"}
 
@@ -146,7 +138,7 @@ $$
 \end{aligned}
 $$ {#eq-capstone-lm-full-conditional}
 
-![weights](images/C5-L3-SL02.png){#fig-capstone-lm-weights .column-margin group="slides" width="53mm"}
+![full conditonal for weights $\omega$](images/C5-L3-SL02.png){#fig-capstone-lm-weights .column-margin group="slides" width="53mm"}
 
 $$
 \begin{aligned}
@@ -186,7 +178,7 @@ $$
 \end{aligned}
 $$ {#eq-capstone-lm-omega-full-conditional}
 
-![L_t](images/C5-L3-SL03.png){#fig-capstone-lm-ar .column-margin group="slides" width="53mm"}
+![full conditional for L_t the latent variable](images/C5-L3-SL03.png){#fig-capstone-lm-ar .column-margin group="slides" width="53mm"}
 
 $$
 L_t: \quad \mathbb{P}r(L_t=k \mid \cdots) \sim \omega_k \mathcal{N}(y_t \mid f_t^\top \beta_k, \nu) \quad k=1,\ldots,K
@@ -200,8 +192,7 @@ $$
 Pr(L_t=k \mid \cdots) = \frac{\omega_k \mathcal{N}(y_t \mid f_t^\top \beta_k, \nu)}{\sum_{j=1}^K \omega_j \mathcal{N}(y_t \mid f_t^\top \beta_j, \nu)}
 $$ {#eq-capstone-lm-Lt-probability}
 
-
-![nu](images/C5-L3-SL04.png){#fig-capstone-lm-nu .column-margin group="slides" width="53mm"}
+![full conditional for the variance nu](images/C5-L3-SL04.png){#fig-capstone-lm-nu .column-margin group="slides" width="53mm"}
 
 $$
 \begin{aligned}
@@ -236,8 +227,7 @@ $$
 \end{aligned}
 $$
 
-We can think of this as a single component ARP model using only the part of data that satisfies this $L_t=k$  criteria. 
-$$
+We can think of this as a single component AR(P) model using only the part of data that satisfies this $L_t=k$ criteria. $$
 \tilde{y}_k = y_{t:L_t=k} \qquad  \tilde{F}_k \qquad n_k = \sum_{t:L_t=k} \mathbb{1}_{(L_t=k)}
 $$
 
@@ -253,7 +243,6 @@ $$
 C = C_0 - C_0 \tilde{F}_k^\top [\tilde{F}_k C_0 \tilde{F}_k^\top + I_n]^{-1} \tilde{F}_k C_0
 $$
 
-
 ![summary](images/C5-L3-SL06.png){#fig-capstone-lm-summary .column-margin group="slides" width="53mm"}
 
 After we obtain posterior samples of model parameters, it is obvious to get ensemble posterior predictions.
@@ -267,16 +256,13 @@ y_t^{(s)} \sim N(f_t^\top \beta_{L_t^{(s)}},\nu_{L_t^{(s)}})
 \end{aligned}
 $$
 
-![full posterior distribution](images/C5-L3-SL07.png){#fig-capstone-lm-posterior .column-margin group="slides" width="53mm"}
-
-
-
+![full posterior distribution](images/C5-L3-SL07.png){.column-margin group="slides" width="53mm"}
 
 In this class, we will discuss the Gibbs sampler for obtaining posterior samples of model parameters as well as obtaining in-sample posterior predictions. Last time, we have derived for the mixture model, the full posterior distribution of model parameters have these huge form. We will start from here to find the full conditional distributions for each parameter. Let us start with the weight vector $\omega$. The full posterior distribution of $\omega^{(s)} \mid \cdots$, we will use this three dot to represent the correct conditioning.
 
-Remember, to calculate full conditional distributions, we will select out from this full posterior distribution the specific terms that contains the variable of interest. Trying to recognize those terms as forming a kernel of a family that we know and can recognize. 
+Remember, to calculate full conditional distributions, we will select out from this full posterior distribution the specific terms that contains the variable of interest. Trying to recognize those terms as forming a kernel of a family that we know and can recognize.
 
-This is a form of the kernel of the Dirichlet distribution. 
+This is a form of the kernel of the Dirichlet distribution.
 
 ## Coding the Gibbs sampler
 
@@ -354,8 +340,6 @@ d0=0.02
 a=rep(1,K) ##  parameter for dirichlet distribution
 ```
 
-
-
 ```{r}
 #| label: lst-capstone-lm-initilize-gibbs
 
@@ -377,33 +361,56 @@ L.cur=rep(1,n)       # <6>
 omega.cur=rep(1/K,K) # <7>
 nu.cur=1             # <8>
 ```
-1. we want 20,000 samples
-2. each iteration will need p coefficients and there are K components, and there is one column per iteration.
-3. L will be a vector of length n, and there is one column per iteration.
-4. The weights omega will be a vector of length K, and there is one column per iteration.
-5. We init $\beta$ as 0 which means we assume all coefficients are 0 at the beginning. 
-6. We init $L$ as 1, which means we assume all observations are from the first component at the beginning.
-7. We init the weights equally as 1/K, the number components,
-8. We init the variance $\nu$ as 1
 
-### Helper functions to sample from the full conditional distributions
+1.  we want 20,000 samples
+2.  Each iteration requires $p$ coefficients for $K$ components, and there is one column per iteration.
+3.  `L.mtx` will be a vector of length n, and there is one column per iteration.
+4.  The weights omega will be a vector of length K, and there is one column per iteration.
+5.  We init $\beta$ as 0 which means we assume all coefficients are 0 at the beginning.
+6.  We init `L.cur` as 1, assigning all observations initially to the first component.
+7.  We init the weights equally as 1/K, the number components,
+8.  We init the variance $\nu$ as 1
 
-- these are helper functions for doing sampling from:
-  - omega
-  - L_1 single latent variable 
-  - L sample from L the latent variable
-  - nu
-  - beta
+### Helper functions to sample the full conditional distributions:
 
+We use the following equations to sample from the full conditional
+
+#### To sample for the weights $\omega$ 
+
+The full conditional for $\omega$ is given by:
+
+$$
+\begin{aligned}
+\omega \mid \cdots &\sim Dir(a_1+\sum_{t=1}^T \mathbb{1}_{(L_t=1)}, \ldots, a_K+\sum_{t=1}^T \mathbb{1}_{(L_t=K)})
+\end{aligned}
+$$ {#eq-capstone-lm-omega-full-conditional}
+
+which we implement as follows:
 
 ```{r}
-#| label: lst-capstone-lm-gibbs-helpers
+#| label: lst-capstone-lm-gibbs-helpers-omega
 #### sample functions
 
 sample_omega=function(L.cur){ # <1>
   n.vec=sapply(1:K, function(k){sum(L.cur==k)})
   rdirichlet(1,a+n.vec)
 } # <1>
+
+```
+
+1.  this samples $\omega$ using a Dirichlet RV parametrized by vector of sum of indicators from the current latent vars `L.cur`
+
+note that the `sample_omega` takes a parameter `L.cur` which is the current latent variable vector. 
+This is used to count how many observations are assigned to each component.
+
+#### To sample the latent variable $L_t$ 
+
+$$
+Pr(L_t=k \mid \cdots) = \frac{\omega_k \mathcal{N}(y_t \mid f_t^\top \beta_k, \nu)}{\sum_{j=1}^K \omega_j \mathcal{N}(y_t \mid f_t^\top \beta_j, \nu)} \qquad k \in 1:K
+$$ 
+
+```{r}
+#| label: lst-capstone-lm-gibbs-helpers-L
 
 sample_L_one=function(beta.cur,omega.cur,nu.cur,y.cur,Fmtx.cur){ # <2>
   prob_k=function(k){
@@ -421,17 +428,47 @@ sample_L=function(y,x,beta.cur,omega.cur,nu.cur){ #<3>
   return(L.new)
 } # <3>
 
+
+```
+
+2.  to sample the Configuration variable $L$ probability of each **one** $L_k$ for a single observation $y_t$
+3.  this samples the latent variable for all observations
+
+
+
+#### To sample $\nu$
+
+$$
+\begin{aligned}
+\mathbb{P}r(\nu \mid \cdots) & \sim \mathcal{IG}(\nu \mid \frac{n^*}{2},\frac{d^*}{2}) \\
+n^* &= T - p + n_0 \\
+ d^* &= \sum_{t:L_t=k} (y_t - f_t^\top \beta_k)^2 + \sum_{k=1}^K (\beta_k-m_0)^\top C_0^{-1} (\beta_k-m_0) + d_0
+\end{aligned}
+$$
+```{r}
+#| label: lst-capstone-lm-gibbs-helpers-nu
+
+
 sample_nu=function(L.cur,beta.cur){ # <4>
-  n.star=n0+n
+  
   err.y=function(idx){
-    L.use=L.cur[idx]
-    beta.use=beta.cur[((L.use-1)*p+1):(L.use*p)]
-    err=Y[idx,]-sum(Fmtx[,idx]*beta.use)
+    L.use =    L.cur[idx]
+    beta.use = beta.cur[((L.use-1)*p+1):(L.use*p)]
+    err =      Y[idx,]-sum(Fmtx[,idx]*beta.use)
     return(err^2)
   }
-  d.star=d0+sum(sapply(1:n,err.y))
+  
+  n.star=n0+n
+  d.star = d0+sum(sapply(1:n,err.y))
   1/rgamma(1,shape=n.star/2,rate=d.star/2)
 } # <4>
+```
+
+4.  this samples the variance parameter
+
+
+```{r}
+#| label: lst-capstone-lm-gibbs-helpers-beta
 
 
 sample_beta=function(k,L.cur,nu.cur){ # <5>
@@ -455,23 +492,38 @@ sample_beta=function(k,L.cur,nu.cur){ # <5>
 } # <5>
 ```
 
-1. this samples $\omega$ using a dirichlet RV parametrized by vector of sum of indicators from the current latent vars `L.cur` 
-2. to sample the Configuration variable $L$ probability of each **one** $L_k$ for a single observation $y_t$
-3. this samples the latent variable for all observations
-4. this samples the variance parameter
-5. this samples the weights
+5.  this samples the weights
 
-Sample $\omega$ 
+
+
+
+#### To sample $\beta$:
+
+- We denote :
+    -   $\tilde{y}_k :=  \{y_t : L_t=k\}$
+    -   $\tilde{F}_k$ as the design matrix corresponding to $\tilde{y}_k$
+    -   $n_k = \sum_{t=1}^K \mathbb{I}_{(L_t=k)}$
 
 $$
-\omega \mid \cdots \sim Dir(a_i + \sum_{t=1}^T \mathbb{I}_{(L_t=i)}, \cdots, \sum_{t=1}^T \mathbb{I}_{(L_t=K)}) \qquad k=1,\cdots,K
+\beta_k \mid \cdots \sim \mathcal{N}(\mathbf{m}_k, \nu \mathbf{C}_k) 
 $$
 
+where:
 
-
+$$
+\begin{aligned} 
+\mathbf{m}_k  &= \mathbf{m}_0+\mathbf{A}_k\mathbf{e}_k, 
+&\mathbf{C}_k &= \mathbf{C}_0-\mathbf{A}_k\mathbf{Q}_k\mathbf{A}_k^{T} \\ 
+\mathbf{e}_k  &= \mathbf{\tilde{y}}_k-\mathbf{\tilde{F}}_k^T\mathbf{m}_0, 
+&\mathbf{Q}_k &= \mathbf{\tilde{F}}_k^T\mathbf{C}_0\mathbf{\tilde{F}}_k+\mathbf{I}_{n_k}, \\
+\mathbf{A}_k &= \mathbf{C}_0\mathbf{\tilde{F}}_k\mathbf{Q}_k^{-1} \\ 
+n_k^*         &= n_0+n_k, 
+&d_k^*        &= d_0+\mathbf{e}_k^T\mathbf{Q}_k^{-1}\mathbf{e}_k 
+\end{aligned}
+$$
 
 ```{r}
-#| label: lst-capstone-lm-gibbs-sampler
+#| label: lst-capstone-lm-gibbs-sampler-beta
 
 ## Gibbs Sampler
 
@@ -537,8 +589,11 @@ legend("topright",legend=c('Truth','Mean','95% C.I.'),lty=1:3,
       col=c('black','grey','purple'),horiz = T,pch=c(16,4,NA))
 ```
 
+<!-- split here  -->
 
 ## Determine the number of components
+
+
 
 ```{r}
 #| label: lst-capstone-lm-mix-comp
@@ -708,15 +763,13 @@ mix.model.all=sapply(2:5,model_comp_mix)
 
 ```
 
-
 ## Prediction for location mixture of AR model {#sec-capstone-lm-prediction}
 
-
-![full posterior distribution](images/C5-L3-SL08.png){#fig-capstone-lm-formulas .column-margin group="slides" width="53mm"}
-
+![full posterior distribution](images/C5-L3-SL08.png){.column-margin group="slides" width="53mm"}
 
 ```{r}
 #| label: lst-capstone-loc-mix-hstep-prediction
+
 ## the prediction function for mixture model
 ## Obtain the sth posterior sample for the h-step ahead prediction of y
 
@@ -726,27 +779,30 @@ y_pred_h_step <- function(h.step,s){
   beta.use      = beta.mtx[,s]
   nu.use       = nu.vec[s]
 
-  for (i in 1:h.step) {
+  for (i in 1:h.step) {
     k.use = sample(1:K,1,prob=omega.vec.use)
     beta.cat = beta.use[((k.use-1)*p+1):(k.use*p)]
-    mu.y = sum(y.cur*phi.cat)
-    y.new = rnorm(1,mu.y,sqrt(nu.use))
-    y.pred[i] = y.new
-    y.cur = c(y.new,y.cur)
-    y.cur = y.cur[-length(y.cur)]
-  }
-  return(y.pred)
+    mu.y = sum(y.cur*phi.cat)
+    y.new = rnorm(1,mu.y,sqrt(nu.use))
+    y.pred[i] = y.new 
+    y.cur = c(y.new,y.cur)
+    y.cur = y.cur[-length(y.cur)]
+  }
+  return(y.pred)
 }
 ```
 
-## Location and scale mixture of AR model  {#sec-capstone-lsm}
+------------------------------------------------------------------------
 
+<!-- split here  -->
+
+## Location and scale mixture of AR model {#sec-capstone-lsm}
 
 In this part, we will extend the **location mixture** of AR models to the **location and scale mixture** of AR models. We will show the derivation of the Gibbs sampler for the model parameters as well as the R code for the full posterior inference.
 
 ### The Model
 
-The location and scale mixture of $AR(p)$ model for the data can be written hierarchically as follows: 
+The location and scale mixture of $AR(p)$ model for the data can be written hierarchically as follows:
 
 $$
 \begin{aligned} 
@@ -755,13 +811,11 @@ $$
 \end{aligned}
 $$ {#eq-capstone-ls-arp-mixture}
 
-Introducing latent configuration variable $L_t \in \{1,2,\cdots,K\}$,  such that $L_t=k \iff y_t\sim N(\mathbf{f}^T_t\boldsymbol{\beta}_k,\nu_k)$, and denote $\boldsymbol{\beta}=(\beta_1,\cdots,\beta_K)$, $\boldsymbol{\omega}=(\omega_1,\cdots,\omega_K)$, $\mathbf{L}=(L_1,\cdots,L_T)$, we can write the full posterior distribution as:
+Introducing latent configuration variable $L_t \in \{1,2,\cdots,K\}$, such that $L_t=k \iff y_t\sim N(\mathbf{f}^T_t\boldsymbol{\beta}_k,\nu_k)$, and denote $\boldsymbol{\beta}=(\beta_1,\cdots,\beta_K)$, $\boldsymbol{\omega}=(\omega_1,\cdots,\omega_K)$, $\mathbf{L}=(L_1,\cdots,L_T)$, we can write the full posterior distribution as:
 
 $$
 p(\boldsymbol{\beta},\boldsymbol{\nu},\boldsymbol{\omega},\mathbf{L}|\mathbf{Y},\mathbf{F}) \propto p(\mathbf{Y}|\boldsymbol{\beta},\boldsymbol{\nu},\boldsymbol{\omega},\mathbf{F})p(\boldsymbol{\beta})p(\boldsymbol{\nu})p(\boldsymbol{\omega})p(\mathbf{L})
-$$
-we can write the full posterior distribution as 
-$$ 
+$$ we can write the full posterior distribution as $$ 
 \begin{aligned} 
 p(\boldsymbol{\omega},\boldsymbol{\beta},\nu,\mathbf{L}|\mathbf{y})&\propto p(\mathbf{y}|\boldsymbol{\omega},\boldsymbol{\beta},\nu,\mathbf{L})p(\mathbf{L}|\boldsymbol{\omega})p(\boldsymbol{\omega})p(\boldsymbol{\beta})p(\nu)\\ 
 &\propto \prod_{k=1}^K\prod_{\{t:L_t=k\}}N(y_t\mid\mathbf{f}^T_t\boldsymbol{\beta}_k,\nu)\prod_{k=1}^K\omega_k^{\sum_{t=1}^T\mathbf{1}(L_t=k)}\prod_{k=1}^K\omega_k^{a_k-1}\prod_{k=1}^K(N(\boldsymbol{\beta}_k\mid\mathbf{m}_0,\mathbf{C}_0)IG(\nu_k|\frac{n_0}{2},\frac{d_0}{2})) 
@@ -774,9 +828,7 @@ $$
 \boldsymbol{\omega}\mid \cdots\sim Dir(a_1+\sum_{t=1}^T\mathbf{1}(L_t=1),\cdots,a_K+\sum_{t=1}^T\mathbf{1}(L_t=K)) 
 $$
 
-
-
-2. For $L_t$ we have
+2.  For $L_t$ we have
 
 $$
 p(L_t=k\mid\cdots)\propto \omega_kN(y_t\mid\mathbf{f}^T_t\boldsymbol{\beta}_k,\nu) 
@@ -784,25 +836,25 @@ $$
 
 Therefore, $L_t$ follows a discrete distribution on $\{1,\cdots,K\}$. with probability that $L_t$ taking $k$ proportional to $\omega_k N(y_t\mid\mathbf{f}^T_t\boldsymbol{\beta}_k,\nu)$.
 
-3. For $ν_k$ and $\boldsymbol{\beta}_k$ denote $\mathbf{\tilde{y}}_k:= \{y_t: L_t=k\}$ and $\mathbf{\tilde{F}}_k$ as the design matrix belonging to $\mathbf{\tilde{y}}_k$, and $n_l=\sum_{}^{T}\mathbb{1}(L_t=k)$, we have
- $\nu_k\mid \cdots \sim \mathcal{IG}(\frac{n_k^*}{2},\frac{d_k^*}{2})$ and $\boldsymbol{\beta}_k \sim \mathcal{N}(\mathbf{m}_k,\nu_k\mathbf{C}_k)$ , where
-$$
-\begin{aligned} 
-   \mathbf{e}_k  &= \mathbf{\tilde{y}}_k-\mathbf{\tilde{F}}_k^T\mathbf{m}_0, 
-   &\mathbf{Q}_k &= \mathbf{\tilde{F}}_k^T\mathbf{C}_0\mathbf{\tilde{F}}_k+\mathbf{I}_{n_k}, 
-   &\mathbf{A}_k &= \mathbf{C}_0\mathbf{\tilde{F}}_k\mathbf{Q}_k^{-1} \\ 
-   \mathbf{m}_k  &= \mathbf{m}_0+\mathbf{A}_k\mathbf{e}_k, 
-   &\mathbf{C}_k &= \mathbf{C}_0-\mathbf{A}_k\mathbf{Q}_k\mathbf{A}_k^{T} \\ 
-   n_k^*         &= n_0+n_k, 
-   &d_k^*        &= d_0+\mathbf{e}_k^T\mathbf{Q}_k^{-1}\mathbf{e}_k 
-\end{aligned}
-$$
+3.  For $ν_k$ and $\boldsymbol{\beta}_k$ denote $\mathbf{\tilde{y}}_k:= \{y_t: L_t=k\}$ and $\mathbf{\tilde{F}}_k$ as the design matrix belonging to $\mathbf{\tilde{y}}_k$, and $n_l=\sum_{}^{T}\mathbb{1}(L_t=k)$, we have $\nu_k\mid \cdots \sim \mathcal{IG}(\frac{n_k^*}{2},\frac{d_k^*}{2})$ and $\boldsymbol{\beta}_k \sim \mathcal{N}(\mathbf{m}_k,\nu_k\mathbf{C}_k)$ , where $$
+    \begin{aligned} 
+    \mathbf{e}_k  &= \mathbf{\tilde{y}}_k-\mathbf{\tilde{F}}_k^T\mathbf{m}_0, 
+    &\mathbf{Q}_k &= \mathbf{\tilde{F}}_k^T\mathbf{C}_0\mathbf{\tilde{F}}_k+\mathbf{I}_{n_k}, 
+    &\mathbf{A}_k &= \mathbf{C}_0\mathbf{\tilde{F}}_k\mathbf{Q}_k^{-1} \\ 
+    \mathbf{m}_k  &= \mathbf{m}_0+\mathbf{A}_k\mathbf{e}_k, 
+    &\mathbf{C}_k &= \mathbf{C}_0-\mathbf{A}_k\mathbf{Q}_k\mathbf{A}_k^{T} \\ 
+    n_k^*         &= n_0+n_k, 
+    &d_k^*        &= d_0+\mathbf{e}_k^T\mathbf{Q}_k^{-1}\mathbf{e}_k 
+    \end{aligned}
+    $$
 
 Now we have the full conditional distributions for all model parameters. We proceed to implement the model in R with a simulate dataset.
 
 ### Step 1 Simulate data
 
-We generate some data from the three component mixture of AR(2) process Given $y_1=-1$ and $y_2=0$ we generate $y_3$ to $y_{3:200}$ from the following distribution:
+We generate some data from the three component mixture of AR(2) process.
+
+Given $y_1=-1$ and $y_2=0$ we generate $y_3$ to $y_{3:200}$ from the following distribution:
 
 $$
 \begin{aligned}
@@ -811,7 +863,6 @@ y_i \sim 0.5\ \mathcal{N}(0.1 y_{t-1} + 0.1 y_{t-2}, 0.25)  \\
        +\ 0.2\ \mathcal{N}(0.3 y_{t-1} + 0.5 y_{t-2}, 0.25)  
 \end{aligned}
 $$
-
 
 ```{r}
 #| label: fig-capstone-lsm-sim
@@ -838,25 +889,21 @@ for (i in 4:T.all) {
 plot(y,type='l',xlab='Time',ylab='Simulated Time Series')
 ```
 
-###  Setting the Prior
+### Setting the Prior
 
-We will fit a location and scale mixture of AR(2) models using 3 components. 
-That is, $p=2$ and $K=3$. 
-Firstly, we set up the model by choosing prior hyperparameters. 
-We use weakly informative prior for all parameters. 
-That is, we set :
+We will fit a location and scale mixture of AR(2) models using 3 components. That is, $p=2$ and $K=3$. Firstly, we set up the model by choosing prior hyperparameters. We use weakly informative prior for all parameters. That is, we set :
 
-  - $a_1 = a_2 = a_3 = 1$, 
-  - $m_0 = (0, 0)^\top$, $C_0 = 10 \times I_2$, and 
-  - $n_0 = d_0 = 1$. 
+-   $a_1 = a_2 = a_3 = 1$,
+-   $m_0 = (0, 0)^\top$, $C_0 = 10 \times I_2$, and
+-   $n_0 = d_0 = 1$.
 
 They are specified using the following code.
 
-
 ```{r}
+#| label: lst-capstone-lsm-priors
+
 library(MCMCpack)
 library(mvtnorm)
-
 
 ## 
 p=2 ## order of AR process
@@ -895,7 +942,6 @@ sample_L_one=function(beta.cur,omega.cur,nu.cur,y.cur,Fmtx.cur){
   L.sample=sample(1:K,1,prob=prob.vec/sum(prob.vec))
   return(L.sample)
 }
-
 
 sample_L=function(y,x,beta.cur,omega.cur,nu.cur){
   L.new=sapply(1:n, function(j){sample_L_one(beta.cur,omega.cur,nu.cur,y.cur=y[j,],Fmtx.cur=x[,j])})
@@ -968,7 +1014,9 @@ omega.cur=rep(1/K,K)
 nu.cur=rep(1,K)
 ```
 
-Now everything has been set up, we can start to code the loop. Note it may take a while to complete the loop.
+Now everything has been set up, we can start to code the loop.
+
+Note it may take a while to complete the loop.
 
 ```{r}
 #| label: lst-capstone-lsm-gibbs-sampler
@@ -1004,11 +1052,11 @@ for (i in 1:nsim) {
 
 Finally, we plot the posterior mean and interval estimate of the original data using the later 10000 posterior samples, which is shown below.
 
-
 ```{r}
 #| label: fig-capstone-lsm-pred
-sample.select.idx=seq(10001,20000,by=1)
 
+
+sample.select.idx=seq(10001,20000,by=1)
 
 post.pred.y.mix=function(idx){
   
@@ -1030,9 +1078,6 @@ post.pred.y.mix=function(idx){
   sapply(1:length(mu.y), function(k){rnorm(1,mu.y[k],sd.y[k])})
   
 }  
-
-
-
 
 y.post.pred.sample=sapply(sample.select.idx, post.pred.y.mix)
 
