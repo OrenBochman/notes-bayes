@@ -1,0 +1,147 @@
+In the last two lessons we've demonstrated
+ways you can simulate a Markov chain whose stationary distribution
+is the target distribution. Usually our target distribution
+is the posterior distribution for the parameters we are trying to estimate. Before using simulated chains
+to obtain Monte Carlo estimates, we should first ask ourselves
+the following question. Has our simulated Markov chain converged
+to its stationary distribution yet? Unfortunately this is
+a difficult question to answer. But we can do several
+things to investigate. Throughout this lesson we're going
+to focus less on the code and more on the plots. Our first visual tool for
+assessing chains and one that you've already seen in
+previous examples is the trace plot. Here's an example of a trace plot. A trace plot shows the history
+of a parameter value across iterations of the chain. Here we have iterations across the x-axis. It shows you precisely where
+the chain has been exploring. First, let's talk about what
+a chain should look like. Here is an example of a chain
+that has most likely converged. If the chain is stationary, it should
+not be showing any long-term trends. The average value for the chain,
+should be roughly flat. And it should not be wondering,
+as we will show in the next example. It appears that this trace plot
+is tracing the same distribution. It looks like it's approximately
+a normal distribution, across iterations Let's look at an example of
+a chain that is wandering. In this example, the step size of
+the random walk sampler is too small, and so it take many iterations for the
+chain to traverse across the distribution. We're seeing long term trends here. For example, if we were going to estimate the mean
+using only the first 200 iterations. We would get a very different
+answer than if we were to estimate the mean using iterations 600 through 800. If this is the case,
+you will need to run the chain for many, many more iterations as we see here. It turns out, this is the exact
+same chain that we were just looking at except it's on
+a much larger time scale. Instead of a few hundred iterations, we
+are looking at about 100,000 iterations. On this larger time scale it
+appears that we have converged. One major difference between
+the two chains we've looked at is the level of autocorrelation in each. Autocorrelation is a number
+between negative 1 and positive 1 which measures
+how linearly dependent the current value of the chain
+is to past values called lags. We will provide more details about auto
+correlation in a supplementary document. We can see and inspect auto correlation
+using the auto correlation plot in the CODA package, so
+let's first load the CODA package. And to look at the auto correlation plot, we're going to use
+the autocorr.plot function. Let's look first at the auto correlation
+in our good example that had converged. This diagnostic calculates the
+autocorrelation against different logs. For example, at the 0th lag, a value in the chain has perfect
+autocorrelation with itself. A correlation of 1. With the first lag, a value of the chain has a correlation
+a little higher than 0.5. And as we go further along the chain,
+the values become less correlated. We can also look at the values of the auto
+correlation themselves with autocorr.diag. We run that and we look at those values. So associated with lag 1 we have
+an autocorrelation of about 0.61. Now let's look at the auto correlation
+in the example where the chain had too small of a step size and run that. Here we can see some pretty extreme auto
+correlation persisting for many lags. Even out past 30 lags, we have auto-correlation which
+appears to be higher than 0.5. That is, a value in the chain has
+a higher than a 0.5 correlation with a value 30 steps behind it. Auto correlation is important because it tells us how much information
+is available in the Markov chain. Sampling 1000 iterations from
+a highly correlated Markov chain yields less information about
+the stationary distribution than we would obtain from 1,000 samples independently
+drawn from the stationary distribution. To illustrate this phenomenon, let's pretend you want to find
+the most popular movie in your town. Would you get more information if you a,
+randomly sampled 20 people from the town, or b, if you conveniently
+asked 20 of your friends. Chances are that your 20 friends'
+movie preferences are correlated, because they might have similar interests. If you conducted such
+a convenient sampling scheme, you would probably have to
+sample many more opinions. To get the same quality
+of information available from a truly random sample
+of 20 people in the town. Auotcorrelation is a major component
+in calculating Monte Carlo effective sample size in your chain. The Monte Carlo effective sample size is how many independent samples from the
+stationary distribution you would have, you would have to draw to have equivalent
+information in your Markov chain. Essentially it is the sample size that
+we chose for our Monte Carlo estimation. Let's look again at this chain that
+has really high autocorrelation. First let's look at
+the structure of the object. We had a very high candidate acceptance
+rate because it took many steps to go across the distribution. And we had 100,000 samples. Now let's calculate the effective
+sample size of this chain. The effective sample size
+function is in the coda package, and the function is called Effective Size. We need to give it a mcmc object. And this is a pretty dramatic difference. Although we simulated a 100,000 samples, the effective sample size of this
+chain Is only 373, approximately. Let's look at a long range
+autocorrelation plot, Of the chain with a 100,000 samples,
+at a really long lag. Let's go out to 500 lags. This plot shows us that you have to go
+all the way out to about 400 lags or even further than 400 lags before
+auto correlation drops to 0. In other words, values in the chain
+have to be about 400 steps apart from each other before there are no
+longer autocorrelated with each other. What would happen then if we kept
+only 1 out of every 400 iterations. Let's do this. We'll create a thin interval of 400, run
+that and we're going to create an index. It'll be a sequence, starting at 400, going to 100,000. And we'll keep every 400th number. Let's take a look at what
+this thin index gave us. This giveS us the address of each
+sample that we're going to keep To remind ourselves let's create
+a traceplot of the original chain. And we're actually going to want to
+do two plots in the same plot here. So we can control the plotting
+parameters in R using par and if we want to have
+multiple plots per frame, we can use the mf row
+command where the first number we give it Is
+the number of rows of plots. We want two rows of plots. And the second number is
+the number of columns of plots. We want one. So, it creates a new window for us where
+we're going to fill in the trace plots. So, the first is the trace
+plot of the original chain, with all 100,000 iterations. Now, I'm going to copy this line,
+paste it, and we're only going to look at the samples
+that we kept after thinning. So we'll index this by the thinning
+index and run that trace plot. Next, we'll calculate the auto
+correlation for this thinned out chain. We want the autocorr.plot. Look at that,
+the auto correlation has essentially disappeared if we've thinned the chain
+out to every 400 iterations. What's the effect of sample size? We'll give it the thinned chain,
+calculate the effective sample size. It's 250. How many actual samples are there? We can look at the length of
+our thinning index sequence. 250. So the effective sample size in this chain
+is the same as the actual sample size, because the values
+are approximately uncorrelated. To remind ourselves, let's look at
+the effective sample size of the original chain that had 100,000 iterations. It was about 373. Fairly close to the length
+of our thinned chain. We've now discussed two
+different interpretations of the effective sample size. The effective sample size can be
+thought of as how many independent samples you would need to get the same
+information or you could think of it as the length of chain you would have
+left over if you removed iterations or thinned the chain until you got
+rid of the auto correlation. Now, let's compare the effective sample
+size of this highly auto correlated chain, with 100,000 iterations to the effective
+sample size of our good chain, the one that was mixing well,
+but only had 4,000 iterations. The first chain we looked at which
+had good convergence properties has an effective sample size
+of nearly 1,000 out of 4,000. Whereas the chain with high auto
+correlation had a sample size, an effective sample size of
+373 out of 100,000 samples. Clearly auto correlation
+makes a big difference in how much information you
+get out of your Markov chain. It is usually a good idea to check the
+Monte Carlo effective sample size of your chain when doing mcmc. If all you seek is a posterior
+mean estimate, then an effective sample size of a few hundred
+to a few thousand should be good enough. However, if you want to create something
+like a 95% posterior interval, you're going to need more iterations. You may need many thousands
+of effective samples to produce a reliable estimate of
+those outer edges of the distribution. The number you need can quickly be
+calculated using the Raftery and Lewis diagnostic that is
+also available in the Coda package using the raftery.diag function. Here we are calculating the Raftery and
+Lewis diagnostic for that first good chain. This diagnostic tells us
+that if we want to be 95% confident that we are estimating
+the 0.25 quantile of the distribution to
+an accuracy of 0.005, then we're going to need this
+many iterations in our chain. The number next to it here,
+3,746 is the number of independent samples we would need from
+a chain that had zero autocorrelation. With the autocorrelation in this chain, we would need to generate a little
+more then 12,000 samples to get this degree of accuracy in
+creating probability intervals. The dependence factor increases
+with auto correlation in the chain. It tells us how many more
+iterations we would need with this particular chain
+over an independent sample. In this case, we need about three times as many samples
+to get the same amount of information. To learn more about the Raftery and
+Lewis diagnostic, we can always check the documentation
+in the coder package. To access that, type question mark and
+then the name of the function. This opens the documentation page for
+the diagnostic. We can read a little bit
+about the underlying theory. We can learn more about which arguments
+we can change in the function to get different information. And we also have references to
+the original papers that these diagnostics are based off of. Just to review, the Raftery,
+Lewis diagnostic gives us the number, the sample size that we would need for our Markov chain if we want to
+create reliable posterior intervals.

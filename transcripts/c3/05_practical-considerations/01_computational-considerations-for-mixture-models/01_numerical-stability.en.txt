@@ -1,0 +1,178 @@
+Today, I want to discuss
+an issue related to the numerical stability of the algorithms that we
+have been discussing. That has to do with how
+we compute the weights, the probabilities of
+the components both in the EM algorithm and
+in the MCMC algorithm. So numerical stability is going to be the key
+topic of conversation. If you remember, we've been
+computing quantities of the form V_ik equals to Z_ik divided by the sum from L equals one
+to capital K of Z_il, where this Z_il in our
+algorithms look something like Omegas of K g of x by given data, sub K. So this quantities, we are sure that they are
+positive because this is a density and this is a
+number between zero and one. So we're computing this
+ratios where we have a positive number divided by the sum of a bunch
+of positive numbers. When we have been doing
+this in the computer, if you remember our discussion of the EM algorithm and
+the MCMC algorithm, what we have been
+doing is we have been working in the
+logarithmic scale. The reason for that
+is that when you work with numbers that are
+very small in particular, if these Z values are below the smallest number that the computer can represent
+using its finite position, then those numbers are represented as zero
+in the computer. In that case, you end up
+trying to divide zero by zero which is clearly something
+that doesn't have an answer. So to avoid that numerical issue that arises not because
+of the algorithm per se, but because of the fact that the computer has a
+final representation. We are going to need to adjust the way we do
+the calculations. Actually, the adjustment
+is very simple. As I said, we're
+going to be working on the logarithmic scale. What we're going to be
+doing is we are going to be using the fact that because the exponential and the logarithm are
+inverse functions, we can rewrite this
+expression up here as exp of the logarithm of Z_ik divided by the sum from 1 to K of exp of the log of Z_il. So these two expressions are the same just because the exponential and the logarithm are inverse
+function to each other. Now that we have written
+things in this way, the other thing that
+we can do is we can multiply both the numerator
+and the denominator by the same quantity to rewrite
+this as exp minus b, and b can be any
+number that I want, exp the logarithm of Z_ik divided by the
+sum from L equals 1 to K exp log of Z_il. The last step is
+just to basically combine these exponentials
+altogether to rewrite this as the ratio
+of exp of the log of Z_ik minus b divided by the
+sum from L equals 1 to K of exp log of Z_il minus b. Now, in other words, if we do the calculations of this quantity Z_il
+that we have here, which at the end of the day
+basically involves computing the logarithm of the
+density of the components, if we compute those
+logarithms and we subtract some constant and
+this again can be any number, and then exponentiate
+and normalize, the result is the same as if we had started originally with the likelihoods or with the kernels and we
+divide just by the sum. So why is this important? Well, I can pick b in
+any way that I want. Obviously, not every
+b is going to work equally well for the purpose
+of boiling numerical issues. In particular, what
+we want is we want to pick a value of b that A, doesn't produce
+neither an overflow nor an underflow in the computer, but also a value of
+b that just keeps, at least for one
+of the quantities, value that is reasonable. A typical choice for that
+is just to pick b to be the largest value among the
+Z_iks that I'm working with. So it's typical to be b as the maximum over L of the
+logarithms of the Z_ils. So if I do that down here, one of these quantities is going to be exactly equal to one. So for the L that
+corresponds to the maximum, I'm just going to be subtracting
+a number minus itself. So it's going to be the
+exponential of zero which is one. For all the other numbers, because I'm using the maximum, I know that this is going to
+be less or equal than zero. So I'm going to be having
+numbers that are less than one. So that will provide some
+numerical stability. So let's look at how this works by using an example
+in the computer. We're going to illustrate
+the problem of computing the weights in a numerically
+stable manner in a mixture model by using a very simple example where we have two normal distributions. So it's going to be a mixture of two normal distributions where a priori we take the weights to be equal for both components. Those two components that
+are going to have mean zero and standard deviation
+one for the first one, and mean one, and again a standard deviation of
+one for the second one. So we have a standard
+normal versus a normal that has a
+standard variants but it's slightly shifted. We're going to consider
+an observation x1 that is equal to 50. This is a little bit
+large for what you would typically observe if you
+have a mixture of this type. But this is just a
+small illustration. Similar examples can arise with less extreme
+observations when you have a very high
+dimensional normals for your measure components. So the observation is 50 and
+we want to compute what is the probability that
+that observation with value 50 comes
+from component 1, given that we know what the
+parameters of the mixture. So if you think about how that looks like in terms
+of the formula, because the weights are the
+same for both components, they can cancel out. At the end of the day, that probability is just equal to the density of a normal, a standard normal evaluated at 50 divided by the same quantity plus the density of a normal, now with mean 1 and
+standard deviation 1, again evaluated at 50. So this is the value of this probability in this particular little
+example that we're using. So let's see what happens
+when we run this through R. So let's first compute
+this two numbers, the two pieces that go
+into a probability. So if I execute
+these two commands, you can see down here
+how R is saying that this density evaluated
+by 50 is zero, and the same thing for
+the second density. Now, we know that these
+values are not exactly zero because the density of the normal is strictly greater
+than zero everywhere. In fact, the exact value we
+have it here in the comments. So for the first quality
+is square root of 1 over 2 pi multiplied by the exponential of minus
+50 squared divided by 2. But because this number
+is relatively large, so it's minus 1,250. When you do the exponential
+of that very negative number, you just get a zero, and that's a problem with the numerical precision at which the computer can
+represent the number. So the number is
+so small that it's below the minimum that a
+computer can represent. So if you use these
+two values and then try to do the ratio, what you're going
+to get is a NoN, because in practice
+what you're trying to do is you're trying to
+divide zero by zero. Again, this is a problem
+with the computer itself. It's not a problem that
+we have done anything wrong with computing our weights. It's just the fact that because the computer cannot represent this very
+small numbers, then it thinks that you are asking it to divide zero by zero, when in reality
+that's not the case. Okay. So we discussed
+how to fix that, and the key trick is to do all the calculations in the log scale and
+then go from there. Let me correct a
+little mistake here. So what we want to do is
+we want to be able to do the computation in the logarithmic scale
+for the densities, and then if we add some value to the
+logarithms before taking the exponential
+and normalizing, then we have invariants
+in the result, and so this is just meaning,
+to illustrate that, if instead of having that
+very extreme value of 50, you just have less extreme value of three as your observation, and now you want to
+compute the same quantity. This is a case where you
+can do it directly and you won't have a numerical issue. You will see that the
+probability is just 0.07, which makes sense
+because the mean of zero is much farther
+away from three, than the mean of one is to three. So it makes more sense that component with mean 1
+generated the three, than it is that the component
+would mean zero plus. So that is the value, and this is just to
+verify that what I did on the board is actually correct if you do
+it with numbers. So you can see that you
+get the same result in both cases for
+that probability. Now how is that helpful in
+the case where x1 is 50? In that case, we cannot do this. So we cannot do the
+direct calculation here that is equivalent to this
+direct calculation here. So we can still use the
+second way to do it, and we're going to do is in such a way that we select this b, not just in any random fashion, but we're going to
+select b as the largest of these two numbers
+computed in the log scale. So if we do that, we can see that now we
+get a very tiny number. We get essentially 3
+to 10 to the minus 22. But the important
+thing is that we are not getting a NoN anymore. So it makes sense again that
+because the value is 50, component 2 is more likely to have generated a number
+than component 1. So this is consistent
+with our intuition, and we don't get a
+zero number forward. Now, one thing to keep in mind is that it is important
+to do the calculation. So when we talk about
+computing in the log scale, it is very important that we do the calculation directly
+in the log scale. What that means is for example, just doing the direct
+calculation of the dnorm and then
+taking the log outside, it's not going to work. Let's do it here. So you can see that
+you get a NoN, and the reason is this number was already zero because of the fact that you took that
+exponential of minus 1,200. If you now take the
+logarithm of zero, what you get is minus infinity. So at the end of the day, what you're going to
+be doing is doing a minus infinity divided
+by minus infinity, that's just still undetermined, and that's why this doesn't work. This is just the same
+calculation of above, but instead of trying to
+do the dnorm function, we're going to use directly
+the formula for the dnorm, and you can see that again, the problem is the same, you again get a NoN. On the other hand, if you use the dnorm function
+R with a log equal true, which is what we did
+above, this works. This just repeats a few of
+the lines that we had above. Or if you don't want to
+use the dnorm function, the other thing that you
+can do is you can take essentially this formula up here. Take the logarithm of that, that basically gets rid
+of this exponential and just works with the logarithm
+of this square root 2 pi, and that is also
+correct way to do it, just a little bit more cumbersome in the context of R. But you can see that that again gives you exactly the same result
+that we have above. So it's very important
+to remember to compute the weights or the pieces that go into the weight first
+in the log scale, and then do this operation of subtracting the maximum before doing the exponential and normalizing to obtain
+the probabilities. That's one thing to remember. But the other thing to
+remember is that doing the computation in the
+log scale does not only involve taking a log outside the dnorm
+function as up here, that will typically
+won't be enough. You need to make sure that
+you are doing the calculation directly in the log scale by
+doing something like this, or something like this.

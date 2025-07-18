@@ -1,0 +1,122 @@
+You may remember the
+galaxy data set which we used before in the context
+of density estimation. This data set is contained in the package mass which comes
+to standard with R and contains the velocities of
+82 galaxies that come from six well-separated conic sections of the Corona borealis
+region of the sky. When we fitted this model before, both in the case of
+using EM algorithms and in the case of
+using MCMC algorithms, we selected the number of components K to be
+exactly equal to six. That selection came from
+the fact that well, we knew that the data
+was collected from six well separated
+conic sections so it made sense in that context to use that number of components. Now, what we want to do today in this example is to use the BIC the Bayesian
+information criteria to verify that that choice is actually supported by the
+data that we have at hand. So you may already be quite familiar with some
+pieces of this code. In particular, we
+are going to reuse the code that we had presented before for fitting the model
+using an EM algorithm. So first of all, we are going to load the data, that's what we do with
+these pieces of the code. You can see that we also set the seed of the
+random number generator and we do that so that we can get consistent results from one run of the
+model to the next. So next, we're going to compute the BIC for different values
+of K and in particular, we're going to compute the BIC for every value of K from
+2 to 20 in this case. So that's what this
+KKmax represents. So we're going to
+construct a vector that contains the calculated
+values of the BIC. The next thing that we do is to construct a couple of objects that are going to contain
+the model parameters fitted for each value of K. So for each number of
+components in the mixture, then we're going to embed our EM algorithm into a fore
+loop that, as I said before, goes from a model with
+two components to a model with KKmax which is in
+this case, 20 components. For each value of K, it's going to fit the model using the same EL algorithm that
+we had discussed before. Once we feed the EM algorithm, that's what this section
+of the code does. This runs the all DM
+algorithm on the convergence. So once it does it
+for one value of K, we are going to store the
+values of the weights, the means, and the sigma that correspond to the MLEs
+for that dimension. Then, we are going to compute the BIC using this formula here. So the formula for the
+BIC has two parts. This part has to do with
+the likelihood function for the data which has
+the standard form. Then, the second piece
+is the calculation of the penalty associated
+with that model. If you remember, from
+our discussion before, the penalty is always the
+number of parameters in the model multiplied by the logarithm of the
+number of observations. The number of parameters
+in the model, if you have K components, it's going to be K minus
+one independent weights. Remember that the
+weights add up to one so they are not quite K, they are K minus one. Then, you have one
+sigma because we assume that the kernels are the same for all the components or have the same variance for
+all the components, so you have a single sigma. Then, you have one mean per component so you have KK means. So that's where the value
+of the penalty comes from. You could just write
+instead of this thing, you could write 2 times K, but I wanted to break
+it into pieces so that it was clear where the
+number was coming from. So let's do that, let's run the for loop. It takes a second to
+run because it needs to go for different values of K, so it has finished. So now that we have the
+different values of K, one of the things that we can do is just plot the value of the BIC as a function of
+the number of components, that's what this
+piece of code does. You can see some of the
+features that we had discussed in the previous lecture about what happens with the BIC. So you can see that
+for small values of K, so for values around two, three, the BIC is
+relatively large. Then, as you start adding components to the
+mixture, BIC decreases. We can see that
+actually the optimal, so the minimum value
+of the BIC does coincide with K equal
+to six which is great, that means that this confirms
+what we had expected. Then, as you add more components to the
+mixture because now, you have more
+complexity but you are not necessarily explaining
+the data better, the value of the BIC
+starts to increase. You can see that this is
+not a strictly monotone, you have some local modes
+in a couple of places. But you can overall see that the global minimum is clearly
+located at K equal to 6. So I want to provide a little bit of additional
+intuition for this. If you remember, at some point, we discussed that the
+value of sigma is related, in some sense, with the number or there is a trade-off between the value of sigma and the number of components
+in the mixture. In particular, as you
+use more components, those tend to be more
+localized and therefore, the value of sigma
+becomes smaller. That is, in some sense, the intuition that we get by comparing kernel density
+estimation with mixture models. So let's see how
+that works out here. Indeed when you only have two
+components in the mixture, the value of sigma tends
+to be relatively large. Then again, it's not exactly monotone but we do clearly see a decreasing trend that you as you take a larger number of components in the mixture, the optimal value of the
+variance of those components tends to be smaller and smaller which confirms our old intuition. So some more intuition in this. So let's look at the kernel density estimators that come out of all this mixture models
+for different dimensions. What I'm going to do
+is I'm going to plot the optimal value of
+six components in the mixture and compare that density estimator with the density estimators
+that you get for other dimension
+sizes that are close to six but are
+not exactly that. So this is a little function that computes the
+density estimator. Now, I'm just going
+to compute that for anywhere between four and nine
+components in the mixture. The first plot that I'm going to do is I'm going to try to explore the left-hand side of this graph so I'm going to try to see how the optimal estimator
+here looks like compared to smaller values of K. So
+let's generate that plot. You can see here,
+so the blue line corresponds to taking
+four components, and you can see that what's basically happening
+is that you're smoothing out this two modes and just taking something
+that is uni-modal here. You're also over smoothing a little bit these
+bumps on the sides. So as you move to five
+and as you move to six, you start to pick the bi-modality of
+distribution with five, and with six the bi-modality
+is very clear and you also pick more clearly a couple of the other bumps in the data. So the take-home
+message here is that as you increase from say
+three, four, five, all the way to six,
+your density estimators change quite a bit and you are tending to fit the data better. So that's why the BIC decreases because
+you are increasing the complexity but you are
+increasing or improving the fit much more than you
+increase in complexity. Now, let's look at what happens when I plot six,
+seven, and eight. So you can see that the case of the black
+line that corresponds to six and the red line that corresponds to seven,
+they basically overlap. So even though there is a difference in the
+number of components, for practical purposes, you get the same density
+estimator in both cases. Now, when you go to eight, that is the blue line, you will see there
+is a little bit of a change but most of the key features stay
+the same in the graph. So in this case, you are increasing the
+complexity of the model without really reaping any benefit in terms of how well you
+are feeding the data. So that's why the BIC, again, tends to increase. So now, it's the penalty
+term that tends to dominate and the trade-off is not enough to compensate for the
+additional complexity. So this neatly illustrates some of the ideas that
+we had discussed in the lecture before of
+how the BIC traits of a good fit to the data with the complexity of the model
+that you are trying to fit.

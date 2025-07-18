@@ -1,0 +1,118 @@
+Today, we're going to illustrate the use of mixture models for density estimation
+in the context of a real dataset called
+the galaxies dataset. What I want to do is I want to contrast mixture models
+fitted balls from a Bayesian and frequent
+perspective against the density estimators
+that you get from KDE, from kernel density estimation. We're going to use the
+galaxies either set. This is a very famous
+well-known dataset used in the context
+of mixture models, and it's included as part of their mass package to obtain this information
+that is here. You can see that this are
+velocities of galaxies measured in six
+well-separated conic sections of the Corona Borealis. So we want to understand whether this distribution
+is multimodal, how many modes are present, and in general provide a density estimator for
+this different velocities. So the first thing
+that we need to do is we need to actually
+load the dataset. That's what this part
+of the code dose. We're going to be using
+six components in our density estimators
+using mixture models. The reason for that is that as you can see here
+in the help file, there are six well-separated conic sections that
+were collected. So that suggests
+that there should be about six clusters in the data. So the first thing that we're
+going to do is we're going to use the EM algorithm to get the maximum
+likelihood estimators of the parameters for this
+particular dataset. Once we plugged those maximum
+likelihood estimators of the parameters into the definition of
+the mixture model, we can obtain what we can call the maximum likelihood
+density estimate based on the location
+mixture of models. That is very important,
+we're going be using location mixture of models
+because they are the ones that compare more directly with the kernel density estimate. Same structure as when we
+did the EM algorithm before. We need to provide initial
+guesses for the weights, the mean, and standard deviation of the kernels,
+that's what it is. We need to initialize
+some parameters basically that control the
+convergence of the algorithm. Then we go through the E, a step that has exactly
+the same form that we had before in the M step, that also looks the same as when we illustrated the algorithm
+for the first time. Actually, if you look
+carefully at the code, this is exciting the same
+code that we had before. So that's what this
+piece of the code does. Then we just compute the density estimator
+at different positions. By computing the density evaluated in the
+[inaudible] list that we have obtained
+after convergence. So this is very simple. We can run this piece
+first if you will. Okay. Great You can see that it converges not as
+quickly as it was converging before when we did
+the simple simulated data, it took 44 iterations
+to converge, but it is still converges
+relatively quickly. We pretty much
+didn't have to wait anytime to get the results. Now, we want to do the same but we the Bayesian
+equivalent of the model. So now we need some priors, and again we're going to use the same priors that
+we used before. So the prior for the weights
+is going to be uniform, that's why we use multiple ones. Here we have a little bit
+of a harder time setting prior distributions for the
+location of the kernels. What we're going to do is
+we're going to do something that it's a little bit
+like empirical base, in the sense that we
+are going to roughly use the data to give us a
+sense of where they should be. The estimator is going
+to be relatively robust to these
+choices as long as we keep them within one
+order of magnitude of this. So for the mean of the means, if you will, and
+we're just going to use the average of the data. That's what this line does. Then for the variance
+of the means, we are going to use the
+variance of the data, that is essentially the choice. Then we also need to provide priors for the variance
+of the kernel. In this case, I'm
+going to provide a prior that is an inverse gamma. The shape parameter is at two, which means that it's a
+prior that doesn't have a lot of concentration. In fact, the variance
+of an inverse gamma prior with parameter
+two is infinite. So we're going to
+have a prior that has finite mean but infinite periods. We're going to center it around the observed variants in the data divided by the
+number of components. Again, this is, roughly speaking, a reasonable order of magnitude, some chance that
+results too much. So these are my prior
+specifications. So the rest is very similar
+to what we did in the past. So we're going to have some variables to the
+store, the posterior samples. In this case, we're going to use a total of 12,000 samples. We've earned the first
+2,000 and use the remaining 10,000 for inference. Then we run our algorithm. So we don't have the same
+structure as before. So we sampled Indicators, we sample the weights, we sample the means, and we sample Sigma. Finally, we compute
+the un-normalized log posterior in case we want to check convergence
+of the algorithm. Once we have computed or
+sampled all the parameters, then we can compute
+the density for each iteration of the MCMC, that's what this
+piece of code does. We can even compute the posterior mean as
+a point estimator. So again let's run the code. It's not terribly
+slow but it does take 10 or 15 seconds to complete the 12,000 iterations of the sampler, and then to compute the
+density estimators, but it's done now. So the last thing that I
+want to do is I want to plot the estimators and compare them against the kernel
+density estimate. So you can see here in the figure on the
+right are the results. Let us start with the kernel
+density estimator that it's the red dotted curve. You can see that it agrees
+with the other curves down here in this
+little mode down here, is also agrees with the
+other ones down here. The main differences
+between the three are here. What the kernel
+density estimator does is it tries to smooth out. It does see that there may
+be two modes located here, but it tries to smooth this out and make it
+look like a single mode. That is a little bit different
+from the EM algorithm, which is the dashed
+blue line does. So again, it agrees
+with the other methods in the tails of the distribution
+in these small clusters, but it is very different from the other ones both
+in that it definitely peaks two modes down here very well delimited
+if you see them. But it's also the
+first down here in the sense that it
+doesn't really peak this extra mass or this extra weight
+that is down here that is due to this observations. It actually the EM algorithm, the point estimator
+that it provides, gives very low probability to these values
+observed down here. In some sense you can see the MCMC algorithm as
+being somewhere in between the other two methods in terms of what they provide
+down here in the middle. So it does show evidence
+of the multimodality, but it's not as strong as in the case
+of the EM algorithm. On the other hand when
+it comes to dealing with this little cluster of a couple of
+observations down here, it tends to provide
+more weight in that area than the EM
+algorithm was doing. So it's an interesting tradeoff. But in any case the results from all three methods are
+reasonably close, they all show that
+there is definitely multimodality in the posterior.

@@ -1,0 +1,257 @@
+Another application of
+mixture models that is very important in
+practice is clustering. Clustering is sometimes called unsupervised classification in the literature. If you're training is
+in Machine Learning, you will be more familiar with the unsupervised
+classification term. If you're training
+is in statistics, you may be more familiar
+with the clustering term. The idea in any case is to
+partition the sample that you have that it comes from a heterogeneous population
+into homogeneous groups. So the idea is to generate this homogeneous groups that we're going to call clusters. This is important for
+a number of reasons. For example in Biology, you may be interested in finding groups of
+individuals that correspond to species
+according to how they differ in some
+physiological characteristics. So a clustering tool allows you to create
+those groups or to find out different species out of the samples
+that you get from, for example, measurements
+of lengths or weight or other physical
+characteristics that may be relevant. Now the literature on
+clustering is very extensive. There are a lot of tools out there for carrying
+out clustering. One of the techniques that
+is fairly commonly used is called K- means clustering. You may be already familiar
+a little bit with it or have some experience playing around
+with K-means clustering. K-means clustering is closely related to mixture modeling. I want to illustrate that
+connection before showing how the meter models can then
+be used to extend and improve over what
+K-means clustering does. Now the idea behind
+K-means clustering is, if you start with a sample that looks a little
+bit like this. So this is one variable
+and this is another. I'm going to assume
+that you only measure two features for the individuals. So this is our whole sample. This groups here
+are the clusters. So in this case, we're going
+to have three clusters. So the idea of coming K-means clustering
+is to make a guess. You have to fix K, you have to say how many clusters we want. But once you have decided
+how many clusters you want, you're going to start by setting up some set clusters centers. Say M1, M2, and M3, where Mk are cluster centers. Then you're going to have some membership indicators that are very similar to the Ci
+that we had used both to derive the EM algorithm and MCMC algorithms for
+fitting mixture models. This Si just tell me to which cluster each
+observation belongs. What we do is assign observations to the closest cluster center. If I'm trying to decide to which cluster this
+observation belongs, I'm going to look
+at this distance, this distance, and this distance. Because the distance
+to m2 is the smallest, then I'm going to decide that this observation in particular
+belongs to cluster 2. So I'm going to make the Si corresponding to
+this observation. I'm going to make it equal
+to two. Then I just repeat. So now that I know what observations belongs
+to which cluster, then I just recompute where
+there's the cluster center. So I will put this into an
+algorithm in just a minute, but the rough idea is
+to iterate between assigning observations
+to clusters and computing where the
+center of the cluster. Yes. Now let's go back to
+mixture models for a second. So if you remember, we had this variable Ci, in the case of the
+mixture models, that were component indicators. In the particular case
+of the EM algorithm, which I'm going to use for
+concreteness for illustration, we had also these variables Vi, k that just reflected
+the probability that Ci is equal to component k, given the current
+parameters of the model, the current estimates of
+the parameter in the model. So given the vector omega in the variables and the component is specific parameters theta. We computed this using basically Bayes' Theorem back where we derive the algorithm. So this components
+could be interpreted as the probability of observation i in component. In particular with
+the EM algorithm, we never explicitly provided
+an estimate for the Ci, but it's clear how we can go from the estimate of the Vi case
+to the estimate of the Ci, which is basically to peek Ci as the index k that
+maximizes the probability. So just the mode of this
+distribution over components. So we could make Ci be the arg max over k of the Vi. So if we have a data
+set to which we fit a mixture model with k components using
+the EM algorithm. Once the algorithm has converged, we have the values of the
+omega and the thetas, but we also have the value
+of the Vs in one wing which we can use the value
+of the Vs is by basically picking what is
+the component that generated the observation by
+looking at which one of those Vs is the
+largest and looking at what component that
+corresponds to. So this would allow us to use mixture models to do clustering to basically generate or decide which observation
+generates its component. So now let me write
+side-by-side how the EM algorithm for one particular case
+would look like and compare one particular
+mixture of models, and how that would compare with the algorithm for
+K-means clustering that I was describing
+just a few minutes ago. Let's just start by first describing formerly the algorithm for K- means clustering. The algorithm for
+K-means clustering has really two steps. The first step is one we
+could call an assignment. A-step, where we decide which component each
+observation belongs to. So we decide on their
+[inaudible] and the form of that step is such
+that we make S_i equal to the arg max over k of the distance between each observation and
+the case center. This refers to the
+Euclidean distance. So typically, we're
+going to be working with multivariate responses here, like in my previous example
+where I had two dimensions. So in other words, we compute the distance between the observation in
+each one of the centers, and we do they arg mean. So we take the one with
+the minimum distance. The second step
+that we do is we do a center update A-step. So this would be
+iteration t plus one, and this is based on
+iteration t. In this step, what we do is we get the
+new cluster centers by basically just averaging all
+observations that belong to the component k.
+One way to write that, is by saying, well, what I'm going to do is take
+my sum in principle over all the observations of x_i, but I'm going to add
+an indicator function that S_i is equal to k. I'm going to divide
+that by the sum from 1 to n of the same
+indicator function, S_i is equal to k. So this is just a fancy way to say I'm just going to take
+of the n observations, this terms are going to
+be different from zero only if the observation
+is indicate component, otherwise, I have the observation
+multiplied by a zero. Similarly, down here
+this is just counting how many observations
+are in the case cluster. So this is the average value of the observations that are currently assigned
+to the cluster. So given some initial
+value for the centers, we can just alternate between these two steps
+until convergence. In particular, until
+the membership of the observations to the cluster doesn't change from one
+iteration to the next. Now let's compare this
+against an EM for mixtures, and let me in particular consider one very specific mixture. So consider a mixture in which we have k components just like we would have in the k-means
+clustering algorithm. But rather than working
+with some general weights, I'm going to try to estimate, I'm going to simplify the
+mixture a little bit, and I'm going to say that all my components
+have the same weight. So I'm going to make
+it 1 over k. This would be my Omega_k for all k. I'm going to use Gaussian kernels
+but I'm going to use a very particular form
+of the Gaussian kernels, so this is going to be 1
+over square root 2 Pi Sigma to the exp of minus one
+over two Sigma square, norm of x_i minus Mu_k plus 1. If you look at what this says, this corresponds to the kernel of a normal distribution with mean Mu_k and with
+variance Sigma squared i. So this is even simpler than some of the settings that we
+have worked before. So we have worked with cases
+where we allow the variance, covariance matrix
+of the multivariate normal to be general. We have worked with cases where, and varied with the component. We have war with cases
+where we make it be the same for our components but
+we still allow it to be free. Here we're working with a
+very particular setting in which we're restricting
+it to be spherical, so to be Sigma square
+multiplied by I. So we assumed that all different dimensions of the problem have
+the same barriers. This is going to be very
+important for some of the discussion that we're
+going to have at the end. So I'm going to be working with this particular mixture model in the EM algorithm for this
+particular mixture model. If you, again, remember you
+have in the EM algorithm and E-step that in this case
+takes a very specific form. So we're going to make our
+V_i,k in step t plus 1 to be proportional
+because the weights are the same for all
+of the components. Then I don't have to
+worry about them as just part of the
+proportionality constant. 1 over square root 2 Pi Sigma is also going to appear
+in every kernel. So you also don't need
+to worry about that. So I can just write the rest
+of the expression, that is, x minus 1 over 2
+Sigma square norm of xi minus Mu_k squared. You can start to see some similarities between
+the two expressions already. The other step is the M-step. In the M-step, you
+have two pieces. You have one piece, it has
+to do with updating Sigma, and one piece that has
+to do with updating Mu. But let me write explicitly
+only the one that has to do with with Mu. If you think about how
+you do the update of Mu to the next iteration, this was something
+very similar to this, so weighted average,
+with that weighted average being given by the V_i,k. So you have the sum of V_i,k in step t plus 1 multiplied by x_i. Sum from 1 to n, b, i, k, t plus 1. Again, you can clearly
+see the similarities. So let's explore this
+a little bit more. So the first thing that
+I want to note is that when we discussed how to select the C sub i's based
+on the V sub i's, what we discussed is
+that we would choose the C sub i's so that we
+maximize the probability, but maximizing this
+quantity should be clear. It's exactly the same thing
+as minimizing this quantity, because the exponential is a
+one-to-one function and in particular an increasing function and we have a
+multiplication by a minus, so that changes maximization
+for minimization. So there is a clear
+analogy to this. In particular when you have components that are very well
+separated from each other, we have seen that this v, i, k's are all going
+to be close to 1 for their observations that are in that component and close to zero for observations that
+are in other components. So essentially, that means
+that these two steps are, if the components
+are well separated, these two steps
+essentially give you very, very similar results in
+terms of the allocation. If you think about
+the second step, something similar
+happens as I just said if the components
+that will separate it. This v ,i, k's are for the most part
+either ones or zeros. In particular for a given i, there is one of them that is
+going to be really close to 1 and the rest are going
+to be really close to 0, which means that you are
+essentially just replicating this weighted sum where the
+weights are zeros and ones. So this is just to highlight that drowning your k-means
+clustering algorithm. It's very similar and its going to give you results
+that are really close to the results that you
+would get from running an EM Algorithm for
+mixture models for this particular
+mixture up here where you are mixing
+Gaussian kernels that have not only a common
+variance across the kernels but also common variants along
+the components, and that assumes that the
+components are not correlated. Again, why is all this
+discussion important? Well, because it highlights
+what are the shortcomings of k-means clustering and it also suggest some
+ways to address it. Let's elaborate a little
+bit more on those ideas. Let's consider this
+mixture model here. If you think about
+how densities from that mixture model looked like in the two-dimensional case, the contour plots for this
+densities have to be circles, and they have to be circles
+of about the same size. So you are expecting
+your clusters to look something like this when you feed mixture
+model of this type. That won't be a very good idea. So this is what k-means
+clustering expects to see, but in practice, your clusters may not look anything like that. Your clusters may look more like a bunch of points like this, and then a bunch of points like this and then maybe a
+few points like this. If you're going to make a guess about how the contour plots for this densities
+locally look like, it's probably
+something like this, something like this, and
+may be something like this. So this clearly
+looks like a circle. So for the purpose
+of this cluster, k-means may do a reasonable job, but if you think about
+this sort of two clusters, they clearly show first of all that there is a correlation between the two variables between x1 and x2 between
+the two features. So that's something that k-means clustering
+can't really deal with. The other thing that it
+shows is that you have a different variance in each
+one of the two dimension. So one of the variables has a much larger variance
+than the other one. That is clearer here where
+you can see that x1 for this cluster varies
+very little but x2 for this cluster varies a lot. So the fact that k-means
+uses this structure means that it will
+typically do a poor job at clustering when you have
+situations like this. The other thing to
+observe is that in k-means clustering
+you are assuming that the weights for each one of the components is the
+same and it's 1 over capital K. What that essentially
+assumes is that you are expecting about the same number of observations in each
+one of the clusters. Again, if your real data
+looks a little bit like this, where you have one big
+cluster where most of your observations are
+and then maybe you have another small cluster
+here with just a few, k-means clustering will typically
+have a really hard time separating these two
+clusters because it wants to move some
+observations that are in here to this side
+in order to make the two sizes the same so
+that this assumption that the weights are 1
+over k for all of the components is correct. So by casting k-means clustering in the context of
+a mixture model. We can see clearly where
+the shortcomings are and obviously we can see clearly how to deal with those shortcomings. For example, if
+instead of working with sigma square
+times identity matrix, we work with a general
+matrix sigma k here, we allow the components
+to have different shapes. So that would be a way to
+deal with this problem. Then by working with these more general wigs omega
+k rather than one over k, you can deal with this
+problem down here. More generally, you can
+deal with all the problems by changing the type of density that you
+use for the mixture. For example it's
+common to replace the normal distribution
+with something like a t-distribution or
+some eschewed version of the normal distribution to capture other features that in a particular data set
+may be present in the data. So by presenting it
+in this context, we have a number of
+generalizations. There are generalization
+that we can easily obtain by thinking
+about clustering in terms of mixtures is to generate Bayesian
+procedures for clustering. In particular, we discussed
+fitting this model using the EM algorithm and how that looks like k-means clustering, but if instead you fit
+this model using for example an MCMC algorithm like the one we
+discussed in the past, then what you get is essentially a Bayesian k-means
+clustering algorithm. More generally, you can get powerful Bayesian
+clustering algorithms by considering more
+general mixtures that are fitted using
+algorithms such as the MCMC that we discussed
+a few lectures ago.

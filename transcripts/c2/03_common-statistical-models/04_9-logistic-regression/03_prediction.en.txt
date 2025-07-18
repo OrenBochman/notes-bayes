@@ -1,0 +1,128 @@
+In a logistic regression model, how do we turn parameter
+estimates into model predictions? The key is the form of the model. Remember that the likelihood is Bernoulli
+which gives us a one with probability p. We model the logic transformation of p
+as a linear model of the predictors. Which we showed in the first
+segment of this lesson, leads to an exponential form for
+the expected value or p. It's this exponential form, right here. So if we have the coefficients and
+the predictor values. We can plug them into this
+equation to get an estimate of the probability that the response is one. We're going to use the second model. So let's extract the posterior
+means of the coefficients. From the combined simulation,
+And look at the values of those. The posterior mean of the intercept was
+about negative zero point one five. Because we centered and scaled all of
+the covariants, values of zero for each of the predictor variables
+corresponds to their average values. Therefore, if we use this last model,
+then our point estimate for the probability of
+calcium oxalate crystals. When the specific gravity,
+conductivity, and calcium concentration are at
+their average values. That gives us zeros for the x's here. Then our predicted value for the probability of calcium oxalate
+crystals will involve only the intercept. Let's code that up. It'll be one divided by one plus an exponential of negative of negative .15 which is positive 0.15. This means that if we use our
+posterior mean point estimates. We estimate that the probability
+of absorbing crystals at the average values of these
+three predictors is about 0.46. Now let's suppose we want
+to make a prediction for a new specimen whose value as
+specific gravity as at the average. Whose value of conductivity is one
+standard deviation below the mean. And whose value of calcium concentration
+is one standard deviation above the mean. We can just modify this
+calculation right here. The intercept doesn't change
+minus the coefficient for the first data,
+1.42 times the value that we'll use. We were using the average so
+that'll be zero. Conductivity was one standard
+deviation below the mean. Will first add its coefficient
+minus a negative 1.35 or 36 is the coefficient for that one. And we're going to be doing one
+standard deviation below the mean. So that will be the value for that x. And finally we want, calcium concentration one standard deviation above the mean. We start with the coefficient 1.88
+times the value of the corresponding x which was one standard deviation
+above the mean and we'll run that. If it gives us a probability
+of almost 0.96 of observing calcium oxalate crystals. Remember the model was fit to standardize
+the values of the predictor variables. And so we need to use the standardized
+values of these predictor variables when making predictions from the model. If we want to make predictions
+in terms of the original x variable values we have two options. The first option is for each x variable,
+we can subtract the mean. And divide by the standard deviation for that variable in the original
+dataset used to fit the model. Or we can refit the model without
+centering and scaling the covariance. So far, we've calculated predicted
+probabilities of observing crystals for hypothetical predictor values only. We can use the same ideas
+to make predictions for each of the original data
+points from the dataset. This is similar to what we
+did to calculate residuals in our earlier linear models. First, will take the X Matrix,
+the design Matrix, and Matrix multiplier with the posterior
+means of the coefficients. Let's create that variable, we'll call it,
+pmxb for posterior mean of x beta. And it will be pm coefficient
+we want the intercept first. Then to the intercept we're going
+to add our design matrix which we've already calculated. And retain only columns one,
+four, and six for those three variables
+we used in the model. And matrix multiply that with pm
+coefficients, one, two, three. Before we run this let's make sure
+we know what each piece is doing. So the first piece here is the intercept. Then we're going to take
+the values of the predictors. The first three are these
+three columns for specific gravity conductivity and
+calcium concentration. And we're going to matrix multiply
+it with the posterior means of the coefficients which
+we calculated up here. The matrix multiplication
+does the following. For observation two right here, we'll multiply the specific gravity
+value with its coefficient. The conductivity value
+with its coefficient and a calcium with its coefficient. And we'll add those three numbers
+together, to get an x beta for observation two. Then the same thing will be repeated for
+observation three, all the way down through
+the end of the dataset. So let's go ahead and run that. And it gives us those values for
+each of the observations. Now we need to turn this
+into a prediction for the probability using this
+inverse transformation. We've already calculated
+the betas times the x variables. So we need to finish calculating
+the rest of this expression p-hat will be our predicted probability. It'll be 1.0 divided by 1.0 plus an exponential function of negative one times rpm x data that we just calculated. Please make sure if you have any doubts
+to carefully go through this expression. And verify that it is in fact calculating
+this number where it's extended for three covariance. Let's run that and
+look at the first few values. These are the resulting predicted
+probability of observing crystals for each of the observations in the dataset. We can get a rough idea of how successful
+the model is by plotting these predicted values against the actual outcome. We'll plot y-hat against
+the response variable. We use p-hat not y-hat. Of course, the response variable could
+take on values of only zero and one. And it's kind of hard to
+see what's going on here. So let's rerun this plot by adding some jitter to the ones and zeros. Recall they're still ones and zeros, but now they've been spread out a little
+bit so that we can see them better. Along the y axis,
+we have the actual response, one or zero. And along the x axis, the predicted
+probability that it would be a one. We can see that this model did okay, for observations that have high values of
+predicted probability of observing a one. Many of them really were ones. And down here, observations that have
+low probability were often zeros. Suppose we chose a cut off for
+these predicted probabilities. For example lets select 0.5 as our cutoff. If the model tells us that
+the probability is higher than .5 we're going to classify
+the observation as a one. And if it is less than 0.5 on the left
+here we're going to classify it as a zero. We can tabulate these classifications
+against the truth to see how well the model predicts the original data We'll create a table
+based on a cutoff of 0.5, Using the table function. Where the first argument is whether or not the predicted probability
+is greater than 0.5. And then we want to know whether
+the response was actually zero or one. Let's run that table. Now take a look at the values. So the false values here
+are observations where p-hat was less that 0.5 and
+here they were larger than 0.5. These observations were correctly
+classified because their true value was one. And these observations were correctly
+classified because their value was zero. That is the correct one classifications
+are the points in this region. And the correct zero classifications
+are the points in this region. To calculate our correct
+classification rate, let's take a sum of
+the diagonal of that table. Those are the correct classifications. And we'll divide by the sum
+of the overall table. This gives us a correct classification
+rate of about 0.76 or 0.77. Not too bad, but not great. Now suppose that it is considered really
+bad to predict that there will be no calcium oxalate crystal
+when in fact there is one. We might then choose to
+lower our threshold for classifying the data points as ones. Let's say we move that threshold
+back over this direction to point three and
+we'll call that our cutoff. That is if the model says that the
+probability is greater than point three will classify it as having
+a calcium oxalate crystal. Let's recalculate that tab 0.3. So if it's greater than 0.3 will
+classified it as having a crystal. Let's run those as you can see,
+we have reduced the incidence of false negatives where we said there
+would not be a crystal. But in fact there was one, previously
+there were 12 now there are only seven. Let's check the success rate
+of our classification here for this cut off value. It looks like we gave up
+a little bit of predictive accuracy to increase our chances
+of detecting a true positive. And to reduce our chances
+of a false negative. We could repeat this exercise for
+many thresholds between zero and one. Different cut off points here. And for each one we could
+calculate our error rates. This is equivalent to calculating
+what is called the ROC. Or receiving operating
+characteristics curve. Which are often use to evaluate
+classification techniques like logistics regression. These classification tables which we
+have calculated are on in sample. They were predicting the same data
+that we use to fit the model. We could get a better, less biased, and more accurate assessment of
+how well our models performs. If we calculated these tables for
+data that were not used to fit the model. For example,
+before we fit the model we can withhold a set of randomly selected
+tests data points. And then use the model fit to the rest of
+the training data to make predictions for our test set.

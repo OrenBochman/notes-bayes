@@ -1,0 +1,130 @@
+To implement the Gibbs sampler
+we have just described, let's return to our running example
+where the data, or the percent change, in total personnel from last year
+to this year for ten companies. We're still going to use
+the normal likelihood. Up until now, we have fixed the variance, the variance of the growth between
+companies, sigma squared, at 1. Now we're going to relax that assumption. We will not assume we know sigma squared, we're going to estimate it,
+like we do for mu, the mean. Instead of a t prior from earlier, we're going to use the conditionally
+conjugate priors, normal for the mean, mu, and inverse gamma for
+the variance, sigma squared. The first step is going to be to
+write functions in R that simulate from the full conditional distributions
+we derived in the previous segment. Here's the full conditional update for
+the mean mu, and here is the full conditional update
+for the variance, sigma squared. We need to write functions
+to simulate from these in R. We'll call the first one update_mu, and
+the second one we'll call update_sig2. I've now written these two functions in R. The first one, update_mu,
+needs arguments n, ybar, the value of the current sigma squared,
+and then the prior hyperparameters for mu. I first calculate this variance,
+and then I calculate this mean, which uses this variance in
+the denominator, and, finally, take a draw from a normal distribution
+with the correct mean and variance. In the update for
+sigma squared, we need n, the full data vector, all of the y values,
+the current value of mu, and the hyperparameters for
+the prior on sigma squared. In the first three lines, we performed the
+calculations described by this formula. And in the fourth line, we draw from
+a gamma distribution, because R does not create draws from the inverse gamma
+distribution, we have to do it manually. This is done by first drawing
+from a gamma distribution and then taking the reciprocal. The output of this function will be
+the reciprocal of the drawn gamma, which will be a draw from
+an inverse gamma distribution. Now that we have functions that
+draw from these full conditionals, we're ready to write a function
+that performs Gibbs sampling. Let's call that function gibbs. We'll take four arguments,
+the data vector y, the number of iterations
+we want to sample for. Initial values from the parameters, and a
+list containing the prior hyperparameters. We'll call that prior. Since ybar and n get used frequently, let's calculate those at
+the beginning of the function. This function is going
+to output two variables, a vector for the draws of mu,
+let's call that mu_out. It'll be a vector that has length n_iter. And we'll also have sig2_out, which will also be a vector
+with n_iter entries. The Gibbs sampler will update mu and
+sigma squared by trading off, sampling back and forth, given
+the current value of the other parameter. We need to initialize one of
+the variables to get this started. Let's start with mu. That will be from the initial value of mu. That comes from the argument
+to the function. Now we're ready to create
+the Gibbs sampler. This will be a loop. Since we started with
+the current draw from mu, let's update sigma squared
+first in this loop. To update it, we need to take a draw
+from the full conditional distribution. That is, we need to evaluate this
+function that we created here. The arguments are the data length,
+the date themselves, the current value of mu, mu_now, which we saved up here, and
+then the hyperparameters. These hyperparameters are saved
+in our object called prior. It's going to be a list. So we're going to access
+the nu_0 element or object in the prior with the dollar sign,
+prior$nu_0. The same goes for
+our other hyperparameter, beta_0, which will also come from our list for
+prior hyperparameters. Now that we've updated sig2, we're
+going to go back and update mu again. Using the draw from the full
+conditional that we wrote up here. We'll use sig2_now, as the value for
+sigma squared in this update. And again the priorhyper parameters
+will come from the prior list. We're still in iteration i. We've now updated both sigma squared and
+mu, so let's save them, sig2_out Where we fill
+in the [i] iteration or the [i] element of this vector,
+it will be sig2_now. The same goes for mu, the [i] iteration or [i] element of mu, will get mu_now. The loop will now go through
+this sequence repeatedly, where we take a draw for sigma squared. Then given the value of sigma squared,
+we take a draw for mu. And then given the value of mu,
+we take a draw for sigma squared. We collect the results and
+repeat this process for n iterations, and finally we'll need to output our results. We can combine two vectors into
+a matrix using the cbind function in R. We'll give it mu_out and call it mu. And sigma squared will be our sig2_out. Cbind refers to column bind, so we're going to have a matrix of
+two columns with n_iter rows. This completes our gibbs function. Let's read all of these
+functions into our R session. Now that we have functions
+to perform Gibbs sampling, we're ready to set up the problem. I've begun a new script, where I've
+collected the data, created a variable ybar, which calculates the sample mean of
+the data as well as n, the sample size. The next step will be to create the prior. The Gibbs sampling function
+accepts the prior as a list, so let's create it as a list. Now to help us remember,
+here is the model we're fitting. The prior for
+mu is normal with these hyperparameters. And the prior for sigma squared is
+inverse gamma with these hyperparameters. Let's start with the prior for mu. First, we need to give it mu_0,
+the prior mean on mu. Let's say this is 0. We also need a variance for
+this prior, sig2_0. Which we can interpret as our prior
+confidence in this initial prior mean. We're going to set it to 1, so that this prior is similar to the t prior
+that we used in an earlier example. We also need to create
+the prior hyperparameters for sigma squared, nu_0 and beta_0. If we chose these
+hyperperameters carefully, they are interpretable as
+a prior guess for sigma squared, as well as a prior effective
+sample size to go with that guess. The prior effective sample size. Which we'll call n_0,
+is two times this nu_0 parameter. So in other words, the nu parameter
+will be the prior sample size Divided by 2. We're also going to create
+an initial guess for sigma squared, let's call it s2_0. The relationship between beta_0 and
+these two numbers is the following. It is the prior sample size
+times the prior guess. Divided by 2. This particular parameterization
+of the inverse gamma distribution is called the scaled
+inverse chi square distribution, where the two parameters are n_0 and s2_0. We are now free to enter our
+prior effective sample size, let's say it's 2 in this case. In other words,
+there are ten data points and there are two effective
+data points in the prior. And we'll say our prior guess for
+sigma squared will be 1. Once we specify these two numbers,
+the parameters for our inverse gamma distribution right
+here are automatically determined. Let's read these lines into our R session. And before we run our Gibbs sampler, let's
+take a look at the histogram of the data with our prior for mu, like we did in
+the earlier example with the t prior. This should look familiar. It's very similar to the t prior we
+had before, but now this prior for mu is a normal distribution centered at 0. If you'll recall,
+the data mean was about 1. So we expect our posterior mean
+to be somewhere between 0 and 1 Let's go ahead and
+run this Gibbs sampler. Before we start, we'll always set
+the random number generator seed. We'll use 53, And run that line. And we need to create the variables that
+we're going to pass to our Gibbs function. Those are the init. So we'll create the init as a list. And init$mu, our initial value for mu, let's just start it out at 0,
+and run that line. I think we have all of the arguments
+ready for the Gibbs function now. So we're going to call our Gibbs function. I'm just going to copy and paste it so
+we can remember the arguments. So we'll call Gibbs, and for
+the y, we'll give it the data y. We have to select the number
+of iterations, let's do 1,000, like we've been doing before. We'll give it the initial values
+saved in our list called init. And we'll give it the prior
+hyperparameters saved in our list called prior. Now let's run our Gibbs sampler
+by running the Gibbs function. Press Cmd+Return. That ran the sampler for 1,000 iterations,
+except we forgot to save it in an object. So let's run it again,
+and save it as post. We'll set the seed again, so
+that we get the same answer. And save the object as post, there we go. Let's look at the head of post which will
+show us the first several iterations of this Gibbs sampler. We run that line, we can see the first
+iteration, this was the value of mu and this was the value of sigma squared,
+and so on down. We can also look at the tail of post,
+those were the last few iterations. To analyze this posterior output,
+let's use the coda package. We need to load the coda library. And we can plot the posterior
+distributions as an mcmc object. Let's run that line. We're given a trace plot for mu,
+a density estimate of the posterior distribution that comes from our
+Markov chain, a trace plot for sigma squared and
+a the density estimate for that posterior. Additionally, let's look at a summary, as.mcmc for our post. We run that line, and
+we get the summary for our Markov chain. We can see here we had two parameters
+that we were sampling in the chain mu, which has a posterior mean about 0.90, that's similar to our result from earlier,
+and the posterior mean for sigma squared is about 0.92 or
+0.93 As we had for the Metropolis Hastings example,
+these chains appear to have converged. In the next lesson we'll show you
+how to make that determination.

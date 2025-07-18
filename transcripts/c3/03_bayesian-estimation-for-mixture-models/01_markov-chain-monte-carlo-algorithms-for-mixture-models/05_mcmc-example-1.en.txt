@@ -1,0 +1,119 @@
+[MUSIC] Today we're going to discuss an example
+of implementation of the markup chain Monte Carlo algorithm for fitting a location mixture of two
+univariate Gaussian distributions. And we're going to test this algorithm
+in a simulated data set that's actually the same one that we use to test
+the Algorithm for this same problem. So the first step is to
+generate our simulated data. And we use, as I said,
+the same setup we had used before. Two components in the truth,
+the weight of the first component is 0.6, the mean of the two components are 0 and
+5. And the standard deviation, which is
+the same for both components is 1. We're going to generate 120 observations first by selecting what component
+each observation comes from randomly. And then generating from a normal
+distribution, where the mean of that normal is given by the component
+to which the observation belongs. And we can generate simple plot
+that contains the density and the points as we just sampled. You have seen this graph before, so if you remember from the Example this
+is indeed a bimodal distribution. And you have clearly separated
+groups of observation that comes from one of the two
+components in the mixture. Okay, so that is the data that
+we're going to be working with. The first thing we need to do is we
+need to initialize the algorithm. In this case, the algorithm is initialized
+so that we assume that the weights are the same for both components
+in the initial state of the chain. And then the standard deviation of
+the components is assumed to be the standard deviation of the data. And the means of each one
+of the two components in the first state
+are just randomly sampled. And remember that initializing MCMC
+algorithms randomly is going to be important. So we initialize the algorithm
+randomly by sampling from normals centered at the mean, and
+assuming that the standard deviation of the mu is essentially the same as
+the standard deviation of the data. And again, we can plot that initial
+guess of what density looks like. And as you may remember, again, from the Algorithm, that initial
+density looks a little bit like this. Which at least covers kind of
+the right area for the data, but clearly doesn't show the kind of
+bimodality that we would have, guess that the distribution has. Okay, so but that's just our initial case. Now the next thing that we do is we need
+to initialize the priors for the model. So we're going to be working in
+this case with a beta prior for w. And that means that the vector of
+parameters just contains one and one, in this case, and that just means
+that it's a uniform prior on it. If you remember, the prior that we
+assigned for the means of the components, it's going to be a Gaussian prior and
+those are the two parameters. So the mean is going to be 0 and
+the standard deviation is going to be 5. And finally,
+the number of degrees of freedom for the prior on the variance is going
+to be 2 and the other parameter for the prior on the variance
+is going to be 1. If you remember we had
+an inverse gamma prior here. So if anybody gamma, is 2 and 1. Okay, so we're going to do 6000
+iterations of the MCMC of which we are eventually going to burn in 1000 and
+we will see, we will monitor a convergence of the algorithm using the log
+posterior of the model. And we will see that there is evidence
+that in that, from looking at that quantity, that a 1000 observations is
+probably plenty in terms of convergence. Okay, so the last thing that we need
+to do before the actual algorithm is to define variables where
+the output is going to be stored. So we have the C.out variable
+that contains the indicators and similarly, variables to the store
+the samples of the weights, samples of the means of the components,
+samples of the standard deviation. In these variable logpost that contains
+the logarithm of the posterior over the different factors. Okay, so the main MCMC sampler, it's located within this for
+loop here and it has four big pieces. So the first piece is
+sampling the indicators. And if you look at this carefully,
+the code is going to look a lot like the code that you had in
+the E step of the Algorithm. That shouldn't be surprising
+because you're computing the same posterior probabilities in both cases. Only that here you actually do
+sample the mixture components from those probabilities and
+that's what we do in this line of code. Now the other three pieces correspond
+to sampling the different groups of parameters, so, first the weight. In this case, because we started with beta
+prior, we also have a beta posterior. We just update the parameters and this is what posterior sampler
+looks like in this case. Similarly for the means,
+we need to sample one for each component. And to do that we need to, we know that
+because the prior is normal, the posterior is also going to be normal with updated
+parameters ad these are the two lines that compute those updated
+parameters based on the current aside. And then this is your sample for
+each component. And the final step has to do
+with sampling the variances. Again, because we started with an inverse
+gamma as the prior, we also have an inverse gamma as the posterior and
+we just need to update the parameters. The number of degrees of freedom and
+scale parameters, and then we just sample from an inverse gamma
+distribution to obtain their variance. And then to get the standard deviation,
+we take the square root of that quantity. Okay, so those are the four main
+steps the rest of what's in the for loop just has to do with restoring
+the values that we just sampled into the variables that we had
+defined in the beginning. And then we have a step that essentially
+just computes the normalized log posterior for the model,
+that's what this piece of code does. And again, we will be using
+this to monitor convergence. And finally,
+we just print out every 500 iterations, what the current iteration number is. And that's just kind of
+a progress bar if you will, to just let us know how far along
+the algorithm is at any given point. Okay, so let's run this code. It's not too slow in this case
+because we don't have that many observations or that many components. Now it's done, so
+we have done our 6000 iterations. The first thing I want to do
+with those iterations is to plot the log posterior with iteration number. Again to verify convergence, and you can
+see, so this corresponds to the initial steps of the algorithm when
+our guess was not really good. And we can see that the log posterior was
+actually pretty low it was down here. But in just a few iterations,
+it jumps up and then it basically remains
+stable over time, up here. So that suggests that the algorithm
+convergence is actually pretty quickly to the,
+who are the mass of the posterior is. And you can see that probably 1000
+iterations is plenty in terms of ensuring convergence of our algorithm. So this is somewhat reassuring
+when you see a plot like this. Okay, so now that we are more or
+less sure that we converge. The other thing that I want to do is
+I want to kind of do a plot of what the posterior distribution looks like. And let me first do it and then I'll
+discuss a little bit what's in there. So we can see the black line here
+corresponds to the posterior mean of the density of the data. And the gray area corresponds
+to critical intervals, point wise credible intervals for
+that density. Now, how did we get those? Well, what this code does
+is you first compute what is the form of the posterior
+distribution in each sample of your MCMC after having discovered the boring period. So that's why you have this minus
+bar in this plus burn here. So this is just ignoring the first 1000
+iterations in this case for the sample. And once you have essentially
+one curve like this for each sample of the MC MC,
+you can just do averages or quantiles for essentially each value of
+x in which you calculated the posterior. And that is what gets represented. So now what do we see here? So first of all, the posterior mean looks
+a lot like the true density of the data. And actually matches what we would
+expect from looking at the data. So that's good. The other thing that we see is
+that there is actually very little uncertainty about how the density
+looks down here or down here. We have no observations there. So we're pretty sure that
+the densities should be close to zero. But we can see that close to
+this inflection points where you change curvature that or where you
+go from increasing to decreasing. You can see that in this area is
+where most of the uncertainty is. So where the most uncertain
+about in some sense how high the density is at the peaks. And that's again not surprising that
+something that we will observe pretty often when you see basin mixture models. [MUSIC]

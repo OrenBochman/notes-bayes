@@ -1,0 +1,112 @@
+We can use the central limit
+theorem to approximate how accurate our Monte Carlo estimates are. For example,
+if we seek the expected value of theta or the mean of this gamma distribution. Then we can use the sample mean
+from our simulated values, the simulated theta here. The sample mean of these
+thetas approximately follows a normal distribution. Where the mean of that normal distribution
+is the true expected value of theta. And the variance of that normal
+distribution is the true variance of theta divided by m,
+our Monte Carlo sample size. That means that if we increase
+m to be a very large number, the variance of our Monte Carlo
+estimate gets very small. In other word, our Monte Carlo
+estimate will be very accurate. To create a standard error for
+our Monte Carlo estimate, we will use the sample standard deviation
+divided by the square root of m. So, let's create this variable. The standard error will be
+the sample standard deviation which is the sd function in r. The sample standard deviation of
+our simulated values divided by square root of m, or
+Monte Carlo sample size. We can run this line of code and
+print off the standard error. This is the standard error
+of our approximation to the expected value of theta. If we wanted to create
+a confidence interval for our Monte Carlo approximation. We could look at, for example,
+two times the standard error. That is, we are reasonably confident,
+about 95% confident. That the Monte Carlo estimate for
+the expected value of theta is no more than this far from the true
+value of the expected value of theta. We can create this
+confidence interval here. We'll start with our Monte Carlo estimate. And we can take away two standard errors. We'll run that. That gives us the lower edge
+of our confidence interval. To get the higher,
+upper edge of our confidence interval, let's change this minus to a plus and
+run this line. That is, we are reasonably confident
+after running our Monte Carlo simulation. That the true mean of this gamma
+distribution is between 5.9 and 6.1. Of course, we've already seen
+that the true value is 6. These standard errors give
+us a reasonable range for the quantity we are estimating
+with Monte Carlo. The same applies for
+other Monte Carlo estimates. For example, the probability
+that theta is less than five. Let's recreate that indicator
+variable that theta is less than 5. We approximated the probability
+that theta is less than 5 by taking the mean of those indicators. And of course,
+the true value we can get with the CDF, or pgamma of being less than 5. Where the shape parameter is a and
+the rate parameter is b. Now, if we want the Monte Carlo standard
+error for our Monte Carlo estimate. We can calculate it as
+the standard error is the sample standard deviation of our indicator
+variables divided by the sqrt(m). Very similar to our standard error
+that we calculated before but now we're using our new
+indicator variable. Let's run this and
+print the value of the standard error. If we look at two times
+the standard error, We can say that we are quite
+confident that our Monte Carlo estimate of the probability right here
+is within 0.01 of the true value. Which is right here. And it looks like, in this case, our Monte Carlo estimate is
+within 0.01 of the true value. Let's also do the second example where
+we simulate from a hierarchical model. In our example,
+we had a binomial random variable where y followed a binomial distribution with
+ten trials and success probability phi. And phi followed a beta distribution
+with parameters 2 and 2. To simulate from this joint distribution,
+we will repeat the following two steps. Here are the two steps. I have written them as
+two lines of code and commented them out with the pound or
+hashtag key. The first step is to simulate a phi
+variable from a beta distribution. And then given that phi variable,
+we will simulate the ith iteration of the y variable from its
+corresponding binomial. Where the success probability is
+the phi that we just drew in step 1. We will repeat these two steps
+many times to create a Monte Carlo sample from the joint
+distribution of phi and y. Let's choose the Monte Carlo
+sample size of 100,000, that is 1 times 10 to the 5th power. That's shorthand for writing 100,000. We can run this line of code
+to save m in our r session. And before we simulate, let's create
+the variables before we populate them. The y variable will be a numeric
+vector with m entries. To see what we just did,
+let's take a look at the head of y. We initialized a vector of
+zeroes that has 100,000 entries. We'll populate these with our simulations. Let's do the same with phi And
+run that line. To follow our algorithm for this joint simulation,
+we're going to first write a loop in R. To perform a loop in R,
+we use the keyword for and then we tell it what we're iterating over. We'll iterate over the variable i. For i in 1 to m, repeat the following. To put things inside a loop with many
+lines of code, we use curly braces. So we'll enter the loop code
+inside these two curly braces. The first step is to
+simulate the value of phi. So phi, the i th value of phi will be drawn from a beta distribution. We'll take a single draw with
+shape1 parameter being equal to 2. And the second shape
+parameter being equal to 2. Now given that draw for phi,
+we can simulate a draw for y. The ith simulation for
+y will come from a binomial distribution. And we want to simulate, so rbinomial. We'll simulate a single draw
+of a binomial for ten trials. And success probability phi, specifically the phi that we just drew for
+the ith iteration. This loop will perform this algorithm,
+we select the entire loop and hold Command and
+press Return, that runs the code. This took about one half
+of a second to run in R. However, we can improve on this code. R tends to be very slow with loops. And so one way to speed it up
+Is to write vectorized code. Here is an example of doing the same
+simulation with vectorized code. We will first draw all of
+the phi variables at once, From the beta distribution, but
+this time we will take m draws From this beta distribution. That will create a vector of phis
+with those 100,000 simulations. Now, we can simulate y with one
+line of code by running r binomial. We want m simulations again. Where each simulation has ten trials. And success probability, here we would
+give it the entire vector of these. In other words we want to
+draw 100,000 binomials, all with the same number of trials,
+but all with a different phi. These phis come from our
+previous simulation. Let's run both of these lines together. And they were almost instantaneous. It is good to avoid writing loops in R if
+we can by using vectorized code like this. If we are interested only in
+the marginal distribution of y, we can just ignore the draws for the phis. And treat the draws of y as a sample
+of its marginal distribution. That distribution will not
+be a binomial distribution, it'll actually be a beta
+binomial distribution. Conditional on phi,
+y follows a binomial distribution. But unconditionally, the marginal
+distribution of y is not binomial. Let's take a look at that distribution. First, we can do a table
+of the values of y. This will tell us how often each of
+the different values of y were drawn in our simulation. So if we run this table we can
+see how many of the simulations resulted in seven successes, for example. We can divide this by
+the Monte Carlo sample size to get an approximation of the probabilities. So for example,
+under the marginal distribution of y, there is approximately 11%
+chance of three successes. Let's plot this distribution. We'll create a plot of this table And
+run it. Here is our Monte Carlo approximation
+of the distribution of y. Again, this is not
+a binomial distribution. It is actually a beta
+binomial distribution, the marginal distribution of y. If we're interested in
+the marginal expected value of y, again we can just ignore
+the phi variables that we drew. And calculate the mean
+of our simulated ys, Approximately 5.

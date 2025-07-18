@@ -1,0 +1,166 @@
+We now discuss and illustrate some R code that allows you to obtain the
+filtering, smoothing, and forecasting distributions of a normal dynamic
+linear model that assumes that the observational
+variance is unknown. We call that V and the
+system covariance matrix Wt is assumed either known or specified using a
+discount factor. The code allows you to
+consider both options. The code also allows you to work with time-varying
+Fts and Gts, and state parameters
+that incorporate different components such
+as polynomial trends, regression, periodic
+components via Fourier representations,
+and so on. I'm going to go first
+through the functions, and then we will
+illustrate these analyzing a dataset that is
+available in R. As before, I'm putting all the functions into a single file
+that you can source. The first function that we
+have is a function that setups the DLM matrices
+that you specify, assuming that the observational
+variances is unknown, so you can pass Ft and Gt for all the times that
+you are considering. Then you have the option
+also of passing Wt_star, which is just in
+the case where you assume that you are
+going to specify the structure of the covariance of the noise at
+the system level, then you would
+pass this Wt_star. If you don't pass it, then the function assumes that you're working with
+a discount factor. Here, the function just returns, puts all those matrices
+into a single object. Similarly, there
+is a function that puts all the prior parameters
+into a single list. This is again an object that you can then pass to the filtering, smoothing, and
+forecasting functions. Here, if you remember the conjugate
+structure conditional on the observational
+on variance V, the state vector, Theta0 is distributed as normal m0, vC0*. Then the prior distribution for the variance has a degrees of freedom parameter that
+we call in n0, and then you have these S0
+that you can think of as an initial estimate
+for the variance. This is just a structure of
+the prior distribution that completes this normal
+inverse Gamma structure. Then you have the forward
+filtering function. Again, here you pass the data, the matrices that define
+the structure of the model, the initial states that you
+created with these functions. Then you have the option of passing a Delta or
+a grid of values. We will also talk about this, but this is just a value Delta
+for the discount factor. If you don't specify the Delta, the function assumes that
+you are working with a case in which you know the
+structure of the Wt_ star. If you pass the Delta, then the function assumes
+that you are using a discount factor to
+specify that Wt matrix. If you look into the function, you can see that it has a similar structure to the functions we have
+discussed before now, the Fts are allowed
+to be time-varying. Then you have a different
+prior structure, and then you can
+obtain the moments for the prior distribution of
+Theta t given Dt minus 1. There are two options
+if you look into the Code, one for the case in which you don't have a
+discount factor and one for the case in which you
+have a discount factor. Then you can continue with the moments of the
+one-step ahead forecast. Again, these are the
+equations and the moments of the posterior distribution
+for Theta t given Dt. The function returns an object that contains not only mt, Ct, at, Rt, ft, Qt and et, as we had before, it also has the degrees of freedom parameters and
+the Sts for each time t. All these is contained into this object
+that the function returns. Then there is a function to compute the smoothing
+distributions, the function receives as input, the data, the matrices that
+define the model structure, and this object that is
+the posterior states. You first have to run
+the filtering function, keep whatever the function returns into an object and
+then pass that object. This is the posterior
+states object. Then again, you
+have the option of providing a discount
+factor or not. If you look into the equations, you will see again, that you have the smoothing equations
+are updated in terms of the equations we discussed for the case in
+which there is no delta. Then in that case, we are assuming that
+the Wt structure is provided by the user, and in the case in which a
+discount factor is specified. Then we have also the
+list that returns. Essentially this
+function returns a list with the moments for the smoothing
+distribution of the state parameter vector, and also for the mean response. We also have then a
+function that allows you to compute the k steps ahead
+forecast distribution. The function receives
+the posterior states. k here is the number of steps
+ahead you want to compute. You have the matrices
+and then again, you may or may not have a delta, which is a discount factor. It computes the moments of that forecast
+distribution and it returns the moments for, again, at and Rt that
+correspond to the state vector, and then for the
+mean response or the k steps ahead,
+forecast function here. Going now to the example, I'm going to show you how
+to use these functions using a dataset that R provides. We will first source
+the functions that we just discussed and then
+we're going to use these dataset that I'm
+plotting right here. This corresponds to
+100 observations. They are annual measurements of the Nile river level in
+a particular location. The units are 10^8
+square meters in a period of time that
+goes from 1871-1970. We're going to use our
+first order polynomial DLM, which is a structure that
+we have used before. But now we are going
+to assume that the variance of the
+observational level is unknown, and constant over time. We're going to also
+estimate this variance. The data contains
+100 observations. We're going to break these
+into two components. We are going to use 95
+observations to fit the model, and then we're going to predict the last five observations
+and see what we obtain. Here we're just
+specifying the data, what I call the test
+data here it shows what you want to forecast. We set up the matrices for
+the first order polynomial. You notice here that I'm
+defining arrays that have the dimension of whatever is the model
+that you are using. In this case, a first
+order polynomial model has only one parameter. We have to specify Ft for
+all the values of t. Here, n is the total number
+of observations. I have to specify that for all the time points that I'm going to
+use to fit the model, and then also the ones
+that I'm going to predict the five
+last observations. That's why the
+dimension is n, the Gt in the first
+order polynomial is constant equal to one. We specify that. Then we have this Wt star that I'm going to assume
+is just also one for all the values of t.
+After that we can specify the prior parameters for
+theta0 given V and D0. Here I'm assuming a priori, the mean level is 800
+and the C0star is 10. The degrees of
+freedom parameter, I'm setting it to be one, and then the initial estimate for the observational
+variance is 10. Once I define this structure, I use those functions to set up all these matrices
+and initial parameters in terms of objects to pass through the
+filtering distribution, this smoothing
+distributions and so on. Here the first thing, we compute the moments of the forward filtering
+distributions, assuming that V is unknown, so we pass the data, the matrices, and
+the initial states. We can also compute 95 percent credible intervals for
+the state vectors. In this case is a one-dimensional
+vector so we just pass the results that we obtain using the
+filtering equations. These are the moments, the expected value
+of the distribution, and the variance of that distribution as well as the degrees of
+freedom parameter. Remember that when
+we integrate out V, assuming this
+distributional structure that we have for V, we obtain that the distribution of Thetat given Dt is
+a student t-distribution, so you have to pass the degrees of freedom parameter here. We then can proceed
+with the smoothing. The smoothing
+function is going to use the data, the matrices, and the object that contains all the filtering
+results in here. Again, we can compute
+credible intervals for, now it would be the
+distribution of the state parameter
+vector at each time t, considering that we have
+received capital T observations. We then proceed with the one step ahead or k
+steps ahead forecast. In this case, k is
+going to be equal to 5. Then again, I can compute
+credible intervals for the distribution of yt
+plus k given Dt, in this case the ts we're
+going to go all the way to capital T. We then
+plot the results. Here we first plot the
+dots here correspond to the actual observations and then the first thing
+that I'm going to plot is the filtering
+distribution, meaning the mean of the
+filtering distribution as well as the 95 percent
+credible interval. This corresponds to Theta t given Dt as I receive
+observations here. Then you can plot also the smoothing distribution so once you compute the filtering, you are going to go and
+revisit these distributions. You can see that the mean
+of this distribution is smoother than the one we computed with the
+filtering equations. Also you can see the uncertainty
+here also is smaller, so these are the
+smooth distributions. Because this is a
+first-order polynomial, if we think about the
+forecast function is going to be constant after
+that last data point, capital T so it's going to
+have that structure over time. Then I can also compute credible intervals associated
+to that distribution. You can see that
+the pattern that as the number of steps ahead increases, the
+uncertainty increases. This results in the the
+posterior distributions again for filtering distributions
+for Theta t given Dt and then the smoothing distributions and the
+forecast distributions.

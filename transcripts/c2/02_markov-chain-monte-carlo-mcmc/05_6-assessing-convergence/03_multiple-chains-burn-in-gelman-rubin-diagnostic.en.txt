@@ -1,0 +1,82 @@
+We've seen in previous examples
+how the initial value of the chain can affect how quickly
+the chain converges. If our initial value is far from
+the bulk of the posterior distribution, then it may take a while for the chain to
+travel there as we saw in this example. Where the posterior mean is close to 1, but we started the chain
+way out here at 10. It took a long time for
+the chain to wander to the right area and start exploring that
+posterior distribution. Clearly, the first 100 or so iterations do not reflect draws
+from this stationary distribution. So they should be discarded before we use
+this chain for Monte Carlo estimates. This is called the burn in period. You should always discard early iterations that do not appear to be coming
+from the stationary distribution. Even if the chain appears
+to have converged early on, it is a safer practice to
+discard an initial burn-in. If we want to be more confident that we
+have converged to this true stationary distribution, we can
+simulate multiple chains, each with a different starting value. Let's run that simulation. Where post1 has a specific starting value. Post2 has a different starting value and
+so forth down to posterior5. I'm going to combine all of
+these chains into one MCMC object using the MCMC list function Now, let's look at the trace plot for
+this multi-chain simulation. We started each of this chains at
+very different initial values, but as you can see, as we progress through
+the iterations, after about 100 maybe 200 iterations, these chains have
+all converged to the same location. This increases our confidence
+that what we have found is in fact the stationary distribution
+that we are looking for. Trace plots provide an informal diagnostic
+for the convergence of our chains. We can back up these visual results
+with the Gelman and Rubin diagnostic. This diagnostic requires
+that we fit multiple chains. It calculates the variability
+within chains and compares that to the variability
+between the chains. First, we need to combine
+the chains all into one object here with mcmc.list function and we'll start a new script and
+call the diagnostic. It's part of the coda package,
+and it's called gelman.diag for that object that we just created. Again, the diagnostic compares
+the variability within the chains to the variability between the chains. If all chains have converged
+to the stationary distribution the variability between the chains
+should be relatively small. And this potential scale reduction factor,
+which is the statistic computed by this diagnostic,
+should be a small number close to 1. If values are much higher than 1, then we would conclude that
+the chains have not yet converged. We can also create a plot
+to go with this diagnostic, it's called gelman.plot,
+for our combined chains. And it shows us how the shrinkage factor
+changes as we add iterations to the chain. From this plot, we can see that if
+we only use the first 50 iterations, then the potential scale reduction factor,
+or the shrink factor, would be close to ten indicating
+that the chains have not converged. But once we're passed about 300
+iterations, the shrink factor is essentially one indicating that by then,
+we have probably reached convergence. Of course we shouldn't stop sampling as
+soon as we reach convergent, instead this is where we should begin saving our
+samples for Monte Carlo estimation. To get more information
+on this diagnostics, we can type ?gelman.diag to access
+the documentation for this function. Again if we want to learn
+more about the Gelman and Rubin convergence diagnostic,
+this would be the place to start. It describes the diagnostic,
+describes the function, talks a little bit about the theory underlying this
+diagnostic, and gives us the sources. If we are reasonably confident that
+our Markov chain has converged, then we can go ahead and treat it as
+though it were a Monte Carlo sample from the posterior distribution, albeit
+with a smaller effective sample size. That means that we can use
+the techniques from lesson three to calculate posterior quantities
+like the posterior mean and the posterior intervals
+from the samples directly. Let's return to the first example where
+we have the chain that appeared to have converged, to remind ourselves let's
+look at the trace plot for it again. We have 4,000 iterations of a chain that
+appears that is has already converged. But, to be safe, let's discard
+the first 1,000 iterations as burn-in. So the number of burn-in iterations,
+nburn will be 1000. Let's read that in. And let's create a set of
+samples that we want to keep. We'll add this onto our list for post0, and call it mu_keep. It will come from the original post0 mus. But now we're going to discard the first
+1000 iterations, 1 through nburn. Let's look at the structure now of post0 And now we have the samples of
+mu that we're going to keep. There are 3,000 of these samples. Since we're confident that this has
+reached the stationary distribution, we can be confident In
+our Monte Carlo estimate. So let's look at
+the summary of this object. Of mu_keep. We've seen this before. It provides a brief summary
+of our inferences for the mean mu,
+that parameter we've been estimating. It has mean close to 0.9 as we
+have seen in previous examples. Standard deviation 0.3 and
+has these different quintiles. For example,
+the 0.025 quintile is this number and the 0.97 quintile is this number. So if we wanted to create
+a posterior interval for mu, we could say that the posterior
+probability that mu is between this number and
+this number is 0.95. We can also compute posterior
+probabilities of different hypotheses. For example, if we want to know the posterior
+probability that mu is greater than 1. We'll just take the mean of an indicator And we're going to count how many of
+these samples are greater than 1. Our posterior probability is about
+0.35 that mu is greater than 1

@@ -1,0 +1,84 @@
+Let's recreate this model now using JAGS. First, we'll need to
+load the rjags library. And we'll specify the hierarchical form
+of the model, let's call this mod1. There will be several different models. So let's number this one and we're
+going to start with the model string. The syntax for this in JAGS is to
+say model with curly braces and fill in the different pieces. Let's start with the likelihood for
+i in 1:n the length of the data. Observation y[i] will come from a normal distribution dnorm. Where the mean is mu[i],
+we'll specify what that is in a moment. And precision,
+we'll call it P-R-E-C for now. Now we need to add the linear
+model part of this. mu[i] is linear, where we have coefficient 1 plus coefficient 2 times the log income, the ith value of the log income. So, y[i] comes from this normal
+distribution with mean mu[i], and the mean comes from our
+linear model of log_income. We now need to give a prior for
+these coefficients. We'll start another loop for j in 1:2,
+because they're two coefficients. Beta j will come from
+a normal distribution, dnorm With let's say mean 0 and
+a variance 1 million. We'll make it pretty large so
+that this prior is close to the non-informative prior
+model we fit earlier. Remember, we have to enter it as
+a precision for the normal distribution. So this will be 1 divided by the variance
+of 1.0 times 10 to the 6th power. We'll use an inverse gamma distribution
+on the variants of the normal distribution for the observations. An inverse gamma on the variance
+implies a gamma prior on the precision which is
+the reciprocal of the variance. So let's put the prior
+directly on the precision. Precision will come from
+a gamma distribution. And remember, it's very important
+to check the JAGS documentation, the JAGS manual,
+under the chapter on distributions. To remind ourselves how JAGS
+parameterizes these distributions. In this case, it is the same as with R. The first parameter for
+the gamma distribution is a shape. And the second parameter is a rate. Let's use the same trick we did before,
+where we parameterized the prior in terms of a prior
+sample size and a prior guess. We'll use a prior sample size of 5. And recall we have to divide it by 2
+to turn it into the gamma parameter. And then we have to do
+the prior sample size again times our prior guess for the variance, let's say it's 10, and
+divide that also by 2. A gamma prior on the precision
+using this shape and this rate parameter is equivalent. To an inverse gamma prior on the variance
+with this shape parameter and this as the scale parameter. Instead of precision we will probably
+be interested in the variance, which is equal to 1 over the precision. Notice we didn't assign
+a distribution here because we gave a prior to the precision. That implies a prior for sigma squared, the inverse
+gamma we've been talking about. So instead of a distribution here,
+we give it an equals. This is a deterministic relationship
+between the precision, and the variance. Usually when we're modeling, the most
+interpretable quantity is the standard deviation instead of the variance. So let's monitor the standard deviation, which is just the square
+root of the variance. This completes the model
+where this section tells us the likelihood of the data. This section gives us the priors for
+the coefficients, and down here we have the prior for the left
+over, or the unaccounted for variants. JAGS requires that we
+put this in a string. So I'll put these between quotation marks. And now we need to set up the model. First, let's set the random seed. And we'll tell it what the data are. So data for
+model 1 that'll go into JAGS needs to be a list where we named
+our variable y in the model. So we have to give it y down here. y=dat, we're using our modified dataset where we removed missing values, dat$loginfant as our response variable. n is the number of rows
+in the dat dataset. And, we also created a variable
+here called log_income. So we need to give it the exact
+same name down here, log_income. We'll get dat$logincome. That's how we specified
+it in the data set. The parameters that we want to monitor for model one are the two coefficients, beta one and beta two. And since they were specified and indexed
+together as a vector I can just call it b. We have our choice if we want
+to monitor the precision, the variance, or the standard
+deviation from the likelihood. Let's just look at the standard deviation. We can give the model initial values,
+inits1 and this goes in as a function
+that creates a list. We'll give an initial value for
+the beta coefficients. There are two of them. So, let's draw two random normals. So drawing two random normals,
+let's say, 0, and variance or standard deviation, 100. For initial value of the precision,
+let's draw from a gamma distribution. We only need one draw. And let's just give it,
+Shape 1 and rate 1. That's actually
+an exponential distribution. So now that we've specified the data, told
+it which parameters we want to monitor and given initial values for
+the different parameters. We can specify the model itself, jags.model where we create a textConnection with mod1 string. mod1_string that we just specified. The data is data1_jags that we just created, data1_jags. We'll use the initial values
+from our function inits1. And let's say we want to
+run three different chains. That's another option to write
+into this jags.model function. We want it to run three separate chains. In each chain it'll initialize
+the chain with these random draws. So we'll have different
+starting values for each chain. We'll initialize the model
+by running all of this code. Initialization was essentially instant. And now that the model is initialized, let's give it a little bit of
+a burn in period by updating the model for, let's say,
+1,000 iterations. So it ran the model for 1,000 iterations
+but it didn't keep the samples. Once we have the burn in period run,
+let's create our actual posterior simulation that we're
+going to keep for model inference. Mod1_sim is what we'll name it. It will come from coda.samples. We're going to create
+coda.samples from the model. Model 1, where the variable names are the parameters that we created. And we'll run this for
+let's say 5,000 iterations. We'll run this line to run the model. And since we ran three different chains, sometimes it's useful to
+combine them into one chain. So we'll call that mod1_csim for
+combined simulation. And we're going to do this by
+stacking the matrices that contain the simulations themselves. Inside mod1.sim the simulations
+are stored as matrices. To do this we need to use
+the do.call function in R and rbind. Remember we used cbind earlier to
+combine matrices along the columns. Now we're going to stack the matrices
+vertically by combining them on the rows using mod1_sim. And run that line.

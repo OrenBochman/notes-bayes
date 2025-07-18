@@ -1,0 +1,151 @@
+This demonstration is on
+fitting repressions in R. We'll look at two examples,
+one simplinary regression with just one explanatory variable,
+and one case of multiple regression. We'll do this using data sets
+that are freely available online. The first one is looking
+at space shuttle damage. So this is thinking back to the time that
+the Challenger shuttle was launched, and we had the Challenger disaster. There were 23 previous launches
+before Challenger disaster. What we'll look at is the temperature
+at the time of launch, in degrees Fahrenheit, and
+an index of O ring damage. This is labelled i in this data set. Let's go take a look at a data set. So this is hosted at the University
+of Alabama Huntsville. Here's the data set. 23 previous launches,
+the temperature in degrees Farenheit. And, the index of O ring damage. You can see most flights, had no damage
+but some had 2, 4, or 11 units of damage. In R, we can read in a data set
+directly from a URL online, using the read.table command,
+so I'll do that here. Store it in an object
+called [INAUDIBLE] and this one does have labels, so
+we'll specify header equals true. Just note here that after I tell it
+to paste I have to hit the Return. Key to get R to execute that, all right. We've read in this data set. If I want to be able to use the labels, I use the attach command
+to be to access the labels. R gives me a warning because
+one of the labels is T. Here T is for temperature, but built
+into R capital T also stands for true. So while we're using these labels,
+we won't be able to use capital T as a shortcut for true, but we're not
+going to be using that today anyway. So just to verify, we can look at,
+here's our data set. We write in all 23 rows. We've got temperature and damage. We can make a quick plot of this. Visualize the data. Here we can see the 23 previous launches. All of the launches that had
+no damage were on warmer days all of the launches on colder
+days had some type of damage. So, there does look like there's
+some effect of temperature on the state of the O rings. Let's fit a linear regression to
+predict damage based on temperature. I'm going to use the LM command in R,
+LM stands for linear model. It's a linear model of damage
+modeled on temperature. So here temperature is the independent or explanatory variable, and
+damage is the dependent variable. Now I've stored it in this object. If we want to see the results,
+we can use the summary command. And here's a summary of the results. There's a fair amount of information. What's most important here,
+is here's the coefficient for the intercept,
+here's the coefficient for the slope. These are the standard deviations for
+the marginal distributions for the intercept and the slope. If we were frequentist, and we wanted
+to do a frequentist significance test. These are the t values, and
+the p values associated with the t tests. The standard error for
+the regression is 2.1. If we're interested, the r-square is .4. We can add a fitted line the scatter plot. In our the lines command we'll
+connect the dots and create a line. We can plot the temperatures and
+the fitted temperatures and we get them out of the linear model object
+by using the fitted function on the linear model object. Here we can see the fitted line
+in that as temperature increases the damage goes down or as temperature
+decreases the damage goes up. This is just an approximation. It's not going to go through all the
+points because there's a lot of noise in the data,
+as is typical with real world data. Our slope estimate is -0.24. So roughly for every 4 degrees
+the temperature gets colder, we see a 1 unit increase in damage. We could look at a 95 posterior
+probability interval for the slope. Here I'm taking the fitted value for
+the slope and the marginal distribution, posture distribution is 80 distribution
+with 21 degree of freedom, and it has the scaling factor of the standard
+error of the coefficient, 0.06439. So plugging that in, I get a 95%
+posterior probability interval, that goes from minus 0.375,
+to minus 0.111. This interval does not include 0 so
+we can be pretty sure that there is a negative relationship between
+temperature and damage. Note that these intervals are the same as
+the frequent confidence intervals when we're using the standard reference
+prior for Bayesian analysis. The day that Challenger was launched, the temperature was actually
+31 degrees fahrenheit. How much O-ring damage would we predict? So we're looking at the Y hat value for
+an X of 31 or in this case a t of 31. We can compute this by hand by
+pulling off appropriate elements. The intercept and the slope. So the intercept, plus the slope,
+-0.24 times the value 31. And we get a predicted value of 10.82. We can see that's a fairly large
+amount of damage the we predicted. That makes sense because 31 is
+actually off the edge of this chart. The lowest we observed was 53,
+31 would be farther to the left, and we'd expect to see
+a fair amount of damage. We can also use the coefficient command in
+R to get coefficients out of the linear regression model object. This case, it will give us
+a vector of all the coefficients. Here, the 18.36 and the -0.24,
+the intercept, and the slope. So we can use this to
+compute a fitted value Taking the intercept as the first
+value of the vector of coefficients. And, the slope is the second value
+of the vector of coefficients. You see here that we get
+essentially the same answer. There's maybe a little
+bit of rounding error, when I just pulled
+the numbers off by hand. We can also think about
+a prediction interval. A posterior prediction interval. So if we are going to
+launch at 31 degrees, what is a 95% predictive interval for
+what we might see in damage? This is gonaa be a larger interval
+than just a fitted interval. We can use the predict command in our, it will give us also this predicted value
+but it will give us a predicted interval. Predict command starts by
+taking the linear model object. We then have to tell it
+where we want to predict. We give it a data frame of the values
+of the independent variables, in this case the temperature of 31. And then, we tell it we want
+a prediction interval, so here again we verify that
+the fitted value is 10.82. But a 95% predictive interval
+goes from about 4.05 to 17.59. We could also verify this
+by hand using a formula. That's in the materials posted online for
+this lesson. And see that we get a lower
+bound of again, about 4.05, there's a little bit of
+rounding happening here. And the upper bound would be
+comparable to changing this minus to a plus These predictive
+intervals are the same intervals that we'd get if we were a frequentist. So using the reference prior, allows us
+to use all the standard regression tools. One thing we can do different,
+as a vasian, is we can ask what's a posterior probability,
+that the damage is greater than 0? If we launch at 31 degrees. So here, we're going to use
+the same predictive distribution But use it to make
+a probability statement. So we can ask what's the probability
+the damage will be greater than zero? So it's a t distribution I'm
+going to ask what's probably a T with this center and
+this scale is bigger than 0. The PT command will give us
+the probability it's less than 0 and so we take 1 minus that to get
+the probability it's bigger than 0. Probably, that the damage will be bigger
+than 0 is 0.998, very close to one. So it’s extremely likely that there
+will be damage if we are to launch at 31 degrees Fahrenheit. Now let’s take a look at
+a multiple regression example. This example is one of
+the classic data sets. Galton in the 19th century in Britain was looking at predicting the heights of
+children from the heights of the parents. All these measurements are in inches. Take a quick look at the data set. Here we can see that there's
+a number of different families. Each family,
+they looked at all the kids in the family. They looked at height of
+the father in inches, the height of the mother in inches,
+the gender of the child, the height of the child in inches,
+and how many kids are in that family. So let's read this into R. This one seems to trigger
+warning message in R. R sometimes gives messages of things
+happening behind the scenes but this will not affect any of our analysis. So let's use the headers. The labels for the variables are family,
+father, mother, gender, height, and kids. Let's take a quick look
+graphically at the data. Focusing on height, that's
+the variable we're trying to predict. We can look at this column here, and see that boys in general
+are a little bit taller than girls. The tallest children tend
+to have taller parents, the shortest children tend
+to have shorter parents. It's not clear that there's any
+relationship between the number of kids in the family, and the height. Let's look at regression. For all these variables in predicting
+the height of the children. We can see that there's a clear effect for
+the height of the father. Clear effect for the height of the mother. Clear effect for the gender of the child. But then there's not such a clear effect
+for the number of kids in the family. The standard error is close
+to the size of the estimate. And so this distribution is very
+close to zero and includes zero. And so
+we may not want to use this variable as it may not be that helpful
+in actually predicting. And including too many variables will
+increase your predictive variance. So let's take a look at what happens
+if we take that variable out. Here we can see all these
+variables now have strong effects. There is not much change in fit. We look at our r squared. That is roughly 0.64 and roughly 0.64. And so this is a better model for
+us to use. So we'll stick with this regression model,
+we're predicting height as a function, height of the child,
+as a function of height of the father, height of the mother,
+and gender of the child. We can see that each extra inch
+taller a father is is correlated with about 0.4 inch increase in
+the height of the child. Each extra inch taller a mother is, is a little more than three-tenths
+of an inch taller in the child. And then an average boys are about
+point two inches taller than girls. We could ask what's the ninety five
+percent probability interval for the difference in heights between boys and
+girls. The marginal distribution for
+the slope parameter for gender is going to be a T distribution. With 894 degrees of freedom. And so we can use that to get a 95
+percent probability interval for this slope effect of gender and
+see that that ranges from 4.94 to 5.51. So indeed, boys are going to be a little more than
+five inches taller than girls on average. We can also look at prediction intervals, again a reference phase analysis will
+give the same intervals as frequentest. So we could ask what's the predicted
+height And predicted 95% probability interval for child's height when
+the father is 68 inches tall, the mother is 64 inches tall, and
+the child is either male or female. We can see that the predicted height for
+a male child is 68.75 inches, with a probability interval
+ranging from 64.5 to about 73. If it's a girl,
+The predicted height is 63 and a half, with the prediction
+interval ranging from 59.3 to 67.6.

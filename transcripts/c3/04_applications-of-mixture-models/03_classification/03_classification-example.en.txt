@@ -1,0 +1,105 @@
+[MUSIC] I'm going to illustrate now
+to use of mixture models for classification using the wind dataset. Unlike the previous
+datasets that we work with, this one is not included in R by default. So the two files that you
+need wind training and wind tests are available on the website,
+make sure that you download them and that you have them in the right
+directory for R to read them. And in this case, I made sure
+that I change the directory where I'm looking at before I start working with
+this, and that I put my files in there. Okay, so
+the wind dataset is an interesting one, it's a series of measurements for
+different varieties of wine. They come from three different cultivars,
+and for each particular variety of wine. They did a chemical analysis and
+measure 13 different variables that have to do with different chemical
+components present in the world. So we have a label set where we know which
+samples from which of the three cultivars. And now we want to use the information
+that we clean out of that to classify to decide
+a series of new wines to assign them to the cultivar
+that we think they come from. We actually do know the truth for
+the test set, so we will actually first do the predictions we'll act as if we don't
+know what the cultivar of the test set is. And then we will compare the predictions
+that we're making against the truth, as a way to tell how well
+the algorithm is to it, okay. So the first thing that we need to
+do is load our dataset as I said, you need to make sure that the two files
+are in the directory where you're working. So make sure of that, remember that
+we called n the sample size of the training set and m the training
+size the size of the test set. So I'm just calling the variables
+that way, and I'm going to use mixture of normals mixture of multivariate
+normals by location and scale. So I'm going to use a method that is
+essentially equivalent to doing quadratic discriminant analysis. And, I want to run the Algorithm that I discussed on the board, but
+in a situation which we assume that we're going to work with
+semi-supervised learning. In other words, I went around the Version
+of the algorithm in which we're going to use all the observation both
+in the training and the test set, to learn the parameters of the classes. So it's going to be
+an iterative algorithm. So we know in advance as we have three
+classes because we have three cultivars. B in this case is going to
+be 13 because there are 13 features that were measured on each wine. So if you come down here,
+you can see that B 13, we can try to do a graph of the data. In this case the graph is not going to be
+terribly readable because there are so many variables, but it may still
+provide a little bit of intuition. So the variables that
+are measured things like alcohol, the ash, the alkalinity,
+the level of magnesium, the hue that has to do with
+how dark the wine is, proline. So you can see here where the variables
+are there are measured, and even though the graph is not very readable
+at least you can see that the classes do not fully overlap. So we do have some hope that we may be
+able to do classification in the problem. That's pretty much the main thing that
+you can say out of this graph here, okay. So, as I said before mixture of
+models with different components, different variances and
+different means for each component its normal
+component in the mixture. Same type of standard initialization
+that we have done before. And we're going to do the E and
+the M step here, remember that for
+the observations in the training set. We know the class, so
+the value of B are either 0 or 1, and because we do the calculation
+first in the log scale, then we do either 0 or minus infinity. So 0 corresponds to probability of 1 and minus infinity corresponds to
+a probability of 0 in the log scale. And then for the observations in
+the test set, we have just a regular way in which we compute the probability that
+the observation comes from each class. And once we have done
+this then we subtract, we do as we have always done subtract
+maximums and then restandardize. So this is how the ES step gets adapted in the case of semi
+supervised classification. And then the structure of
+the m-step is exactly the same structure of the regular Algorithm. So we compute means and variances for each one of the components as weighted
+averages of the different quantities. We check conversions in the standard way, in which we have been
+checking convergence. And finally once everything is done, we will get a classification, so
+let's run it for this dataset. It runs actually quite quickly, we have
+only 12 iterations and we have converged. Now what the Algorithm gives
+gave us is just the B values, that is the probability that
+an observation comes from a given class. Now, we typically are going to want
+to convert those peas into Cs and as we saw on the board, that is done by just selecting the class
+that has the highest probability. So if we do that for
+our training set in this case, and if you look at the indexes here,
+they run from n + 1 to n + m, which means that we're
+looking at test set. If we just get what is the maximum
+we can see that the first block of observations is
+assigned to component two. Most of this block is assigned
+to component two except for this guy here, and then
+the the remaining block of observation is assigned to components three. So now how does that
+compare with the truth? So we can actually go into winder test,
+and the first column of that file contains the true labels, and we can say
+that it matches actually pretty well. So the ones all match,
+the twos match except for one guy, the one we had kind of identified before,
+and the threes all match together. And we can actually if you just want
+to have a summary of how many errors you make. You can do a little comparison like this,
+and you can find that there is only a single error in the classification
+that the algorithm does. Now let's compare that with just using
+quadratic discriminant analysis and linear discriminant analysis. The way they are implemented in R,
+so QDA and LDA are the two functions that you will need,
+they are part of the mass package. So, We first feed the QDA model and then we that fitted model
+to predict the classes. And now if we see what
+the regular QDA does is it's going to give me this long list of
+probabilities for the test set. And we can turn those into labels and
+in particular we can see how many errors we're
+making in the prediction. And you can see that we
+make a single mistake, which is actually not the mistake
+that we had made before. So if we just look at this one here and we compare it against the, Classification that our algorithm did,
+and we compared it against the truth. We see that our algorithm makes a mistake in this observation and QDA does not, and instead the error is somewhere
+else in this sample. It's basically here, so you can see
+that the QDA classifies this as two, when the reality is that it's a three. So our results are not identical to QDA
+even though our method is asymptotically going to be equivalent to QDA but they
+don't give us exactly the same result, but they give us very similar accuracy. Interestingly if you run LDA and you try to look at how many
+errors you have in that case, you will see that LDA in
+this case has no errors, even though it's a simpler more
+restrictive classification procedure. So this can happen, so
+it's a relatively large sample, so a single a difference in a single
+error is not a very large difference. So, hopefully this illustrates
+how classification or how measurements can be used for
+classification in a real life setting. [MUSIC]

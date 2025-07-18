@@ -1,0 +1,132 @@
+Another important issue to keep
+in mind when implementing all of these algorithms for
+feeding mixture models, is Multimodality. Both the Q function that we use for
+the Algorithm and the full posterior distribution, the
+augmented full posterior distribution that we use to sample using the MCMC algorithm,
+are typically highly multimodal. And that means that some
+care needs to be exercised. For example,
+you need to use multiple initial points. So you should your algorithm multiple
+times, every time started in a different place that is random, and
+the other will dispersed in other words. That is somehow cover
+the space reasonably well. And the other thing that
+we need to keep in mind, is that some solutions may
+be numerically unstable. This is particularly the case for
+the Algorithm. In these solutions that
+are numerically unstable, are typically not solutions that you
+really care about because they are going to be very far away from the global
+optimum, but you still need to be aware that you may find some instability
+in some of these low value modes. So let's illustrate both of these
+points using again a computer example. To illustrate multimodality, let's go back to the iris dataset that we
+had considered previously in this course. If you remember, recall that we ran
+the algorithm, our clustering algorithm based on mixture models 15 times
+using different initial points, just to make sure that we
+avoided multimodality issues. So in that when we look at this example
+before we focus just on the best solution. Let's now look at some
+of the other solutions, just to get a sense of how important
+the multimodality problem is. So, there's first part
+of the code I'm going to run is identical to what we did before. It's just going to run the algorithm,
+the mixture model algorithm 15 times. And you had access to this code before. So as you remember, this takes a minute or two while it completes
+the 15 different I traits. And what we will do once
+the algorithm is complete, is to just generate a box plot of
+the Q values that are achieved by each one of the 15 iterations, just to get
+a sense of the spread of the solutions. You can see that the execution times for
+the different I traits can vary substantially, and that just because the
+initial points are so different, that in some cases you are really close to a local
+maximum, and in some cases you're not. So now that the algorithm has completed. This piece of code is just going
+to construct a box plot for the Q values at convergence for
+each one of the 15 iterations, and you can see that the values
+can vary substantially. So remember that this isn't a log scale. So a difference of 200 units
+roughly speaking in the log scale, is actually a dramatic
+difference between solutions. You can see, so in the box plot
+this darker line in the middle is the median value of the 15 Solutions. So you can see that most of the solutions
+tend to be pretty closer up here. But some of the solutions can be really,
+really, really bad. So let's look at some of those
+solutions and a little bit more detail. So first let me plot the best solution. This is the one that we had identified
+before, and this is just so that you kind of remember
+the results that we have obtained. In the optimal solution, so
+the one with the largest value of the Q function at convergence,
+you can clearly see that the algorithm is able to separate the three
+clusters pretty well, and we know that this roughly corresponds
+to the right clustering structure. So you can see that in particular what
+we're calling here this group two, there is some blue is well separated
+from from the other two groups. Now, let's see what happens,
+so that's the best solution. That's the one that we have picked before. What have happened if we pick the worst
+solution, and this is just to illustrate why you really need to
+do multiple runs and pick the best. So let's say that by chance,
+you run the algorithm and you happen to converge to this has
+a very low value of the Q function. And what you can see here is that the
+algorithm has a really hard time finding C components. So it does, but it basically be yields, or makes a component that is
+what it's called here. Number one, there is this tiny
+component up here with just two or three observations. It can't really separate three from, so
+it merges this observations here that we know are clusters around with some that
+are really members of a different cluster. So the quality of
+the solution is really poor. And this is just because as we
+have been saying all along, there are different local modes for
+the Algorithm. And in this case, it happened to converge
+to a local mode that was nowhere close to the global optimum. Let's discuss now
+nomality on stable modes. These are usually associated with
+configurations in which the model just utilizes a subset of the components,
+and essentially gives very little
+probability to any observation belonging to some of the components
+that we allow in the mixture. Again, I'm going to illustrate
+this problem with the iris dataset we have been playing with. And what I'm going to do here, so this code is very similar to the code
+that we've been using before. The only thing I'm going to
+do different here, is I'm going to initialize the algorithm
+in a very particular place. So, the initialization for
+the weeks is the same as always. We just give same probability to
+all the components in the mixture. In this case, there are three
+of them as you can see up here. But what I'm going to do different, is rather than initializing this means to
+random values, I'm going to initialize the mean of the first component as
+the global mean of the observations. And then I'm going to to pick this other
+values for the mean of the second and the third,
+us basically a shift on that general mean. And then the value of the variance for
+each one of the components, is assigned in the same way as before. So remember, these are the initial
+values for the for the. So let's actually plot this, just to give you a sense of why
+I picked those initial values. So these are the different components. The colors black blue and
+red just represent the true different components
+that were playing with. And so what you can see is that the big
+dots, they're pretty big in this graph. So this big dots just correspond to
+the mean of the three components. And you can see that the first component
+is centered in the observations. That's what this choice of new
+one in the global mean does. But then by adding this shifts to
+the means of the components for the second and the third,
+what I'm doing is essentially centering them very far away
+from where the data is. You can imagine what the algorithm is
+going to do in this case, where it's going to try to do in this case is going to say
+well, I mean this component here actually represents the observations pretty well,
+but these are pretty far away. So it's there is going to be very low
+probability that I sign any of this observations to this other components
+given those initial values. So let's see what the consequences of that
+are, from a computational point of view. So what I'm going to do now
+is just run my algorithm. This is the same Algorithm
+that I have been using always. And if you run it. You will see that you get
+an error in the in the algorithm. And that, that error comes
+from this piece of the code. That is the one that checks conversions. In the error happens in
+the first iteration service, check the value of s that just tells
+you which iteration you're in. This tells you that the error
+happens in the first iteration. And if we want to see why we can
+look at the values of this Z. So so remember Z is just telling you
+which component is being assigned or which observation is
+assigned to each component. And we can see that essentially
+the algorithm in that first calculation of the beasts, is just assigning essentially
+everybody to the first component. That is the one that is centered,
+where most observations are anyway. So, and it's essentially leaving
+this order to components empty. The fact that these two
+components are being left empty, is who are discussing
+the algorithm to fail, because then when you try to
+compute the logarithm here in the. For the normal distribution you start to
+get an error, because you are essentially compute trying to compute the logarithm
+of zero, for some of the components. So that is the source of the problem. This issue happens with the Algorithm. This issue does not happen
+with MCMC algorithms. And the reason for that, is because
+when you're using a base in method the prioress act as a regularization term,
+in kind of correct the issues that I'm from having
+an empty component in the mixture. Now in practice, this is usually not a very big deal in the
+sense that we rarely are interested in. Modes that look like. A modes were some of the components
+are empty ,and those will typically not be global modes, but it may happen
+that as you run your algorithm, Algorithm with different starting points. Some of those starting points may
+converge to situations like this, and may throw an error. And so what you need to do in those cases
+is, directly discard the solution and just use the different starting value for
+your iterations. And that's typically a simple solution. But you have to be careful,
+the algorithm may fail not only because of the issues that we have discussed
+in the past, but also because it may be converging to a mode that
+leaves some of the components empty. [SOUND]

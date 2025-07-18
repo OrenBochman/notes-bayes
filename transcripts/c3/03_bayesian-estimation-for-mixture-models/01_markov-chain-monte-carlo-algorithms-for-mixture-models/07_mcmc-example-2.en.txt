@@ -1,0 +1,125 @@
+[SOUND]
+I want to discuss now a second example
+of an MCMC algorithm for mixtures. In this case, we're going to work
+with a mixtures of three normals, but bivariate normals. And this is going to mimic our
+second example for the Algorithm. So we're going to use exactly the same
+data set and the same data generation mechanism again, as a way to
+illustrate how our algorithm works. The true data is going to be
+generated from a mixture, as I said, with three components,
+the weights are 0.5, 0.3, and 0.2. The true means for the components
+are 0,0 for the first component, 5,5 for the second component,
+and -3,7 for the third one. And in this case, we're going to allow
+the variance covariance matrices of the different components to be different. The first one is just identity matrix, but for the other two components, we have
+both positive and negative correlation. So you have seen these graphs before. We have three components that
+are reasonably well separated although this to the black and
+the green one not so much. And we actually have a little bit
+of an outlier if you remember with this observation number 58
+that kind of starts to overlap with this other set of observations. So this is exactly the same data that
+we used before for the Algorithm. Now our initialization is going
+to be very similar again, to what we did both with the Algorithm for
+the bivariate mixtures and for the univariate Algorithm,
+the univariate MCMC algorithm. So the components are initialized so that each one receives the same weight
+one-third, one-third, one-third. The means are randomly
+sampled from multivariate normal distribution in this case. And finally, the value of the sigma
+associated with each component is going to be the variance in the sample. In this case, divided by the number of
+components and this aims at in some sense, avoiding the problem that we saw before
+with components that are too dispersed. And that slows the convergence
+of the algorithm. So our initial guess in this case,
+which again, you have already seen in previous
+iterations, with example, looks like this. So we have two components that initially
+are actually very close to each other, and no component that really captures
+the points up here in green. So priors are going to be very similar to
+the ones we use for the univariate case. Again, we're setting the prior on
+the weights to be a uniform distribution. We have this is in this case the mean
+of the mews, and n because it's a bivariate normal we need a bivariate
+normal as our prior for the mews. So we're doing something a little bit
+different from what we did before, before we set it up to zero. Now we're going to kind of do
+something similar to empirical base or an empirical base light, in which we just
+use the mean of all the observations as the mean of the means, in some sense. So this is kind of a rough guess. And similarly we're going
+to assign as a variance for the means something that is roughly
+scaled by the variance of the data. And in this case I have used 10 times
+that variance something around that tends to be a reasonable number. In general, you don't want to
+use non informative prior, so you don't want to try to use a flat
+prior here for the mean of means, that will typically lead to
+poor results in the posterior. So you want to use something that
+it's roughly scaled to the data, and something like this tends
+to do a good job in practice. Finally, for
+the variance covariance matrices. In this case, we're talking about
+matrices not just about a scalar. So we need to use an inverse-wishart
+distribution rather than an inverse-gamma distribution. That inverse-wishart prior is
+going to have j parameter, just like the gamma that we're saving 2. And then it's going to
+have a scale matrix, which in this case we're setting to be
+again, in our kind of empirical base style to be the variance
+of the data divided by 3. Remember, these are your prior guesses,
+and this will be updated using the data. So even if you were to
+replace this 3 by a 6 or by an 8,
+that is unlikely to change the results. Very much this is just done so that you can have a rough scale
+that matches the scale of the data. Now, in this case again, just to
+illustrate how the algorithm works, I will run only 40 iterations and
+I will not do any burn in. And what I want to do in this case is to
+illustrate how the algorithm converges and in a similar way to how we illustrated
+the convergence of the Algorithm. We can store the values of the samples,
+this is something standard if we were going to try to do posterior
+influences we would need those values. And the structure of the sampler is pretty
+much identical to the univariate one. So the way in which we update the component indicators
+is precisely the same. In this case, the components in the carriers
+are being called x[i] rather than c[c]. But it's exactly the same
+parameter as before, it just tells me which component
+each observation comes from. The way in which the weights
+are updated is again, exactly the same. And this is going to be true,
+this particular instruction's pretty much going to be the same for any mixture model
+that we will be using in this course. Then we have a mechanism for
+sampling the means, that again, resembles a lot what we
+had done in the past as like variance that we are now
+working with multivariate normals. So we need to be working with
+matrix products, indexes, and sampling from a multivariate
+normal distribution for the full conditional posterior. And similarly, now we have variances
+that are different for each component. So we need to sample multiple sigma case. And each one of those sigma
+case's going to be sampled from an inverse-wishart distribution. So the structure of the sample is
+the same even if the details for a couple of the full conditionals
+are slightly different, because the kernels are different. The last few steps are again, the same. So we we're storing the posterior
+samples over generating, we're computing the log posterior distribution
+so that we can track conversions. And on like in the previous examples,
+we're going to plot our estimate of the posterior distribution
+at each iteration of the CMC. And we're going to try to look it as
+a movie like we did with the Algorithm. Again, to illustrate
+behavior of the algorithm. Okay, so if I go back and
+load my a logarithm from scratch, It does takes
+a couple of seconds. So we have our 40 iterations. We can see a behavior that is very similar
+to the one we saw in the univariate case. So our guess is not all that good, so
+we start with a very low posterior. But as the algorithm starts to converge,
+we can see that the low posterior tends to increase until it kind of hits a point
+where it appears to have converged. And in this case, actually convergence
+happens relatively quickly, for our algorithm, that's because the initial
+point was actually not all that bad. Now, this is the picture after 40
+iterations of the Gibbs sampler. In this particular step you can see
+that the guests for the components really reflects what we would expect to
+see and what the Algorithm was showing us. But we can play this as a movie and
+in this case I'm playing it backwards. But let me go back all the way,
+To the beginning. So as you can remember, this was our
+initial step, our initial guess. So after one step, the algorithm has
+decided that it needs to have some components with a bigger variance. Because it needs to kind of capture
+these observations that were not being captured by
+the previous estimate, but this is still a very bad
+estimate of the distribution. So but as we take a few more steps, the
+algorithm starts to differentiate between the two components and correspondingly,
+the log posterior starts to increase. Now on like the Where
+the algorithm always improves, in the Gibbs sampler you will see
+a trend towards improvement, but at some iterations, you may actually
+come down slightly, that is normal. You take a few more steps and the
+algorithm starts to identify the locations and by this point it has identified
+the presence of the three components. In couple more steps, it has kind of
+refined the shape of those components. And from this point on you can see that
+the exact shape changes a little bit, that's part of what the algorithm does,
+it's sampling. So there is going to be some
+randomness at each iteration. But you can see that the overall shape
+tends to stay more or less the same. You can see that once in a while, some
+of the observations get misclassified. So for some iterations, this point seems to belong to this
+component, rather than to this. But in the next iteration that goes away, And we repeat this. And again, you can see
+the algorithm fluctuates up and down around a point that is
+around -460 in the log posterior. And what we are doing practice is
+to drop the first few iterations of the sampler and use the final ones to
+perform inference in our posterior. And we could have obtained for example,
+an estimate of the posterior distribution. In this case, a bivariate posterior
+distribution in a way that is very similar to how we did it for the univariate one,
+if we were to run this algorithm for longer. [SOUND]

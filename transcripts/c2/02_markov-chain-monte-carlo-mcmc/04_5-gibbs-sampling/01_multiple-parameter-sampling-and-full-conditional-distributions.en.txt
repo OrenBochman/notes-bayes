@@ -1,0 +1,79 @@
+[MUSIC] So far we've demonstrated MCMC for
+just one single parameter. What happens if we seek the posterior
+distribution of multiple parameters and that posterior distribution
+doesn't have a standard form. One option is to perform Metropolis
+Hastings by sampling candidates for all the parameters at once. And accepting or rejecting all
+of those candidates together. While this is possible,
+it can get complicated. Another simpler option is,
+to sample the parameters one at a time. As a simple example, suppose we have
+a joint posterior distribution for two parameters, theta and
+phi, given our data Y. And let's suppose we only know
+this up to proportionality. We are missing the normalizing constant. What we've calculated is
+the function g of theta and phi. If we knew the value of phi,
+then we could just draw a candidate for theta and use this g function to compute
+our Metropolis Hastings ratio and possibly accept the candidate. Before moving on to the next iteration, if we don't know the value of phi, then
+we could perform a similar update for it. We would draw a candidate for
+phi using some proposal distribution. And again, use this g function where
+we plug in the value of theta. To compute our Metropolis-Hastings ratio. We pretend we know the value of theta
+by substituting in its current value or current iteration from the Markov chain. Once we've drawn for both theta and
+phi, that completes one iteration and we begin the next iteration
+by drawing a new theta. In other words we are just going back and
+forth,updating the parameters one at a time,plugging in the current value of
+the other parameter into the g function. This idea of one at a time updates is
+used in what we call Gibbs sampling. It also produces
+a stationary Markov chain, whose stationary distribution is
+the target or posterior distribution. If you recall, this is the namesake of
+JAGS, which is Just Another Gibbs Sampler. Before describing the full
+Gibbs sampling algorithm there's one more thing we can do. Again using the chain rule of probability. We know that the joint posterior
+distribution of theta and phi can be factored. First into the marginal. Posterior distribution of phi
+times the full conditional distribution of theta given phi and
+the data. Notice that the only difference
+between this full joint posterior distribution and
+this full conditional distribution here, is multiplication by a factor that
+does not involve theta at all. Since this g function when viewed as
+a function of theta is proportional to both the full posterior and
+this full conditional for theta. We might as well have replaced g with
+this distribution when we performed the update for theta. This distribution of theta
+given everything else is called the full conditional distribution for
+theta. Why would we use it instead of g? In some cases the full
+conditional distribution is a standard distribution
+that we know how to sample. If that happens,
+we no longer need to draw a candidate and decide whether to accept it. In fact, if we treat the full
+conditional distribution as a candidate proposal distribution,
+the resulting Metropolis-Hastings acceptance probability
+becomes exactly one. Gibbs Samplers require a little bit more
+work up front because you need to find the full conditional distribution for
+each parameter. The good news is, that all full conditional distributions
+have the same starting point. The full posterior distribution. So, using the example above, we have that the full conditional
+distribution for theta, given phi, and y,
+will be proportional to full joint posterior distribution of theta and
+phi, given y. Which is also proportional
+to this g function up above. Here we would simply treat phi as a known constant number likewise the other full conditional will be phi given theta and y. Which again will be proportional
+to the full joint posterior distribution, or this g function here. We always start with the full
+posterior distribution, thus the process of finding
+full conditional distributions, is the same as finding the posterior
+distribution of each parameter. And pretending that all of the other
+parameters are known constants. The idea of Gibbs sampling is that we can
+update multiple parameters by sampling just one parameter at a time and cycling
+through all parameters and then repeating. To perform the update for
+one particular parameter we substitute in the current values of all
+the other parameters. So let's call this our Gibbs sampling algorithm. Here's the algorithm. Let's suppose we have the joint
+posterior distribution for two parameters, phi and
+theta, like we do here. If we can find the distribution for
+each of the parameters given all the other parameters and data,
+the full conditional distributions, then we'll take turns
+sampling the distributions. The first step in
+the Gibbs sampler will be just like the first step in
+Metropolis Hastings where we initialize. So we'll start with a draw for
+Theta not and phi not. The next step is to iterate so for I in 1 up to M we are going
+to repeat the following. The first thing we'll do Is using
+the previous iterations draw for Phi. So Phi, i -1, we're going to draw, Theta i from it's full conditional. By plugging in the old value of phi. Then, once we've completed this draw for
+phi. I'm sorry, this draw for theta i. We're going to use it. So using Theta i,
+the most recent draw for theta, we're going to complete a draw for phi i
+using its full conditional distribution. And we're going to condition on theta i. Together, these two steps complete
+one cycle of the Gibbs sampler and they produce a pair. We'll get a theta i, phi i pair. That completes one iteration
+of the MCMC sampler. If there are more than two
+parameters we can handle that also. One Gibbs cycle would include
+an update for each of the parameters. In the following segments we're going
+to provide a concrete example of finding full conditional distributions and
+constructing a Gibbs sampler [MUSIC]

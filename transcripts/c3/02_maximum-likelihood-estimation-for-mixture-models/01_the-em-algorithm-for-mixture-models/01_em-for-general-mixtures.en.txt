@@ -1,0 +1,215 @@
+In this lecture, we
+focus on how to learn the parameters of
+the mixture model from an observed sample
+of observations. We have already discussed
+the likelihood function, that will be the
+key component for us learning the
+parameters of the model. We will be discussing two
+algorithms in this course. The first algorithm that
+we will be discussing in today's focus is the
+expectation-maximization algorithm. The expectation-maximization
+algorithm is a very popular tool for computation in
+statistical modeling that relies on the presence
+of hidden variables. In our case, the
+hidden variables or the missing variables are going to be these component indicators that we introduced to create the complete data
+likelihood that we discussed in the last lecture. So the goal of the
+expectation-maximization algorithm is to generate maximum likelihood estimators
+for the parameters. So our goal today is to construct maximum likelihood estimators, MLEs, for the parameters
+in the model, and those parameters are
+the vector of Omegas and data subcase parameters of each one of the
+components in the mixture. So remember that we define
+the likelihood function for Theta one up to
+Theta capital K, and Omega_1 all the
+way up to Omega_k, as the product over
+the observations, of the sum over the
+components of Omega_k, g_k of x_i given Theta_k. The maximum likelihood
+estimators, which we're going to
+denote by Theta hat sub k, and Omega hat sub k, are just defined as the values of the
+different parameters that make this function
+as large as possible. As you may remember, the interpretation
+or the intuition for that is very clear. So if we think that this
+is the model or that a particular set of values corresponds to the model
+that generated the data, then those parameters should be making the probability of what we actually observe be
+as large as possible. So just to make it compact, I'm going to define the
+maximum likelihood estimators of theta one up to theta capital
+K and Omega_1 hat all the way to Omega hat
+capital K as the argument of the maximum over Theta_1 up
+to Theta K in Omega_1 up to Omega_K of this
+likelihood function that I wrote up there. Now in principle, you could use any optimization algorithm
+that you like to solve this optimization problem
+and get these parameters. It's clear that there is no easy simple
+closed-form solution. If you take first order
+derivatives of this function up here with respect to different parameters and you
+make them equal to zero, you will get a very large
+system of equations that is clearly non-linear for
+most circumstances. So you will have a
+really hard time solving that problem with the additional complication that there are constraints that you need to respect for the Omegas. In particular you know that
+the Omega sell up to one. So you need to take that constraint into
+account when you are solving the optimization problem. So I'd suggest brute force direct approaches to
+optimization are not going to be a good way to solve this
+problem because suppose they hide non-linearity that
+arises from this expression, and because of the large
+number of parameters, so you have one weight in potentially p parameters for each component
+of the mixture. So dimensionality is very high. So what we will be
+discussing is how to use this expectation
+maximization algorithm as an alternative tool to solve exactly this
+problem instead of using some other
+numerical approach for this big dimensional problem. One of the advantages
+of this algorithm is that what we end up with is a very simple approach in which the individual
+optimization problems that need to be resolved are very simple and can be
+solved in close form for many expressions of the sub
+k that arise in practice. Before we go into the details of how the
+expectation-maximization works for mixture models, let me just give you
+a quick reminder of the algorithm in
+its most general form. For the expectation
+maximization algorithm, we have an iterative process, and what we're going
+to do is we're going to start with some guess about
+what the parameters are. So in this case, our parameters are
+Thetas from one up to k, and I'm going to use the exponent with parenthesis to represent the
+iteration number. So you're going to start with
+an initial guess of what those parameters values are. So these are your initial values, and your algorithm
+is going to proceed to update this
+parameters sequentially. So from this, we are
+going to construct a Theta_1 0 all the way
+to Theta capital K 1, 1, Omega_1 1, Omega_k
+1, and so on. So then we'll construct a
+second set, and a third set, and each set is
+constructed based on or using the values of the previous set as a
+kind of a starting point. It's called an expectation maximization algorithm
+because it has two parts. So in the first part we
+compute an expectation that allows us to generate a function that then it's the one
+that gets maximized. So the way in which we are going to proceed is we are going to compute Theta_1 in
+activation S plus 1, all the one to Theta capital K in iteration S plus 1 Omega_1 s plus 1 Omega capital K plus 1 as the arg max, obviously over Theta_1
+up to Theta_k, and Omega_1 up to Omega_k. Sorry, I should have use hats everywhere to
+indicate that these are my estimators
+for the parameters. So I am going to compute this as the arg max of a function
+that I'm going to call Q, and this function Q is of course, a function of Theta_1
+up to Theta_k, and Omega_1 up to Omega_k. But it's also going to
+be defined in terms of the previous values of
+this family's estimators. So to construct the next
+iterate of the algorithm we start in some sense with the previous
+value of the iterate, that previous value
+of the iterate allows us to construct
+this function Q, that ends up being maximized
+to obtain the next iterate. The way in which this function Q is constructed is very simple, so this function Q of
+Theta_1 up to Theta_k, and Omega_1 up to
+Omega capital K, given the previous iterates is defined just as
+an expected value of the log likelihood, so the log of the
+distribution of my data given my indicators C_1 up to C_n in my parameters Theta_1 up to Theta_k, and this expectation
+is taken with respect to the
+distribution of the vector C. The vectors contains
+all the indicators given the previous
+values of the iterates. So this will become
+a little bit clearer once I do an example with a particular kernel but the idea is relatively straightforward
+so you are going to have a guess at what the components each
+observation belongs to, and that guess is based on your previous values
+of the parameters. Given that guess, you're going to construct
+this function Q, and maximize the function Q to get a new estimate
+of the parameters, and then you just
+repeat the process. You are going to use
+these new guess, so this new estimate of
+the parameters to create a new guess at what the
+values of the C's are, and given that gives us the
+values of the C's again, construct a new Q, and maximize that new Q to obtain the results. Just to clarify this
+expression down here, so this expected
+value is relatively easy to compute because remember that the C's are discrete
+random variables that just take values from
+one to k. So really what I need to compute this expectation what I
+need to know is what is the probability that C sub i is equal to k given the previous
+values of the parameters, given those vectors Theta's, and those vectors of Omega's, my previous estimates for those. The expression is
+relatively simple because you can basically
+compute it using Bayes theorem. If you think about what's the
+probability that C sub i is equal to k given the
+parameters and the data, you can just compute that as the probability of the data
+given that C sub i is equal to k which just becomes
+g of sub k of X sub i given my weight data hat S sub k multiplied by the prior, that is Omega sub k s, and then renormalized
+over all the components. So from L equals one to capital K of g sub l x sub
+i given Theta_l hat s w l s. So basically we're saying that the probability that the observation comes from
+component k is higher if the likelihood of the
+component k evaluated in that observation tends to be higher than the likelihood
+for every other component. So this gives you
+the probability that each observation comes
+from each component, and then this probability can be inserted in this expression
+to compute this expectation. So you can clearly see now that this expression
+it's going to depend both on the values
+of Theta and Omega. But it's not going to depend
+on the previous values, and is going to depend
+on the values that you're going to try to
+optimize but it's not going to depend on C because you will be integrating
+over that parameter. Let's discuss the
+structure now of the EM Algorithm for
+particular mixture models. First in general, and then we'll carry out a
+particular example with a mixture of normals
+that I'm hoping will help clarify
+some of the concepts. So we just discussed the
+structure of the function Q, we also discussed that the probability that C
+sub i is equal to k, so that observation i belongs to component k given
+my current value of the parameter's Theta. Omega can be obtained as a simple application
+of Bayes' theorem, as the ratio of Omega sub k hat s, times g sub k of x sub i given Theta sub k hat s, divided by the sum of
+Omega l hat sg sub l, xi given Theta ls hat, so that's weight. Once we have this probability, the other piece that we need
+to write the function q is the complete data log-likelihood. So that's just the logarithm of the expression that
+we had discussed a couple of lectures ago that depends on both the
+data and the Ci's, and that has a very simple
+expression, in this case, it's just the complete
+data likelihood for the parameters Theta
+one up to Theta k, and Omega one up to Omega k, and C1 up to Cn. I want to look at the
+complete data likelihood. This is the product from i equals one to n of the product from k equals one to K of
+Omega k g sub k, of x sub i given Theta k, raised to the
+indicator that c sub i is equal to k. Once we
+have these two pieces, we have the probability
+of the C sub i's, and we know what the complete
+data likelihood looks like, then we can proceed to compute the q function for
+our mixture model. For simplicity, I'm going to rename this whole expression,
+it's like shorthand. If you think about
+this expression, it depends on the observation, it depends on the component, and it also depends on the step in which you are
+in your algorithm. So let me call this
+bik of s for short, so I can write a little bit less. So what we need to do to
+construct the q function, which is a function of the
+Thetas and the Omegas, conditional on the current
+value of the parameters, and Omega one hat all
+the way to Omega K-hat. We're going to need to take the expected value of the
+logarithm of this expression. So that's what the q function is. So this is going to be the expected value with respect to this
+distribution up here of the indicator of C sub i equals to k, multiplied by the
+logarithm of Omega sub k, plus the logarithm
+of g sub k of xi given Theta k. Now, this expectation is
+very easy to compute, and of course, this is the
+expectation for a single one. But in general, I need to
+compute the sum overall, the observations and
+other components. So we are going to
+have the total sum of the expectation from
+i equals one to n, and from k equals one to
+K of those expectations. Now, as I was saying, this
+expectation is easy to compute because really the only piecing here that depends on C is this indicator
+function that is here. So for the purpose of
+computing the expectation, I can treat this
+piece as a constant. So this just becomes, again, the double sum from k
+equals one to capital K, and from i equals
+one to capital n of the expected value
+of these indicators, multiplied by the
+same expression, the logarithm of Omega sub k, plus the log of g sub kxi given Theta
+k. In this expectation, it's the expectation
+of an indicator. By definition, the expectation
+of an indicator of an event is just the
+probability of that event. So that just means that this
+expected value is simply this value vik of s that we
+have just computed up here. So the q function actually
+has a very simple expression. The q function can be written
+just as the weighted sum, where the weights are
+given by the b sub ik's of actually two
+terms that are split off. So one term has to do just
+with the prior probabilities, so they're the weight of
+each one of the components, and another piece
+that has to do with the likelihood of
+the k's component. So that means that
+if the structure of this function g sub k
+is relatively simple, then the fact that we're just using a
+weighted average will allow us to basically extend the way in which
+we do estimation for Theta k in the regular
+parametric model, to the way in which we
+will do the inference for the k's component of this
+complicated mixture. Now, what we'll do
+is we'll proceed to clarify these ideas a little bit by
+essentially deriving the algorithm for a
+mixture of normals, where the particular
+structure of the g sub k allows for that kind of simplification that I
+was just discussing.

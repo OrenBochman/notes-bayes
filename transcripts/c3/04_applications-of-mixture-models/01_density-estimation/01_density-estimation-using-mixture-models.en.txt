@@ -1,0 +1,136 @@
+Hi. This week, we're going to be discussing applications
+of mixture of models. So far we have discussed
+how to fit models to data, but now we want to
+elaborate a little bit on what you can do with those models once we have
+fitted them to data. The first application
+that I want to discuss is density estimation. The problem of density
+estimation has to do with recovering what
+is the density of the probability
+distribution function that generated the data that
+you're working with. This is a problem
+that is fairly common and it's actually the
+problem that we use to motivate mixture models in the first place when we talked
+about all the flexibility that mixture models have to capture different
+shapes of distributions. Before we actually get
+into the details of how you use mixture models
+for density estimation, let's discuss a little
+bit the traditional way in which density
+estimation is performed, that is using kernel
+density estimators. This is a technique that you may be already familiar with, like in the case of the mixture models that we
+have been discussing so far, you started with an IID
+sample of size n from some density f. What you
+are trying to do is you're trying to
+construct an estimator, call it f tilde of that density and that estimator has a very
+particular form. It takes the form 1 over n sum from i equals 1-n of 1 over h, g of x minus xi, distance, divided by h. Where g is the density of your choice and
+h is called the bandwidth. As I said, you may be
+already familiar with this type of approach
+for density estimation, so you have an average
+of this kernels and that's how you typically refer
+to this guy as the kernel, so g is typically called the kernel of the
+density estimator. So you do a linear combination or a weighted average of these
+kernels and each one of the kernels is essentially
+evaluated in each one of the observations that
+you have in your sample. The choice of g is free, you can basically choose
+whatever you want, but a very common choice
+is Gaussian distributions, in which kernel is you get the Gaussian kernel
+density estimator. This would be an example, we should take the form
+of 1 over n sum from 1-n, of 1 over h, 1 over square root 2Pi
+exp of minus one-half, x minus xi divided by h square. So you can see that
+essentially what you're doing is taking these
+Gaussian distributions, centering them at
+each one of xis. So if you think about your
+observations being here, here, here, and here, and here, what you are doing is
+graphing this little normals, this is x_1, this could be x_4, x_3, x_2, and x_5. What you're doing is
+putting each one of these little Gaussian kernels that have a standard deviation h, so you can interpret
+the bandwidth in this case as the standard
+deviation of the kernel, and putting them in each one of the observations and
+then averaging all of them to get a bigger
+distribution, that is your kernel
+density estimator. So this would be your
+f tilde and this would be each one of the components that are
+involved in the sum. Now, what I want to do is, I want to contrast this approach that is fairly
+common in the literature, with what you would
+do if you were working with a mixture model. So let's think about the
+mixture of k components, we have already seen
+the definition. Again, we have this x_1 up to x_n and we can
+create an estimator, let me call this one f hat of x, by feeding the mixture
+model and taking, for example the maximum
+likelihood estimators that you obtain from using
+your EM algorithm, into their formula for the mixture model and you will get something
+that looks like the sum from k equals
+1 to K of Omega_k, g sub k of x given data. So you can already start
+to see that there are some similarities
+between the two sides, we'll discuss them in a little bit more detail in a second. But again to keep the parallel
+with the previous example, let's write this for the particular case of a
+location mixture of normals. In that case, your f hat of x would take the form of the
+sum from k equals 1 to K, of my Omega_k hat multiplied
+by 1 over square root 2Pi Sigma hat exp minus 1
+over 2 Sigma square hat, xi minus Mu hat k squared. Sorry, there is no i in here, because this is the argument of the function that
+we're working with. So now that we have this two
+things about side-by-side, it's a little bit easier to
+compare and particularly using the case of the mixture
+of Gaussian distributions. So you can see that the Gaussian kernel
+density estimate that we have on this side, actually has exactly
+the same form of a mixture but with some
+very particular features. So one of the features is, first of all, we
+have n components, so we have as many
+components as observations in this mixture that
+we have on this side. Whereas here, we are going to
+have K components that are typically smaller than the number of observations that
+we're working with. So this looks like a mixture with just a larger number of components in the case of the
+kernel density estimator. The other thing that
+is similar is you can see that one over n on this side, essentially plays
+the same role as the weights play here
+and that makes sense. What we're saying is that, each observation or each
+component of the mixture, because it's associated
+with a single observation, it's going to have
+a weight that it's equal to 1 divided by the
+total number of observations. So it's just proportional to the number of
+observations that we have in the kernel, if you will. Which is exactly if you remember the formula that you had
+for the EM algorithm, that is exactly
+what was happening. So your maximum
+likelihood estimator for this Omega hat was essentially
+very close to just being the proportion
+of observations that are assigned
+to this particular kernel k. So there is a very
+clear parallel than when you start stretching K. When you start to increase the number of components
+in the mixture, what you are doing is basically making the weights more uniform, because you tend to put one observation in each
+component of the mixture. The other thing to
+highlight here is that, Sigma essentially plays
+the same role as h, so the bandwidth in the kernel density estimator is essentially the same thing as the standard deviation in my location mixture of Gaussians. The other thing to highlight is the kernels here are centered at x sub i at each
+one of the observations. The kernel self-centered
+here at this Mu hat sub k, so there is parallel between
+these two quantities. Now, again think
+about what happens when K grows and is very large. If you make K being close to n, then this Mu hat
+that in practice is something like the average of the observations that have
+been assigned to the kernel, essentially become the average of a single observation that has been assigned
+to that cluster, which becomes something
+very close to x sub i. So you can see that there is a very strong relationship between these two
+approaches and in particular that we
+can think about doing Gaussian location mixtures of Gaussian distributions, where all the components have the same Sigma as being
+in some sense are model-based counterpart to
+this kernel density estimator, that is very widely used. Why is this important? Well, by putting this estimator in the context of mixtures and basically throwing
+this parallel, we opened the door for a number of extensions and
+improvements on the methods. For example, here we are working with a common variance
+for all the components, which means that we have
+a common bandwidth. It doesn't matter where
+you are in the space, you have the same bandwidth. That's not always a good idea, so you can have
+situations for example, where you have a density that
+is very haggling multimodal here and then becomes much
+smoother in another region. So in this area, you'd want a smaller h, you want a smaller
+bandwidth so that you can capture these many peaks. In this area where things are very smooth and not
+changing very often, you would want a larger h. That is not
+something that you can easily do with kernel
+density estimators, but it's something that
+you can very easily do using mixture of normals, simply by allowing
+the variance of each one of the components
+to change, to be different. That basically allows the
+components that are located down here to have a smaller
+variance and therefore, a smaller bandwidth and the
+ones that are located up here to have bigger variance and therefore, a
+bigger bandwidth. Another way in which
+this is useful is, it allows us to think
+about how Bayesians do kernel density estimation and the way in which
+Bayesians do it, is by essentially feeding
+this mixture models using MCMC algorithms or
+some other technique that allows for the computation of the posterior distribution.

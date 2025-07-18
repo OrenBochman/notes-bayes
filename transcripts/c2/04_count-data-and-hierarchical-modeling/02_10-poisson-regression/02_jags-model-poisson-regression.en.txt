@@ -1,0 +1,143 @@
+For an example of Poisson regression, we'll use the bad health dataset
+from the count package in R. Let's load the library here. Load the data and
+check the documentation for the dataset. The badhealth dataset is from a German
+health survey in the year 1998. It records the number of visits to doctors
+during the year 1998 for 1,127 patients. Our two covariants which we'll use
+as explanatory variables are badh, which gives us an indicator variable for whether the patient claims
+to be in bad health or not. As well as the patient's age. Again, we can check these sources and
+references for more information about the data. Let's print out the first
+few values of the dataset. The first column we have
+the number of visits to a doctor, an indicator of whether that patient
+considers themselves to have bad health, and the age of the patient. It's also a good idea to check. To make sure we don't
+have any missing values. So, we're going to check using s.na, which will flag missing values, and
+we want to see if there are any of those. No, there are no missing values. As usual, let's visualize
+this data with the histogram We'll do bad health number of visits. And we'll try to do 20 categories here. As we can see,
+number of visits is a positively valued or at least non-negative valued,
+right skewed quantity. If there are no 0 values for
+number visits, Turns out there are. Let's count how many of those occur. We want to see how many of these are 0? 360 out about 1100 have
+0 visits to the doctor, because we can't take the log of 0, we'll have to omit these
+when we create the plot. We want to plot the jitter so that they move around off of
+the exact number of counts. The jitter of the log of numvisit against, A jitter of the age variable. Where the data will be badhealth, We're going to subset the data,
+for those that have bad health. Equal to 0, in other words people
+that are in good health and people with numvisit > than 0. So, this is going to be a plot for
+people in good health, who visited the doctor
+more than zero times. Our x-axis will be age, and our y-axis
+will be the logged number of visits. Here, you can see maybe
+a slight general trend, that as age increases the number
+of doctor visits increases. And now, lets repeat this plot for
+people that have badhealth. And let's make the color of
+the plot red to distinguish. And we need to say point instead of plot. So, that it'll add to an existing plot. There are not many red points down here. A lot of them are up here, so
+it looks like being in bad health, not surprisingly, is associated
+with more visits to the doctor. Because both variables are related
+to the number of doctor visits, any model that we fit should probably
+include terms for both variables. If we believe that the age and visits relationship is different between
+healthy and non healthy populations. We should also include
+an interaction term in the model. We're going to do that. We're going to fit the full model here. And then, we're going to leave
+it to you to compare it. To the simpler additive model. One modelling option would be
+to fit a normal linear model to the log of the number of
+visits as our response. Or we could transform the number
+of visits by some power. So, that the responds variable
+looks more normally distributed. We already saw one drawback of taking
+the log of the number of visits as our response variable. You can't take the log of 0. So, in order to be able to model it, while keeping all the individuals
+who never visited the doctor. We would have to add a number
+maybe a small number like 0.1 to the response before taking the log. This is kind of an awkward transformation because our choice of number to add to
+the number of visits is pretty arbitrary. Instead of using logged number of
+visits as our response variable, let's instead choose
+the Poisson linear model. One major advantage of
+the Poisson linear model is that the log transformation
+appears in the link function. We are taking the log of the mean
+rather than the response itself. You'll be familiar with
+the code that follows. We start our model string
+with the likelihood. Where we iterate i from 1 to
+the length of number of visits. Or you could assign n to be that number. And for each number of visits for
+the ith person, this will follow a Poisson
+distribution with mean lambda sub i. Lambda sub i is controlled by this link
+function and the linear form of the model. Where we have an intercept,
+a coefficient for badhealth, the value of the badhealth
+variable, a coefficient for age, the value of the ith age and
+an interaction coefficient. To go along with the age
+times the bad health. For a person in good health
+this variable will be zero, which cancels out this entire term. But, if the person is in bad health this
+is a one which makes this interaction term modify the coefficient for age. In other words,
+the effective age will be different for people with badhealth
+than with good health, of course we now add prior distributions
+to each of this four coefficients. Let's go ahead and fit this model. We'll first load the library
+as well as the model string. Then we'll set seed and
+create our data for jags. Let's take a look at the structure
+of that really fast. We did this as a list of
+the original badhealth. DataFrame it creates the list we want because we use the same names for
+the different variables in our model. The parameters are intercept and
+the three coefficients. Now, let's initialize the model and
+run the burning period. And as you can see, because there's so many data points,
+it takes a few moments to run this. Then, we can run the simulations for
+the samples that we'll keep. And this runs even slower. We've skipped ahead to the end. Also we'll leave it up to you to
+run these convergence diagnostics to make sure that we can trust
+these posterior samples. We should also collect the DIC for
+this model. To get a general idea of
+this model's performance, we can look at predicted
+values in residuals as usual. We'll call this section residuals. And we'll start with the design matri X. We'll transform it to be
+a matrix from the original data, badhealth, and
+we'll remove the response variable. We only want the code variance here. Make sure this is what we want. Not quite,
+we also want the interreaction term, so let's add that as a third column to X. We will cbind it to the original X. So, the original X will
+be a cbind with itself. And with the badhealth data set, we want to calculate badh times age. Now, let's see if that's what we want. The third column is bodhealth times
+h which is true in all these cases. Let's look at the tail. And again, it's the product of these
+two numbers, so this looks good. We need point estimates of our
+coefficients and in this case, let's try the posterior median
+instead of the posterior means. We'll take these from
+the combined simulation. So, this apply function says apply
+to the columns of model csim and calculate the medians for those columns. We want to use median here because we're
+going to be taking the inverse log or the exponential function
+of these point estimates. Really this is just another option. You could have used the mean here. We'll run those coefficients,
+take a look at them. And of course we'll matrix multiply
+these to get our predictions. First we'll extract the log of lambda
+hat which will be our intercept first. So, let's extract
+the intercept plus the design matrix Matrix multiplied
+with the coefficients. We want the b_badh, the b_age and the b_interx. Let's run that. This evaluated the linear part of
+the model for the observations. But to get back the original lambdas, or
+the means of that Poisson distribution, we have to take the inverse
+of the link function. So, lam_hat will be nn exponentiated
+version of log lam_hat. Finally, we can calculate
+the residuals from the predictions. Resids will come from badhealth$numvisit. And we'll subtract off the predictions Let's look at these residuals. Ordinarily we would be
+alarmed by this plot. The index of the data seems
+to have something to do, with the value of the residual which would
+suggest that the data are not independent. It turns out in this case
+that the data were presorted. They were ordered by
+the number of doctor visits. And so, we won't worry about this plot. Next, let's plot the predicted
+values against the residuals. Where we want to standardize the x-axis. And let's look at each
+group one at a time. First, we want to look at
+the ones that have bad health. So, we'll take only
+the predictions where badhealth, badh==0 and
+we also want only those residuals as well. The predictions for which badhealth is 0,
+and the residuals for which bad health in
+the original data set is 0. Next, on top of that plot, we will add points, Where badhealth is 1. So, the lambda hats for
+which the badhealth indicator is 1. And the residuals for
+which the badhealth indicator is 1. And let's change the color
+of these points. Okay, and
+we also need to add a y limit for these because the two groups
+have different range. So let's set the entire
+range of the residuals for our y-axis, now let's run this plot. On the x-axis we have lambda hat,
+the predicted mean of the Poisson. And on the y-axis we
+have the residual value. Interestingly, the model separated
+the predicted number of visits according to whether or
+not the person had bad health. If the person had bad health, the model
+predicts they'll have about six visits. And if they don't have bad health
+the model predicts about two visits. It looks like this model
+isn't performing great. We have a lot of values here
+with really large residuals. In other words, the number of visits was
+much higher than the model predicted for a lot of these people. It's not surprising to see that
+the variability increases. As lam_hat increases. We're using a Poisson likelihood. And remember that in the Poisson
+distribution, the mean and the variance are the same number. However, if the Poisson model is correct, this group of residuals
+should have variance about 2. And this group of residuals
+should have variance about six. Let's test that out. First, let's take the residuals for
+which badhealth is 0. And we'll calculate the variance
+of these residuals. We expect it to be about two. Turns out it's about seven. Now, let's do the same thing for
+patients were badhealth equals 1. We would expect the variance
+here to be about six. It turns out the variance is about 41. The fact that we observed so
+much more variability than we expected indicates that
+either the model fits poorly. Meaning that the covariance don't explain
+enough of the variability in the data. Or the data are over dispersed for
+this plus on likely that we've chosen. This is a common issue with count data. If the data are more variable then
+the plus on likelihood suggest, we can look to alternative models for
+over dispersed data. One common alternative is to use
+the negative binomial distribution, which we won't cover here,
+but it's good to know about.

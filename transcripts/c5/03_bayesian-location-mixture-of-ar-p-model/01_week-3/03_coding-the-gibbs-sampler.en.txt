@@ -1,0 +1,88 @@
+In this lecture, we will discuss how
+to implement the Gibbs sampler in R to get posterior sample
+of model parameters. And use them to get posterior predictive
+samples of YT for t less than capital T. As before, let us first January some data,
+since this time, we will fit a location,
+make sure off air model to the data. Let us also stimulate the data from this
+three component mixture of AR2 process. Giving the first two data we stimulate
+in total 200 observations from these three component that mixture of AR2 model. A plot of the data is shown here. Now we start to build our Gibbs sampler. Firstly, we import the following
+two packages that will be needed in the simulation. This MCMC pack contains a function
+to generate samples from duration distribution. And this multivariate normal
+package is of course, using generating samples from
+multivariate normal distribution. Here are some constant that
+will not change in simulation. So where spices find
+them before moving on. They are the order of AR process P,
+the number of missing component. Here we will run a two
+component mixture model. So we set K = 2. The data Y,
+we will use the letter capital T-P data. So here y is from 3 to 200,
+the matrix f and also the number of data n it goes to T- P. As for the prior hyper parameters,
+we will use a weakly informative choices. I have zero B zero vector C, there'll be a diagonal matrix
+with 10 as the diagonal element. The obviously assume worse will also be
+a diagonal matrix with 0.1 on a diagonal. For the inverse gamma prior on new
+was set on zero and D zero as this. Finally, remember the weights
+a mixture models are giving a derivative distribution as their prior. So we use the vector A here as a parameter
+for that derivative distribution. Next, we specify the number of iterations. We want 20,000 posterior samples, then to stop parameters,
+firstly for the air coefficients. Each mixing components
+have p coefficients, and we have in total k components. So each iteration will have
+P times k coefficients. We will combine them as a single vector as
+stored as one column in this beta matrix. Therefore, we define the beta matrix
+as a matrix with p times q zero and the number of columns equals
+to the number of iterations. Similarly, in iteration, we will
+have an configuration variable L and a key with omega. So we define l matrix at omega
+matrix To store them like this. Finally for new each iteration,
+we only need to sample one new. So we just use a worker with the last
+of number of iterations to store them. As for the initial values,
+we just use intuitive 1. Initial all the betas 0,
+all the configuration variables as 1, the weights are assumed to be equal. So they all take one over capital K,
+and finally, the worst knew to be one. Now, it comes to the key step
+in building the Gibbs sampler. We will define multiple functions
+according to the full conditional distributions. We have derived last
+time it is showing here. Firstly, to sample omega,
+here we have its full conditional distribution as this
+tertiary distribution. So we call the function
+to sample it like this. The only input is a current value for
+configuration variables. Because this will be the only
+varying quantity in sampling omega. The function here calculate
+the sum of indicators. To sample the configuration variable L. Firstly, we'll define
+the function to sample 1L, that is giving YT resample
+the corresponding LT. To do this, we will need the current
+value of coefficients beta, the weights omega and variance nu as well
+as YT and the corresponding design vector. We call it y curve at
+asymmetric matrix curve here. So for each key,
+we calculate the new numerator of the probability here
+uses this function. This supply function just repeat The function for K from one to capital K. And finally, the sample function is used to sample
+discrete L with this probability. This only samples the LT for YT. If we want to sample all
+the latent configuration variable, we can just define this sample L function. Inside it, we repeat the previous
+sample one assumption n times. Each time fed in a YT and
+its corresponding design vector. So the output will be the N configuration
+variables for all of the data. To sample new, we use a formula here. The calculation of n
+star is straightforward. To calculate the star,
+we need to calculate these two sums. For the first sum, we use this arrow
+dot Y function to calculate it for HT. Then we use this function to
+calculate the second song. So I supply function,
+repeat them with an arcade and sum them up, we get these two
+summations that is 40 star. Finally, we're just draw new by drawing
+from contribution ads is it worth it? Finally for beta k, recall that for this step we select data
+belongs to each component. As it becomes the single component AR
+model we have learned in the first module. So here to sum up in a K,
+we first select data. If now the data correspond
+to this component, we just sample data came
+from a prior distribution. The if there are some data, we use
+this formula to update MK and say K. Finally, is just use this function
+to sample from a multivariate normal distribution. After defining all this function, you will see that the build up of
+Gibbs sampler is quite simple. We now start to write the loop
+by putting things together. For each iteration, we first update omega with the sample
+omega function we just defined. As start the new value of omega
+in the s column of the matrix we defined previously to store omega. This works exactly the same way for
+L and nu. For beta because the function we
+defined on assembles one beta, so here we just use the apply function to sample
+all beta k for K from one to capital K. And combine them as a vector so that it can be stored as
+a column in a beta matrix. So MC wants you really take
+some time to complete. So here we're just adding one
+more step to monitor the process. Now we can just run it. After we finish the loop, we can move on
+to the code to our particular samples. For the posterior predictive samples, we follow the procedure we
+have discussed last time. First sample configuration variable to
+sample why using a normal distribution. This function just wraps things up
+in one function to simultaneously obtain the STH procure samples for our Y. Finally, this stuff is used to
+summarize the whole posterior predictive distributions as
+a 0.95% interval estimate. The result is plot here.

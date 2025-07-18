@@ -1,0 +1,100 @@
+We're now ready to set up this
+hierarchical model in JAGS. We'll start with the model string and we call it model, give it curly braces. And we'll start here with the likelihood, for i in 1 through the length of chips. Remember Chips is the name
+of our response variable. This loop will go all
+the way down the data set. We want chips(i) to come
+from a Poisson distribution. Where the mean of that Poisson
+distribution is the lambda for the specific location at i. So we need to double index it. Lambda from location,
+location is a number between one and five. So it'll be lambda from location i. So for example if a chocolate chip cookie, say a chocolate chip cookie
+i comes from location three. This will evaluate at three so that the Poisson distribution has
+lambda three for the third location. Now before we go any further,
+let's remind ourselves of the model. The next step is we need to provide
+the distribution for the lambdas. There are five lambas. So, we need to say, for (j in 1:max(location)), which will end up being 5. We need lambda j to come
+from a gamma distribution. Where the shape of that gamma
+distribution will be alpha and the rate of that gamma
+distribution will be beta. Rather than place priors on alpha and
+beta directly let's place priors on the mean and standard
+deviation of this gamma distribution. We'll call it mu, And sigma. Because mu has to be a positive number
+let's say it follows a gamma distribution. We're going to use more informative priors
+than we did in the previous segment. When we simulated from the prior
+predictive distribution. Let's give this gamma distribution
+a shape, 2.0 and a rate, 1.0/5.0. This gives mu a prior mean of 10. That is, our prior mean for the expected
+value of this distribution will be 10. Next, we'll use an exponential
+distribution for the prior on sigma,
+the standard deviation. We'll say the prior mean for
+this standard deviation is 1. Now, notice that we've set priors for the mean and a standard deviation
+of this gamma distribution. But the gamma distribution,
+is written in the terms of alpha and beta which are not mentioned here. So there's no connection
+between these two pieces yet. Remember, the mean of a gamma
+distribution is alpha divided by beta. And the variance of a gamma distribution
+is alpha divided by beta squared. If you do a little bit of algebra,
+you can relate alpha and beta to mu and sigma here in this way. Alpha will be equal to mu
+squared / sigma squared. And beta will be mu / sigma squared. Now because we have priors on mu and
+sigma, and alpha and beta are functions of mu and sigma. That induces priors on alpha and
+beta, so now the model is connected. Of course, we need to turn
+this into a model string And we need to add the rest
+of the model set up. We'll set the seed at 113. data_jags will become a list. We just need to turn dot into a list, because we have the original variable
+names here, chips, and location. The parameters that we want to
+monitor will be the lambdas, the five lambdas from
+the different locations. Mu, the mean of that gamma prior,
+and sigma, the standard deviation
+of that gamma prior. Our model will be a jags model using the textConnection with the model string. Our data will be data_jags. We'll run for three chains. And we'll allow jags to set up
+the initial values by default. Of course, we'll want to run a burn-in
+period, so we'll update the model, For, we will say, 1000 iterations. And then, we'll create our samples Where the model is nod. The variable names will be the parameters. And for
+each chain we will run 5,000 iterations. Finally, we will combine the simulations. Now let's go ahead and run all of this. Runs pretty quickly. We won't do all of
+the convergence diagnostics, but let's at least take a look
+at the trace plots. I need to do ask = true so that we can look at one window at a time. These trace plots look really good. Let's look at the next set. Yeah, it appears that
+everything has converged. I'll leave it up to you to check
+the other convergence diagnostics. We also want to compute the DIC and
+save that For our model, for 1000 iterations. After assessing the convergence
+of our Markov chains, we can move on to model checking. Where we can check our model using, for
+example, residuals like we always have. With the hierarchical model,
+there are now two levels of residuals. The observation level and
+the location mean level or lambdas. To simplify, we're going to look at the
+residuals associated with the posterior means of the parameters. First, let's do the operation residuals. These will be based on the estimates
+of the location means. So let's create posterior means for
+the parameters. It will be the column means
+from the combined simulation. And take a look at those. We have the posterior mean of
+the expected number of chocolate chips from each of the five location. Let's use that to create
+the yhat predicted values. We need to repeat the posterior
+means of the parameters, specifically of the lambdas. Those are parameters 1 through 5. And we need to repeat
+each of them 30 times because each location has 30 cookies. Let's look at yhat,
+where we're predicting 30 of lam[1], then 30 of lam[2] and so forth. Next we will compute the residuals
+at the observation level. Residuals are just the actual values
+of the data minus the printed values. And we'll look at a plot of the residuals. These residuals look pretty good, I don't
+see any patterns here against the index. Of course, we also want to plot the
+residuals against the predicted values. Because there are five locations, there will be only five
+different predicted values. So let's jitter those so
+we can see them a little better, y hat. These residuals look pretty good,
+no cause for concern here. We do see an increase in the variance
+in the residuals possibly. But that is to be expected because
+this is a Poisson likelihood where the variance increases
+as the mean increases. Another way we can check that is to look a the variance of the residuals
+in this group right here. So this is the residuals
+where y hat is less than 7. The predicted values are close to 6 so they should have variance close to 6,
+very good. We can also do this for
+The residuals on the other far side. Where the predicted values were
+greater than 11 for example. We would expect the residual
+variance here to be close to 12. Yep, so it appears that over
+dispersion is not a problem for us in this model with these data. That concludes residual checks for
+the observation level. But now we can look at
+how the location means will differ from the overall mean mu. That is,
+we want to calculate the lambda residuals. This will be the posterior means
+of the parameters 1 through 5, which contains those five lambdas. And we'll subtract off the mu. The posterior mean for the mu parameter,
+that's the lambda residual. Let's plot the lambda residual And maybe add a reference line so
+we can see where 0 is. That is AB line,
+the horizontal line, at 0. And we'll give it line type 2,
+so it'll be a dashed line. Because there are only five locations
+it's like we only have five data points at this level of the hierarchy. So there is not a whole lot
+of information to see here. But there appear to be no obvious
+violations of the assumptions we made for this model. Now that we have checked our model and
+we're confident that the fit is decent. Let's take a look at the summary
+of our posterior distributions. Maybe we can gain some
+insight from inferences. Remember, these five lambda
+parameters are the location means. So we can see how the mean number of
+chips per cookie varies by location. Mu and sigma tell us about the next
+level up in the hierarchy. These are interpreted as a global mean
+of the expected number of chips for all locations, which is about 9.1. And sigma here is the standard
+deviation of these lambdas, of the means for the different locations. So this tells us how much the locations
+tend to be different from each other. Of course from this summary we can
+produce posterior probability intervals. Or with the Monte Carlo samples we can
+test the posterior probabilities of different hypotheses.

@@ -1,0 +1,125 @@
+Monte Carlo simulation from
+the most common distributions is straightforward in R. As a refresher from the previous course,
+let's start up R and talk a little bit about how we'll
+use it throughout the course. When we start up R,
+we first see the R console which gives us some information about
+the current R session that we are running. We will always enter our code
+into the R console to run it. For example,
+if we want to know the answer of 2 + 3, we can enter it directly in the console
+and press Return to get the answer. It will be convenient for
+us to save our code for later and one way to do that is to use R scripts. To open a new script,
+go to File > New Document. This opens a new script for
+us where we can work over here, create and edit and
+save code that we can run in R console. We also get a warning which
+has to do with the particular operating system of
+the computer I'm using. You may or may not get this warning on your computer
+but we're not going to worry about it. It won't affect our session. Let's begin our session by setting
+the random number generator seed, using the set.seed function in R. The only argument we need to give
+the set.seed function is some integer, positive or negative. This function initializes
+the random number generator so that we can replicate
+any results that we get. To get different random numbers, simply change the value that
+we enter into this function. To run this code, we have several options. One option is to select the line of code, copy it, and
+paste it directly into the console. And press Return to run it. Alternatively we can select the line
+of code and go to Edit > Execute. Which will also run the code. You may have also noticed that
+there is a keyboard shortcut. Associated with execute. It is to hold down the command key and
+press Return. So if we want to run this line of code,
+we hold down the Cmd key and press Return. Now that we've set the random seed for
+our session, let's start with an example
+from the previous segment. Where our random variable
+theta follows a gamma distribution with parameters a = 2 and
+b = one-third. This gamma distribution could represent
+the posterior distribution of theta if our data came from a Poisson
+distribution with mean theta and we had used a conjugate gamma prior. Let's start with Monte Carlo
+sample size 100. We will save that as a variable, n = 100. Let's also say the parameters for
+the gamma distribution. a, the shape parameter is 2. And b the rate parameter is 1.0/ 3.0 These variables have been
+entered into our script but are not currently saved in the R session. To run this code,
+we need to execute each of these lines. First, I'll enter n by
+pressing command and Return. Now, m is saved in a workspace. We can also run multiple lines of code
+by selecting multiple lines of code, and then executing them together. Now m, a, and b are all in our session. We can verify their values. To simulate, m independent samples
+from this gamma distribution, we're going to use the r gamma function. We will save the simulated
+values in the variable theta. And we'll run rgamma,
+which creates random generations from the gamma distribution, and
+we want to create m of those. We also have to enter the parameters for the gamma distribution. shape = a and rate = b. To run the simulation,
+simply run this line of code. All 100 draws from this gamma distribution
+are now saved in the theta vector. We can look at this by printing it,
+where we see all 100 simulated values. If we don't want to see all of them,
+we can also use the head function. Which shows us only the first six values. If we want to see the end of the vector,
+we can use the tail function. Let's plot a histogram of
+these generated values and compare it to the true density
+of a gamma distribution. To plot the histogram,
+let's use the hist function. And give it our theta vector. We're also going to use
+the frequency = false option so that it gives us a probability density. Rather than counts. If I run this line of code, we get
+the histogram for the simulated values. To compare this to the theoretical
+probability density function for the gamma distribution, let's use the curve
+function, which draws a curve on our plot. The curve we want to draw is the density
+of the gamma distribution, or dgamma. The first argument for
+this function is x, which is generic, and refers to the x-axis. And then we need to give
+it our parameters for the gamma distribution, shape and rate. To visually distinguish this from
+our histogram, let's add some color. We'll make it blue because
+it's the true value. And we'll say add equals true, so that it creates a plot on
+top of the existing plot. So, if we run this curve, we get the true
+probability density function for a gamma distribution with shape to,
+and rate 1/3. We can see that the data are pretty
+good at approximating this distribution. We can now use our simulated vales to find a Monte Carlo approximation
+to the expected value of theta. To do this, let's take an average
+of our simulated values. One way to do this is to sum
+all of the theta variables and divide by the total
+number that we simulated. If we run this line, we get our Monte
+Carlo approximation to the mean, 5.5. A faster way to calculate this would
+be to use the mean function directly. We say we want the mean
+of the theta vector. We get the same answer. How does this compare with the true
+value of the expected value of theta? If theta follows this gamma
+distribution with shape a and rate b,
+the expected value will be a divided by b. For this gamma distribution,
+the expected value or the mean is 6. Our Monte Carlo approximation was okay,
+but not great. We can improve this
+Monte Carlo approximation if we simulate more values, let's do that. We'll increase our m, the Monte Carlo
+sample size, up to let's say 10,000. We have to rerun this line of code, so that M is saved as 10,000. We're not changing the parameters A and
+B, so we'll leave those as they are. But we do need to re-simulate
+our theta vector. We now have 10,000 samples
+from this gamma distribution. Let's look at the Monte Carlo
+approximation of the mean. 6.02, much closer to the true
+theoretical value of 6. What about the variance of theta? We can calculate our Monte Carlo
+approximation to the variance using the var function in R, where we calculate
+the sample variance of theta, 18.04. Can you guess what the theoretical
+value for this variance would be? For this gamma distribution
+the variance is a divided by b squared, the true value is 18. So our Monte Carlo approximation
+is actually quite close. We can also use our Monte Carlo simulation to approximate other characteristics
+of this gamma distribution. For example, if we want to approximate
+the probability that theta is less than 5. We can simply count how many of our
+simulated thetas are less than 5. Let's do this. First we'll create an indicator variable that indicates whether
+theta is less than 5. This line of code instructs
+R to look at each individual drawn in the theta vector and
+compare it to the value 5. Let's run it. And now let's look at
+the first few values. So the first value of theta that
+we simulated was not less than 5, because we get a false value for
+our indicator. The same is true for the second value
+of theta, it was not less than 5. But the third value was less than 5. Let's just confirm that this is true. The first two values were not less than
+5 but the third value is less than 5. Conveniently, if we calculate
+the mean of this indicator, R will convert the true/false
+values into 0's and 1's, add them up, and
+take the mean for us. This creates an approximation to
+the probability that theta is less than 5. In our case, our Monte Carlo approximation
+to this probability is 0.497. If we want to compare this
+to the true probability, we can use the pgamma function. That is, pgamma, which evaluates
+the cumulative distribution function, the CDF for this gamma. We want, We want to know the probability of being less than
+5 if the shape is a and the rate is b. And we can see that our Monte Carlo
+approximation is really quite close. The true probability that this theta
+random variable is less than 5 is 0.496. What if we're interested
+in the 0.9 quantile or the 90th percentile of this distribution. This gamma distribution for theta. We can use the quantile function, In R, where we give it the theta values and
+we tell it what probability we want or
+which quantile we want. In this case we want the 90th percentile
+or the 0.9 quantile of theta. Let's run this line. We see that the 90th percentile
+of a gamma to one-third Is 11.74. That is our Monte Carlo
+approximation to the quantile. If we want to know
+the actual true quantile, we can use the qgamma function
+where we want the probability of being less than this value to be 0.9. Again, we need to give
+it the gamma parameters. If we run this line,
+we get the true theoretical value, 11.669. Again, quite close to our
+Monte Carlo approximation. Of course, with the gamma distribution, all of these theoretical values
+are available as functions in R. And so Monte Carlo simulation
+is not as useful to us. But later in the course, we will
+not have functions like the dgamma, or the pgamma, or
+the qgamma available to us for the distributions we'll be
+using later in the course. This is where Monte Carlo estimation
+will be particularly useful to us.

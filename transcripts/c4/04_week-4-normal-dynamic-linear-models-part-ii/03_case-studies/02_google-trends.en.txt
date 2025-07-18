@@ -1,0 +1,174 @@
+[MUSIC] So in this example we are going to
+use a dynamic linear model to analyze some data that we are downloading
+from Google Trends. So you have two ways of downloading
+the data in Google Trends you can go to the website and download the
+data on your own for a particular query. So the idea here is you're going to
+look for how many times or a proxy for how many times people
+search for a particular term or you can use the library gtrendsR just
+to download the data directly from R. So this is what I'm going to do here,
+I'm just going to use the library and then we will talk a little bit about the
+structure of the dynamic linear model and proceed with the model fitting and
+smoothing and all the components here. So just to illustrate first
+how you can download data from Google Trends here using
+the function gtrends and there is the help in R provides. All you need to do in terms of just
+specifying the time framework that you want to use the location in
+the world that you want to use. So in this example that I have here,
+I'm looking at the two terms, one is the term NFL how many searches for
+NFL there were and then the other one is the term NBA and
+then I'm using two different locations. One is California only and the other
+one is the US, but you can specify the entire world or any other location and
+during a particular time period. So here if I run this and I plot the data, you can see a time series in this case the line corresponds to the term nba. The queries or the search hits for
+that particular term in the US and then you have this nfl
+only in California. So this is just to illustrate how you
+can look at these different data sets. I'm going to show you the example
+with the terms time series and we're going to use the time framework for just the entire time that google
+has data available for this. So here I'm interested in
+thinking about the time series of the searches for
+the term time series in Google. So I download the data,
+plot the data here. Takes a little bit and
+here is my data set. You have the observed time series here for the term time series over the world. If you were to zoom a little bit you
+will see that the interest over time in terms of the hits is a time series
+that presents a couple of main features. One feature is we can see
+a decreasing trend from the beginning that
+occurs in the year 2004. So this is monthly data and
+then we're going to see an increase after
+that initial period and the largest peak here corresponds to 2018. And then the other component that
+we see here or the other feature that is important in this data set
+is that it has some periodicity. So it looks like the data is
+presenting a periodic behavior. You would see that the larger peaks
+every year occur in November, which coincides with the US Elections and then there is a smaller peak
+that occurs in the Spring. So that also has to do with the elections. So just to try to build
+a model around this, I'm going to fit a model
+that has two components. One component is a polynomial
+trend model of order two. You can incorporate higher orders for
+the polynomial trend if you think that this should
+be quadratic or cubic or so on. Here, I'm assuming that in
+terms of the forecast function, I'm going to have a linear trend that
+allows me to capture either increasing or decreasing linear trends and
+they change over time. So the model would adapt to
+those changing structures and then I'm going to use a Fourier
+representation with a fundamental period of 12 to fit this data and
+I'm not going to use all the harmonics. We're going to use
+a subset of the harmonics. Just in terms of the data,
+the data provides the interests over time, interest by countries. So if you want to look
+at other components for this data the entire dataset provides that
+we are just going to be modeling the hits. So I define the data in
+terms of the hits and in terms of defining my structure for
+the dynamic linear model, you can specify the structure by just
+using defining the matrices yourself or you can use the DLM package that has built
+in functions to specify these components. So here I am using the DLM package again,
+you can use any, you can just write down the matrices and
+specify the matrices on your own. So as I said, the model is going to have
+two components, is going to have a trend component model using polynomial
+model of order 2 by default. That's the model order and just
+specifying here, that is an order-2 and then also specifying here the m0 for
+that component. So the mean level here I'm
+assuming is a priori is 40 for the level and then 0 for
+the rate of change. The other components in the model are not
+going to be, we're not going to use them and am just defining some of those
+but because we are going to use our code to fit these models and we're
+going to also use the discount factor. The only important components here is just
+the matrices and the prior distributions. So I'll talk about this a little bit. So the model, the seasonal component,
+we are using this dlmModTrig, which allows us to specify
+the Fourier representation of dynamic linear model where
+the fundamental period here is 12. We're going to only use
+the first four harmonics, we're going to include only before
+the first four harmonics in the model. And then again you can put
+the variance for the component and the W for that component,
+you can specify them. I'm just setting them to these values, but as you will see in a minute we are not
+going to use that specification, we only care about the F, the G and
+the prior parameters. So let me just go ahead here
+I'm changing the model. You can do things like add
+before we go into to prior, you can add the two components. They are additive and
+then you have a model that has all this structure into a single object. So you have an m0, a C0 an F, a V,
+a G, a W and these Js are just for the cases in which the F or
+the G are changing over time, which is not going to be the case for
+this particular model. So I'm going to change,
+you can do things then like change the C0 by specifying
+a particular value or you can pass that value also through
+the dlmModPoly either way is possible. So I'm setting up the n0 and
+S0 that I'm going to use for the prior. We're going to assume that we have
+a degrees of freedom of one and the initial estimate for
+the observational variance is 10. The model, it's going to have, so
+if you think about what I'm building here, I'm using a seasonal model with period 12,
+I'm using the first four harmonics. Each harmonic in this case is
+going to require a vector of dimension 2 in terms of
+the state space representation. So, if I have four of those, I'm going to
+have eight components that are needed for the seasonal component of the model and
+then for the polynomial trend, my dimension is 2. So the dimension of the resulting final State Parameter vector is going to be 10. So, I now extract the F,
+the G from that model structure that I defined
+using the DLM package and then I'm going to pass that
+structure to my functions that the functions that we've been using,
+just setting up the matrices. So I'm calling here all
+the code that we need. So the matrices are going to be my Ft Gt. I'm not specifying a Wt_star because
+I'm going to use the discount factor to specify the Wt structure. And then for the initial states,
+I'm just passing the m0, that C0 is that we are passing
+corresponds to the C0 star in this function and
+then I have n0 and S0. Now, I specify a range for
+the discount factor. So I'm going to use discount
+factors that are between 0.9 and 1 and then we're going to go by increments
+of 0.005 to define that grid of values. So once I do that, I'm also going to choose the optimal
+model order using the mean square error. And once I run this function
+adaptive_dlm with the structure of the DLM that we built the initial
+values for the prior distributions and the data in that grid of values it
+returns the optimal discount factor. In this case,
+it's selecting a discount factor of 0.94. So we're going to use
+a single discount factor for specifying the structure for
+all the components of the model. And then once we do that we can
+retrieve the results corresponding to the filtering distributions,
+the smoothing distributions and you may also do forecasting if you want. So here we are just retrieving those and
+computing 95% credible intervals and I'm going to go ahead and
+plot the results of this. The dotted line corresponds
+to the data here the blue line corresponds to
+the mean of the smoothing distribution for the mean response here. So that's what we obtain and then the credible intervals
+the 95% credible intervals are that that are illustrated
+with a dotted blue lines here. So the model is capturing
+the structure of the time series here. We can then isolate different components. So as we said,
+we have a trend component and we have a seasonal
+component in the model and the seasonal component has multiple
+components in terms of the different frequencies associated to those
+four harmonics that we included. So you can plot the contribution
+of each of those components. So if I think about
+the smoothing distributions and I look at the first component
+of the smoothing distribution, that is the estimate for that baseline. So the grey dots
+correspond to the data and you can see how this is capturing that
+trend that we described in the data that decrease at the beginning of the time
+period, then it increases and then decreases a little bit and
+then continues increasing towards the end. I can also plot because this is
+the second order polynomial model, I can also plot the second
+component of the state vector. So here the second component
+would be the rate of change and if I look at the smooth distributions for the rate of change parameter,
+you can see here that this rate of change is kind of
+decreasing towards the beginning. So it's just the rate of change here,
+you have to compare this with 0. So it's below 0 for this period
+corresponding to decreasing in the trend and then it goes above 0 for this
+period and the rest of the period just corresponding to increasing trends and
+then it's close to 0 here. Just indicating that there aren't
+too many changes in that trend. You can then plot the seasonal
+components and the first two components of the state vector are corresponding
+to the second order polynomial trend. And then components 3, 5, 7 and 9 are the components that
+correspond to each of the harmonics with
+the fundamental frequency of 12. So monthly period, so
+every 12 observations you're going to have a period and then the remaining harmonic. So let me just plot those and show you. So I'm again plotting
+only the results based on the mean of the smooth
+distribution here. So you can see how these
+components are capturing again those characteristics that
+we observed in the data. So first there is a this is the component
+that corresponds to period 12. So we see that there is
+a variation in the amplitude with the largest variation
+occurring in year 2018. That corresponds to the presidential
+US election in the the fall of 2018. Same thing happens with the period six and
+the period four and the period three. So you can see that the components
+contribute differently to the main seasonality that
+we observed in the data. Finally we can also get estimates and
+we can actually get some samples from the posterior distribution of
+the variance given all the data here, I'm just going to plot just going to
+show you what is the estimate that we obtained here for
+these filtering distribution. So this is about 18.76 is
+the estimate of the variance at the observation level
+based on this model, using this particular discount factor and
+this model structure. So you can also plot
+the forecasting distributions for whatever number of steps ahead. You can do just using
+the functions as we did before. So this illustrates how again you can
+analyze data from different sources. Just here is an example with
+Google Trends data with a model that has different kinds of component. [MUSIC]

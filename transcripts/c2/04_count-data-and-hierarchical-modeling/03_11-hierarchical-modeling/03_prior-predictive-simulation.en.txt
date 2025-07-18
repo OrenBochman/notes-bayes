@@ -1,0 +1,87 @@
+Which will be the alpha draws
+divided by the beta draws. The data can be found in
+the file cookies.dat. We need to read it into R using
+this read.table function, where we give it the name of the file and
+we tell it header=true. Which means that the first
+line of the file itself tells us the variable names and
+doesn't contain data values. In order for this function to work we
+either need to supply the complete address of this file or
+change the working directory of R. Right now on this computer,
+the working directory is /Users/labuser. The cookies.dot dataset
+is located on my desktop. I'm going to change the current
+working directory using setwd. Now let's getwd again and double check. Okay so hopefully this will run now. Let's take a look at
+the head of this dataset. We have that cookie one contains
+12 chips and is from location one. Cookie three has six chips and
+it's from location one and so forth. Let's look at a table of how many
+cookies there are from each location. table(dot$location), there are five locations,
+each with 30 chocolate chip cookies. Next, let's look at a box plot
+of the chips versus location, boxplot(chips), against location. And our data will be dat. This shows us the distribution of the
+number of chips by different locations. It looks like maybe location five
+tends to be more generous on average than the others. Let's remind ourselves what
+this model looks like. We have the ith cookie
+from the jth location and yij represents the number of
+chocolate chips in that cookie. Where lambda j is the average or mean number of chips per cookie for
+location j. The different location means come
+from this gamma distribution with these hyper parameters. Before implementing the model, we need to select prior distributions for
+both alpha and beta. First, think about what
+the lambdas represent. In location j lambda j is the expected
+number of chocolate chips per cookie. Alpha and beta control the distribution
+for these means between locations. The mean of this gamma distribution
+will represent the overall mean of number of chips for all cookies. The variance of this gamma
+distribution controls the variability between locations in
+the mean number of chips. If this variance is high, the mean number of chips will vary
+widely from location to location. If it is small, the mean number of chips will be nearly
+the same from location to location. To see the effects of different priors for the distributions of lambda we
+can simulate Monte Carlo samples. Suppose we try independent exponential
+priors for alpha and beta. Let's simulate from that prior, first we'll set the seed. And, let's choose our number
+of Monte Carlo samples. Suppose we want to do 500. Now, let's draw from the prior for alpha. This will be draws from
+an exponential distribution, where we draw n_sim simulations at rate= 1.0/2.0. Create those simulations. And now let's do the beta_pri simulations. We'll also do an exponential distribution,
+simulate n_sim of them. And let's try a rate of 5.0 for this prior for illustration. Remember that the mean of a gamma
+distribution is alpha divided by beta. So from these Monte Carlo simulations,
+let's also draw simulations. Or let's create based on alpha and beta simulations for the mean of lambda. Which will be the alpha draws
+divided by the beta draws. And then we'll have
+the standard deviation. And the standard deviation of the gamma
+distribution is the square root of the alpha, Divided by the beta squared. We'll run these two lines. And let's look at a summary based
+on our prior for alpha and beta. This is the summary of our prior for
+the mean of this gamma distribution. We get a Median number of expected
+number of chips per cookie, about ten. But a very large Mean and
+a very large Max and that's probably not
+a very realistic value. Let's also look at the summary(sig_prior). Not surprisingly we get some
+pretty large values up here but a median standard deviation of 8.5. After simulating from the priors for
+alpha and beta we can use those samples to
+simulate further down the hierarchy. So for example we can now draw lambdas. So lambda pri, meaning lambda
+prior will come from the gamma distribution that we've
+been talking about here. So we'll simulate from this distribution
+given our draws for alpha and beta. Rgamma we want to draw n_sim of those
+samples where the shape parameter for the gamma is alpha_pri. And the rate in this gamma
+distribution is beta_pri. This gives us a prior predictive
+distribution for lambda. Let's look at a summary of that. Again the median gives us
+a pretty reasonable value. But this distribution is extremely right
+skewed because the mean is really large. If we want to tighten up these values we
+might modify these priors on alpha and beta. Perhaps we would make them gamma
+distributions with smaller variances. If we want to see what kind of responses
+this prior model would produce, we can simulate even
+further down the chain. We now have Monte Carlo samples for
+alpha and beta and lambda. So we could also generate samples from
+the observed number of chocolate chips. We'll call that y_prior. This will come from the likelihood rpois. And we could generate (n_nsim) of these, where the means of these
+distributions are the lamba_prior. We need to keep the name consistent there. Of course,
+we could look at a summary of y prior. So we get a median value of
+7.0 chips per cookie but, again, this is very right-skewed. If we wanted to create a prior
+predictive reconstruction of our original data set, say for five locations. We would keep only five
+of these lambda draws. We'll reassign lambda prior to the lambda
+prior for the first five values. Then to reconstruct the data set,
+we'll draw the y prior values for those five locations only, rpoisson. And we're going to draw 150
+samples where our lambdas, the mean of the Poisson
+will be these five lambdas. 30 for each location, so
+we need to repeat lambda prior And
+each of those will happen 30 times. We can run that. Let's take a look at our
+reconstructed data set. This represents what our data
+set might have looked like under our prior distributions. Because these priors have high variance
+and they're somewhat non-informative, they produce unrealistic
+predictive distributions. Still, given enough data,
+we hope that the data would overwhelm the prior resulting in
+useful posterior distributions. Alternatively we could tweak and
+simulate this prior distributions for alpha and beta, until they adequately
+represent our prior beliefs. Yet another approach would be to
+reparameterize the gamma prior. Which we're going to demonstrate
+when we fit this model.

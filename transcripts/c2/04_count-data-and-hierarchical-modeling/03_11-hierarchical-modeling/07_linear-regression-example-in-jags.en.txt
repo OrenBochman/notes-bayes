@@ -1,0 +1,97 @@
+Let's see if we can improve on our
+analysis of the Leinhardt data by extending our linear model on infant mortality to
+incorporate the region variable. We will do this with a hierarchical model
+where each region has its own intercept. First we need to read in the car
+library and the Leinhardt dataset. Let's reacquaint ourselves
+with the dataset really fast. We have a number of countries,
+we have per capita income for each country standardized. Infant mortality in that country,
+region, and then indicator of whether
+that country exports oil. The log of infant mortality
+is our response variable. And previously, the log of income and the oil indicator were used as
+covariants in the linear model. Remember also that we had missing values
+in the data set which we will remove and we also need to calculate the log
+transformations for income and infant mortality. And just to verify, let's look
+at the structure of the dataset. We still have income infant mortality,
+region, oil, and now, the log of income and
+the log of infant mortality. We've dropped down to 101 observations. Now let's talk about the model string for
+this hierarchical model. In the likelihood portion, of course, we have the loop looping
+over all of the data points. The ith response which is log of
+infant mortality comes from a normal distribution with mu sub i and we have the linear portion of the model connected
+to the mean of that normal likelihood. Previously, we had an intercept
+here as well as these two terms. The modification we're making for
+this hierarchical model is similar to what we did with the lambdas in the chocolate
+chip cookie hierarchical model. Each region now gets its own intercept. So for example if the 50th
+country is from region 3, the model will fit mu 3 using intercept 3. This is a nested index. Each of these intercepts will come
+from the same normal distribution. So we will loop over j from 1 to
+the maximum number of regions, and each of these intercepts comes from
+a normal distribution with mean a0 and precision prec_a. Of course, for the next level in the
+hierarchy we need to produce priors for a0 and prec_a. The mean of this distribution
+represents the mean of all intersects. And the precision is related to
+the variance of these intersects. We'll use fairly standard priors here. We'll use a normal distribution
+centered on 0 for a0. And we'll use an inverse gamma prior on
+the variance of that normal distribution, which implies a gamma
+prior on the precision. Rather than monitor the precision,
+we're going to monitor tou, which will be the standard deviation
+of this normal distribution. The remaining lines are the same as
+they were for the linear model before. We need to provide priors for each of the coefficients in
+the linear part of the model and of course we need to produce a prior for
+the precision in the likelihood. Let's go ahead and
+load in all of these pieces here and set the seed and run the data. This should look just like we had
+before except we're now adding a numeric variable which
+indicates the region. Previously that $region
+was a factor variable. We're turning into a numeric variable. If I run just this piece you can
+see that there are four regions. As we move through the data set
+the index of the region changes. Don't forget also that the is_oil
+was changed to be 0s and 1s, indicating whether
+the country exports oil. One other important thing to
+check is whether all of the oil exporting countries
+are within a single region. If that were the case,
+our model could potentially suffer from confounding because we wouldn't know
+whether it's the oil variable or the region variable that's affecting,
+that is potentially explaining some of the variability in infant mortality. It looks like this is not the case. This row represents the oil
+exporting countries. The only region not
+represented is region 4. We're going to monitor
+all of these parameters, including the hierarchical parameters for
+the intercepts a_zero, and tou. Let's go ahead and
+initialize the model, update the model, run a burn-in period, and
+we'll collect our posterior samples. We won't go through all of the steps here,
+but it's always important to check
+your convergence diagnostics. Let's take a look at
+the trace plots really fast. We need to add ask=TRUE to this line. These trace plots don't look green. They appear to be highly auto correlated. And so if you wanted to create posterior
+probability intervals as part of your inferences from this model, it would
+be a good idea to run these chains for many more iterations. Let's look at the next set. We have some pretty high auto correlation
+within these different chains for the first beta coefficient. The other beta coefficient looks
+just fine as well as the trace for the standard deviation of the likelihood. This trace plot also looks pretty good. Next, let's compare this model with the
+old linear model from before using DIC, we'll run the DIC samples here. We get about 221. Remember, the previous
+linear model that we fit, including the is_oil covariate,
+had a DIC value of about 229. So it appears that this
+model is an improvement over the non hierarchical one fit earlier. Notice also that the penalty term
+which is interpreted as the effective number of parameters is less than the
+actual number of parameters in this model. We have nine parameters. We have fewer effective parameters in this
+model because they are sharing information or borrowing strength from each
+other in a hierarchical structure. If we had skipped the hierarchy and
+fit only one intercept, there would have been four
+parameters in this model. If we had fit separate
+independent intercepts for each region,
+there would have been seven parameters. This is actually pretty close
+to what we ended up with. Finally, let's look at our posterior
+summary of our inferences from this model. Here are our posterior means for the four
+linear intercepts one for each region. The overall mean for those intercepts,
+the standard deviation of the intercepts, that is how the intercepts from each
+region differ from one another, are coefficient for income and our coefficient for
+oil exporting countries. Each of these coefficients
+is smaller in magnitude than it was in the previous model, possibly because the region variable is
+now explaining some of the variability. However, the signs of these coefficients
+remain the same as they were before. In this particular model, the intercepts
+do not have a real interpretation because they correspond to the mean
+response for a country that does not produce oil and
+has $0 of log income per capita. In other words that would be $1 of income
+per capita, which is not the case for these countries. In this example we have not
+investigated adding interaction terms, which might be appropriate. We only considered adding
+hierarchy on the intercepts. But in reality nothing prevents
+us from doing the same for other terms in the model, such as
+the coefficients for income and oil. We could try any or
+all of these alternatives and see how the DIC changes for these models. This, together with other
+model checking techniques, including residual checks that
+we've discussed, could be used to identify our best model that you could
+use to make inferences and predictions.

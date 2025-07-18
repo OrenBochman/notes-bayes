@@ -1,0 +1,102 @@
+Let's do an example now of a random
+walk Metropolis-Hastings sampler for our continuous variable. Recall the model from the last segment
+of lesson two where the data or the percentage change in total personnel from last year to this year for
+ten companies. To remind us, I have the model right here. So yi represents the percent
+change in personnel for company i, and given mu, the mean, each of these ys is
+identically distributed and independent from this normal distribution
+with mean mu and variance 1. Our prior distribution on mu is
+the t-distribution with location 0, scale parameter 1 and
+degrees of freedom 1. This is also referred to as
+the co-sheet distribution. Because this model is not conjugate, the posterior distribution does not have
+a standard form that we can easily sample. To get posterior samples, we're going
+to need to setup a Markov chain, who's stationary distribution is
+the posterior distribution we want. So, recall that the posterior
+distribution has this form. We derived this expression for
+the posterior in lesson two. The posterior distribution for mu is proportional to this
+expression on the right. This function here will be our g of mu. The first thing we can do in R is to write a function that
+will evaluate g of mu for us. Because posterior distributions
+include likelihoods, which are the product of many
+numbers that are potentially small, because they're like probabilities,
+g of mu might evaluate to such a small number that the computer
+treats it effectively as a zero. To avoid this problem, we're going
+to work on the logarithmic scale which will be more numerically stable. So instead of computing this g function,
+we're going to compute the log of g. If we take the log of this function,
+we get this expression right here. So let's write this function in R, let's call it lg for the log of g It'll be a function and
+it will take three different arguments. We need to have y bar,
+we need to enter n, and we need to enter a value for
+mu for this function to evaluate. So we need mu, n and y bar. Just like with a for loop, we need curly
+braces when we're defining a function. Okay, the first thing we'll
+calculate is mu squared and we're going to call it mu 2 as
+a variable inside this function. It's just the square of mu. Then we'll output this expression right here, so it needs to be n*(ybar*mu- mu2 divided by 2). Let's actually space these out
+a little bit so it's easier to read. Minus the log(1.0+mu2). This completes the log of g function and
+we can read this in to our R console. Next, let's write a function to execute
+the random walk Metropolis-Hasting sampler. And we're going to use normal
+proposal distributions to do this. As we write the function, let's take a look at the algorithm
+here to remind us how it goes. I'm going to call this function mh for
+Metropolis-Hastings. We need a few more
+arguments in this function. First, we need a couple of the arguments
+from before and the sample size. y bar which is the sample mean of y. We need to choose how many iterations
+we're going to run this sampler for. So I'll call that n_iter,
+that represents how many iterations. We need an initial value for mu. We'll call that mu_init. And finally,
+we need a standard deviation for the candidate generating
+normal distribution. So let's call that candidate
+standard deviation. These are the arguments we'll
+need in our function here. Okay, so first, we need to do step 1
+which is to set up an initial value. Before we do that, let's initialize a vector of mu values
+that we will output with this function. So mu out will get a numeric
+vector with n.iter entries. It's useful with the Metropolis-Hastings
+algorithm to keep track of how often our candidates get accepted. So let's create a variable called accept. And we'll initialize it as 0. Now as we iterate through, we're going
+to be updating our value for mu. As we update it we need
+to store it somewhere. Let's call that mu_now. And we'll initialize it as the first
+value, the initial value for mu. We also need a current value for
+the log of g function, lg_now. This is going to be an evaluation
+of the lg function. So we need to give it three arguments,
+mu, which will be mu_now, n, which is always just n and
+we'll need to give it y-bar. This completes step one of
+setting initial values and initializing a random work
+Metropolis-Hasting sampler. So now let's move on to step two where we need to repeat
+the following steps many times. This means we are going to do it in a for
+loop. So for i will iterate over the variable i, in 1, 2 n_iter,
+that's our number of iterations, we're going to do the following. The first thing we need to
+do is draw a candidate for our parameter mu from
+a proposal distribution. So let's draw mu candidate. We'll call our variable mu candidate. And it'll be a draw from
+a normal distribution, rnorm. We'll take a single draw
+where the mean of this distribution is the current value of mu. And the standard deviation is
+the candidate standard deviation. So this is where we'll draw the candidate. The second step in the Metropolis–Hastings
+algorithm is to compute the acceptance ratio. In our case, the candidate
+generating distribution is normal, which is symmetric. So these queue distributions in the Metropolis-Hastings ratio
+will cancel each other out. So the ratio will actually
+be g evaluated at the candidate divided by g
+evaluated at the old value. For numerical stability,
+we will calculate this on the log scale. So the first thing we want to do is get
+the log of g evaluated at the candidate. So lg using our candidate
+that we just drew. To do this we will call our
+lg function again where mu is now going to be
+equal to mu candidate. Again, n will equal n and
+y bar will be y bar. We now have the log of g evaluated for
+the candidate draw. We now need it for
+the log of g evaluated at the last value. But we already have that, tt's lg_now. So we are now ready to calculate alpha,
+the acceptance ratio. Of course we've done this on the log
+scale so let's call this log alpha. And it equals lg evaluated
+at the candidate minus lg, the current lg, lg_now,
+this is the log of alpha. So to get the real alpha,
+we just need to exponentiate it Now that we've calculated alpha,
+we're ready to move on to step c here. So the first thing we're going to do
+is draw from the uniform distribution. We'll save it in the variable called u. Runit(1) that takes a draw for
+the uniform distribution between 0 and 1. Then, if, u is less than alpha, that gives us an event that
+happens with probability alpha, then we're going to do the following. With probability alpha,
+we're going to accept the candidate. In other words, mu_now, the current
+iteration of mu will become mu candidate. We also want to keep track of how
+often we are accepting the candidates. So let's add 1 to the acceptance count. Since we accepted the candidate, we need to update lg_now to be
+lg evaluated at the candidate. Finally, within this loop,
+we need to collect to save our results. So let's put this in, mu_out. This is the vector that we initialized
+at the beginning of the function. So, the ith entry of mu_out is going to get mu_now. Finally, we need to determine what our
+function is going to return at the end. What we need are our samples from
+the Metropolis-Hastings sampler. So we need to output mu_out. And it would be helpful also to
+output our final acceptance count. We can have a function return
+multiple outputs through a list. So the last line of the function
+will include a list where we're going to output two things. mu, which will be our vector, mu.out. That contains all our samples from
+the Metropolis-Hastings sampler. And then we'll return the accept rate. So it'll be our acceptance count,
+accpt, that counts how many acceptances we had,
+divided by the number of iterations. That gives us the acceptance rate. This completes our function for
+the Metropolis-Hastings sampler.

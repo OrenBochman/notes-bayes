@@ -1,0 +1,96 @@
+As we just saw, the Poisson
+model is lacking for these data. However, assuming the model fit is
+adequate, we could interpret the results. Let's look at a summary from
+these model simulations. In this model, the intercept is
+not necessarily interpretable because it corresponds
+to a healthy 0 year old. Whereas in this dataset the youngest
+person is 20 years old. It is still an important parameter
+we just won't interpret it. For healthy individuals
+it appears that age has a positive association with
+the number of doctor visits. Clearly bad health is associated with
+an increase in expected number of visits. The interaction term is
+interpreted as an adjustment to the age coefficient for
+people in bad health. So in this case it looks like, for a person with bad health,
+the age coefficient would switch from being positive to being negative
+because we would subtract this off. Remember, here the interpretation
+is if a coefficient is positive, then there is a positive association
+between that variable and the expected number of doctor visits. If the coefficient is negative, then
+it's a negative association between that variable and the number of doctor visits. Everything we've done so far,
+could have easily been computed using the Default Reference Analysis
+from the functions in R. So now, let's do something
+where it really pays off to have an Bayesian Analysis
+with posterior samples. Let's say, we have two people age 35. One person is in good health and
+the other person is in poor health. What is the posterior probability that the individual with poor health
+will have more doctor visits? This goes beyond the posterior
+probabilities we've calculated comparing expected responses
+in the previous lessons. Here, we need to create
+Monte Carlo samples for the actual responses themselves. This is done by taking the Monte Carlo
+samples of the model parameters and for each of those drawing
+a sample from the likelihood. Let's walk through this. First, we need the x values. The predictor variable values for
+each individual. We'll say that the healthy
+person is person 1, for person 1, their bad health indicator
+will be 0 because they are in good health. Their age is 35, and the interaction term which is
+the product of the first two is also 0. For the second person who is in poor
+health, we have 1 to indicate bad health. They are also age 35 and
+the product of those two for the interaction term of course is 35. Let's run these two, okay. Remember that all
+the posterior samples for the model parameters
+are stored In mod_csim. So let's look at the head of that,
+mod_csim. For these two individuals, we need to
+compute the linear part of the predictor. So let's do the log of lambda for
+person 1. Which will be mod_csim. And we want to grab first the intercept
+term for all of the rows. And we want the intercept
+column of that matrix. Then to that we'll add mod_csim. We want all rows again. And now we want columns 2, 1, and 3 in that order because remember,
+we fit the model. Because we fit the model first with
+the bad health indicator, followed by age, followed by the interaction. So column 2 is the bad health indicator. Then we need the age,
+which is column 1 and then we need the interaction
+term which is column three. We will matrix multiply this with the
+values of the predictors for person one. We also need to do this for person two. And the only thing we need to change is
+that we're using the predictor values for x for person two. We'll call that logLan2. We run both of these and this gives us a Monte Carlo sample of the linear part of the model. So we have one for
+each sample from the posterior. Now that we have samples from
+the posterior distribution of the log of lambda for these individuals, we need to
+get the posterior distribution of lambda. So we'll say lam1 will be
+an exponentiated version of log lambda 1. And we'll do the same for person two. We now have Monte Carlo samples for the
+Poisson mean for these two individuals. Let's take a look at the posterior
+distribution for Lambda 1 for person 1. Let's plot a density estimate of lam1. For person 1,
+we would expect on average for them to have between 1.8 and
+2 doctor visits. Remember, our question was what
+is the posterior probability that person two will have more doctor visits? That's different than the number
+of doctor visits on average, we want actual doctor visits. So now, with the posterior distribution
+for Lambda, we now need to simulate a Monte Carlo sample of actual
+number of visits for each of them. First we need to know how many
+simulations we're calculating. This would be the length of lambda 1. Which is also the length of lambda 2. Its 15,000 because we ran three
+chains each with 5,000 iterations. Simulating from the likelihood
+is very straightforward here. For person1 we'll draw from
+a Poisson distribution, rpois. And we're going to create n_sim, simulations from that Poisson
+distribution, where the mean is lambda 1. So for each draw of the Poisson
+we're going to use a different value from our Monte Carlo sample of lambda 1. The same goes for person 2. Their doctor visits that
+we're going to simulate will come from a Poisson distribution. Where the means will come from our
+Monte Carlo sample for the lambda twos. We'll run that. And let's plot the posterior distribution
+for these number of visits for the two people. First we want to plot for
+person 1, we want to plot a table of y1 as a factor variable. So we need to say factor(y1) and let's plot this for up to 18 visits. We want this table to output
+probabilities instead of counts, so let's divide by the number of simulations. Let's run this plot. So along the x axis we have
+the number of doctor visits and along the y axis the probability
+of those number of doctor visits. There is also a possibility that
+they have 0 doctor visits so let's include 0 as a level. Right there's a 15% probability that
+this person has zero doctor visits. Now let's add the posterior
+distribution for person two. I'm going to shift them just slightly here
+so that we can see both sets of points. We'll make this one colored red. And we need to change this
+from plots to points. We can also get rid of the factor,
+variable here. And now let's run it. We now have the posterior distribution
+of the number of visits for the person in poor health and
+the posterior distribution for the number of visits of
+the person in good health. Finally, we can answer
+our original question. What is the probability that
+the person with poor health will have more doctor visits than
+the person with good health? We can take take the Monte Carlo
+mean of that indicator variable, y2 is greater than y1. For each Monte Carlo sample, it evaluates whether person two had
+more doctor visits than person one. And the average of that is
+the posterior probability. Let's run that. We get about 92%. That is,
+the posterior probability that person2 will have more doctor
+visits than person1 is 92%. Because we used our posterior samples for
+the model parameters in our simulation. This posterior predictive distribution on
+the number of visits for these two new individuals naturally takes into account
+our uncertainty in these model estimates. That creates for us a more honest or realistic distribution than we would
+get if we had just fixed the model parameters at their maximum likelihood
+estimates or some other point estimate. It's a nice example of the advantages
+that a Bayesian model can give us here.

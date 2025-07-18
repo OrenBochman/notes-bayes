@@ -1,0 +1,168 @@
+As an example of a one way ANOVA model,
+we'll look at the plant growth data NR. All we need to do to extract the data is
+use the data function on PlantGrowth. And then we can immediately
+look at the documentation. To learn a little bit about this dataset. The PlantGrowth data contains results
+from an experiment to compare yields. That is measured by plant weight for plants that were grown under a control and
+two different treatment conditions. There are 30 experiments and
+there are two variables. The first variable is
+the weight of the plant, and the second is the group to
+which that plant was assigned. It's either ctrl, trt1 or trt2, you can
+check this source for more information. Let's take a look at the PlantGrowth data. As we said, the first column
+contains the weights of the plants, the second column tells us
+which group that plant was in. Because the explanatory variable group
+is a factor and is not continuous. We're going to choose to visualize
+the data with box plots rather than with scatter plots. So we'll create a box plot of the weight. Against group using the PlantGrowth data. Here are the box plots. The box plots summarize
+the distribution of the data for each of the three groups,
+ctrl, trt1, and trt2. For example,
+this line tells us the median of yield for the ctrl group is a little
+bit higher than 5. And most of the distribution is
+located between 4.5 and 5.5. It appears that trt2 has
+the highest mean yield, but it might be questionable whether
+each group has the same variance. We're going to assume that
+is the case in our modeling. Again, let's begin modelling
+with a reference analysis using the non informative flat prior for
+linear model in R. We'll call it lmod,
+which is a linear model of weight. Versus our factor variable group. And of course the data are PlantGrowth. Run this linear model and
+create a summary for it. And here we get the posterior
+mean estimates for the three parameters governing the mean. The first group the intercept,
+refers to the control group and it is the mean yield for
+the control group, about 5. These next two parameters
+give us the modification to this original mean to obtain
+the mean for treatment group one. So, the mean for
+treatment group one would be about 4.6 and the mean for treatment group two would be
+about 5.5, we're adding to the baseline. With the ANOVA models,
+you can also calculate the ANOVA table. So we'll do ANOVA for
+this linear model, run that, which gives us the analysis
+of variance table. It indicates to us the results
+of a statistical test for each factor variable,
+whether that factor variable significantly contributes to
+the variability in the data. It does this by calculating
+the variability between the factors versus the variability within the factors. If this is a large ratio then we
+would say that the factor variable does significantly contribute
+to the variability in the data. In this case, it gives a p value of
+0.016 which is marginally significant. Let's now fit a Bayesian model in Jags. The model we'll use now is the cell means
+model, where each group gets its own mean. The model string which
+I've already included here starts with the likelihood as
+usual where y[i] comes from a normal distribution where
+mu [i] has another index. First, to know which mu is active for the [i] person,
+we need to extract a group number. grp[i] will evaluate to a number group 1,
+2, 0, or 3, which will tell us which
+mu to use for the ith person. We'll use a constant variance or
+in this case precision. And for each of the three cell means we'll
+use a fairly non-informative normal prior. In our prior for the variance,
+we'll use an inverse gamma with five observations as our
+effective prior sample size. And the prior guess on
+the variance of 1.0. That would be an inverse
+gamma prior on the variance which translates to a gamma
+prior on the precision. Instead of monitoring the precision, let's monitor the standard deviation of
+th observations using this calculation. Below we have the standard set up for
+a jags model. First, lets look at the structure of
+the PlantGrowth dataset where the first variable. The weight of the plants
+is in numeric variable and the second the group is
+a factor with three levels. When we put that data into
+jags through data jags, we need to turn that group
+indicator into a numeric variable. So we'll say
+as.numeric(PlantGrowth$group), let's see what that looks like. It translates the three factors,
+control, treatment 1 and treatment 2 into numbers
+where 1 represents control, 2 represents treatment 1 and
+group 3 represents treatment 2. This is the group variable that
+will go right here in our model. We're going to monitor mu and sigma. We can give it initial
+values which are optional. We could just omit the initial values and the jags model would create
+initial values for us. We'll run 1,000 iterations of burning. We'll run our three chains for
+5,000 iterations to save those samples and then again,
+we'll combine those samples at the end. Let's run this model. First, we need to load the rjags library. And then we'll run the models. Before we use the model,
+let's check our convergence diagnostics. First, we'll start with,
+With our trace plots. And in this case, they look really good. And we'll check our Gelman and
+Rubin statistics. This potential scale reduction
+factors are all essentially 1. The autocorrelation is definitely
+not a big problem here. So we would imagine that the effect
+of sample size will be large, close to the actual size of the chain,
+which is true. So now that we're confident in our
+Monte Carlo simulation from the posterior, let's calculate the posterior mean for
+the parameters. Do that using the column
+means based on the combined simulations where they're
+all in one matrix. Let's take a look at
+these posterior means. And really quickly, let's compare those
+to the coefficient estimates that we got from the non-informative
+reference analysis. These results look pretty consistent. The mu estimates for the control group
+are similar between the two models. The sal mean for treatment one which
+you obtain by adding these two numbers is very close to the treatment mean for
+group two, estimated in our jags model. And the treatment mean for
+treatment two is also very similar if you add .49 to .50, you get essentially
+this number right here. So, these two models are very consistent. Let's use these posterior means of
+the parameters to compute residuals. The first thing we need are predictions
+for each observation, call that y hat. And it'll be based on
+the posterior means for these parameters for
+the first three means. And we want to index these
+by their group indicator. So that comes from datajags
+the group variable. Let's just remind ourselves
+what's in the group variable. This tells us that
+observation 1 was in group 1. Observation 11 was in group 2, observation
+12 was in group 2, and so forth. So what this line of code will
+do is that the prediction for observation 1 will be the posterior mean
+for the mu of group because of this index. The prediction for
+observation 10 will be mu1, the prediction for
+observation 11 will be mu2 and so forth. Let see if that's true. We'll run that and
+take a look at y hat and we can see the first ten
+observations are predicted to have mean mu equal to the first group's mean. This is true also for
+groups two and three. Once we have the predicted values, we can calculate the residuals
+[SOUND] as the difference between the data and the predicted values. Let's plot those residuals against
+their index or observation number and I don't see any patterns here,
+this looks pretty good. Next, we'll create a residual plot, where
+the x-axis contains the predicted values. Not surprisingly, there are only three sets of predictions
+because there are three groups. But one thing that really stands out
+is that the variance for this group, the residual variance, is much higher than
+the residual variance for this group. As we mentioned earlier, it might be
+appropriate to have a separate variance parameter for each group, just like we had
+a separate mu parameter for each group. We'll let you do that as an exercise. Let's now look at a summary of
+our posterior distributions. Summary(mod_sim) which gives us
+the posterior means for the parameters, which we've already seen, as well as
+the posterior standard deviations. Also, we have quantiles from
+the posterior distributions. For example, if we wanted to create. A 95% posterior probability interval for
+mu[1] associated with the control group. It could be between this number and
+this number. If we wanted to create the highest
+posterior density interval, an HPDInterval,
+which we discussed in the previous course. It really is just what the name implies, it's the interval associated with
+the highest values of postural density. We can use the HPDInterval function
+from the code of package and it our mod csim for out combined simulations,
+which were all in one matrix. Let's run that, and get a 95%
+HPDinterval for each of the parameters. Usually the HPDinterval is
+slightly smaller than the interval using equal tails. We can also give it another argument. If we want to change the posterior
+probability associated with the interval, we can change it to, for example, .9, and we would get 90% posterior
+probability intervals. Now, suppose that in this experiment
+we are interested should know if one of the treatments increases
+the mean yield from the plants. It is clear from our posterior
+summaries that treatment 1 does not increase,
+plant yield over the control group. But treatment 2 might increase it. One major advantage of having
+a Bayesian model with Monte Carlo samples from the posterior
+is that it is easy to calculate posterior probabilities
+of hypothesis like this. So if we want to find out whether
+treatment two produces a larger yield than the control group,
+let's create an indicator variable. From our combined stimulations
+Column 3 refers to mu 3. We want to see if mu 3 is greater than csim mu 1. This will give us for
+each sample in our Monte Carlo stimulation whether the draw from mu 3 was
+larger than the draw from mu 1. We take the average of that,
+that gives us the posterior probability. Really fast,
+let's just double check mod_csim. Look at the head of this posterior
+simulation to make sure we have the right columns. Column 1 is mu(1), Column 3 is mu(3). So let's calculate this posterior
+probability, it's about .94. A very high posterior probability
+that the main yield is greater for treatment in group two
+than the control group. Now suppose that treatment
+two would be costly to put into production and
+in order to be worthwhile. This treatment must increase
+the mean yield by at least 10%. What is the posterior probability
+that the increase is at least that? Well we can easily do this with
+posterior samples again and we need mu three to be at
+least 10% larger than mu one. So it needs to be at least
+as big as 1.1 times mu 1. The posterior probability for
+this hypothesis is about 0.48. In other words, we have about
+50-50 odds that adopting treatment 2 will increase the mean yield
+of the plants by at least 10%. It might be tempting to look
+at a lot of comparisons or test many hypotheses like these. But we must warn you that this could yield
+unreliable or non reproducible results. Back when we discussed
+the statistical modeling cycle. We said that it is best not to search
+your results for interesting hypotheses. Because if there are many hypotheses,
+some will appear to show effects or associations simply due to chance. Results are most reliable when
+we determine a relatively small number of hypotheses that
+we're interested in beforehand. Then we collect the data, and then statistically evaluate
+the evidence for them.

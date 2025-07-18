@@ -1,0 +1,96 @@
+There are four steps to implementing
+a model in JAGS through R. The first step is to specify the model. The next step is to set up the model. The third step is to run
+the MCMC sampler.A nd finally the fourth step is post processing. We'll demonstrate all four of these here. Let's do this using our running example. Where we have data representing
+the percentage change in total personnel from last year
+to this year in ten companies. In this model, we used a normal
+likelihood with a known fixed variance. And a t distribution for
+the prior on the unknown mean. The first step is to specify the model. If we haven't done it already,
+we first need to load the rjags package. This requires that rjags has
+previously been installed, which you can do with this
+line of code up here. Once the library is loaded, we specify
+the hierarchical structure of the model. Let's remind ourselves what
+this model looks like. We have a normal likelihood for the data, which are independent,
+with mean mu and variance 1. Our prior on the mean is a t
+distribution with location 0, scale 1, and degrees of freedom 1. We can write out the hierarchical
+form of the model into jags through a variable that we're
+going to call mod_string. This will be a model where we use curly
+braces to encapsulate the model itself. And for the likelihood portion we're
+going to use a for loop, for in 1:n. Suppose n is the length of our data, inside this loop we'll say y[i]. The i observation follows
+a normal distribution. The syntax for that in JAGS is dnorm,
+just like it is in R. With mean mu and
+precision 1 divided by the variance. This is how the normal distribution
+differs between JAGS and R. In JAGS this is the precision which
+is the reciprocal of the variance. That completes the likelihood. So now let's put in the prior for mu. Mu is going to follow a t distribution. The density for that in JAGS is dt. And just to be careful,
+let's check the user manual to see how the T distribution
+is parametrized in JAGS. The first argument it accepts is mu,
+which is the location parameter. The second parameter it accepts is tau. Here, if you were going to look
+at the T distribution in R, you would notice this
+parameter is down here near k. That would be the scale parameter. This is 1 over the scale parameter or
+the inverse scale parameter. Finally, k refers to the degrees
+of freedom in the t distribution. So the three parameters we need are location 0, inverse scale 1, and degrees of freedom, 1. The degrees of freedom is an integer so
+I'll leave it as an integer. Remember that the only parameter we didn't
+know that we're trying to estimate is mu. We are assuming we know sigma squared and
+that it's fixed. So let's tell JAGS
+the value of sigma squared. This completes our
+specification of the model. JAGS requires that we write models
+as strings as we've indicated here. So we need to put this model
+inside the quotation marks. This is what a model looks like in JAGS. The second step is to set up the model. First, we'll enter the data. And we'll save n as the length of y. Before JAGS can run this model, we need to tell it what the data are,
+what the parameters are. And provide initial values for
+those parameters. The data that we'll pass to JAGS,
+we'll call a variable data_jags. It needs to be a list where we
+name the variables the same name that we give them in
+the model specification. So y is our data y. And n is the n we just saved here. We also need to tell JAGS
+what the parameters are. We'll save that in
+a variable called params. Our only parameter in this case is mu. But if we wanted to add other
+parameters like the variance, it could be placed in a vector like this. But we're only using mu. To give JAGS initial values,
+we need to write a function. Let's call that function inits. The function doesn't take any arguments. But it creates a variable called inits and places that into a list
+where we create a value for each parameter in the model. Our only parameter is mu,
+we put it quotation marks and we provide an initial value. Let's just use 0 as we did before. There are actually multiple ways
+to specify initial values in JAGS. They can be explicitly set
+at values you tell it, like we've done here, or
+they could be random. We could replace this number
+here with a function call to generate a random initial value for mu. Finally, we're going to
+compile the model itself. Using the jags.model function
+from the rjags package. The first argument for
+jags.model is that model string. This is usually placed
+in a separate text file. But because we're going to enter
+that directly into the R console. Instead, we're going to
+create a text connection and give it our model string. The second argument is the data
+which we've called data_jags. And next it'll take the initial values. Before we run this let's set
+the random number generator seed so that we can reproduce our results. Let's use 50 there. We haven't entered anything
+into the R console yet. So let's go ahead and do that. First the model string. Then we'll set the seed and
+we'll enter all the model setup pieces. Finally, let's assign the model. Running jags.model will
+initialize the model which can sometimes take a few moments. We're now ready to take our next step
+which is to run the MCMC sampler. There are two very important functions for
+this step. The first function is the update function. Where we give it the model and we tell it
+how many iterations we want it to update. Let's say 500. This function when we run it
+runs the MCMC sampler for 500 iterations without
+saving the samples anywhere. This gives the Markov chain some time
+to find the stationary distribution. The next function is
+the coda.samples function. This is where we we'll simulate a Markov
+chain and keep our simulations. Coda.samples function where
+we give it the model, which is the mod that we
+initialized right here. We need to tell it the variable names
+Which in our case we named params. It was this variable up here. We need to tell it how many
+MCMC iterations to run. Let's do 1000.
+We will not provide initial values for this run because this chain has already
+been running for 500 iterations. This will simply continue where
+the chain left off when we last ran it. Let's run this sampler for
+the thousand iterations. The fourth and
+final step is post-processing. We won't get into many details here, but we will do lots of post-processing
+later in the course. This is where we evaluate
+the Markov chains we've simulated to determine if they're suitable for
+inference. And then we can use them for inference. The Coda package will be
+especially useful to us here. Let's load the Coda package, and let's
+first look at a trace plot from our model. Let's run the plot there. And it gives us both a trace plot and
+a density estimate for mew. So this is our posterior distribution for
+mu. Similar to the one we obtained earlier, using our random lock
+Metropolis-Hastings sampler. We can also look at
+a summary from our model. The summary tells us which iterations
+of the chain we're using and gives us some other statistics
+related to our Markov chain. It also gives us some information about
+the parameters we've been estimating, that we've been simulating with the chain. For example our estimated
+posterior mean for mu is 0.91 with a standard
+deviation of 0.31. We will discuss post
+processing further including convergence diagnostics
+in a coming lesson.

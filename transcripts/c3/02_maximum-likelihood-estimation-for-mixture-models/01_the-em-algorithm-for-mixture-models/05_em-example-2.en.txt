@@ -1,0 +1,139 @@
+[MUSIC] We're going to discuss now a slightly more
+interesting example in which we're doing a mixture of bivariate normals. And this particular code is set up so
+that you can easily expand it to work with a mixture of
+invariant normals if you want, and you can also easily change the number
+of components that are involved. One word of warning is this particular
+code uses these two libraries called NBT norm and ellipse,
+which you can easily download from CRAN. But make sure that you have installed the
+libraries before you try to run that code. Okay, so the structure of this code is
+very similar to the one we saw before with a mixture of univariate normals. So we're going to work with bivariates, so that's where the P-parameter controls
+is that we are bivariate normals. Again, we're going to work with three
+components in the mixture and we are going to have the same epsilon parameter that
+controls when to stop the algorithm. That is going to be ten
+to minus five again. So we are again going to
+work with simulated data. In this case however, rather than having
+the same variance covariance matrix for all the components, we're going to allow
+both the data that we generate and the model that we fit to have different
+variants covariance matrices for each component of the mixture. So the setup again is very similar. So we still have three components with
+weights point five, point three and point two, just like before the means for the normal distributions are and
+because these are bivariates. Now I need to report vectors of means. So the first mean is zero zero,
+the second mean is five five, and the third mean is minus three and seven. And finally, I have three different
+standard deviations for the true data. The first one is just a diagonal. It's the identity variance
+covariance matrix. So this one is just identity matrix for
+the first component. But in the R components, we have in
+the first case variance covariance matrix that is non diagonal and in particular
+the variables are positively correlated. And the for
+the second component of the mixture, we have a case where the variables
+are negatively correlated to each other. So this is a situation where
+the data has this form. This is a situation in which
+we really don't want to use a mixture model that forces
+all the variances to be the same. So again, we set the seed so that you can reproduce the results
+that we're going to show. We again work with 120 observations and
+the structure is very much the same. So if we first select which components
+its observation belongs to, and then we generate the observations
+accordingly from that component. In this case,
+we also generate a plot of the data in the distributions that we're working with. In this case, because this would
+be a three-dimensional plot rather than plotting the density itself,
+we're going to plot some control plots for the density. So let me execute this comments. And you can see in this case I'm showing, these are the true observations,
+so the data. And again, I use colors to differentiate
+which observations come from each component. You can see that in this case,
+this observation 58, it's green so it's coming from
+this mixture component, but it's actually a bit of an outlier for
+this distribution. And it kind of looks a little bit like
+it overlaps with the black dots here. So we will actually see
+a little bit what happens, or we will use this observation as
+a test sketch at the end to again highlight a little bit
+how the algorithm works. So this is the true components of
+the contour plots of the true density with the points that we have generated. And then as in our previous example,
+we have a guess at what are the values of the parameters
+to initialize the algorithm. And as before we are assigning a weight
+of one third to each component, we are selecting means randomly. And in this case, I'm using again
+the variance of the data to have a guess of what the variance
+of each component is. But in this case rather than
+using just the raw variance, I'm dividing it by
+the number of components. So a way to think about this is by
+assuming that you are splitting in some sense the variability of the data
+into as many components as you have and saying that the variability
+is very similar. But again, these are just initial
+values for the parameters, the algorithm will refine that. And this is the code that generated this graph that you
+can see here with my initial guess of what the variances of the different
+components is, and the location of the different components is, overlaid with
+the location of the actual observations. And you can see that my initial guess
+is not a terribly good one, but again, don't worry about it because
+the algorithm will refine it. So once, We have Provided initial values for the algorithm,
+the structure is very much the same. So we still have the switch variable
+that allows us to stop the algorithm once we decide that we're
+close enough to the solution. And KL is our metric of how
+close we are to the solution. We have the E step and we have the M step. The form of the E step is exactly
+the same that we had before. The only difference is that we replace
+the normal distribution with this dmvnorm because it's
+a multivariate normal now. But otherwise, it's exactly the same
+expressions that you saw before. For the M step, the weights are also computed in exactly
+the same way as in the univariate case. What changes a little bit here is that
+now the values of the muse are vectors, so I need to disarm over vectors
+rather than over scalars. In that before,
+we had kind of a separate loop for the sigmas because we had a single
+value of sigma for our components. Now we have different sigmas for
+each member, so the structure changes a little bit. But you can see that the formulas are very
+very similar to the ones that we saw for the univariate case with the same
+variance for all of that. Again, we check convergence in pretty much
+the same way as we did before by computing this expected value of
+the complete data likelihood. In as before, we also present at
+each iteration this to results. So a figure similar to this one,
+where we show where the current guests of the components
+are with respect to the data and running plot of this fitness metric. So let's run this algorithm. In this particular example,
+it took only 12 iterations for the algorithm to converge, it was much
+faster than in the previous example. And again, let's look at this as
+a running, as a little bit of a movie by just scrolling through
+the different components. So this is where we started, this was our initial guess at what
+the components of the mixture are. After a single iteration of the algorithm,
+you can see that the variants, at least for these two components that were
+up here, kind of has expanded quite a bit. And that makes sense because
+in our initial guess, basically there was no way to
+explain these green dots up here. So the first step of the algorithm is
+just to say or something needs to grow in order for us to capture these
+observations that are up here. So that's the first thing
+that the algorithm does. And then as you move along, you can see
+that it's starting to kind of refine, it starts to separate these two
+components that are up here. It's starting to say,
+well they don't really have the same mean, they need to kind of move
+apart from each other. And it does it slowly but surely. And you can see how now
+it's starting to realize where the centres of those components are. And now it's starting to
+converge pretty fast. We're up to observation,
+to iteration eight. And now what it's doing, it's basically slightly refining
+the structure of the mixture. And one thing that should be clear if we
+compare this graph against the very first one that we had, is look at
+the counterplots for the green dots. They, in that way short of
+the counterplots for the black dots. On like in our original graph, where we could see that these two
+were very close to each other. A consequence of that
+is that now this green dot that was a little
+bit of an outlier when we were discussing the original data, now it's roughly being classified
+in this black component. And we can see that in two ways. So first of all, we can see the value of
+the vector B, so let's do the following. First, let's look at the means of
+each one of the distributions. So if you look at the means of
+the distributions and you compare in when with the true means, you can see that
+again, we kind of have flipped the labels. So, zero zero that was component
+one is now component three. FIve five is still the second component,
+and minus three seven is now the third. It's now the first
+component in the mixture. So we have kind of flipped the order
+just unlike in the previous case. So if we look at the vector B,
+In row 58, remember this is giving me a guess of which
+component each observation belongs to. And 58 was the observation down here that we kind of had misclassified
+in the beginning. Observation 58 was generated,
+we know by this component, this main component that
+has mean minus three seven. But if you look at what
+the model is saying, the model is saying that
+the heavier weight for that observation there, the largest B,
+it's on component three. And if you look at what the value of new
+is for component three, that is zero zero. So in other words, the algorithm is
+saying that that observation really is more likely generated by this
+component down here than by the component,
+the green component up here. And what that does is that
+at the end of the algorithm, it's somewhat under estimates
+the variability associated with the green component because this
+point is now doesn't belong here. It belongs down here,
+which means that a lower variance can explain what is happening
+with the green dots. So but aside from that point
+that is a little bit and was a little bit of
+an outlier in the beginning, all the rest of the points seemed to be
+properly classified by the algorithm. [MUSIC]

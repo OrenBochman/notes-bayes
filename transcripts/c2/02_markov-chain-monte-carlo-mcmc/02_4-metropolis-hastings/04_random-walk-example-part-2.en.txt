@@ -1,0 +1,135 @@
+Now we're ready to set up the problem. I have copied here a vector of
+the data values and we've called it y. So what we need is to calculate y
+bar which is the sample mean of y. We also need to run y so that
+the values are saved in our R session. And now we can run this line to
+calculate y bar, the mean of y. We also need n, which is the length of y. We'll run that and
+just to check it, it is 10. And as part of our analysis let's just
+look at a histogram of these data points. So we'll do a histogram of y, where again,
+we want the frequency to be false, so that we're looking, instead of
+counts we're looking at probabilities. And we want the x axis to be between the values of negative 1 and 3 just so that we have enough
+view on both sides of the data. Let's run this histogram. Here's what the data look like. Let's also add the individual data points. We can do that with the points function. Where we add the y vector. And we want, on the y axis, we want these to appear on 0 so
+that they appear along the x axis. So we're going to repeat 0 n times for
+our y coordinant. And we'll actually just run this. So that adds the actual data points. So we can see where they are. We can also add y bar, the sample
+mean to see where that's located. Again, we'll use points,
+and this time y bar and 0. And to distinguish it
+from the data points, let's use pch-19 that
+creates a field circle. So when I run this,
+it adds y bar, the sample mean. So we can see where the sample
+mean of our data are. Let's add the plot of our
+prior distribution for the mean to see how it
+compares with our data. We can do with the curve
+function where we're going to use the density of a t distribution dt for generic x variable, which we haven't
+define is just the x axis in the plot. And our t distribution
+has degree of freedom 1. By default that already has location 0 and
+scale 1. To distinguish it from the histogram, let's give it a different line type,
+lty=2. That will cause it to be a dashed line. And then of course, add=true so that it
+adds this plot on top of the previous one. Let's run this curve. Here's our prior distribution for mu. As you can see, there's a little bit
+of a discrepancy between our prior for mu, and what the data says mu should be. The prior has most of its probability
+mass in this region here, near 0. However, the data suggest that
+the mean is up here near 1. We expect that the posterior
+distribution from mu will have a mean as a compromise
+somewhere between 0 and 1. We're now ready to run the sampler
+that we've just coded up. I've already entered the LG
+function into the R session but we still need to load
+the Metropolis-Hastings function. So I'm going to press Cmd+Return to
+enter that function into the console. And now we have the data. We have y bar and we have n. So let's move down here and
+start sampling. We'll collect our posterior samples and
+a variable that we'll call post. Referring to posterior. It would be the result of calling
+our Metropolis-Hastings function, where we need to give
+it these six arguments. n, which we've defined, y bar which
+is the sample mean of the data. N_iter, which is the number of iterations. We've decided we want to do
+1,000 iterations of our sampler. There's also a shorthand for
+this which we can do, 1e3. That's 10 to the 3rd power. Let's initialize mu at 0. We'll use candidate generating
+standard deviation equal to 3. Before we start sampling,
+let's set the random generator seed. So that we can reproduce
+our results if we need to. So first thing we'll run is set.seed. And then we'll run our
+Metropolis-Hastings function using the parameters that we gave it. If we've saved some object, and
+we're curious what's inside of it, we can use the str function,
+str function in R. And put the object in there to
+find out what's in the object. So the structure of post is a list. Just like we had our function output. It's a list containing 1,000
+iterations of our new variable. And it tells us our acceptance rate. Which in our case, for
+this run, was about 12%. To help us explore
+posterior distributions, we're going to use the coda package in R. So let's load the coda package. This R session does not
+currently have coda installed. So first we're going to need
+to install the package. install.packages. And we'll install Coda. So we'll run that line. When it installs a package, it asks us which CRAN mirror we
+want to download the package from. We're in California, so
+let's select California here. Great, so hopefully now
+library coda will work for us. Let's run this line, perfect. It worked, now that we've
+loaded the coda library we can use the trace plot function,
+which I'll describe in just a moment. The trace plot function requires
+that we pass it an MCMC object. Right now post is only a list. So let's change post into an MCMC object
+by typing as.mcmc, that's also a function. Post, specifically we want to
+look at the trace plot of mu. So this is the mu vector in the post. Our list of posts right here. Let's run this line and see what happens. Here's our trace plot. So this is called a trace plot because it
+shows the history of our Markov chain. And it gives us some basic feedback
+about whether the chain has reached the stationary distribution. It appears that our proposal step
+size in this case was a little bit too large because we had
+an acceptance rate below 23%. It was somewhere,
+it was more like 12% I think in our case. Yeah, here it is. It was 12%. You can see that in the trace plot. As the sampler was moving along, for
+example in these early iterations, mu got stuck at a single value for quite
+a long time, it happened again over here. So in other words, our Markov chain is not moving around
+as much as we would like it to. We want to increase the acceptance rate. To change the acceptance rate, we need to rerun the sampler with
+a different candidate standard deviation. Usually, if we increase
+the variability in the distribution that creates the candidates,
+that will decrease the acceptance rate. We want to increase the acceptance rate,
+so we want a smaller standard deviation. Let's reduce it to say, 0.05. Let's make it really small and
+see what happens. So if we run the Metropolis-Hastings
+function and reassign it to post, it'll override our old samples,
+but that's okay. We still want to initialize mu at 0. And we'll still run it for
+1,000 iterations. Let's run this line of code. And let's look at
+the structure of post again. So we have 1,000 samples, but this time the acceptance rate was 94,
+almost 95%. If we look at the trace plot for
+this chain, we see the opposite behavior. Notice that the step sizes, because
+the candidate generating function have a small variance,
+the step sizes are small. And so the chain wanders. Here the step sizes are too small. It's going to take the chain a long time
+to explore the posterior distribution. We can see that because the acceptance
+rate for our random walk is too high. The first candidate standard
+deviation rate we tried was 3, we over corrected by going down to 0.05,
+so let's try something in between. Let's try 0.9,
+that's a compromise from the two values. Let's run this, and
+now look at our acceptance rate. Okay, our acceptance rate is down to 0.38,
+that's probably good. We usually are looking for
+an acceptance rate between 0.23 and 0.5 when we're working with a random
+walk Metropolis-Hastings algorithm. So let's look at the trace plot for this. I'll run the trace plot command. This trace plot looks much better. It's exploring the posterior distribution. It gets stuck every once in a while but
+that's okay. It looks pretty good. Now let's see what happens
+if we change our initial value to something way
+far away from the truth. So let's try an initial
+value of mu=30 We run that. And look at the acceptance,
+we still get 0.38, that's good. And let's look at our trace plot. We'll run this line. Here we can see the effect of
+using a crazy initial value. We started mu way up here at 30,
+and it took maybe almost 100 iterations to find
+the stationary distribution. It was wondering for quite a long time,
+and then once it hits the stationary distribution, it bounced around
+inside the stationary distribution. But it looks like after 100 iterations,
+we've succeeded. So if we discard or
+throw away the first 100 or so values, it looks like the rest of the samples do
+come from the stationary distribution, which is the posterior
+distribution we wanted. Now let's plot the posterior
+density against the prior to see how the data updated
+our belief about mu. The first thing we'll do is get
+rid of those first 200 iterations while the chain was still exploring. We're going to call this a new
+object in our list called post. And it'll be mu_keep. It'll be the iterations of
+mu that we want to keep. It'll come from the mu
+object in our list for post where we get rid of. We're going to discard
+iterations 1 through, let's just get rid of the first 100, okay. So this says,
+we're going to index the mu vector by taking away the first 100 elements. Let's run that line, it saves. So that we can look at
+the structure of post, we now have mu.keep or mu_keep. So let's plot a density estimate so it's plot (density), a density estimate of our posterior
+draws from mu, post$mu_keep. Let's use the same limits to
+our x axis that we did before. So that would be xlim going
+from negative 1 to 3. And let's take a look at this plot. Let's run this. So this is a density estimate
+of the posterior distribution based on the 10 data points. Again, let's compare this to the data and
+the prior. First, let's draw the prior. Again, we can reuse our old code up here, where we drew the prior for
+the density of the t distribution with 1 degree of freedom, where add=true so
+that we would write it over the same plot. Let's run this line. So here is our prior distribution for
+mu and then based on the data,here is our
+posterior distribution for mu. Let's also add the sample mean. So this is where the data
+said mu should be. This is where the prior said mu should be. The posterior distribution does
+look like a compromise between the prior distribution and the data. This results we've obtained
+are encouraging but they are preliminary. We still need to investigate a little
+more formally whether our Markov chain has actually converged to
+the stationery distribution, and we're going to explore
+this in a future lesson. Creating posterior samples using
+a Metropolis-Hastings algorithm can be time consuming and
+require a lot of fine tuning like we did with our candidate
+standard deviation here. The good news is that we can rely on
+software to do most of the work for us. So in the next couple of videos, we're going to introduce a program that
+will make posterior sampling easy.

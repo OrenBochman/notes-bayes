@@ -1,0 +1,202 @@
+We're going to illustrate fully Bayesian inference for
+the number of components and the partition structure
+of a mixture model using the galaxies data set
+that we had discussed before. As you remember, this data
+set is available from the library mass in R. So we just need to
+load that library. We're going to need MCMC
+pack as has been the case in the past for generating from the whichever
+distribution which is one of my full conditionals, and I'm going to set the seed of the random number generator as I've done before just so that you have reproducible results. So the causal we're
+going to use here, it's going to look
+in many aspects similar to the one we used during Week 3 to fit Bayesian
+mixture models. There are going to be a
+couple of small differences. One is that the value
+of K that we are going to be using
+in this case is 30, and remember that
+because now we're going to do this full
+Bayesian inference, the language you need
+to think about K is as the maximum number of components that we are
+allowing the mixture, which is typically in terms
+of the actual number of components that gets used
+is going to be smaller, and it's going to be controlled
+by the parameter that we use for the Dirichlet prior on the weights
+of the measure. So to decide what value to use for that parameter
+of the Dirichlet, we're going to solve
+non-linear equation as we had discussed in the
+previous lecture, and in this case we
+have 82 observations. So the galaxies data
+set has only 22 values, and recall that the
+information that we had about the number of regions
+in the space that had been looked at to
+collect this data was six. So it makes sense to expect that Apriori will have
+about six components that are occupied out of the 30 that we are allowing for them on. So to find the value of Alpha that we're going to
+use for the prior, we will need to solve is
+this non-linear equation, and the way to do that in R is by using the
+unit root function. So first we define the function
+that we want to solve, which is this one and so making the function
+equal to six is equivalent to getting the function
+subtracting six and trying to find the
+zero of that function. So we define this FF in this way, and once we have
+defined FF in this way, we use the unit root function. The unit root function is
+going to take two arguments. The first argument is
+the function that we're trying to find zero for and the other parameters that it takes is the range in
+which we're going to look. Typically, range that goes
+between a really small value, you can't really use
+zero in this case, but you can use a value that is really small and something like 0.01 typically works well, and then you need a large value that defines the interval over which you are
+going to search. Something like 20 or 30 is typically a good
+value for the step. So if you run this code, what you will see
+is that the route that R finds for this
+function is 1.49. I'm going to approximate that to 1.5 just to keep things
+a little bit clear. So the Alpha that corresponds
+to six components in 82 observations is 1.5. So once we have done this little preliminary
+calculation that just reflects the prior knowledge that we have about the problem, then the rest is basically identical to the code
+that we had used before except that now rather
+than using a uniform for the Dirichlet in the past, this had been just 1 over KK for each one of
+the components. Now, we're going to
+use Alpha over K, and Alpha in this case is this 1.5 that we obtained above. But otherwise, the
+algorithm is the same. So this just defines the
+hyper-parameters for the model. This initializes the parameters. In this case, we are going
+to run a large number of iterations just to
+be on the safe side. So we're going to do 25,000 iterations and out
+of those 25,000, we're going to burn
+the first 5,000. So we're going to
+end up with only 20. The results are going
+to be stored in this matrices and vectors
+with all the samples, and then this is just the
+loop of the MCMC algorithm. So I'm going to run this, it's going to take a
+minute to run because, well, it's just a large
+number of iterations. So lets say to run and we'll come back in a minute once the algorithm has finished. Now, that the algorithm
+has concluded, lets first do a plot of the posterior
+distribution on Kstar, and if you remember
+Kstar is the number of actually occupied
+components in the measure, and the way to do that
+is we're going to define our custom
+function and unique, that just count how
+many unique values there is in a vector, and we just apply that
+function to each one of the posterior samples of
+the configuration vector C, and then we just construct
+a bar plot for that. What we can see after
+constructing this is that the posterior
+distribution in this case places probability
+anywhere between five and maybe 15 values for
+the number of Kstar. The mode is clearly at nine. There is a little bit larger, remember our prior was centered at six or have
+an expectation of six. Our prior here probably has a value somewhere in
+between nine and 10. We can actually compute that very easily from
+the posterior sample. So the number is slightly above nine and the mode
+is clearly nine. So the posterior distribution
+on Kstar provides evidence for a
+number of components that is the slightly larger than what we assumed in
+the prior in this case. The other thing that we can do, so Kstar is not the only interesting summary of the posterior distribution. This only tells you how
+many components in a sense, but it doesn't really tell you which galaxies go together
+in each one of the clusters. So if you remember from our discussion in some
+of the previous videos, the way to make
+inferences over that is by using a loss-function, unexpected loss-function that we're going to
+try to minimize, and the binder loss-function
+that we discussed in the lecture depends on the
+pairwise probability matrix. So the next thing that
+we're going to do is construct that pairwise
+probability matrix. This little piece of code
+here, those precisely that, and these use those value big loop one over the iterations and then over each one of the galaxies or each
+pair of galaxies, and just essentially
+counts how many times each pair of galaxies are assigned
+to the same cluster. Then once we have
+finished account, we just divide essentially
+by the number of iterations in the sample. So that's what this piece
+of code will do for you. Once this finishes,
+we're going to plot the resulting matrix
+using a heat plot. Here I have a function
+that will do that. It's a little bit of a
+complicated function, but since this is
+something that you may want to do multiple times, it's useful to build a standard code that you can just call over and over again. This is a nice one because in addition to
+displaying the heat map, it will display a color
+scale on the sides. So if you want to
+delve a little bit into the details of
+how the plot works, you can look at this
+code in detail. But this function heat map plot, it's a self-defined function that's going to plot
+this pairwise matrix. Then once I have defined it, I just need to call it. This is the graph
+that you obtained. So what you have here
+is regions where there is a lot of red
+are regions where the pairs of observations have a high probability
+of being together. You can clearly see here, there is a cluster of
+seven observations that is very clearly
+all of them together. Then you have another
+small cluster here of two or three
+observations that are also clearly together and separate from everybody else. In the other extreme, we also have a small cluster here that is very well defined. Now, if you remember these two clusters in the
+middle that corresponded to those modes in their
+density estimate that some algorithms
+tried to put together, some of them tried to separate, you can see that
+here the level of uncertainty in the
+clustering is much higher. So the left peak, there is quite a bit of certainty that the first observations
+belong together, there's a square here. But then this additional
+observations, you have more and more
+uncertainty about whether they belong here or they belong somewhere up here. For the solar cluster, there is some law of uncertainty. So this could be a
+single big cluster or it could be a combination of 3, 3, 4, or 5 small clusters. It's the fact that you have so much uncertainty in essentially what is the
+configuration here, what is driving in the
+previews bar plot, what is driving
+the fact that your mode is coming up at nine, because there is many
+configurations in which this block here, it's split into two
+or three clusters. That's where the additional
+components are coming from. Now, this is good from the point of view
+of just giving you a sense of what the
+clustering structure is and what the uncertainty is, but this doesn't directly
+give you a point estimate. The point estimate is obtained by minimizing binders loss function. Here, you're going to
+see a little example of code that allows you to
+minimize that function. So these LTST, is just the evaluation of binders loss function for one
+particular configuration. We're going to use an
+iterative algorithm to maximize that. So we just need to give
+it some initial value. In the rest of the code, just use an iterative algorithm
+that goes component-wise, maximizes binary loss function. So we're going to run that, and that actually runs
+pretty quickly in this case. Now, we're going to re-do the same heatmap that we
+had constructed before. We're going to use
+the same function, but now we're going to add vertical and horizontal
+bars that the limit, what the point estimate is based on our
+binder loss function, and in this case, by the way, we use binders loss-function
+with d-bar equal to 0.5, which just means that
+the penalty that we impose for both types of errors, so clustering things together
+that should be separate, and separating things
+that should be together, those two errors are given the same penalty, both of them. So that's why d-bar is 0.5. So now, if I created
+another heatmap. So this looks exactly
+like the previous one, the length is the response
+to the point estimate, and you can see here
+what's happening. So clearly, these two clusters that are very well separated, they are identified as
+clusters of their own, same for this guy up here. Now, because of the level of uncertainties associated
+with the cluster, it is doing something a little bit different with
+the things in the middle. So here, it's linking together these two observations
+that are clearer together, have high probability together. But it's also pulling
+together with those two, these extra one that has this orange here
+that is pretty dark. So it's more likely that
+this observation is with these guys than it's
+with any of these guys. So that's why it's
+putting it there. Then the other thing
+that it's doing, it's treating this big cluster
+here as a single unit. But here where you have a lot of uncertainty in the
+clustering structure, it's actually breaking it down into a three or four clusters. So it has actually a little cluster here,
+there is a singleton. So this guy, because it could
+be either here or here, it's deciding to just
+put it on its own. Then you have these other
+two observations here that have relatively high
+probability of being together, but not clear that they
+belong to this cluster, and then the rest is being
+split into two components. So you end up with the optimal partition in this case under
+that loss function, with the two arrows
+being weighted equally, and has 1, 2, 3, 4, 5, 6, 7, 8, 9, that actually corresponds
+to the mode of the posterior
+distribution of Kstar. In general, the two things
+don't need to match, and if I had used a
+different value for d-bar, then I would have probably gotten a partition that had either
+more or less than nine. But in this particular case, it's nice that all
+the results match, and the value of Kstar that you obtain is the
+same as the number of clusters in the
+optimal partition that you get from
+binary loss-function. The other thing that you
+can do with this is you can plot the density estimate
+that is generated here, and that's what this
+code will do for you. Again, it takes a minute
+to compute the density for all the MCMC iterations
+that we ran. But what we are
+going to see is that the density estimate that we get in this case looks a lot like the density estimate
+that we had generated before when we had
+decided to fix K to six, and just use the
+uniform distribution. So the model really
+is quite robust, at least in terms of the density
+estimator to the choice, as long as we select this Alpha value in a sensible way to reflect the private
+information that we have.

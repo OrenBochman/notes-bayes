@@ -1,0 +1,142 @@
+[MUSIC] Today we're going to look at
+an implementation of an Algorithm for feeding a location mixture
+of two Gaussian components. So the only thing that is going to be
+different between those two components, it's going to be the mean
+of the distributions, the variances are going to be the same for
+both components. And we're going to run that test in
+the context of simulated data where we can contrast what the model is
+giving us against the true distribution is generated the data. Later on in other illustrations
+that we will do in the course, we will do real data. So I'm going to go over the code and try
+to highlight some of the main features. We're going to run all of our
+simulations in this course, setting the seat of
+the random number generators. That is just meant to reproduce
+reproducible results so that when you go home and you try to do
+this on your own, you can obtain exactly the same results that we're
+getting here in this illustration. So the first thing that the code
+does is it generates data from a mixture of two components and
+as I said, this is simulated data, so, the true mixture weights are 0.6. And because they only have two components,
+the other one would be 0.4. So, this is the weight
+of the first component. The means of the normals
+are going to be zero for component one and five for component two. And the common standard deviation,
+sigma, it's going to be one. So these are the true settings that
+are used to generate the data. We are going to simulate 120 observations,
+and we do it using the same type of algorithms that we had discussed
+in the past where we first sample whether the component indicators from
+a distribution that is discrete. In this case, takes only two values and probabilities are omega true and
+one minus omega true. And once we have sampled
+the component indicators, we sample from a normal distribution
+with the appropriate true mean depending on the component
+that that observation belongs to. When we run that little algorithm,
+we can plot the data along with the true density, that mixture
+of two components that we just discussed. And let's do that so
+that we can get a sense of what the data set that we're going to
+be working with looks like. So you can see here, this is a mixture of two Gaussians
+that are very well separated. You can see kind of that the width
+of the two mountains is similar and that's because the sigma is the same for
+both components. And you can see the observations that
+get generated for each one of the two components in red for this component,
+and in black for this other component. So this down here is the real data that
+we're going to be working with and this is the true density
+that generated the data. So let's proceed now to
+look at the Algorithm. The first thing that you need to do before
+running your Algorithm is to initialize the parameters in the model. We have again three parameters,
+w, mu, and sigma, the way they're initialized
+in this case is very simple. We're just picking omega to be one-half,
+one-half. We're picking sigma to be
+the standard deviation of the beta. This is often a reasonable place to start, when you're working with
+mixtures of normals. It tends to overestimate
+the variance of the components, but it usually serves
+well as a starting point. And mu is the means and what we're going to do here is we're going
+to generate random initial points so that potentially this could change
+every time you run the algorithm. And we are going to generate two
+randomly distributed numbers with mean equal to the mean of the data, so roughly
+the mean is somewhere around down here. So we want the means of the components
+to be centered around here. And then we're going to use
+the standard deviation of the data, so a range that roughly
+covers between maybe minus three and six or seven as in some sense the range of where the means
+of distributions are located. So these are just initial points and the algorithm will refine
+this initial points either. So we can actually plot that just
+to get a sense of how good or bad our initial estimate is. With those parameters that's what
+the initial estimate of the density of the data is. You can see that it kind of covers the
+right support, it covers the observations, but it certainly doesn't look
+anything like like the true density, that's what the Algorithm will
+do it will improve over that. So now that we have initialized that, we
+need to create a couple of variables that will be used in the execution
+of the algorithm. S is just a counter of
+the iteration we're on, and it's going to be increased by one
+unit every time we run the algorithm. This sw switch variable is just used to
+decide when the algorithm needs to end. So you will see that it appears
+here in the while loop. I'll discuss this a little
+bit more in a second. And then we have these variables Q and
+QQ.Out that just contain the value of the queue
+function at every iteration and this is used both to understand
+conversions and to monitor conversions. And finally,
+epsilon that is our stopping criteria. We're going to stop the Algorithm when
+the relative error in the queue function is less than 10 to the -5. That's what this parameter means. Okay, and
+now we can go into the Algorithm, if you remember
+the Algorithm has two steps. The first one is the E step and
+in the case of mixtures that E step corresponds to the calculation
+of the weights of the B's that tells you what is
+the probability that each observation comes from each one of the two components,
+given the current value of the parameters. That's what this section
+of the algorithm does. And then we have the M step,
+that is this one down here, that maximizes the expected
+value of the Q function, where the expected value
+involves the use of this terms that were computed i the E step. So these formulas just reflect
+exactly the same formula that we derived in the lecture. So I'm not going to discuss
+them in a lot of detail. The only thing that I do want to observe
+here is that we do the computation in the log scale. So we compute the log of
+the unnormalized B's and before renormalizing,
+we do this subtraction before taking the exponential and normalizing,
+we do the subtraction of the maximum. We have a separate little
+lecture on this but this is done for numerical stability. If you do the calculations
+in the regular scale, these calculations can become
+numerically unstable very quickly. So I suggest that you look
+at the other lecture, to understand a little bit
+more why this is the case. Okay, in the final step, so once we
+have covered the E step and the M step, the last piece of the algorithm
+is just a check of convergence. And we check convergence by computing the
+value of the Q function at the iteration, that's what QQn is, QQ new. So this contains the current
+value of the Q function. And what we do is we compare
+that new value of the Q function against the old value QQ and
+we see how big the relative error is. And if the relative error
+is less than epsilon, then we change the switch
+variable to TRUE, which will stop the algorithm and
+otherwise we don't do anything. Otherwise we just store
+values in this variable, so we increase the counter in one unit and we store the value of Q, QQ new now becomes
+in some sense the old value of Q. Because we're going to enter
+a new iteration of the algorithm. And finally,
+we just add the current value of Q to this variable that stores the values
+of the Q function of iterations. The last bit is something that you don't
+need to do in most applications, but I'm doing it here for illustration. Is I'm going to generate plots for each
+iteration of the Algorithm, where I show what is the evolution of the Q function,
+that's what this piece up here does. And it also it's going to plot
+the density, the current density estimate. So it's essentially going to
+reproduce this graph up here, but rather than doing it with the first
+observation or the first iteration, like it's done here, it's going to do
+it a different plot for each iteration. Okay, so let's run the algorithm and
+let's discuss the output a little bit. So, Okay, so the best way to look at this
+is by looking at it like a movie and let me move back to the beginning of the
+movie so that things are understandable. So this was our initial guess
+of how the density look like, not a very good representation
+of the true density. Once we have done one
+iteration of the mC mC, this is what we observe, so
+we're still pretty far off. The dashed line in this case is the
+estimate and the solid line is the truth. So as we add one iteration
+to the MC to the Algorithm, we get an improvement in the Q function. And we see that still we have this
+one kind of unimodel estimate. We do another step and
+we start to see that kind of, it becomes a little bit wider and
+also the Q function improves. At the next iteration, we start to see how
+the algorithm starts to pick the fact that there is something multi-modal that
+is a little bit of a deep here. So one more and it starts to get
+much better, better, better, better. Now it's still doing some refinements but you can see that the Q function
+is not changing very much. And you can see also that this curve is not going to be changing too much
+from one iteration to the next. So I do another step and pretty much looks
+the same as well another step ad pretty much looks the same as another step and
+basically the algorithm has converged. So you can see that in this case,
+the algorithm converges really fast. It's only 11 iterations to convergence in
+the Q function is an increasing function. That's the other thing to observe here. And of course, that the density estimate
+is actually pretty close to the truth, even though we only have 120 observations
+to do the full density estimation. So this is how the Algorithm would work or
+the implementation of the Algorithm would work for the example that we discussed in
+class that we derived in detail in class. [SOUND]

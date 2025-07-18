@@ -1,0 +1,174 @@
+This R code allows
+you to compute the filtering equations for the case of the univariate
+dynamic linear model. Univariate in the sense of the state parameter
+vector is univariate. We will work with an
+example like that. We're assuming here that
+all the matrices, the F, the G, the V, and the W are known and
+constant over time. I'm going to walk you through
+some of the functions here, and then we'll see
+the example as well. First, there are
+these two functions: set_up_dlm_matrices and
+set_up_initial_states, that will allow you to, once you specify your
+F your G and V and W, in the case of the DLM matrices, it will keep them in
+an object that is just a list with all the
+matrices in one object. Similarly, for a
+set_up_initial_states, in the case of the known variances at the observational
+and system levels, you're going to have
+the distribution, the prior distribution
+is normal, with mean m0, and
+variance C0. These will allow
+you to just keep that also in a single object
+so we can read the mean. Then the next function here is the forward filtering function,
+it's called like that, and it will just compute
+the filtering equation; the moments for all
+the distributions that you need as time goes by. You have to pass your data, the matrices in
+that object style that contains all
+the DLM matrices, and the initial states with
+the prior distribution m0, and C0. If you go and look
+inside the function, you would see that it reads
+the data, keeps the matrices, and then just creates all these objects
+here, these arrays, that are going to keep the
+values of the at and Rt, the mean and the variance for the prior distribution of the
+Theta t given Dt minus 1. Then you will have
+also the moments for the one step ahead
+forecast distribution for yt given Dt minus 1. Then finally, you have
+the distribution for Theta t given Dt which
+is a normal mt, Ct. If you go in here, you will see that the function is just computing all those
+moments using the filtering equations
+that we discussed before. Then it returns a list here
+that is going to have mt, Ct, at, Rt, ft and Qt. You have all those quantities
+in a single object. Then let me just
+read in this one. Then the next function is
+the forecast function, which once you proceed
+with the filtering, so it's going to
+take as an input, all those posterior states, which is an object that has all these quantities that
+we discussed before, you specify the structure of the model in terms
+of the matrices, the DLM matrices, because
+you will need Ft, and Gt, and Vt and, Wt, which in this case they are all constant for the next steps, and then the number
+of steps ahead, which is k. You can see again, if we look inside the function, this is just updating the moments using the
+recursions we discussed. Then there is this
+additional function that allows you to compute a 95 percent credible interval
+for a given quantity, and I will illustrate how to use this function in
+different scenarios. By default is a 95 percent
+credible interval, but if you were to change
+these functions here, you would have these
+numbers here you could compute credible intervals
+with different percentages, 95, 90, whatever you
+want to compute. Let me just read this one in. Now we get the example. I'm just using some dataset
+that is available in R, is the level in feet
+of the Lake Huron in a particular period of time. You can see here, this is annual data and this is the plot of the time series
+that is available. You can get more information
+about the data from R. Here, I'm going to split
+the data into two pieces. A piece that we're
+going to just analyze using a dynamic linear model. I'm going to keep the
+first 94 observations as the data that we're going to analyze and then we're
+going to try and predict the next four
+observations after that. The dataset has a total
+of 98 observations, but we're going to use the
+first 94 and then we're going to predict the last four using this model structure. Let's just do that. I'm defining here the data
+and the validation data. I'm just going keep to the data. The functions require that you keep the data as a list where one of the components in
+the list is just the yt, which is the data that
+you're going to analyze. Now I'm going to fit a first
+order polynomial model. If you recall, the first order polynomial model has a forecast function
+that is a constant. It is a linear function, is a polynomial of order zero on the
+number of steps ahead, so it's just a constant. It requires a single
+state parameter. The dimension of the
+parameter vector is one. The F and the G matrices for that model are
+both equal to one. This is how I'm defining, again, those matrices and defining
+F is one, G is one. Just for the sake
+of the example, I'm going to assume
+also that the variance at the observation and
+level is equal to one, and the variance at the
+system level is equal to one. We're assuming that these, just for this example, they are both known. Then I have to specify the moments of the
+prior distribution, m0 and C0. Here I'm just going to say
+that a priori my level for the Lake Huron is
+going to be 570 feet, but I'm fairly uncertain
+about what that level is. I'm going to just, again, for the sake of the example, I'm going to put a matrix value, for C0 which is just 10^4. It's a fairly large matrix. You can play with different
+values and see what is the influence of the prior
+distribution in the analysis. We can begin just
+to run the model. We have to wrap up
+all the matrices and the initial values and keep them in an object
+that is just this list. We're going to use
+the function set up dlm matrices and setup
+initial states to do this. Now I have both all the matrices in an object that contains F, G, V, and W. Then the initial state
+is also an object that contains m0
+and C0. Now we can use the forward
+filtering function, just providing the data, the matrices and
+the initial states. Then you just run it. You can see that
+once you're done and you keep these in the objects, here I'm calling it
+results filtered, if you look at the names
+here for the object, you will see that you have mt, Ct, at, Rt, ft, and Qt. Those are kept after you go
+with the filtering equations. I'm just going to compute
+a credible interval for the distribution of Theta t given Dt. This is a
+first order polynomial, so this is just the
+estimated level of the series at time
+t. If I run this, I get that credible
+interval in the object. Then I also want to do
+forecasting, as we said before, we want to forecast
+a few observations. K was four, we just use the forecast
+function to do that, and then we have the
+credible interval here for the forecast
+distribution. Now I'm just going to
+plot all the results. Let's go ahead and do that. This is the data. The points correspond to the
+actual observations here. The first thing I'm going
+to do is I'm going to plot the mean of the
+filtering distributions. If you want to compute the mean of the
+filtering distribution that's in the object
+results filtered, and is the object that
+we refer to as empty. I'm just going to plot that. This is my mean of the
+filtering  distribution. I'm going to plot the credible intervals here
+for the 95 percent options. I have the lower bound
+and the upper bound. The dotted lines here give
+me this credible interval for Theta t given Dt. Then I can plot the
+forecast distribution. As we said before, because this is the
+first-order polynomial, we should expect to see that the forecast function
+is essentially a constant here that is going to be at the level of
+the last point here. It's going to correspond to
+the mean mt at this point. If we run, we kept those results in the results forecast
+and is the component ft, so we just look at, again, the mean and the 95 percent credible interval
+corresponding to that. We can see two things, as we said before, the forecast function
+is constant over time. Then we can see that for
+the credible intervals, the uncertainty increases as the number of steps
+ahead increase, which is reasonably expected given that the
+uncertainty increases. I now want to rerun this model. We're going to use the
+same model structure, but instead of
+using a variance at the observational
+level V equals to one and W equals to one, we are going to now
+consider a model in which we have 100 times smaller
+signal to noise ratio. The signal to noise ratio in this model is given by
+just the ratio between the system variance W and
+the observational variance v. I'm reducing the
+system variance here, and instead of having
+one that we had before, I'm having 0.01, so my signal to noise ratio
+is going to be going .01. It's 100 times smaller than the signal to noise
+ratio we had before, which was equal to one. What this means is that in terms of the
+modeling of the time series, what we are saying here
+is that the level of the noise is much larger to
+the level of the signal. We expect that a lot
+of the variation we observe in these data
+is due to noise. What that will result in is
+essentially in estimates that are much smoother than the ones that we have
+here in this picture. Let's see what happens
+when we run model. I'm going to keep exactly
+the same structure for everything else. I'm just rerunning the
+forward filtering equations, getting the credible intervals, the forecast as well. Now I'm just going to plot
+the results for that model. This is again the data, and then you can see
+now my mean for Theta t given Dt is much smoother
+than the line we had before. Similarly, for the
+credible intervals is going to be a much
+smoother function here. The forecast is going to
+have the same structure that is just constant over time. Then we have the
+predictive values here for the number
+of steps ahead, is four, and we have just the credible
+intervals as well. I'm going to just draw
+another picture here with the comparison between
+the two means. The red line corresponds to the mean for the
+distribution of Theta t given Dt in the first model that has a signal to
+noise ratio of one. The magenta line here
+corresponds to the second model in which we assume the signal
+to noise ratio of 0.01. You can see again, as we already said, that the second model produces
+much smoother estimates. This is just the data
+plot on top of that. You can control as a modeler the level of
+signal to noise ratio that you expect to
+see in the data, and you can try to specify
+V and W in that way.

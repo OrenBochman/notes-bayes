@@ -1,0 +1,93 @@
+[MUSIC] Let's return to the example at the end
+of lesson two where we have a normal likelihood, with unknown mean and
+unknown variance. To remind ourselves,
+let's write the model. The response for individual I given mu and sigma squared is independent and
+identically distributed normal, with mean mu and
+variance sigma squared, for observations i being 1 up to n. We're also going to assume
+independent priors. A normal prior for mu,
+with these hyper parameters, and an inverse gamma prior for sigma squared,
+with these hyper parameters. In this case, we chose a normal prior for
+mu because when sigma squared is a known constant, the normal distribution
+is the conjugate prior for mu. Likewise, in the case where mu is known, the inverse gamma is the conjugate
+prior for sigma squared. This will give us convenient, full conditional distributions
+in a Gibbs sampler. Let's first work out the form of
+the full posterior distribution. When we begin analyzing data, the jag
+software will complete this step for us. However, I believe it's extremely
+valuable for us to see and understand how this works. The joint posterior
+distribution from mu and sigma squared, given all the data, is going to be proportional to
+the joint distribution of everything, which starts with our likelihood,
+the joint distribution of the data, given the parameters,
+times those respective priors. So let's write out what
+these densities look like. First the likelihood because we
+assume that they're independent. We're going to write their densities
+as a product of normal densities for each individual y,
+given those two parameters. Then we have the prior for mu,
+which is a normal density for mu given those hyper parameters. And finally, a density for sigma squared. This inverse gamma,
+given its hyper parameters here. I'm going to keep writing these steps,
+but so that you don't have to write and watch the math happen in real time,
+we're going to skip forward. Okay, I've now done a little bit of
+math to complete these next two lines. All I did was replace these densities for these distributions with
+their actual densities. So we have the likelihood piece right
+here, the normal distribution for mu right here, and the inverse gamma
+distribution for sigma squared right here. We could also include an indicator
+function that sigma squared has to be greater than zero, but
+we know that's true. To get from this line to this line, we remember that we're only working
+up to proportionality anyway. So we don't need the multiplying
+constants that don't involve mu or sigma squared here. So, I was able to remove these 1 over 2 pi pieces right here,
+those are just a multiplicative constant. But I did have to keep the sigma
+squareds because this is a function of sigma squared. I brought in this exponential
+piece that contains both mu and sigma squared,
+bringing the product inside the exponent. Then in the normal prior right here,
+this piece doesn't contain any mu or sigma squared, so that can drop
+out when we make it proportional. And this normalizing constant for
+the inverse gamma distribution also does not contain a sigma squared or
+a mu, so it can be dropped as well. So this is the function
+we're going to work with. I've now moved this distribution that
+we just derived, the joint distribution of mu and sigma squared up to
+proportionality, up here to the top. From here it's easy to
+continue on to find the two full conditional
+distributions that we need. The first one we'll look at is mu, assuming sigma squared
+is a known constant. In which case, it becomes a constant and
+is absorbed into the normalizing constant. So we're going to work on the full
+conditional distribution of mu, given sigma squared, pretending it's
+a constant number, and all of the data, This will be proportional to our full
+joint posterior distribution of mu and sigma squared,
+given all the data, Like this. So we need to take the pieces from
+this full joint posterior distribution that involve mu only,
+because now sigma squared is a constant. So we can drop this piece. And keep this piece in a likelihood. This piece also has a mu,
+so we need to keep it. And none of the rest of these contain mu. They're all multiplied
+by this distribution. So we don't need to keep
+any of these pieces here. This is all we need. Again, I'm going to skip forward so we don't have to watch all
+of the math in real time. I've now completed these next two steps,
+where we did a little bit more algebra. In this step, we combined
+the two exponents into one, and in the final step we recognized
+that this piece right here is proportional to a normal density
+with this mean and this variance. There are a lot of intermediate
+calculations required right here, but they're all provided in the supplementary
+material from the previous course. This is just the conjugate update for
+a normal mean when the variance is known. So, given the data and sigma squared,
+mu follows this normal distribution. Now let's look at sigma squared and
+we'll assume that mu is known. So we're going to look at
+the full conditional distribution at sigma squared,
+given mu and all of the data. Again, that is proportional to our full joint posterior So we're going to take the pieces
+from this expression that involves sigma squared, and
+now mu is thought of as being a constant. So we're going to keep this first piece,
+of course. And this one as well. It contains a sigma squared. This piece right here contains
+the hyper parameter for mu, but not actual sigma squared
+parameter is observed there. So we skip that one. That gets absorbed into
+the normalizing constant. And we keep this one, which involves
+sigma squared And the last piece. Again, I'll do a couple more
+steps on this piece right here. Let's examine these last two steps. Here, I combined these two sigma
+squared expressions right here, since they were being
+multiplied by each other. And I combined the two
+exponential pieces right here. If you look at this expression right here,
+it turns out this is, except for a normalizing constant, the
+density of an inverse gamma distribution. So this in fact is proportional
+to an inverse gamma density for sigma squared, with an updated shape
+parameter and an updated scale parameter. These two distributions provide
+the basis of a Gibbs sampler to simulate from a Markov chain,
+whose stationary distribution is the full posterior distribution for
+mu and sigma squared. We simply alternate draws
+between these two parameters, using the most recent draw of one
+parameter to update the other. We're now going to do this
+in r in the next segment. [MUSIC]

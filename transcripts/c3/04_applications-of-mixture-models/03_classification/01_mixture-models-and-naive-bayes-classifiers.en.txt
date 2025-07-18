@@ -1,0 +1,183 @@
+The last class of problems
+for which mixture models are very useful is
+classification problems. If you come from the machine
+learning literature, you will call this supervised
+classification to contrast, again, unsupervised
+classification that I called clustering before. The goal in supervised
+classification is to start with a training
+set and use the information in a training set to
+determine the classes or the labels of a second group of observations that you
+call the test set. So you start with a training set that contains known labels classes. You also have a test set
+that has unknown labels, and you want to use this
+information to make predictions about the test set labels. For example, you may want to decide whether
+a person suffers from a disease or not based
+on a set of medical tests, maybe P medical tests, and you have gone out and measured those tests
+in a number of individuals. So you know those individuals whether they are sick
+or they are not sick. Based on that training set
+that is labeled where you know what the real quality
+of the individuals is, then you go out and
+you are going to pick just a random person that comes into your medical appointment, and based on the
+results of the test, now you want to decide
+if that individual suffers from the disease or not. So the presence of the
+training set is really what distinguishes
+clustering problems from classification problems. In clustering problems, we
+don't have a training set. We don't have anything
+that gives us a hint about how the
+classes look like. We're trying to do the process of dividing the observations into groups in some sense blindly. That's why it's sometimes called unsupervised classification
+because you can think that the training set provides supervision in how you
+do the classification. In typical supervised classification
+problems on the other hand, you do have that training set. You do have that group of labeled observations
+that can help you make decisions about how the new groups
+will look like. So in some sense, supervised classification
+is a simpler problem than unsupervised
+classification because of the presence of
+the training set. Now, there are a number of classification
+procedures out there. This is a fairly common
+problem in the literature. You may be familiar with things like support vector machines or logistic regression
+for classification. I want to discuss today the similarities between
+using mixture models for classification and
+some techniques such as linear discriminant analysis, and in particular with Naive Bayes classifiers. The idea of Naive Bayes
+classifiers is very simple. So if you want to know what
+is the probability that observation i belongs to class k, you can typically obtain
+that by just using Bayes' theorem by computing the prior probability that an observation is in that class. That is typically
+just the frequency of the class multiplied by the density of that class and divided by the sum over the classes
+of the same expression. Now, again, this should
+be very familiar. This quantity here is
+essentially what we used both in the EM
+algorithm to compute the [inaudible] case and in the MCMC algorithm if you are fitting a mixture model from a Bayesian perspective to sample the class labels C sub x. So in other words, it's clear just from writing the expression
+from Naive Bayes that there should be a very
+close relationship between doing Naive Bayes
+and doing mixture models. In fact, you can cast Naive Bayes
+classifiers as just as a special case of mixture models. Let's discuss Naive
+Bayes classifiers where we use Gaussian kernels
+for the classification. Let's enter this a
+little bit of notation. So remember that we have both a test set and
+a training set. So let's call X_1 up to
+X_n my training set, and let's call X_n plus 1 up
+to X_n plus m the test set. In other words, we have n observations in
+the training set, we have m observations in the test set and we just
+group the observations together so that the
+first n in the sample are the training and
+last m are the test. In addition to this, because the training
+set is labeled, we're going to have C_1
+up to C_n are known, but C_1 or C_n plus
+1 up to C_m plus n are unknown and we
+want to protect them. Let's write a Naive
+Bayes classifier that uses Gaussian kernels, and we're going to use the more general Gaussian
+kernels that we can. So in that case, the probability
+that observation i belongs to class k, it's going to be
+equal to Omega_k 1 over the square root 2 Pi to the p. Remember that we're working
+with P variate normal. So we can have P features
+for each individual, determinant of Sigma_k to the minus one 1/2
+X of minus one 1/2 X_i minus Mu k transpose sigma sub k
+inverse X_i minus Mu k, divided by the sum over the components of
+exactly the same expression. This has to be l, minus Mu sub l transpose
+sigma l inverse X_i minus Mu l. So this is just Bayes theorem as we have written multiple
+times in this course. So what you do is, you need this expression
+only for the training set because for the test
+set you already know what class you are in. So what you typically do is
+a two-step process in which you get Mu k hat and Sigma hat sub k are estimated from the training set. You could do different things, but it's very fairly
+common to just fit a multivariate Gaussian to each one of the components. So your Cs, your labels divide your
+training set into groups. For each one of those groups, you fit one different
+normal and that gives you Sigma and Mu. Similarly, for Omega k, you want to get an
+estimate for Omega k, and the natural thing to do
+is to just use the frequency, the fraction of the observations in the training set that belong to each one
+of the classes. Once you have those, then you classify
+new observations as by letting C_i be equal to the org max
+of that probability. Where the probabilities
+are computed by plugging in these maximum
+likelihood estimators in this formula up here. As I said, this is done
+for n plus 1 all the way to n plus m. So you don't need to do this
+for the training set, the training set
+you know the labels and you use those labels to compute the MLEs that
+get plugged into this. Now, with additional
+observations in those MLEs, you can decide what are
+the classes for them. So this is what a naive
+Bayes classifier based on Gaussian distributions for each one of the classes
+would look like. Now, this is exactly the same as the EM algorithm that we have discussed in the
+past for mixture models, if we make a couple of assumptions or if we incorporate a couple of assumptions
+into the algorithm. So let's write down that next. We can recast the
+algorithms that we just saw for naive Bayes
+classifier based on Gaussian kernels
+in the context of the EM algorithm that we have been discussing
+for mixtures. That is very easy, we're going to think, again, about an E-step and an M-step, and we're going to add an additional post-processing
+step, if you will. In our E-step, if you remember, what we did in the
+past was to compute the indicators for the variables. So that is our variables V_i,k that corresponds to the weights that are associated with each
+one of the components. What we're going to do
+in this case is we're going to define the V_i,k in a very simple fashion
+rather than doing it using Bayes theorem. Because we actually know what observations
+or what components are generating each of the observations in the training set, we can call V_i,k
+just one or zero if C_i is equal to k
+and zero otherwise, for all the observations
+that go from one to n. In other words, this is for the training set. Once we have defined
+our E-step in this way, we're going to have an
+M-step where we compute Mu sub k and Omega sub k. To put it in the same way that we
+did with the EM algorithm, this is going to have a
+very particular shape. It's going to have the sum
+from one to n of V_i,k X_i divided by the sum from one to n of V_i,k. In a similar expression
+for my matrix Sigma, Sigma is going to be Sigma sub k, it's going to be
+one over the sum of the V_i,k from one to n, sum from one to n of V_i,k X_i minus Mu k, X_i minus Mu k transpose. These are expressions that we
+have seen in the past when filling mixtures of
+multivariate Gaussians to data. This is just a fancy way, so casting it in terms of
+the E-step and the M-step, it's just a fancy way to say, I know what my assignments are, for sure, because this
+is a training set. So this is just computing the average of the
+observations that are in category K because, in this case, these are
+either zeros or ones. Similarly, here, this is just the variance
+covariance matrix of the observations that
+are in component K, but it's written in
+a fancy way using this V_i,k as indicators. Then, we have a post-processing. It's in the
+post-processing step where the test set comes into play. So for now, we have only used the training set for
+our calculations. In the post-processing step, what we do is we
+allocate C_i based on the arc max over K of the posterior distribution
+of the class allocations. So that is probability that X_i belongs to class K. So this is just another way to write the algorithms
+as we had before, that is very simple in the
+context of [inaudible]. So why did I go through the
+trouble of expressing this in this complicated manner when I had a very simple
+description before? Well, because now you can try to generalize this from
+this supervised setting where you
+completely break apart the estimation
+of the parameters that only uses the training set and the classification that
+only uses the test set. You can actually try to
+combine information from both, and it should be
+clear that if you have training sets that are just very small
+compared to the test set, the estimates that you get
+for Mu and Sigma will be very bad because they will be based on very few observations,
+very few data points. So if you could somehow use some of the information
+that you are recovering by doing the
+classification to help you estimate what
+Mu and Sigma are, they'll probably give you more robust, stronger algorithm. How to do that should be
+relatively straightforward once you think about
+it in this context. For the observations
+to the training set, we have the value of the V_i,k, but we could add an estimate of the
+value of the V_i,k for the observations in the test
+set to this calculation. We already know how to do that. So we're going to turn the
+algorithm iterative now. So these guys are always going to be defined in this way because
+I know the C's, but these guys are refined at every iteration
+of the algorithm. I'll just make this essentially
+equal to the probability that X_i belongs to class K given the current
+parameters of the model, so given the current Omegas, the current Mus, and
+the current Sigmas. Then, I can extend my sums to
+m down here and down here. Now, what I'm doing is, for the observations that I
+know what class they are in, these weights are
+either zeros or ones. For the ones that I don't know but I'm trying to classify, they will be some number
+between zero and one, and I'm just going to do a weighted average so you
+can think about this, again, as a weighted average of the information that
+I know for sure, and the information that
+I'm recovering about Mu and Sigma from the
+classification. So again, this now becomes
+an iterative algorithm, so I need to think about
+t plus 1, t plus 1, t plus 1, t plus 1, t plus 1, t plus 1, and t plus 1. So I have turned what was just a two-step algorithm that doesn't require
+any iteration, I turned it into an iterative
+algorithm that uses the whole sample to estimate the parameters
+of the classes. This is sometimes called
+a semi-supervised; I don't necessarily like
+the term very much. But this is sometimes called
+a semi-supervised algorithm, in the sense that it's
+not completely supervised because of the addition of this information
+and the fact that now, the sums go up to m.
+But it's also not fully unsupervised because
+I'm using the information, I'm using this piece
+up here that has information where I
+know their true labels. Once the algorithm converges, I'm still going to do the post-processing
+step that is to go from this V_i,k's that I computed here for the test set to generate what are the
+labels for those observations.
