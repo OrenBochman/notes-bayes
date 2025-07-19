@@ -21,26 +21,68 @@ title-block-banner: images/banner_deep.jpg
 
 ## Filtering, Smoothing and Forecasting: Unknown observational variance  :movie_camera: {#section-NDLM-unknown-variance}
 
-In this video we cover the following material also provided as a handout:
+::: {.callout-caution collapse="true"}
+## Bumpy ride ahead! {.unnumbered}
 
-Inference in the NDLM with unknown but constant observational variance:
+- This material seems unnecessarily complicated:
+
+1. This section seems like a lots of mathematical gobbledygook without any context of motivation for application for each of the equations being presented.
+  - After writing everything out and reviewing it multiple times, I began to develop a purely mathematical intuition i.e. I can relate them to the the general Bayesian inference framework,
+  - I can't however say I am much closer to using them in engineering solution based on this mathematics.
+  - I doubt that doing a single capstone project will make much of a difference.
+2. While we will see three application in this module, (Nile river data, google trends, and EEG data). However, what I need to understand for each of these filtering, smoothing and forecasting distributions why are they useful rather than the original ones. I mean when we use to solve a specific challenge, for a dataset. 
+
+
+3. Perhaps the root cause here is that this course fails to acknowledge the connection of NDLM to the Kalman Filters and the much wider literature on Kalman Filters than NDLM. It appears to me that in the first course of the Kalman filtering specialization (KF bootcamp) there are a number of application that are presented each with a different requirements and that if we map the different challenges to the NDLM framework we should be able to navigate the math more easily.
+4. Anyhow a lookup indicates that this model is called in the state-space modeling terminology as **local level model** for local level or trend filtering, such as in structural time series models, and in the  Kalman filtering  terminology as a KF with variance learning.
+:::
+
+In the case of the NDLM, where we **assume** That the observational variance $\nu_t=v$ i.e. is constant over time.
+
+### Inference in the NDLM with unknown constant observational variance:
 
 Let $\nu_t = v\ \forall t$ with $\nu$ unknown and consider a DLM with the following structure:
 $$
 \begin{aligned}
   y_t &= \mathbf{F}_t' \boldsymbol{\theta}_t + \nu_t,                
-      &\nu_t &\sim \mathcal{N} (0, v) \\
+      &\nu_t &\sim \mathcal{N} (0, \nu) 
+      &\text{(obs)}\\
   \boldsymbol{\theta}_t &= \mathbf{G}_t \boldsymbol{\theta}_{t-1} + \boldsymbol{\omega}_t, 
-      & \boldsymbol{\omega}_t &\sim \mathcal{N} (0, v \mathbf{W}^*_t)
+      & \boldsymbol{\omega}_t 
+      &\sim \mathcal{N} (0, \nu \mathbf{W}^*_t) 
+      &\text{(sys)}
 \end{aligned}
 $$ {#eq-NDLM-unknown-variance}
 
+- where we have the usual suspects:
+  - the first equation is the observation equation, that relates the hidden state $\theta_t$ to the observation and the observation level noise $\nu_t$, (perhaps in our sensors)
+  - the second equation is the state equation, which describes how the hidden state $\theta_t$ evolves over time with the system noise $\boldsymbol{\omega}_t$. perhaps (due to an approximation in the system dynamics).
+  - $\mathbf{F}_t$  is a known observation matrix,
+  -  $\mathbf{G}_t$ is a known state transition matrix,
+  - $\boldsymbol{\theta}_t$ is the state vector, and 
+  - $\boldsymbol{\omega}_t$ is the system noise.
+  - $\mathbf{W}_t$ is a the known covariance matrix, for system noise which is assumed to be known for all time t
+  
+
+::: {.callout-important collapse="False"}
+## Question: why does $\nu$ appear in the $w_t$ distribution equation? {.unnumbered}
+
+Prado says is also **assuming** that the system noise is conditional on the variance $\nu$.
+Yet this seems to be an assumption that should be justified.
+
+In fact, What we are missing is a logical Model for this model i.e. simple use case
+
+:::
+
 with conjugate prior distributions:
 $$
-(\boldsymbol{\theta}_0 \mid D_0, \nu) \sim \mathcal{N} (\mathbf{m}_0, \nu\ \mathbf{C}^*_0), \qquad (\nu \mid D_0) \sim \mathcal{IG}\left(\frac{n_0}{2}, \frac{d_0}{2}\right ),
+\begin{aligned}
+(\boldsymbol{\theta}_0 \mid \mathcal{D}_0, \nu) &\sim \mathcal{N} (\mathbf{m}_0, \nu\ \mathbf{C}^*_0) \\ (\nu \mid \mathcal{D}_0) &\sim \mathcal{IG}\left(\frac{n_0}{2}, \frac{d_0}{2}\right ) \\
+ d_0 &= n_0 s_0
+\end{aligned}
 $$ {#eq-NDLM-unknown-variance-priors}
 
-and $d_0 = n_0 s_0$
+
 
 ### Filtering
 
@@ -138,23 +180,49 @@ $$
 B_T = C_T G'_{T+1} R^{-1}_{T+1}, \quad a_T (0) = m_T , \quad R_T (0) = C_T.
 $$
 
+::: {.callout-note collapse="true"}
+## Video Transcript {.unnumbered}
+
+{{< include transcripts/c4/04_week-4-normal-dynamic-linear-models-part-ii/02_bayesian-inference-in-the-ndlm-part-ii/01_filtering-smoothing-and-forecasting-unknown-observational-variance.en.txt >}}
+:::
+
 ## Summary of Filtering, Smoothing and Forecasting Distributions, NDLM unknown observational variance  :spiral_notepad: 
+
+
 
 ## Specifying the system covariance matrix via discount factors  :movie_camera: 
 
+::: {.callout-note collapse="true"}
+## Video Transcript {.unnumbered}
+
+{{< include transcripts/c4/04_week-4-normal-dynamic-linear-models-part-ii/02_bayesian-inference-in-the-ndlm-part-ii/03_specifying-the-system-covariance-matrix-via-discount-factors.en.txt >}}
+
+:::
+
 ## NDLM, Unknown Observational Variance: Example  :movie_camera: 
 
-This is a walk though of the R code for the example bellow.
+This is a walk though of the R code in @lst-NDLM-unknown-variance
 
-## Rcode: NDLM, Unknown Observational Variance Example  :spiral_notepad: 
+::: {.callout-note collapse="true"}
+## Video Transcript {.unnumbered}
 
-This code allows time-varying $F_t$, $G_t$ and $W_t$ matrices and assumes an unknown but constant $\nu$. It also allows the user to specify $W_t$ using a discount factor $\delta \in (0,1]$ or assume $W_t$  known.
+{{< include transcripts/c4/04_week-4-normal-dynamic-linear-models-part-ii/02_bayesian-inference-in-the-ndlm-part-ii/04_ndlm-unknown-observational-variance-example.en.txt >}}
 
-```{r}  
-#| label: code-NDLM-unknown-variance
+:::
+
+## code: NDLM, Unknown Observational Variance Example  :spiral_notepad: $\mathcal{R}$
+
+This code allows time-varying $F_t$, $G_t$ and $W_t$ matrices and assumes an unknown but constant $\nu$. 
+It also allows the user to specify $W_t$ using a discount factor $\delta \in (0,1]$ or assume $W_t$  known.
+
+```{r} 
+#| label: lst-NDLM-unknown-variance
+#| lst-label: lst-NDLM-unknown-variance
+#| lst-cap: NDLM, Unknown Observational Variance Example
 
 ## create list for matrices
-set_up_dlm_matrices_unknown_v <- function(Ft, Gt, Wt_star){
+set_up_dlm_matrices_unknown_v <- function(
+  Ft, Gt, Wt_star){
   if(!is.array(Gt)){
     Stop("Gt and Ft should be array")
   }
@@ -167,12 +235,13 @@ set_up_dlm_matrices_unknown_v <- function(Ft, Gt, Wt_star){
 
 
 ## create list for initial states
-set_up_initial_states_unknown_v <- function(m0, C0_star, n0, S0){
+set_up_initial_states_unknown_v <- function(
+  m0, C0_star, n0, S0){
   return(list(m0=m0, C0_star=C0_star, n0=n0, S0=S0))
 }
 
-forward_filter_unknown_v <- function(data, matrices, 
-                              initial_states, delta){
+forward_filter_unknown_v <- function(
+  data, matrices, initial_states, delta){
   ## retrieve dataset
   yt <- data$yt
   T<- length(yt)
@@ -405,7 +474,11 @@ get_credible_interval_unknown_v <- function(ft, Qt, nt,
 
 }
 
+```
 
+### Nile River Level Filtering Smoothing and Forecasting Example
+
+```{r}
 
 ## Example: Nile River Level (in 10^8 m^3), 1871-1970 
 ## Model: First order polynomial DLM
@@ -452,6 +525,11 @@ results_forecast=forecast_function_unknown_v(results_filtered,
 ci_forecast=get_credible_interval_unknown_v(results_forecast$ft, 
                                           results_forecast$Qt, 
                                      results_filtered$nt[T])
+```
+
+```{r}
+#| label: fig-NDLM-unknown-variance-nile-data
+#| fig-cap: Nile River Level Filtering, Smoothing and Forecasting Results
 
 
 ## plot results
@@ -476,5 +554,59 @@ lines(index_forecast, ci_forecast[, 1], type='l',
       col='green', lty=2)
 lines(index_forecast, ci_forecast[, 2], type='l', 
       col='green', lty=2)
+legend("topright",
+       legend = c("Observed", "Filtered mean", "Filtered CI", 
+                  "Smoothed mean", "Smoothed CI", 
+                  "Forecast mean", "Forecast CI"),
+       col = c("black", "red", "red", "blue", "blue", "green", "green"),
+       lty = c(NA, 1, 2, 1, 2, 1, 2),
+       pch = c(20, NA, NA, NA, NA, NA, NA),
+       lwd = c(NA, 2, 1, 2, 1, 2, 1),
+       bty = "n",
+       ncol = 2)
+
+
 
 ```
+
+::: {.callout-note collapse="false"}
+## Overthinking the Nile River Data {.unnumbered}
+
+We use the Nile dataset throughout the course, despite the Nile data being notorious for having long term dependencies and being highly non-linear, which might present many challenges for the NDLM framework. c.f. the joint work of two giants [Benoit Mandelbrot](https://en.wikipedia.org/wiki/Benoit_Mandelbrot) and [Harold Edwin Hurst](https://en.wikipedia.org/wiki/Harold_Edwin_Hurst).
+Which led to the development of the Hurst exponent and the [fractional Brownian motion](https://en.wikipedia.org/wiki/Fractional_Brownian_motion), i.e. fractional Gaussian noise and fractional ARIMA [ARFIMA](https://en.wikipedia.org/wiki/Autoregressive_fractionally_integrated_moving_average) which are more suitable for modeling the Nile data but not covered in this course.
+
+Just a couple of concepts here:
+
+In Fractional Brownian Motion (fBm) draws from the Normal need not be independent. With the concept of Hurst exponent $H$ which is a measure of the long-term memory of a time series. The Hurst exponent is defined as follows:
+$$
+\mathbb{E}[B_{H}(t)B_{H}(s)]={\tfrac {1}{2}}(|t|^{2H}+|s|^{2H}-|t-s|^{2H}),
+$$ {#eq-fbm-autocovariance}
+
+- where:
+  - $B_{H}(t)$ is the fractional Brownian motion, and
+  - $H$ is the Hurst exponent.
+
+2. in ARFIMA, the autocovariance we allow the exponent of the lag $k$ to be a real number $d$ rather than an integer, i.e. we allow for fractional differencing via a formal binomial series expansion of the form:
+
+$$\begin{array}{c} {\displaystyle {\begin{aligned}(1-B)^{d}&=\sum _{k=0}^{\infty }\;{d \choose k}\;(-B)^{k}\\&=\sum _{k=0}^{\infty }\;{\frac {\prod _{a=0}^{k-1}(d-a)\ (-B)^{k}}{k!}}\\&=1-dB+{\frac {d(d-1)}{2!}}B^{2}-\cdots \,.\end{aligned}}} \end{array}
+$$ {#eq-ARFIMA}
+
+:::
+
+## Case Study EEG data  :movie_camera:   {#section-NDLM-eeg}
+
+::: {.callout-note collapse="true"}
+## Video Transcript
+
+{{< include transcripts/c4/04_week-4-normal-dynamic-linear-models-part-ii/03_case-studies/01_eeg-data.en.txt >}}
+
+:::
+
+## Case Study: Google Trends  :movie_camera:  {#section-NDLM-google-trends}
+
+::: {.callout-note collapse="true"}
+## Video Transcript
+
+{{< include transcripts/c4/04_week-4-normal-dynamic-linear-models-part-ii/03_case-studies/02_google-trends.en.txt >}}
+
+:::
