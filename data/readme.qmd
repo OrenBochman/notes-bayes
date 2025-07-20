@@ -1,0 +1,147 @@
+these are some datasets used in the specialization as well as some extras
+
+
+| File Name | Description | Source |
+| --- | --- | --- |
+| CO2.csv | Mauna Loa CO2 data set | https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/co2.html
+| nile.csv | The Nile River data set | https://www.rdocumentation.org/packages/datasets/versions/3.6.2/topics/Nile
+| MEDDAYONMARUS.csv | Housing Inventory: Median Days on Market in the United States (MEDDAYONMARUS)| https://fred.stlouisfed.org/series/MEDDAYONMARUS|
+| POILWTIUSDM.csv | Global price of WTI Crude (POILWTIUSDM) | https://fred.stlouisfed.org/series/POILWTIUSDM
+
+
+## co_2 data set {#sec-co2-data}
+
+```{r}
+#| label: lst-just-load-the-co2-data
+require(graphics)
+plot(co2, ylab = expression("Atmospheric concentration of CO"[2]),
+     las = 1)
+title(main = "co2 data set")
+```
+
+## Nile River data set {#sec-nile-data}
+```{r}
+#| label: lst-just-load-the-nile-data
+require(graphics)
+plot(Nile, ylab = "Flow (billion cubic meters)",
+     las = 1)
+title(main = "Nile River data set")
+```
+
+
+```{r}
+#| label: lst-acf-pacf-nile-data
+require(stats)
+require(graphics)
+par(mfrow = c(2, 2))
+plot(Nile)
+acf(Nile)
+pacf(Nile)
+ar(Nile) # selects order 2
+cpgram(ar(Nile)$resid)
+par(mfrow = c(1, 1))
+arima(Nile, c(2, 0, 0))
+
+## Now consider missing values, following Durbin & Koopman
+NileNA <- Nile
+NileNA[c(21:40, 61:80)] <- NA
+arima(NileNA, c(2, 0, 0))
+plot(NileNA)
+pred <-
+   predict(arima(window(NileNA, 1871, 1890), c(2, 0, 0)), n.ahead = 20)
+lines(pred$pred, lty = 3, col = "red")
+lines(pred$pred + 2*pred$se, lty = 2, col = "blue")
+lines(pred$pred - 2*pred$se, lty = 2, col = "blue")
+pred <-
+   predict(arima(window(NileNA, 1871, 1930), c(2, 0, 0)), n.ahead = 20)
+lines(pred$pred, lty = 3, col = "red")
+lines(pred$pred + 2*pred$se, lty = 2, col = "blue")
+lines(pred$pred - 2*pred$se, lty = 2, col = "blue")
+
+## Structural time series models
+par(mfrow = c(3, 1))
+plot(Nile)
+## local level model
+(fit <- StructTS(Nile, type = "level"))
+lines(fitted(fit), lty = 2)              # contemporaneous smoothing
+lines(tsSmooth(fit), lty = 2, col = 4)   # fixed-interval smoothing
+plot(residuals(fit)); abline(h = 0, lty = 3)
+## local trend model
+(fit2 <- StructTS(Nile, type = "trend")) ## constant trend fitted
+pred <- predict(fit, n.ahead = 30)
+## with 50% confidence interval
+ts.plot(Nile, pred$pred,
+        pred$pred + 0.67*pred$se, pred$pred -0.67*pred$se)
+
+## Now consider missing values
+plot(NileNA)
+(fit3 <- StructTS(NileNA, type = "level"))
+lines(fitted(fit3), lty = 2)
+lines(tsSmooth(fit3), lty = 3)
+```
+
+
+### ARFIMA using `fracdiff` package
+
+```{r}
+#| label: lst-nile-data-arfima-fracdiff
+library(longmemo)
+# Load the Nile data:
+library(graphics)
+nile <- Nile
+## fit a model to the Nile data
+#fit <- auto.arima(nile, d=c(0,1), approximation=FALSE, stepwise=FALSE)
+#summary(fit)
+
+library(fracdiff)
+fit <- fracdiff(nile, nar=1, nma=1)
+summary(fit)
+
+# View the model summary
+summary(fit)
+# Plot the residuals
+plot(residuals(fit))
+# Check the ACF and PACF of residuals
+acf(residuals(fit))
+pacf(residuals(fit))
+
+library(forecast)
+forecast_nile <- forecast(fit, h=20)
+plot(forecast_nile)
+
+
+Box.test(residuals(fit), lag=20, type="Ljung-Box")
+```
+
+### ARFIMA using `forecast` package
+
+
+```{r}
+#| label: lst-nile-data-arfima-forecast
+library(forecast)
+
+# Fit an ARFIMA(p, d, q) model to the Nile data
+fit <- arfima(Nile)
+
+# View summary
+summary(fit)
+
+# Access coefficients
+fit$coef
+
+# Plot residuals
+plot(residuals(fit))
+
+# ACF and PACF of residuals
+acf(residuals(fit))
+pacf(residuals(fit))
+
+# Forecast
+forecast_nile <- forecast(fit, h=20)
+plot(forecast_nile)
+
+# Ljung-Box test
+Box.test(residuals(fit), lag=20, type="Ljung-Box")
+
+```
+
