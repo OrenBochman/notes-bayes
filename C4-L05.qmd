@@ -11,7 +11,8 @@ categories:
   - Time Series
 keywords: 
   - time series
-  - stability
+  - AR(p) process  
+  - inference
   - order of an AR process 
   - characteristic lag polynomial
   - autocorrelation function
@@ -23,7 +24,6 @@ keywords:
   - ARMA process
   - ARIMA
   - moving average
-  - AR(p) process  
   - R code
 ---
 
@@ -34,15 +34,14 @@ keywords:
 
 ### Model Setup
 
-we start with an AR(p) model as we define in the previous lesson:
+we start with an **AR(p)** model as we define in the previous lesson:
 $$
 y_t = \phi_1 y_{t-1} + \ldots + \phi_p y_{t-p} + \varepsilon_t \qquad \varepsilon_t \stackrel{iid}{\sim} \mathcal{N}(0, \nu)
 $$ {#eq-arp-inf-model}
 
-but now we wish to infer:
-
-- $\phi_i$ the *AR(p)* coefficients and 
-- $\nu$ the innovation variance.
+- We wish to infer:
+  - $\phi_i$ the *AR(p)* coefficients and 
+  - $\nu$ the innovation variance.
 
 ### Conditional likelihood
 
@@ -52,7 +51,7 @@ $$
 (y_t \mid y_{t-1}, \ldots, y_{t-p}, \phi_1, \ldots, \phi_p) \sim \mathcal{N}\left (\sum_{j=1}^{p} \phi_j y_{t-j}, v\right )
 $$ {#eq-arp-inf-cond}
 
-We condition on the first $p$ values of the process. 
+[We condition on the first $p$ values of the process.]{.mark}
 The conditional distribution of $y_t$ given the previous $p$ values and parameters is normal with mean given by the weighted sum $\sum \phi_j y_{t-j}$ and variance $v$.
 
 
@@ -104,13 +103,13 @@ p(\beta,v) \propto 1/v
 $$ {#eq-arp-inf-prior}
 
 $$
-(\boldsymbol \beta | \mathbf{y}_{:T}, v) \sim \mathcal{N}(\boldsymbol \beta_{MLE}, v (\mathbb{X}^\top \mathbb{X})^{-1})
+(\boldsymbol \beta \mid \mathbf{y}_{:T}, v) \sim \mathcal{N}(\boldsymbol \beta_{MLE}, v (\mathbb{X}^\top \mathbb{X})^{-1})
 $$ {#eq-arp-inf-posterior-beta}
 
 The posterior is Gaussian with mean $\boldsymbol \beta_{MLE}$ and scaled covariance $v(\mathbb{X}^\top \mathbb{X})^{-1}$, analogous to the OLS variance.
 
 $$
-(v | \mathbf{y}_{:T}) \sim \text{Inverse-Gamma}\left(\frac{T - 2p}{2}, \frac{S^2}{2}\right)
+(v \mid \mathbf{y}_{:T}) \sim \text{Inverse-Gamma}\left(\frac{T - 2p}{2}, \frac{S^2}{2}\right)
 $$ {#eq-arp-inf-posterior-v}
 
 where:  
@@ -452,7 +451,7 @@ Using this information, we can also obtain a spectral representation of the proc
 
 
 $$
-f(\omega) = \frac{v}{|1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omega p})|^2 2\pi}
+f(\omega) = \frac{v}{ \mid 1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omega p}) \mid^2 2\pi}
 $$
 
 with:
@@ -654,15 +653,16 @@ Next we will define the notions of stability and invertibility of an ARMA proces
 ::: {.callout-important}
 ## Stability Definition {.unnumbered}
 
-An ARMA process is **stable** if the roots of the AR characteristic polynomial [stable]{.column-margin}
+[stable]{.column-margin}
+[An ARMA process is **stable** if the roots of the AR characteristic polynomial]{.mark} 
 
 $$
 \Phi(u) = 1 - \phi_1 u - \phi_2 u^2 - \ldots - \phi_p u^p
 $$
 
-lie outside the unit circle, i.e., for all $u$ such that $\Phi(u) = 0$, $|u| > 1$.
+lie outside the unit circle, i.e., for all $u$ such that $\Phi(u) = 0$, $\|u\| > 1$.
 
-Equivalently, this happens when the reciprocal roots of the AR polynomial have moduli smaller than 1.
+Equivalently, this happens when the reciprocal roots of the *AR(p) polynomial* have moduli smaller than 1.
 
 This condition implies stationarity.
 
@@ -685,8 +685,8 @@ lie outside the unit circle.
 
 Note that $\Phi(B) y_t = \Theta(B) \varepsilon_t$.
 
-- When an ARMA process is **stable**, it can be written as an infinite order moving average process.
-- When an ARMA process is **invertible**, it can be written as an infinite order autoregressive process.
+- [When an ARMA process is **stable**, it can be written as an infinite order moving average process.]{.mark}
+- [When an ARMA process is **invertible**, it can be written as an infinite order autoregressive process.]{.mark}
 
 \index{ARIMA process!definition}
 
@@ -705,27 +705,28 @@ in other words, $y_t$ follows an ARIMA(p, d, q) if the $d$ difference of $y_t$ f
 
 :::
 
-Estimation in ARIMA processes can be done via *least squares*, *maximum likelihood*, and also *in a Bayesian way*. We will not discuss Bayesian estimation of ARIMA processes in this course.
+Estimation in ARIMA processes can be done via *least squares*, *maximum likelihood*, and also *in a Bayesian way*. 
+We don't discuss Bayesian estimation of ARIMA processes in this course.
 
 ### Spectral Density of ARMA Processes
 
 \index{ARMA process!spectral density}
-For a given AR(p) process with AR coefficients $\phi_1, \dots, \phi_p$ and variance $v$, we can obtain its **spectral density** as
+For a given **AR(p)** process with AR coefficients $\phi_1, \dots, \phi_p$ and variance $v$, we can obtain its **spectral density** as
 
 $$
-f(\omega) = \frac{v}{2\pi |\Phi(e^{-i\omega})|^2} = \frac{v}{2\pi |1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-ip\omega}|^2},
+f(\omega) = \frac{v}{2\pi \|\Phi(e^{-i\omega})\|^2} = \frac{v}{2\pi \|1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-ip\omega}\|^2},
 $$ {#eq-ar-spectral-density}
 
 with $\omega$ a frequency in $(0, \pi)$.
 
 The spectral density provides a frequency-domain representation of the process that is appealing because of its interpretability.
 
-For instance, an AR(2) process that has one pair of complex-valued reciprocal roots with modulus 0.7 and a period of $\lambda = 12$, will show a mode in the spectral density located at a frequency of $2\pi/12$. If we keep the period of the process at the same value of 12 but increase its modulus to 0.95, the spectral density will continue to show a mode at $2\pi/12$, but the value of $f(2\pi/12)$ will be higher, indicating a more persistent *quasi-periodic* behavior.
+For instance, an **AR(2)** process that has one pair of complex-valued reciprocal roots with modulus 0.7 and a period of $\lambda = 12$, will show a mode in the spectral density located at a frequency of $2\pi/12$. If we keep the period of the process at the same value of 12 but increase its modulus to 0.95, the spectral density will continue to show a mode at $2\pi/12$, but the value of $f(2\pi/12)$ will be higher, indicating a more persistent *quasi-periodic* behavior.
 
 Similarly, we can obtain the spectral density of an ARMA process with AR characteristic polynomial $\Phi(u) = 1 - \phi_1 u - \ldots - \phi_p u^p$ and MA characteristic polynomial $\Theta(u) = 1 + \theta_1 u + \ldots + \theta_q u^q$, and variance $v$ as
 
 $$
-f(\omega) = \frac{v}{2\pi} \frac{|\Theta(e^{-i\omega})|^2}{|\Phi(e^{-i\omega})|^2}.
+f(\omega) = \frac{v}{2\pi} \frac{\|\Theta(e^{-i\omega})\|^2}{\|\Phi(e^{-i\omega}) \|^2}.
 $$ {#eq-arma-spectral-density}
 
 Note that if we have posterior estimates or posterior samples of the AR/ARMA coefficients and the variance $v$, we can obtain samples from the spectral density of AR/ARMA processes using the equations above.
