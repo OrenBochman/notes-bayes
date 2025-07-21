@@ -1,6 +1,6 @@
 ---
 date: 2024-11-03
-title: "The AR(1): MLE and Bayesian inference - M1L3"
+title: "The AR(1): MLE and Bayesian inference"
 subtitle: Time Series Analysis
 description: "This lesson we will define the AR(1) process, Stationarity, ACF, PACF, differencing, smoothing"
 categories: 
@@ -27,14 +27,14 @@ keywords:
 
 :::
 
-## Maximum likelihood and Bayesian inference in regression :spiral_notepad: 
+## Maximum likelihood and Bayesian inference in regression :spiral_notepad: {#sec-mle-bayes-regression}
 
 This section is based on the handout provided in the course materials. 
 The gist of this handout is that if we can write the regression as the equation of a straight line, we should be able to make use of basic algebra to invert the equation and obtain an expression for the regression coefficients. We do this by writing the equation in matrix form and then using the Moore-Penrose pseudoinverse to obtain the maximum likelihood estimator for the regression coefficients.
 
 
 ::: {.callout-caution}
-## Moore-Penrose pseudoinverse
+### Moore-Penrose pseudoinverse {.unnumbered}
 
 Prado snuck the Moore-Penrose pseudoinverse in this handout, then she used it in the class and notes. I thought this isn't the first time this has come up in the specialization as we used MLE to some degree in all the courses, and in depth in the previous course on mixtures. However a cursory review did not uncover previous use of this mathematical tool. So I thought it might be useful to provide a brief overview of the Moore-Penrose pseudoinverse, its properties and how it is used in regression models.
 
@@ -47,12 +47,12 @@ I found a couple of reference in [@schott2016matrix ch. 5] but they it didn't co
 
 I cover some of this material in an @sec-moore-penrose to the course notes, however I am still missing a good source for @eq-mle-estimator-beta. 
 
-<!-- TODO: Find a good reference for the MLE estimator for beta in the context of the Moore-Penrose pseudoinverse. and add it to the the appondix above -->
+<!-- TODO: Find a good reference for the MLE estimator for beta in the context of the Moore-Penrose pseudoinverse. and add it to the the appendix above -->
 
 
 It is denoted as $X^+$ and has the following properties:
 
-This pseudoinverse is a neat bit of mathematics which allows us to not only invert the equation from the left but it somehow minimizes the sum of squared errors in the regression - I.e. we get the parameters while minimizing the sum of squared errors due to the variance term. One strong assumption we must make is that the design matrix $X$ is full rank, which means that the columns of the matrix are linearly independent. The columns of the design matrix correspond to the explanatory variables in the regression model.
+This pseudo-inverse is a neat bit of mathematics which allows us to not only invert the equation from the left but it somehow minimizes the sum of squared errors in the regression - I.e. we get the parameters while minimizing the sum of squared errors due to the variance term. One strong assumption we must make is that the design matrix $X$ is full rank, which means that the columns of the matrix are linearly independent. The columns of the design matrix correspond to the explanatory variables in the regression model.
 
 In reality as we are dealing with hierarchical models, so we will not always have a full rank design matrix, but we can still use the Moore-Penrose pseudoinverse to obtain the maximum likelihood estimator for the regression coefficients.
 :::
@@ -138,7 +138,9 @@ with $k = dim(\boldsymbol\beta)$.
 
 [Given that $\mathbb{P}r(\boldsymbol\beta, v \mid \mathbf{y}) = \mathbb{P}r(\boldsymbol\beta \mid v, \mathbf{y})p(v \mid \mathbf{y})$ the equations above provide a way to directly sample from the posterior distribution of $\boldsymbol \beta$ and $v$ by first sampling v from the inverse-gamma distribution above and then conditioning on this sampled value of v, sampling $\boldsymbol \beta$ from the normal distribution above.]{.mark}
 
-## Maximum likelihood estimation in the AR(1)  :movie_camera:   {#sec-mle-ar1}
+
+
+## Maximum likelihood estimation in the AR(1) :movie_camera:   {#sec-mle-ar1}
 
 ![MLE 1](images/m1_0041.png){#fig-s_0041 .column-margin  group="slides" width="53mm"}
 
@@ -313,7 +315,14 @@ So if I were to look at maximizing this function, we can think about taking firs
 | Useful when           | Modeling full joint process | Estimating $\phi$ efficiently in practice |
 
 
-## MLE for the AR(1)  :spiral_notepad:  $\mathcal{R}$
+::: {.callout-note collapse="true"}
+## Video Transcript
+
+{{< include transcripts/c4/01_week-1-introduction-to-time-series-and-the-ar-1-process/04_the-ar-1-maximum-likelihood-estimation-and-bayesian-inference/02_maximum-likelihood-estimation-in-the-ar-1.en.txt >}}
+
+:::
+
+## MLE for the AR(1)  :spiral_notepad: $\mathcal{R}$
 
 \index{AR(1) process!MLE}
 The following code allows you to compute the *MLE* of the AR coefficient $\psi$, the unbiased estimator of $v$, $s^2$ , and the *MLE* of $v$ based on a dataset simulated from an *AR(1) process* and using the conditional likelihood.
@@ -402,14 +411,14 @@ result = optimize(log_p, c(-1, 1),
 cat("\n MLE of full likelihood for phi: ", result$maximum)
 ```
 
-1. ar coefficient
-2. innovation standard deviation
-3. number of time points
-4. log likelihood function
-5. using a built-in optimization method to obtain MLE
+1. AR coefficient
+2. Innovation standard deviation
+3. Number of time points
+4. Log likelihood function
+5. Using a built-in optimization method to obtain MLE
 
 
-## Bayesian inference in the AR(1)
+## Bayesian inference in the AR(1) :movie_camera: {#sec-bayesian-inference-ar-1}
 
 ![inference](images/m1_0051.png){#fig-c2l1-s1-inference .column-margin  group="slides" width="53mm"}
 
@@ -481,6 +490,13 @@ $$
 Q(\hat{\phi}_{MLE}) = \sum_{t=2}^T (y_t - \hat{\phi}_{MLE}\ y_{t-1})^2
 $$ {#eq-q-ar1-q-mle-bayes}
 
+::: {.callout-note collapse="true"}
+## Video Transcript
+
+{{< include transcripts/c4/01_week-1-introduction-to-time-series-and-the-ar-1-process/04_the-ar-1-maximum-likelihood-estimation-and-bayesian-inference/04_bayesian-inference-in-the-ar-1.en.txt  >}}
+
+
+:::
 
 
 ## Bayesian inference in the AR(1): Conditional likelihood example  :movie_camera: 
@@ -488,7 +504,15 @@ $$ {#eq-q-ar1-q-mle-bayes}
 This video walks through the code snippet below and provides examples of how to sample from the posterior distribution of the AR coefficient $\psi$ and the variance $v$ using the conditional likelihood and a reference prior.
 
 
-## R Code: AR(1) Bayesian inference, conditional likelihood example  :spiral_notepad: 
+::: {.callout-note collapse="true"}
+## Video Transcript
+
+{{< include transcripts/c4/01_week-1-introduction-to-time-series-and-the-ar-1-process/04_the-ar-1-maximum-likelihood-estimation-and-bayesian-inference/05_bayesian-inference-in-the-ar-1-conditional-likelihood-example.en.txt >}}
+
+
+:::
+
+## AR(1) Bayesian inference, conditional likelihood example :spiral_notepad: $\mathcal{R}$
 
 ```{r}
 #| label: "AR(1) inference, conditional likelihood example"
@@ -535,6 +559,17 @@ hist(v_sample, xlab = bquote(v), col='lightblue', main = bquote("Posterior for "
 abline(v = sd, col = 'red')
 ```
 
+
+::: {.callout-note collapse="false"}
+## Overthinking Bayesian inference in the AR(1) 
+
+:thinking: Just pondering Why the red line (MLE estimates I presume) off center i.e. not the same as the posterior mean for $\phi$ and $v$. in this chart.
+
+We will see a far greater discrepancy between the two in the coding assignment, where the posterior mean is very different from the MLE. 
+
+One idea is that this is due to the posterior mean being influenced by the prior distribution, while the MLE is solely based on the data. In this case, the prior is a **reference prior**, which does not have a strong influence on the posterior distribution, yet has a marked effect on the posterior mean.
+
+:::
 
 ### Bayesian Inference in the AR(1), : full likelihood example  :spiral_notepad: 
 
