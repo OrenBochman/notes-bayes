@@ -30,10 +30,12 @@ title-block-banner: images/banner_deep.jpg
   - After writing everything out and reviewing it multiple times, I began to develop a purely mathematical intuition i.e. I can relate them to the the general Bayesian inference framework,
   - I can't however say I am much closer to using them in engineering solution based on this mathematics.
   - I doubt that doing a single capstone project will make much of a difference.
+
 2. While we will see three application in this module, (Nile river data, google trends, and EEG data). However, what I need to understand for each of these filtering, smoothing and forecasting distributions why are they useful rather than the original ones. I mean when we use to solve a specific challenge, for a dataset. 
 
 
 3. Perhaps the root cause here is that this course fails to acknowledge the connection of NDLM to the Kalman Filters and the much wider literature on Kalman Filters than NDLM. It appears to me that in the first course of the Kalman filtering specialization (KF bootcamp) there are a number of application that are presented each with a different requirements and that if we map the different challenges to the NDLM framework we should be able to navigate the math more easily.
+
 4. Anyhow a lookup indicates that this model is called in the state-space modeling terminology as **local level model** for local level or trend filtering, such as in structural time series models, and in the  Kalman filtering  terminology as a KF with variance learning.
 :::
 
@@ -44,7 +46,7 @@ In the case of the NDLM, where we **assume** That the observational variance $\n
 Let $\nu_t = v\ \forall t$ with $\nu$ unknown and consider a DLM with the following structure:
 $$
 \begin{aligned}
-  y_t &= \mathbf{F}_t' \boldsymbol{\theta}_t + \nu_t,                
+  y_t &= \mathbf{F}_t^\top \boldsymbol{\theta}_t + \nu_t,                
       &\nu_t &\sim \mathcal{N} (0, \nu) 
       &\text{(obs)}\\
   \boldsymbol{\theta}_t &= \mathbf{G}_t \boldsymbol{\theta}_{t-1} + \boldsymbol{\omega}_t, 
@@ -55,14 +57,14 @@ $$
 $$ {#eq-NDLM-unknown-variance}
 
 - where we have the usual suspects:
-  - the first equation is the observation equation, that relates the hidden state $\theta_t$ to the observation and the observation level noise $\nu_t$, (perhaps in our sensors)
-  - the second equation is the state equation, which describes how the hidden state $\theta_t$ evolves over time with the system noise $\boldsymbol{\omega}_t$. perhaps (due to an approximation in the system dynamics).
-  - $\mathbf{F}_t$  is a known observation matrix,
-  -  $\mathbf{G}_t$ is a known state transition matrix,
-  - $\boldsymbol{\theta}_t$ is the state vector, and 
-  - $\boldsymbol{\omega}_t$ is the system noise.
-  - $\mathbf{W}_t$ is a the known covariance matrix, for system noise which is assumed to be known for all time t
-  
+  - An observation equation, relating the observed $y_t$ to the hidden state $\theta_t$ plus some sensor noise $\nu_t$.
+  - A state equation, which describes how the hidden state $\theta_t$ evolves plus some process noise $\boldsymbol{\omega}_t$, 
+  - $\mathbf{F}_t$  is a *known* observation operator,
+  -  $\mathbf{G}_t$ is a *known* state transition operator,
+  - $\boldsymbol{\theta}_t$ is the hidden state vector, and
+  - $\boldsymbol{\omega}_t$ is the process noise, e.g. friction or wind.
+  - $\mathbf{W}_t$ is a *known* covariance matrix, for process noise.
+
 
 ::: {.callout-important collapse="False"}
 ## Question: why does $\nu$ appear in the $w_t$ distribution equation? {.unnumbered}
@@ -82,23 +84,47 @@ $$
 \end{aligned}
 $$ {#eq-NDLM-unknown-variance-priors}
 
-
-
 ### Filtering
 
-Assuming $(\boldsymbol{\theta}_{t-1} \mid \mathcal{D}_{t-1}, \nu) \sim \mathcal{N} (\mathbf{m}_{t-1}, \nu\ \mathbf{C}^*_{t-1})$, we have the following results:
+We now consider filtering updating uncertainty. Which lets us infer current time step parameters or observation based on the previous time step's information and $\nu$ as being normal distributed.
 
-- $(\boldsymbol{\theta}_t \mid \mathcal{D}_{t-1}, \nu) \sim \mathcal{N} (\mathbf{a}_t, \nu \mathbf{R}^*_t)$ 
-  - with 
-    - $\mathbf{a}_t = \mathbf{G}_t \mathbf{m}_{t-1}$ 
-    - $\mathbf{R}^*_t = \mathbf{G}_t \mathbf{C}^*_{t-1} \mathbf{G}'_t + \mathbf{W}^*_t$, 
+we will be interesting the following distributions:
 
-and unconditional on $\nu$, we have 
+- $p(\boldsymbol{\theta}_t \mid \mathcal{D}_{t−1})$ the prior density for the state vector at time t given information up to the preceding time;
+- $p(y_t \mid \mathcal{D}_{t−1})$ the one-step-ahead predictive density for the next observation;
+- $p(\boldsymbol{\theta}_t \mid \mathcal{D}_t)$ the posterior density for the state vector at time t given $\mathcal{D}_{t−1}$ and $y_t$;
+- the h-step-ahead forecasts $p(y_{t+h} \mid \mathcal{D}_t)$ and $p(\boldsymbol{\theta}_{t+h} \mid \mathcal{D}_t)$;
+- $p(\boldsymbol{\theta}_t \mid \mathcal{D}_T)$ the smoothing density for $\boldsymbol{\theta}_t$ where $T > t$.
 
-- $(\boldsymbol{\theta}_t \mid \mathcal{D}_{t-1}) \sim T_{n_{t-1}} (\mathbf{a}_t, \mathbf{R}_t)$
-  - with 
-    - $\mathbf{R}_t = s_{t-1} \mathbf{R}^*_t$
-    - $s_t\ \forall t$ given in @eq-NDLM-unknown-variance-filtering.
+Assuming:
+
+$$
+(\boldsymbol{\theta}_{t-1} \mid \mathcal{D}_{t-1}, \nu) \sim \mathcal{N} (\mathbf{m}_{t-1}, \nu\ \mathbf{C}^*_{t-1})
+$$ 
+
+By filtering we obtain the next time step parameters conditional on the previous time step's information and the variance $\nu$ as being normal distributed.
+
+$$
+\begin{aligned}
+(\boldsymbol{\theta}_t \mid \mathcal{D}_{t-1}, \nu) &\sim \mathcal{N} (\mathbf{a}_t, \nu \mathbf{R}^*_t) \\
+  \mathbf{a}_t &= \mathbf{G}_t \mathbf{m}_{t-1} \\
+  \mathbf{R}^*_t &= \mathbf{G}_t \mathbf{C}^*_{t-1} \mathbf{G}'_t + \mathbf{W}^*_t
+\end{aligned}
+$$ {#eq-NDLM-unknown-variance-filtering}
+
+
+We can also marginalize $\nu$ by integrating it out, we have parameters that are unconditional on $\nu$:
+
+$$
+\begin{aligned}
+  (\boldsymbol{\theta}_t \mid \mathcal{D}_{t-1}) &\sim T_{n_{t-1}} (\mathbf{a}_t, \mathbf{R}_t) \\
+  \mathbf{R}_t &\equiv s_{t-1} \mathbf{R}^*_t
+\end{aligned}
+$$ {#eq-NDLM-unknown-variance-filtering-unconditional}
+
+
+
+with $s_t\ \forall t$ given in @eq-NDLM-unknown-variance-filtering.
 
 - $(y_t \mid \mathcal{D}_{t-1}, \nu) \sim \mathcal{N} (f_t, \nu q^*_t)$
   - with 
@@ -593,7 +619,25 @@ $$ {#eq-ARFIMA}
 
 :::
 
-## Case Study EEG data  :movie_camera:   {#section-NDLM-eeg}
+## Case Study EEG data  :movie_camera:  {#section-NDLM-eeg}
+
+
+```{r}
+### EEG example ##################
+source('all_dlm_functions_unknown_v.R')
+source('discountfactor_selection_functions.R')
+
+eeg_data <- scan("data/eeg.txt")
+length(eeg_data)
+eeg_data_gh <- scan("data/eeg_gh.txt")
+length(eeg_data_gh)
+plot(eeg_data, type='l', main="EEG Data", xlab="Time", ylab="EEG Signal")
+head(eeg_data)
+head(eeg_data_gh)
+
+T <- length(eeg_data)
+data <- list(yt = eeg_data[])
+```
 
 ::: {.callout-note collapse="true"}
 ## Video Transcript
@@ -602,7 +646,12 @@ $$ {#eq-ARFIMA}
 
 :::
 
-## Case Study: Google Trends  :movie_camera:  {#section-NDLM-google-trends}
+## Case Study: Google Trends :movie_camera:  {#section-NDLM-google-trends}
+
+```{r}
+```
+
+
 
 ::: {.callout-note collapse="true"}
 ## Video Transcript

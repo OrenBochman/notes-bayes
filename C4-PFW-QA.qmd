@@ -1,0 +1,1131 @@
+---
+title: "Problems from Time Series: Modeling, Computation, and Inference"
+bibliography: references.bib
+---
+
+<!-- 
+
+1. Consider putting each problem into a seperate file and importing them here.
+
+This will reduce caching and build time, and allow you to edit the problems without rebuilding the entire document. 
+
+Also it can help with version control, as you can track changes to each problem individually.
+
+Also it can help keep document to a more manageable length as this will keep growing as new problems are added.
+
+2. Adding per problem metadata will allow create a problem set that is better suited to specific topics.
+
+
+-->
+
+## Chapter 1 Problems
+
+Problems from p.32 of the book.
+
+::: {#exr-pfw-1-7-1}
+1. Show that the ACF of an AR(1) process parameter $\phi$ with $\mid \phi\mid  < 1$, and zero mean uncorrelated Gaussian innovations with variance $v$ is $ρ(h) = \phi^{\mid h\mid }$ for $h = 0, \pm 1, \pm 2, \ldots$
+:::
+
+Comment: This is ACF derivation from assumption of stationary for AR(1) model.
+
+::: {.solution}
+
+$$Y_t = \phi Y_{t-1} + \overbrace{\varepsilon_t}^{\text{innovation}}, \quad \varepsilon_t \sim \mathcal{N}(0, v), \quad |\phi| < 1
+$$
+
+We assume strict stationarity and zero mean $\mathbb{E}[Y_t] = 0$
+
+1. The variance of AR(1) process is given by:
+
+$$
+\begin{aligned}
+\sigma^2 
+&= \mathrm{Var}(Y_t)                       & \text{by stationarity} \\
+&= \mathrm{Var}(\phi Y_{t-1} + \varepsilon_t) & \text{subst. AR(1)} \\
+&= \mathrm{Var}(\phi Y_{t-1})+\mathrm{Var}(\varepsilon_t) & Var[A+B]=Var[A]+Var[B] \\
+&= \mathrm{Var}(\phi Y_{t-1}) + v           & \text{prop. of normal} \\
+&= \phi^2 \mathrm{Var}(Y_{t-1}) + v         & Var[k\times X]=k^2Var[X] \\
+&= \phi^2 \sigma^2 + v                      & \text{by stationarity} \\ 
+&= \frac{v}{1 - \phi^2}                     & \text{rearranging} \\
+\end{aligned}
+$$
+
+2. The autocovariance function (ACF) is given by:
+
+
+$$
+\begin{aligned}
+\gamma(h) 
+  &= \mathbb{C}ov(Y_t, Y_{t-h})   && \text{defn. of }\gamma(h)\\
+  &= \mathbb{E} [(Y_t Y_{t-h}] - \mathbb{E} [Y_t] \mathbb{E} [Y_{t-h}]  && \text{prop. of } \mathbb{C}ov\\   
+  &= \mathbb{E}[Y_t Y_{t-h}]   - \cancel{\mathbb{E} [Y_t] \mathbb{E} [Y_{t-h}] }
+  && \text{independence} \\
+&= \mathbb{E}[Y_t Y_{t-h}]  \\
+  &= \mathbb{E}\big[(\phi Y_{t-1}+\varepsilon_t) Y_{t-h}\big] 
+  && \text{substitute } Y_t=\phi Y_{t-1}+\varepsilon_t\\
+  &= \phi\,\mathbb{E}[Y_{t-1}Y_{t-h}] 
+     + \mathbb{E}[\varepsilon_t Y_{t-h}]  && \text{linearity of expectation}\\
+  &= \phi\,\mathbb{E}[Y_{t-1}Y_{t-h}] 
+     + \underbrace{\mathbb{E}[\varepsilon_t] }_{0}\mathbb{E}[Y_{t-h}]  && \text{independence, and 0 mean for} \varepsilon \\
+  &= \phi\,\gamma(h-1)    && \text{for } h \ge 1
+\end{aligned}
+$$
+
+
+3. The autocorrelation function (ACF) is given by:
+$$
+\begin{aligned}
+\rho(h) &= \frac{\mathrm{Cov}(Y_t, Y_{t+h})}{\sigma^2} \\
+        &= \frac{\phi^{|h|} \sigma^2}{\sigma^2} \\
+        &= \phi^{|h|}
+\end{aligned}
+$$
+:::
+
+::: {#exr-pfw-1-7-2}
+2. Consider the AR(1) model $y_t = \phi y_{t−1} + \varepsilon_t$, with $\varepsilon_t \sim \mathcal{N}(0, v)$.
+   1. Find the MLE of $(\phi, v)$ for the conditional likelihood.
+   2. Find the MLE of $(\phi, v)$ for the unconditional likelihood [@prado2023time § 1.17]
+   3. Assume that $v$ is known. Find the MAP estimator of $\phi$ under a uniform prior $p(\phi) = U(\phi\mid −1, 1)$ for the conditional and unconditional likelihoods.
+:::
+
+Comment:
+
+::: {#exr-pfw-1-7-3}
+3. Show that under the reference analysis discussed in [@prado2023time § 1.5.3] where we assume a prior $p(\beta , v) \propto 1/v$ The corresponding posterior density is $p(\beta, v\mid y, F) \propto p(y\mid F, \beta, v)/v$
+   1. the marginal posterior:
+
+$$
+p(\beta \mid y, F) = c(n, p) \|FF^\top\|^{\frac{1}{2}} \{1 + (\beta  − \hat{\beta} )^\top FF^\top (\beta  − \hat{\beta} )/(n − p)s^2 \}^{−n/2}
+$$
+
+where $c(n,p) = \frac{\Gamma(n/2)}{[\Gamma((n − p)/2)(s^2 \pi(n − p))^{p/2}]}$,
+
+2. The marginal density:
+$$
+p(y\mid F) = \int p(y\mid F, \beta , v)p(\beta , v)d\beta dv
+$$ 
+
+:::
+
+
+Comment: I think We mentioned **reference analysis** in course two of the specialization but I assumed a base line model. This looks pretty scary at first glance. 
+
+However, I recall seeing Student t's t-distribution appearing out of the blue in a couple of places, could it be due to the reference analysis i.e. introducing a Jeffreys prior? I think so!
+
+::: {.solution}
+
+Let $y\in\mathbb R^{n}$, $F\in\mathbb R^{p\times n}$, $\beta\in\mathbb R^{p}$,
+model $y\mid\beta,v \sim \mathcal N(F^\top\beta,\; v I_n)$, and prior $p(\beta,v)\propto 1/v$ (reference prior of Prado & West, §1.5.3).
+
+---
+
+### 0. Posterior kernel
+
+$$
+\begin{aligned}
+p(\beta,v\mid y,F) 
+&\propto p(y\mid F,\beta,v)\,p(\beta,v) \\
+&\propto v^{-n/2}\exp\!\left[-\frac{(y-F^\top\beta)^\top(y-F^\top\beta)}{2v}\right]\; \frac{1}{v} \\
+&\propto v^{-(n/2+1)}\exp\!\left[-\frac{SSE(\beta)}{2v}\right],
+\end{aligned}
+$$
+
+with $SSE(\beta)=(y-F^\top\beta)^\top(y-F^\top\beta)$. 
+Hence the required statement $p(\beta,v\mid y,F)\propto p(y\mid F,\beta,v)/v$ is immediate.
+
+---
+
+Define
+
+$$
+Q = FF^\top,\qquad 
+\hat\beta = Q^{-1}F y,\qquad 
+SSE_0 = (y-F^\top\hat\beta)^\top(y-F^\top\hat\beta)=(n-p)s^2 .
+$$
+
+Use the standard quadratic decomposition
+
+$$
+SSE(\beta)= (\beta-\hat\beta)^\top Q (\beta-\hat\beta) + SSE_0 .
+$$
+
+---
+
+### 1. Marginal posterior of $\beta$
+
+Integrate out $v$:
+
+$$
+\begin{aligned}
+p(\beta\mid y,F) 
+&\propto \int_0^\infty v^{-(n/2+1)} 
+    \exp\!\left[-\frac{(\beta-\hat\beta)^\top Q (\beta-\hat\beta) + SSE_0}{2v}\right] dv \\
+&\propto \left[1+\frac{(\beta-\hat\beta)^\top Q (\beta-\hat\beta)}{(n-p)s^2}\right]^{-n/2}.
+\end{aligned}
+$$
+
+Normalizing gives a multivariate $t$:
+
+$$
+p(\beta\mid y,F)= c(n,p)\,|Q|^{1/2}
+\left\{1+\frac{(\beta-\hat\beta)^\top Q (\beta-\hat\beta)}{(n-p)s^2}\right\}^{-n/2},
+$$
+
+with
+
+$$
+c(n,p)=\frac{\Gamma(n/2)}{\Gamma((n-p)/2)\,[\pi (n-p)s^2]^{p/2}}.
+$$
+
+as required.
+
+---
+
+### 2. Marginal likelihood (evidence)
+
+Integrate out $\beta$ first, then $v$:
+
+$$
+\int \exp\!\left[-\frac{(\beta-\hat\beta)^\top Q (\beta-\hat\beta)}{2v}\right] d\beta
+= (2\pi v)^{p/2} |Q|^{-1/2}.
+$$
+
+Thus
+
+$$
+\begin{aligned}
+p(y\mid F) 
+&= \int_0^\infty \int p(y\mid F,\beta,v)\,p(\beta,v)\, d\beta\, dv \\
+&= (2\pi)^{-(n-p)/2}|Q|^{-1/2} 
+    \int_0^\infty v^{-(n-p)/2-1}\exp\!\left[-\frac{SSE_0}{2v}\right] dv \\
+&= |Q|^{-1/2}
+   \frac{\Gamma\!\left(\frac{n-p}{2}\right)}
+        {\big[\pi\,SSE_0\big]^{(n-p)/2}} \\
+&= |FF^\top|^{-1/2}
+   \frac{\Gamma\!\left(\frac{n-p}{2}\right)}
+        {\big[\pi (n-p) s^2\big]^{(n-p)/2}} .
+\end{aligned}
+$$
+
+
+:::
+
+::: {#exr-pfw-1-7-4}
+Show that the distributions of $(\phi\mid y, F)$ and $(v\mid y, F)$ obtained for the AR(1) reference analysis using the conditional likelihood are those given
+in [@prado2023time Example 1.6], 
+
+i.e. **Reference analysis in the AR(1) model.**
+
+Assume the AR(1) model :
+
+- $y = (y_2 , \ldots  , y_T )^\top , F =(_y1 , \ldots , y_{T −1} )$ and 
+- the reference prior $p(\phi, v) \propto 1/v$
+
+$(\phi\mid y, F) \sim t_{(T −2)} (m,\frac{C}{T − 2})$,
+
+where 
+$m = \frac{ \sum_{t=2}^T y_t y_{t−1}}{\sum_{t=1}^{T-1} y^2}$ and 
+$C = \frac{\sum_{t=2}^T y_t^2 {\sum_{t=2}^{T} y_t-1}^2 - \sum_{t=2}^T (y_t y_{t−1})^2}{\sum_{t=1}^{T-1} y_t^2}$.
+
+$(v\mid y, F) \sim \mathcal{IG}\left (\frac{T − 2}{2}, \frac{(T − 2)s^2}{2}\right)$,
+
+where $m = \frac{1}{T − 1} \sum_{t=2}^T y_t y_{t−1}$ and $SSE(\phi) = \sum_{t=2}^T (y_t − m y_{t−1})^2$. 
+
+:::
+
+::: {#exr-pfw-1-7-5}
+5. Show that the expressions for the distributions of $(y\mid F, v)$, $(v\mid y, F)$, and $(\beta \mid y, F)$ under the **conjugate analysis** in [@prado2023time § 1.5.3] are those given on page 24.
+
+i.e.
+
+$$
+(y|F, v) \sim \mathcal{N} (F^\top m_0, v(F^\top C_0 F + I_n))
+$$
+
+
+$$
+(v|y, F) \sim \mathcal{IG}(n^* /2, d^* /2)
+$$
+
+- with 
+    - $n^* = n + n_0$ and 
+    - $d^* = (y − F^\top m_0 )^\top Q^{-1} (y − F^\top m_0 ) + d_0$
+
+$$
+(\beta|y, F) ∼ T_{n^*} [m, d^* C/n^* ].
+$$
+
+:::
+
+::: {.solution}
+...
+:::
+
+::: {#exr-pfw-1-7-6}
+Show that the distributions of $(\phi \mid  \mathbf{y},  \mathbf{F})$ and $(v \mid \mathbf{y}, \mathbf{F})$ obtained for the AR(1) conjugate analysis using the conditional likelihood are those given
+in Example 1.7.
+
+Assume we choose a prior of the form :
+$\phi|v \sim \mathcal{N} (0, v)$ and
+$v \sim \mathcal{IG}(n0 /2, d0 /2)$, with $n0$ and $d0$ known.
+
+1. $(\phi \mid  \mathbf{y},  \mathbf{F}) \sim \mathcal{N} (m, vC)$
+2. $(v \mid \mathbf{y},  \mathbf{F}) \sim \mathcal{IG}(n^*/2, d^*/2)$
+
+- where 
+    - $n^* = n + n_0$ and 
+    - $d^* = (y − F^\top m)^\top Q^{-1} (y − F^\top m) + d_0$.
+
+:::
+
+::: {.solution}
+...
+:::
+
+:::: {#exr-pfw-1-7-7}
+Consider the following models:
+$$
+y_t= \phi_1 y_{t−1} + \phi_2 y_{t−2} + \varepsilon_t \qquad (1.26)
+$$ {#eq-model-1-26}
+$$
+y_t= a \cos(2\pi \omega_0 t) + b \sin(2\pi \omega_0 t) + \varepsilon_t \qquad (1.27)
+$$ {#eq-model-1-27}
+
+- with
+    - $\varepsilon_t \sim \mathcal{N} (0, v)$ 
+    - and $\omega_0 > 0$ fixed.
+
+    1. Sample $T = 200$ observations from each model using your favorite choice of the parameters. 
+    Make sure your choice of $(\phi_1 , \phi_2 )$ in model (@eq-model-1-26) lies in the stationary region. 
+    That is, choose $\phi_1$ and $\phi_2$ such that $−1 < \phi_2 < 1$, $\phi_1 < 1 − \phi_2$, and $\phi_1 > \phi_2 − 1$.
+
+    2. Find the MLEs of the parameters in models (@eq-model-1-26) and (@eq-model-1-27). Use the conditional likelihood for model (@eq-model-1-26).
+    
+    3.  Find the MAP estimators of the model parameters under the reference prior. Again, use the conditional likelihood for model (@eq-model-1-26).
+    
+    4. Sketch $p(v\mid y, F)$ and $p(\phi_1 , \phi_2 \mid y, F)$ for model (@eq-model-1-26).
+    
+    5. Sketch $p(a, b\mid y, F)$ and $p(v\mid y, F)$ for model (@eq-model-1-27).
+    
+    6. Perform a conjugate Bayesian analysis, 
+       i.e., repeat 3-4 assuming conjugate prior distributions in both models. 
+       Study the sensitivity of the posterior distributions to the choice of the hyperparameters in the prior.
+
+
+::: {.solution}
+
+
+```{python}
+#| label: lst-pfw-1-7-7
+
+# Exercise 1.7-7: AR(2) and Sinusoidal Models
+##########################################################
+# This script solves the six tasks in Exercise 1.7-7:
+# 1. Simulate T=200 observations from an AR(2) model and a sinusoidal model.
+# 2. Compute MLEs of parameters using conditional likelihood for AR(2) and OLS for sinusoid.
+# 3. Compute MAP estimators under the reference prior p(φ,v) ∝ 1/v.
+# 4. Sketch posterior p(v|y,F) and p(φ₁,φ₂|y,F) for AR(2).
+# 5. Sketch posterior p(a,b|y,F) and p(v|y,F) for the sinusoidal model.
+# 6. Perform conjugate Bayesian analysis for both models and study sensitivity.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import invgamma
+
+#############################
+
+# Part 1: Simulation
+#############################
+
+def simulate_ar2(phi, sigma2, T, seed=None):
+    """
+    Generate AR(2) data:
+      y_t = φ₁ y_{t−1} + φ₂ y_{t−2} + ε_t,  ε_t∼N(0,σ²).
+    Returns array of length T.
+    """
+    if seed is not None:
+        np.random.seed(seed)
+    y = np.zeros(T)
+    eps = np.random.normal(0, np.sqrt(sigma2), size=T)
+    for t in range(2, T):
+        y[t] = phi[0]*y[t-1] + phi[1]*y[t-2] + eps[t]
+    return y
+
+
+def simulate_sin(ab, omega0, sigma2, T, seed=None):
+    """
+    Generate sinusoidal data:
+      y_t = a cos(2π ω₀ t) + b sin(2π ω₀ t) + ε_t.
+    Returns time index and observations.
+    """
+    if seed is not None:
+        np.random.seed(seed)
+    t = np.arange(1, T+1)
+    a, b = ab
+    deterministic = a*np.cos(2*np.pi*omega0*t) + b*np.sin(2*np.pi*omega0*t)
+    noise = np.random.normal(0, np.sqrt(sigma2), size=T)
+    return t, deterministic + noise
+
+#############################
+# Part 2: Maximum Likelihood
+#############################
+
+def mle_ar2(y):
+    """
+    MLE for AR(2) via OLS on y[2:] ~ y[1:-1], y[:-2].
+    Returns φ̂ = [φ₁,φ₂], σ̂².
+    """
+    Y = y[2:]
+    X = np.column_stack([y[1:-1], y[:-2]])
+    phi_hat, *_ = np.linalg.lstsq(X, Y, rcond=None)
+    resid = Y - X.dot(phi_hat)
+    sigma2_hat = np.mean(resid**2)
+    return phi_hat, sigma2_hat
+
+
+def mle_sin(y, omega0):
+    """
+    MLE for sinusoid via OLS on y ~ cos(2πω₀t), sin(2πω₀t).
+    Returns [â,b̂], σ̂².
+    """
+    T = len(y)
+    t = np.arange(1, T+1)
+    X = np.column_stack([
+        np.cos(2*np.pi*omega0*t),
+        np.sin(2*np.pi*omega0*t)
+    ])
+    ab_hat, *_ = np.linalg.lstsq(X, y, rcond=None)
+    resid = y - X.dot(ab_hat)
+    sigma2_hat = np.mean(resid**2)
+    return ab_hat, sigma2_hat
+
+#############################
+# Part 3: MAP under Reference Prior
+#############################
+
+def map_ref_ar2(y):
+    """
+    MAP under p(φ,v) ∝ 1/v for AR(2).
+    φ̂ same as MLE, v̂ = (SSE/2)/(n/2 + 1).
+    """
+    Y = y[2:]; X = np.column_stack([y[1:-1], y[:-2]])
+    phi_mle, sigma2_mle = mle_ar2(y)
+    resid = Y - X.dot(phi_mle)
+    n = len(Y)
+    SSE = resid.dot(resid)
+    alpha, beta = n/2, SSE/2
+    v_map = beta/(alpha + 1)
+    return phi_mle, v_map
+
+
+def map_ref_sin(y, omega0):
+    """
+    MAP under p(a,b,v) ∝ 1/v for sinusoid.
+    (a,b)̂ same as MLE, v̂ MAP as above.
+    """
+    ab_hat, _ = mle_sin(y, omega0)
+    t = np.arange(1, len(y)+1)
+    X = np.column_stack([
+        np.cos(2*np.pi*omega0*t),
+        np.sin(2*np.pi*omega0*t)
+    ])
+    resid = y - X.dot(ab_hat)
+    n = len(y)
+    SSE = resid.dot(resid)
+    alpha, beta = n/2, SSE/2
+    v_map = beta/(alpha + 1)
+    return ab_hat, v_map
+
+#############################
+# Part 4 & 5: Posterior Sketches
+#############################
+def plot_posteriors_ar2(phi_map, y):
+    """
+    Plot posterior contours for φ and density for v under reference prior.
+    """
+    Y = y[2:]; X = np.column_stack([y[1:-1], y[:-2]])
+    phi_hat = phi_map
+    A_inv = np.linalg.inv(X.T.dot(X))
+    # φ posterior: approx N(phi_hat, v*inv(X'X)) scaled out v
+    grid = np.linspace(-1,1,80)
+    P1,P2 = np.meshgrid(grid+phi_hat[0], grid+phi_hat[1])
+    invA = np.linalg.inv(A_inv)
+    norm = 1/(2*np.pi*np.sqrt(np.linalg.det(A_inv)))
+    Z = norm * np.exp(-0.5*(
+        invA[0,0]*(P1-phi_hat[0])**2 +
+        2*invA[0,1]*(P1-phi_hat[0])*(P2-phi_hat[1]) +
+        invA[1,1]*(P2-phi_hat[1])**2
+    ))
+    plt.contour(P1,P2,Z)
+    plt.title("p(φ₁,φ₂|y)"); plt.xlabel('φ₁'); plt.ylabel('φ₂')
+    plt.show()
+
+    resid = Y - X.dot(phi_hat)
+    n = len(Y); SSE = resid.dot(resid)
+    alpha,beta = n/2, SSE/2
+    v_grid = np.linspace(0.01, np.max(resid**2), 200)
+    plt.plot(v_grid, invgamma.pdf(v_grid, a=alpha, scale=beta))
+    plt.title("p(v|y)"); plt.xlabel('v'); plt.show()
+
+
+def plot_posteriors_sin(ab_map, omega0, y):
+    """
+    Plot posterior contours for (a,b) and density for v under reference prior.
+    """
+    a_hat,b_hat = ab_map
+    t = np.arange(1, len(y)+1)
+    X = np.column_stack([
+        np.cos(2*np.pi*omega0*t),
+        np.sin(2*np.pi*omega0*t)
+    ])
+    # (a,b) posterior
+    B_inv = np.linalg.inv(X.T.dot(X))
+    grid = np.linspace(-1,1,80)
+    Agrid,Bgrid = np.meshgrid(grid+a_hat, grid+b_hat)
+    invB = np.linalg.inv(B_inv)
+    norm = 1/(2*np.pi*np.sqrt(np.linalg.det(B_inv)))
+    Z = norm * np.exp(-0.5*(
+        invB[0,0]*(Agrid-a_hat)**2 +
+        2*invB[0,1]*(Agrid-a_hat)*(Bgrid-b_hat) +
+        invB[1,1]*(Bgrid-b_hat)**2
+    ))
+    plt.contour(Agrid,Bgrid,Z)
+    plt.title("p(a,b|y)"); plt.xlabel('a'); plt.ylabel('b'); plt.show()
+
+    resid = y - X.dot(ab_map)
+    n = len(y); SSE = resid.dot(resid)
+    alpha,beta = n/2, SSE/2
+    v_grid = np.linspace(0.01, np.max(resid**2), 200)
+    plt.plot(v_grid, invgamma.pdf(v_grid, a=alpha, scale=beta))
+    plt.title("p(v|y)"); plt.xlabel('v'); plt.show()
+
+#############################
+# Part 6: Conjugate Bayesian Analysis & Sensitivity
+#############################
+def post_conj_norminv(y, X, m0, C0, n0, d0):
+    """
+    Conjugate posterior for regression y ~ Xβ + ε, ε∼N(0,v):
+    β|v ~ N(m_n, C_n v), v∼Inv-Gamma(n_n,d_n).
+    Returns m_n, C_n, n_n, d_n.
+    """
+    C0_inv = np.linalg.inv(C0)
+    Vn_inv = X.T.dot(X) + C0_inv
+    Vn = np.linalg.inv(Vn_inv)
+    mn = Vn.dot(X.T.dot(y) + C0_inv.dot(m0))
+    resid = y - X.dot(mn)
+    n_n = n0 + len(y)/2
+    d_n = d0 + 0.5*(resid.dot(resid) + (mn-m0).T.dot(C0_inv).dot(mn-m0))
+    return mn, Vn, n_n, d_n
+
+#############################
+# Main execution
+#############################
+
+T = 200
+# True parameters in stationary region
+phi_true = np.array([0.5, 0.2])
+sigma2 = 1.0
+y_ar2 = simulate_ar2(phi_true, sigma2, T, seed=42)
+
+ab_true = np.array([2.0, 1.0])
+omega0 = 0.1
+t_sin, y_sin = simulate_sin(ab_true, omega0, sigma2, T, seed=42)
+
+# MLEs
+phi_mle, s2_mle_ar2 = mle_ar2(y_ar2)
+ab_mle, s2_mle_sin = mle_sin(y_sin, omega0)
+
+# MAP under reference prior
+phi_map, s2_map_ar2 = map_ref_ar2(y_ar2)
+ab_map, s2_map_sin = map_ref_sin(y_sin, omega0)
+
+# Plot reference-posteriors
+plot_posteriors_ar2(phi_map, y_ar2)
+plot_posteriors_sin(ab_map, omega0, y_sin)
+
+# Conjugate sensitivity
+priors = [
+    (np.zeros(2), np.eye(2)*1, 1.0, 1.0),
+    (np.zeros(2), np.eye(2)*10, 0.1, 0.1)
+]
+print("Conjugate AR(2) sensitivity:")
+for m0,C0,n0,d0 in priors:
+    Y = y_ar2[2:]; X = np.column_stack([y_ar2[1:-1], y_ar2[:-2]])
+    mn, Vn, nn, dn = post_conj_norminv(Y, X, m0, C0, n0, d0)
+    print(" m0={}, C0 scale={}, E[φ]={}".format(m0, np.diag(C0), mn))
+
+print("Conjugate Sinusoid sensitivity:")
+for m0,C0,n0,d0 in priors:
+    Y = y_sin; X = np.column_stack([
+        np.cos(2*np.pi*omega0*t_sin),
+        np.sin(2*np.pi*omega0*t_sin)
+    ])
+    mn, Vn, nn, dn = post_conj_norminv(Y, X, m0[:2], C0, n0, d0)
+    print(" m0={}, C0 scale={}, E[(a,b)]={}".format(m0[:2], np.diag(C0), mn))
+
+```
+:::
+
+::::
+
+::: {#exr-pfw-1-7-8}
+Refer to the conjugate analysis of the AR(1) model in Example 1.7. Using the fact that $(\phi\mid y, F, v) \sim \mathcal{N}(m, vC)$, find the posterior mode of $v$ via the EM algorithm.
+:::
+
+::: {.solution}
+
+```{python}
+#| label: lst-pfw-1-7-8
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import invgamma
+
+#############################
+# 1. Simulation
+#############################
+
+def simulate_ar2(phi, sigma, T, seed=0):
+    np.random.seed(seed)
+    y = np.zeros(T)
+    eps = np.random.normal(0, sigma, size=T)
+    for t in range(2, T):
+        y[t] = phi[0]*y[t-1] + phi[1]*y[t-2] + eps[t]
+    return y
+
+def simulate_sin(ab, omega0, sigma, T, seed=0):
+    np.random.seed(seed)
+    t = np.arange(1, T+1)
+    a, b = ab
+    signal = a*np.cos(2*np.pi*omega0*t) + b*np.sin(2*np.pi*omega0*t)
+    return t, signal + np.random.normal(0, sigma, size=T)
+
+#############################
+# 2. MLE
+#############################
+
+def mle_ar2(y):
+    Y = y[2:]; X = np.column_stack([y[1:-1], y[:-2]])
+    phi_hat = np.linalg.lstsq(X, Y, rcond=None)[0]
+    resid = Y - X.dot(phi_hat)
+    v_hat = np.mean(resid**2)
+    return phi_hat, v_hat
+
+def mle_sin(y, omega0):
+    T = len(y)
+    t = np.arange(1, T+1)
+    X = np.column_stack([np.cos(2*np.pi*omega0*t), np.sin(2*np.pi*omega0*t)])
+    ab_hat = np.linalg.lstsq(X, y, rcond=None)[0]
+    resid = y - X.dot(ab_hat)
+    v_hat = np.mean(resid**2)
+    return ab_hat, v_hat
+
+#############################
+# 3. Reference-prior posterior (MAP)
+#############################
+
+def map_ref_ar2(y):
+    Y = y[2:]; X = np.column_stack([y[1:-1], y[:-2]])
+    phi_hat = np.linalg.lstsq(X, Y, rcond=None)[0]
+    resid = Y - X.dot(phi_hat)
+    n = len(Y); SSE = resid.dot(resid)
+    # inv-Gamma post: α=n/2, β=SSE/2 --> MAP at β/(α+1)
+    alpha, beta = n/2, SSE/2
+    v_map = beta/(alpha+1)
+    return phi_hat, v_map
+
+def map_ref_sin(y, omega0):
+    T = len(y)
+    t = np.arange(1, T+1)
+    X = np.column_stack([np.cos(2*np.pi*omega0*t), np.sin(2*np.pi*omega0*t)])
+    ab_hat = np.linalg.lstsq(X, y, rcond=None)[0]
+    resid = y - X.dot(ab_hat)
+    n = len(y); SSE = resid.dot(resid)
+    alpha, beta = n/2, SSE/2
+    v_map = beta/(alpha+1)
+    return ab_hat, v_map
+
+#############################
+# 4. Conjugate updates
+#############################
+
+def post_conj_ar2(y, m0, C0, n0, d0):
+    Y = y[2:]; X = np.column_stack([y[1:-1], y[:-2]])
+    C0_inv = np.linalg.inv(C0)
+    Vn_inv = X.T.dot(X) + C0_inv
+    Vn = np.linalg.inv(Vn_inv)
+    mn = Vn.dot(X.T.dot(Y) + C0_inv.dot(m0))
+    resid = Y - X.dot(mn)
+    n = len(Y)
+    nn = n0 + n/2
+    dd = d0 + 0.5*(resid.dot(resid) + (mn-m0).T.dot(C0_inv).dot(mn-m0))
+    v_mean = dd/(nn-1)
+    return mn, Vn, v_mean
+
+def post_conj_sin(y, omega0, m0, C0, n0, d0):
+    T = len(y); t = np.arange(1, T+1)
+    X = np.column_stack([np.cos(2*np.pi*omega0*t), np.sin(2*np.pi*omega0*t)])
+    C0_inv = np.linalg.inv(C0)
+    Vn_inv = X.T.dot(X) + C0_inv
+    Vn = np.linalg.inv(Vn_inv)
+    mn = Vn.dot(X.T.dot(y) + C0_inv.dot(m0))
+    resid = y - X.dot(mn)
+    nn = n0 + T/2
+    dd = d0 + 0.5*(resid.dot(resid) + (mn-m0).T.dot(C0_inv).dot(mn-m0))
+    v_mean = dd/(nn-1)
+    return mn, Vn, v_mean
+
+#############################
+# Main Execution
+#############################
+
+T = 200
+phi_true = np.array([0.5,0.2]); sigma = 1.0
+y_ar2 = simulate_ar2(phi_true, sigma, T)
+ab_true, omega0 = np.array([2.0,1.0]), 0.1
+t_sin, y_sin = simulate_sin(ab_true, omega0, sigma, T)
+
+# MLE
+phi_mle, v_mle = mle_ar2(y_ar2)
+ab_mle, v_sin_mle = mle_sin(y_sin, omega0)
+
+# MAP ref
+phi_map, v_map_ar2 = map_ref_ar2(y_ar2)
+ab_map, v_map_sin = map_ref_sin(y_sin, omega0)
+
+# Conjugate (two priors for sensitivity)
+priors = [
+    (np.zeros(2), np.eye(2)*1, 1.0, 1.0),
+    (np.zeros(2), np.eye(2)*10, 0.1, 0.1)
+]
+
+print("=== AR(2) Estimates ===")
+print("True φ:", phi_true, " σ²=", sigma**2)
+print("MLE φ,σ²:", phi_mle, v_mle)
+print("MAP-ref φ,σ²:", phi_map, v_map_ar2)
+for i,(m0,C0,n0,d0) in enumerate(priors,1):
+    mn, Vn, v_mean = post_conj_ar2(y_ar2,m0,C0,n0,d0)
+    print(f"Conjugate#{i} posterior mean φ:", mn, " E[σ²]:", v_mean)
+
+print("\n=== Sinusoid Estimates ===")
+print("True (a,b):", ab_true, " σ²=", sigma**2)
+print("MLE (a,b),σ²:", ab_mle, v_sin_mle)
+print("MAP-ref (a,b),σ²:", ab_map, v_map_sin)
+for i,(m0,C0,n0,d0) in enumerate(priors,1):
+    mn, Vn, v_mean = post_conj_sin(y_sin,omega0,m0,C0,n0,d0)
+    print(f"Conjugate#{i} posterior mean (a,b):", mn, " E[σ²]:", v_mean)
+
+```
+
+:::
+
+::: {#exr-pfw-1-7-9}
+Model (1.1):  a time series generated from the process $\{y_t \}$ with
+
+$$
+y_t =
+\begin{cases}
+    0.9y_{t−1} + \varepsilon_t^{(1)}    & y_{t−1} > 1.5   &(\mathcal{M}1 ) \\
+    −0.3y_{t−1} + \varepsilon_t^{(2)}   & y_{t−1} ≤ 1.5   &(\mathcal{M}2 ),
+\end{cases}
+$$ {#eq-model-1-1}  
+
+- where 
+    - $\varepsilon_t^{(1)} \sim \mathcal{N} (0, v_1 )$, 
+    - $\varepsilon_t^{(2)} \sim \mathcal{N} (0, v_2 )$, and 
+    - $v_1 = v_2 = 1$
+
+note: @eq-model-1-1 is a **threshold autoregressive (TAR) model** with two regimes.
+
+
+Sample $T = 1, 000$ observations from model (1.1) with $d = 1$ using your preferred choice of values for $\theta$, $\phi(i)$, and $v_i$ for $i = 1, 2$, with $\mid \phi(i)\mid  < 1$ and $\phi(1) \neq \phi(2)$. 
+
+Assuming that $d$ is known and using prior distributions of the form 
+
+$p(\phi(i)) = \mathcal{N}(0, c)$
+
+for $i = 1, 2$ and some $c > 0$, $p(\theta) = \mathcal{U}(\theta\mid −a, a)$ 
+
+and 
+
+$p(v) = \mathcal{IG}(\alpha_0, \beta_0)$, 
+
+- with 
+    - $a > 0$, 
+    - $\alpha_0 > 0$, and 
+    - $\beta_0 > 0$,
+
+obtain samples from the joint posterior distribution by implementing a Metropolis-Hastings algorithm
+
+:::
+
+::: {.solution}
+
+Simulation with:
+
+- $T=1000$ from $\phi_1=0.9, \phi_2=–0.3, \theta=1.5, \nu=1$.
+
+Uses priors:
+
+- $\phi_i \sim  \mathcal{N}(0, c)$,
+- $\theta \sim  \mathcal{U}(−a,a)$,
+- $\nu \sim  \mathcal{IG}(\alpha_0,\beta_0)$.
+
+The regime is known corresponding to an externally triggered threshold.
+
+Proposes $\phi_1$, $\phi_2$, $\theta$ by Gaussian random walk; Gibbs‐samples $\nu$.
+
+
+We runs 4 chains, plots data+regimes, traces and posterior densities.
+
+```{r}
+#| label: lst-pfw-1-7-9
+set.seed(123)
+
+#############################
+# 1. simulate data 
+#############################
+
+sim_TAR <- function(T, phi1, phi2, theta, v) {
+  y <- numeric(T)
+  eps <- rnorm(T, 0, sqrt(v))
+  for(t in 2:T) {
+    y[t] <- (if(y[t-1] > theta) phi1*y[t-1] else phi2*y[t-1]) + eps[t]
+  }
+  y
+}
+
+y <- sim_TAR(1000, 0.9, -0.3, 1.5, 1)
+
+#############################
+# 2. log‐posterior 
+#############################
+
+log_post <- function(params, y, c, a, alpha0, beta0) {
+  φ1 <- params[1]; φ2 <- params[2]; θ <- params[3]
+  T <- length(y)
+  # regime assignments
+  r <- ifelse(y[-T] > θ, 1, 2)
+  preds <- ifelse(r==1, φ1*y[-T], φ2*y[-T])
+  resid <- y[-1] - preds
+  # sample variance posterior parameters
+  ssq    <- sum(resid^2)
+  # log-likelihood (marginalizing v via IG: we’ll do Gibbs, so here use conditional on current v)
+  # but for MH-we only need terms involving φ,θ up to constant
+  ll <- -0.5 * ssq  # since we'll compare ratios, omit log(v) term
+  # priors
+  lp_phi1 <- -φ1^2/(2*c)
+  lp_phi2 <- -φ2^2/(2*c)
+  lp_theta<- if(abs(θ)<=a) 0 else -Inf
+  ll + lp_phi1 + lp_phi2 + lp_theta
+}
+
+#############################
+# 3. one‐chain sampler
+#############################
+
+run_chain <- function(y, n_iter=5000, c=10, a=5, alpha0=2, beta0=2,
+                      prop_sd = c(0.05,0.05,0.05)) {
+  # storage
+  chain <- matrix(NA, n_iter, 4)  # φ1,φ2,θ,v
+  # init
+  phi1 <- 0; phi2 <- 0; theta <- 0; v <- 1
+  for(i in 1:n_iter) {
+    curr <- c(phi1,phi2,theta)
+    lp0  <- log_post(curr,y,c,a,alpha0,beta0) - (length(y)-1)/2*log(v) - beta0/v
+    # MH updates for φ1, φ2, θ
+    for(j in 1:3) {
+      prop <- curr
+      prop[j] <- rnorm(1, curr[j], prop_sd[j])
+      lp1 <- log_post(prop,y,c,a,alpha0,beta0) - (length(y)-1)/2*log(v) - beta0/v
+      if(log(runif(1)) < lp1 - lp0) {
+        curr <- prop; lp0 <- lp1
+      }
+    }
+    # Gibbs sample v | rest
+    resid <- y[-1] - ifelse(y[-length(y)]>curr[3], curr[1]*y[-length(y)], curr[2]*y[-length(y)])
+    ssq   <- sum(resid^2)
+    shape <- (length(y)-1)/2 + alpha0
+    rate  <- ssq/2 + beta0
+    v     <- 1 / rgamma(1, shape=shape, rate=rate)
+    # record
+    chain[i,] <- c(curr, v)
+    phi1 <- curr[1]; phi2 <- curr[2]; theta <- curr[3]
+  }
+  colnames(chain) <- c("phi1","phi2","theta","v")
+  as.data.frame(chain)
+}
+
+#############################
+# 4. run 4 chains 
+#############################
+
+chains <- lapply(1:4, function(k) run_chain(y))
+
+#############################
+# 5. plots 
+#############################
+
+# (a) data + true regimes
+par(mfrow=c(1,1), mar=c(4,4,2,1))
+plot(y, type="l", main="y_t with true regimes", xlab="t", ylab="y")
+points(which(y[-length(y)]>1.5), y[-length(y)][y[-length(y)]>1.5], col=2, pch=20)
+points(which(y[-length(y)]<=1.5), y[-length(y)][y[-length(y)]<=1.5], col=4, pch=20)
+
+
+par(mfrow=c(2,2), mar=c(4,4,2,1))
+
+# (b) trace & posterior for each chain
+for(param in c("phi1","phi2","theta","v")) {
+  matplot(sapply(chains, "[[", param), type='l', lty=1,
+          main=paste0("Trace of ",param), ylab=param, xlab="iter")
+}
+
+# (c) marginal posterior densities
+par(mfrow=c(2,2))
+for(param in c("phi1","phi2","theta","v")) {
+  dens <- density(unlist(lapply(chains, "[[", param)))
+  plot(dens, main=paste0("Post. density: ",param), xlab=param)
+  abline(v = if(param=="phi1") 0.9
+              else if(param=="phi2") -0.3
+              else if(param=="theta") 1.5
+              else 1, col="red", lty=2)
+}
+```
+:::
+
+Note: when the threshold is a dependent variable, the model may be called a SETAR or (Self-Exciting Threshold Autoregressive) model. TAR models are simple non linear autoregressive models that switch between different linear regimes based on the value of the previous observation.
+
+Some examples of SETAR models are
+
+- inflation and unemployment rate in the US,
+- stock market volatility in bear and bull markets,
+
+
+
+## Chapter 2 Problems
+
+Problems from p.32 of the book.
+
+One of the sources of complexity in the course is the convention and nomenclature of variables used in modeling and later in programming that is both puzzling yet suggestive of referencing some sort of implicitly agreed "canonical" Bayesian formulation that is either omitted or not clearly defined.
+
+Some like m and C are initialism for mean and covariance, often referenced as moments of Normal and student t distributions others like Q, QQ, etc. are not so obvious.
+
+
+:::: {#exr-pfw-2-1}
+Consider the process:
+
+$$
+y_t = \phi y_{t−1} + \varepsilon_t , \quad \varepsilon_t \sim \mathcal{N} (0, v).
+$$
+
+If $|\phi| < 1$ then $y_t = \sum_{j=0}^\infty \phi^j \varepsilon_{t−j}$. 
+
+Use this fact to prove that $y_1 \sim \mathcal{N} (0, v/(1 − \phi^2 ))$ and that, as a consequence, the likelihood function has the form @eq-ar-1-likelihood.
+
+$$
+p(y_{1:T} \mid \boldsymbol \theta) = \frac{(1-\phi^2)^{\frac{1}{2}}}{\sqrt{2\pi \nu}} \exp \left\{\frac{-Q^*(\phi)}{2\nu}\right\}
+$$ {#eq-ar-1-likelihood} 
+
+where $Q^*(\phi)$, the *unconditional sum of squares*, defined as:
+
+$$
+Q^*(\phi) = y_1^2 (1-\phi^2) + \sum_{t=2}^T (y_t - \phi y_{t-1})^2
+$$ {#eq-ar-1-unconditional-sum-of-squares}
+
+:::{.callout-note collapse="true"}
+## What are of $Q^*(\phi)$ and $Q(\phi)$?
+
+Q, QQ etc are frequently used in the code. These quantities appear in the initial bayesian formulation of the AR(1) model, and in the Gibbs step for the variance in the Metropolis-Hastings algorithm for the AR(1) model.
+
+We also have a conditional sum of squares, defined as:
+$$
+Q(\phi) = \sum_{t=1}^T (y_t - \phi y_{t-1})^2
+$$ {#eq-ar-1-conditional-sum-of-squares}
+
+Interpretations:
+
+1. The conditional sum of squares $Q(\phi)$ arises in the conditional likelihoods, which the authors of [@prado2023time example (1.4)] say approximates the unconditional likelihood based on [@box2015time]
+2. These quantities are also mentioned in terms of Maximum Likelihood Estimation (MLE) Least Squares (LS) and Maximum A Posteriori (MAP) estimation where again both conditional likelihoods might be approximated via conditional likelihoods in the respective estimators.
+
+:::
+
+::::
+
+:::: {#exr-pfw-2-7-2}
+Consider the $AR(1)$ process $y_t = \phi y_{t−1} + \varepsilon_t , with \varepsilon_t \sim \mathcal{N} (0, v)$. Show that the process is nonstationary when $\phi = \pm 1$.
+
+::::
+
+:::: {#exr-pfw-2-7-3}
+Suppose $y_t$ follows a stationary $AR(1)$ model with AR parameter $\phi$
+and innovation variance $v$. Define $x = (y_1 , \ldots , y_n )^\top$. 
+We know that
+$x \sim \mathcal{N} (0, s\Phi_n )$ where $s = v/(1 − \phi^2 )$ is the marginal variance of the $y_t$ process and the correlation matrix $\Phi_n$ has $(i, j)$ element $\phi^{|i−j|}$, viz.
+
+$$
+\Phi_n=\begin{pmatrix}
+1 & \phi & \phi^2 & \cdots & \phi^{n-1} \\
+\phi & 1 & \phi & \cdots & \phi^{n-2} \\
+\phi^2 & \phi & 1 & \cdots & \phi^{n-3} \\
+\vdots & \vdots & \vdots & \vdots & \vdots \\
+\phi^{n-1} & \phi^{n-2} & \cdots & 1
+\end{pmatrix}
+$$
+
+Find the precision matrix $K_n = s^{-1} \Phi^{-1}_n$ and comment on its form.
+
+Hint: One way to find this is "brute-force" matrix inversion using induction; but, that is just linear algebra that—in particular—ignores the
+probability model that defines $\phi_n$ . 
+There is a simpler and more instructive way to identify $K_n$ based on reflecting on the probability model.
+::::
+
+:::: {#exr-pfw-2-7-4}
+4. Consider an AR(2) process with AR coefficients $\phi = (\phi_1 , \phi_2 )^\top$ .
+    (a) Show that the process is stationary for parameter values lying in the
+    region $−1 < \phi_2 < 1, \phi_1 < 1 − \phi_2$ , and $\phi_1 > \phi_2 − 1$.
+    (b) Show that the partial autocorrelation function of this process is
+        $\phi_1 /(1− \phi_2 )$ for the first lag, $\phi_2$ for the second lag, and equal to zero for any lag $h$ with $h \ge 3$.
+
+:::: {#exr-pfw-2-7-5}
+5. This question concerns a time series model for continuous and positive
+outcomes $y_t$. Suppose a series $x_t$ follows a stationary AR(1) model with
+parameters $\phi$, $v$ and the usual normal innovations. Define a transformed
+time series $y_t = \exp(\mu + x_t)$ for each $t$ for some known constant $\mu$.
+    (a) Show that $y_t$ is a first-order Markov process.
+    (b) Is $y_t$ a stationary process?
+    (c) Find $E(y_t |y_{t−1})$ as a function of $y_{t−1}$ and show that 
+        it has the form $\phi$ for some positive constant $a$. 
+        Give an expression $E(y_t |y_{t−1}) = ay_{t−1}$
+        for $a$ in terms of $\mu$, $\phi$, $v$.
+    (d) Can you imagine applied time series contexts that might utilize this
+        simple model as a component? Comment on potential uses.
+::::
+
+:::: {#exr-pfw-2-7-6}
+6. Show that the eigenvalues of the matrix G given by [@prado2023time § (2.7)] correspond to the reciprocal roots of the $AR(p)$ characteristic polynomial.
+::::
+
+:::: {#exr-pfw-2-7-7}
+7. Consider the AR(2) series $y_t = \phi_1 y_{t−1} + \phi_2 y_{t−2} + \varepsilon_t$ with $\varepsilon_t ∼ N (0, v)$.
+Following Section 2.1.2, rewrite the model in the standard DLM form
+$y_t = F^\top x_t$ and $x_t = Gx_{t−1} + F\epsilon_t$ where
+$$
+F = \begin{pmatrix}
+1  \\
+0 
+\end{pmatrix}, \quad
+x_t = \begin{pmatrix}
+y_t \\
+y_{t−1}
+\end{pmatrix}, \quad
+G = \begin{pmatrix}
+\phi_1 & \phi_2 \\
+1 & 0
+\end{pmatrix}
+$$
+We know that this implies that, for any given $t$ and over $k ≥ 0$, the
+forecast function is $E(y_{t+k} \mid x_t ) = F^\top G^k x_t$ .
+    (a) Show that the eigenvalues of $G$ denoted by $\lambda_1$ and $\lambda_2$ are the roots of the quadratic in $\lambda$ given by $\lambda^2 −\phi_1 \lambda−\phi_2 = 0$. 
+    Deduce that $\phi_1 = \lambda_1 +\lambda_2$ and $\phi_2 = −\lambda_1 \lambda_2$.
+    (b) Suppose that the eigenvalues $\lambda_1$ , $\lambda_2$ are distinct, whether they be real or a pair of complex conjugates. 
+    Define
+    $$
+        \begin{align}
+            \Lambda =
+            \begin{pmatrix}
+                \lambda_1 & 0 \\
+                0 & \lambda_2
+            \end{pmatrix} 
+            & E = 
+            \begin{pmatrix}
+                \lambda_1 & \lambda_2 \\
+                1 & 1
+            \end{pmatrix} \tau
+        \end{align}
+    $$
+    for any nonzero $\tau$. 
+    Note that $E$ is non-singular since $\lambda_1 \ne \lambda_2$. 
+    Verify that $GE = E \Lambda$, so that $G = E \Lambda E^{-1}$, that is, $E$ has columns that are eigenvectors of $G$ corresponding to eigenvalues $(\lambda_1, \lambda_2)$.
+    (c) We can take $τ = 1$ with no loss of generality as $τ$ cancels in 
+    the identity $G = E\Lambda E^{-1}$; do so from here on. 
+    Show that
+    $$
+        \begin{align}
+        \Lambda ^k E^{-1} =\frac{1}{\tau}\begin{pmatrix}
+        \lambda_1^k & -\lambda_1^k\lambda_2 \\
+        -\lambda_1^k & \lambda_1 \lambda_2^k
+        \end{pmatrix}
+        \end{align}
+    $$
+    (d) Deduce that $E(yt+k |xt ) = ak yt + bk yt−1$ with lagged coefficients
+    $a_k = \frac{(λ_1^{k+1} − λ_2^{k+1})}{(λ_1 − λ_2 )}$
+    and 
+    $b_k = \frac{(−λ_1{k+1}  λ_2 + λ_1 λ_{k+1})}{(λ_1 − λ_2 )}$
+    (e) Verify that this resulting expression 
+    $E(y_{t+k} |x_t ) = a_k y_t + b_k y_{t−1}$ gives
+    the known results in terms of $φ1 , φ2$ when $k = 0$ and $k = 1$.
+    (f) Consider now the special case of complex eigenvalues 
+    $λ1 = reiω$ and
+    $λ2 = re−iω$ for some real-valued modulus $r > 0$ and argument $ω > 0$.
+    Show that the lagged coefficients $a_k , b_k$ become
+    $a_k = r^k \frac{sin((k + 1)ω)}{sin(ω)}$
+    and 
+    $b_k = −r^{k +1} \frac{sin(kω)}{sin(ω)}$
+    (g) Continuing in the case of complex eigenvalues, use simple trigonometric identities to show that the forecast function can be reduced to
+    $E(y_{t+k} \mid x_t ) = r^k h_t cos(kω + g_t ), \quad k = 0, 1, \ldots,$
+    a damped cosine form in k (in stationary models with $0 < r < 1$).
+    Give explicit expressions for the time-dependent amplitude $h_t > 0$
+    and phase $g_t$ in terms of $ω$ and $y_{t−1}$ , $y_t$ .
+::::
+
+:::: {#exr-pfw-2-7-8}
+8. Show that the general solution of the homogeneous difference Equation
+(2.9) has the form (2.10).
+::::
+
+:::: {#exr-pfw-2-7-9}
+9. Show that, when the characteristic roots are all different, the forecast
+function of an $AR(p)$ process has the representation given in (2.8).
+::::
+
+:::: {#exr-pfw-2-7-10}
+10. Show that if an $AR(2)$ process has a pair of complex roots given by
+$r\sqrt{\exp(±iω)}$, they can be written in terms of the AR coefficients as $r =
+−φ2$ and $cos(ω) = φ1 /2r$.
+::::
+
+:::: {#exr-pfw-2-7-11}
+11. Plot the corresponding forecast functions for the AR(2) processes con-
+sidered in Example 2.1.
+::::
+
+:::: {#exr-pfw-2-7-12}
+12. Verify that the expressions for the conditional posterior distributions in
+Section 2.4.1 are correct.
+::::
+
+:::: {#exr-pfw-2-7-13}
+13. Show that a prior on the vector of AR(p) coefficients φ of the form
+N (φ1 |0, w/δ1 ) and N (φj |φj−1 , w/δj ) for 1 < j ≤ p can be written as
+p(φ) = N (φ|0, A−1 w), where A = H0 ∆H with H and ∆ defined in
+Section 2.4.2.
+::::
+
+:::: {#exr-pfw-2-7-14}
+14. Verify the ACF of a $MA(q)$ process given in (2.33).
+::::
+
+:::: {#exr-pfw-2-7-15}
+15. Find the ACF of a general $ARMA(1,1)$ process.
+::::
+
+:::: {#exr-pfw-2-7-16}
+16. Show that Equations (2.38) and (2.39) hold by taking expected values
+in (2.36) and (2.37) with respect to the whole past history $y_{−∞,t}$ .
+::::
+
+:::: {#exr-pfw-2-7-17}
+17. Consider the AR(1) model given by $(1 − φB)(yt − µ) = \varepsilon_t $,
+where $\varepsilon_t ∼ N (0, \nu)$.
+::::
