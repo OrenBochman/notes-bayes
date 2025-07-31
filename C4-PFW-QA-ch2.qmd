@@ -1,0 +1,919 @@
+---
+title: "Q&A for Chapter 2"
+subtitle: "Time Series: Modeling, Computation, and Inference"
+bibliography: references.bib
+---
+
+
+## Chapter 2 Problems
+
+Chapter 2 of the book [@prado2023time] is called traditional time domain models and deals with primarily with $AR(P)$ and $ARMA$.
+Problems from p.84-95 of the book. This is a much longer problem set
+
+One of the sources of complexity in the course is the convention and nomenclature of variables used in modeling and later in programming that is both puzzling yet suggestive of referencing some sort of implicitly agreed "canonical" Bayesian formulation that is either omitted or not clearly defined.
+
+Some like m and C are initialism for mean and covariance, often referenced as moments of Normal and student t distributions others like Q, QQ, etc. are not so obvious.
+
+
+
+:::{.callout-note collapse="true"}
+## What are of $Q^*(\phi)$ and $Q(\phi)$?
+
+Q, QQ etc are frequently used in the code. These quantities appear in the initial bayesian formulation of the AR(1) model, and in the Gibbs step for the variance in the Metropolis-Hastings algorithm for the AR(1) model.
+
+$$
+Q^*(\phi) = y_1^2 (1-\phi^2) + \sum_{t=2}^T (y_t - \phi y_{t-1})^2
+$$ {#eq-ar-1-unconditional-sum-of-squares}
+
+We also have a conditional sum of squares, defined as:
+$$
+Q(\phi) = \sum_{t=1}^T (y_t - \phi y_{t-1})^2
+$$ {#eq-ar-1-conditional-sum-of-squares}
+
+Interpretations:
+
+1. The conditional sum of squares $Q(\phi)$ arises in the conditional likelihoods, which the authors of [@prado2023time example (1.4)] say approximates the unconditional likelihood based on [@box2015time]
+2. These quantities are also mentioned in terms of Maximum Likelihood Estimation (MLE) Least Squares (LS) and Maximum A Posteriori (MAP) estimation where again both conditional likelihoods might be approximated via conditional likelihoods in the respective estimators.
+
+:::
+
+:::: {#exr-pfw-2-1}
+Consider the process:
+
+$$
+y_t = \phi y_{t−1} + \varepsilon_t , \quad \varepsilon_t \sim \mathcal{N} (0, v).
+$$
+
+If $|\phi| < 1$ then $y_t = \sum_{j=0}^\infty \phi^j \varepsilon_{t−j}$. 
+
+Use this fact to prove that $y_1 \sim \mathcal{N} (0, v/(1 − \phi^2 ))$ and that, as a consequence, the likelihood function has the form @eq-ar-1-likelihood.
+
+$$
+p(y_{1:T} \mid \boldsymbol \theta) = \frac{(1-\phi^2)^{\frac{1}{2}}}{\sqrt{2\pi \nu}} \exp \left\{\frac{-Q^*(\phi)}{2\nu}\right\}
+$$ {#eq-ar-1-likelihood} 
+
+where $Q^*(\phi)$, the *unconditional sum of squares*, defined as:
+
+
+
+
+::::
+
+:::: {#exr-pfw-2-7-2}
+Consider the $AR(1)$ process $y_t = \phi y_{t−1} + \varepsilon_t , with \varepsilon_t \sim \mathcal{N} (0, v)$. 
+Show that the process is nonstationary when $\phi = \pm 1$.
+::::
+
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+$$
+y_t = \phi^t y_0 + \sum_{s=1}^t \phi^{ t-s} \varepsilon_s
+$$
+
+Hence
+
+$$
+\mathbb{E}[y_t]=\phi^t \mathbb{E}[y_0], 
+\qquad
+\mathbb{V}ar(y_t)
+=\phi^{2t}\mathbb{V}ar(y_0)+v\sum_{i=0}^{t-1}\phi^{2i}.
+$$
+
+* If $\phi=1$:
+  $\mathbb{E}[y_t]=\mathbb{E}[y_0]$ (constant) but
+  $\displaystyle\mathbb{V}ar(y_t)=\mathbb{V}ar(y_0)+v t$, which grows with $t$.
+
+* If $\phi=-1$:
+  $\mathbb{E}[y_t]=(-1)^t\mathbb{E}[y_0]$ (oscillates) and
+  $\displaystyle\mathbb{V}ar(y_t)=\mathbb{V}ar(y_0)+v t$, again unbounded in $t$.
+
+In both cases the variance (and in the $\phi=-1$ case the mean) depends on $t$, so the process cannot be (weakly) stationary.
+
+:::
+
+
+:::: {#exr-pfw-2-7-3}
+Suppose $y_t$ follows a stationary $AR(1)$ model with AR parameter $\phi$
+and innovation variance $v$. Define $x = (y_1 , \ldots , y_n )^\top$. 
+We know that $x \sim \mathcal{N} (0, s\Phi_n )$ where $s = v/(1 − \phi^2 )$ is the marginal variance of the $y_t$ process and the correlation matrix $\Phi_n$ has $(i, j)$ element $\phi^{|i−j|}$, i.e.
+
+$$
+\Phi_n=\begin{pmatrix}
+1 & \phi & \phi^2 & \cdots & \phi^{n-1} \\
+\phi & 1 & \phi & \cdots & \phi^{n-2} \\
+\phi^2 & \phi & 1 & \cdots & \phi^{n-3} \\
+\vdots & \vdots & \vdots & \vdots & \vdots \\
+\phi^{n-1} & \phi^{n-2} & \cdots & 1
+\end{pmatrix}
+$$ {#eq-ar-1-correlation-matrix}
+
+Find the precision matrix $K_n = s^{-1} \Phi^{-1}_n$ and comment on its form.
+
+Hint: One way to find this is "brute-force" matrix inversion using induction; but, that is just linear algebra that—in particular—ignores the
+probability model that defines $\phi_n$ . 
+There is a simpler and more instructive way to identify $K_n$ based on reflecting on the probability model.
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+The precision matrix is tri-diagonal. 
+We can see (e.g. by Sherman–Morrison or by writing down the Gaussian Markov factorization) that:
+
+$$
+K_n \;=\; s^{-1}\,\Phi_n^{-1} = \frac{1- \phi^2}{v}
+\begin{pmatrix}
+1      & -\phi      & 0          & \cdots & 0\\
+-\phi  & 1+\phi^2   & -\phi      & \cdots & 0\\
+0      & -\phi      & 1+\phi^2   & \ddots & \vdots\\
+\vdots & \vdots     & \ddots     & \ddots & -\phi\\
+0      & 0          & \cdots     & -\phi  & 1
+\end{pmatrix}
+$$ {#eq-ar-1-precision-matrix}
+
+The diagonal is
+
+$$
+K_{11}=K_{nn}= \frac{1-\phi^2}{v},\quad
+K_{ii}=\frac{1-\phi^2}{v}\,(1+\phi^2)\;(2\le i\le n-1),
+$$
+
+The only nonzero off–diagonals are
+
+$$
+K_{i,i+1}=K_{i+1,i}=-\,\frac{1-\phi^2}{v}\,\phi.
+$$
+
+**Comment.**  Since all other entries are zero, $K_n$ is sparse (bandwidth 1):  each $y_i$ is conditionally independent of all others given its two neighbors—exactly the Gaussian Markov property of an $AR(1)$.
+
+:::
+
+
+:::: {#exr-pfw-2-7-4}
+Consider an $AR(2)$ process with AR coefficients $\phi = (\phi_1 , \phi_2 )^\top$ .
+
+(a) Show that the process is stationary for parameter values lying in the region $−1 < \phi_2 < 1, \phi_1 < 1 − \phi_2$ , and $\phi_1 > \phi_2 − 1$.
+(b) Show that the partial autocorrelation function of this process is $\phi_1 /(1− \phi_2 )$ for the first lag, $\phi_2$ for the second lag, and equal to zero for any lag $h$ with $h \ge 3$.
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+**(a) Stationarity region via characteristic roots**
+The AR‑polynomial is
+
+$$
+1 - \phi_1 z - \phi_2 z^2 = 0,
+$$
+
+with roots
+
+$$
+z_{1,2} = \frac{\phi_1 \pm \sqrt{\phi_1^2 + 4\phi_2}}{2\phi_2}.
+$$
+
+Stationarity ⇔ both roots lie outside the unit circle, $|z\_{1,2}|>1$. 
+One shows (e.g. by requiring the polynomial to be positive on $z=\pm1$ and have discriminant conditions) that this is equivalent to
+
+$$
+-1<\phi_2<1,\quad \phi_1<1-\phi_2,\quad \phi_1> \phi_2-1.
+$$
+
+---
+
+**(b) Partial autocorrelations**
+Let $\rho_h = \frac{Cov(y_t,y_{t-h})}{\mathbb{V}ar(y_t)}$.  
+From the Yule–Walker equations for $AR(2)$:
+
+$$
+\begin{aligned}
+\rho_1 &= \phi_1 + \phi_2 \rho_1,   &&\text{(for lag 1)}\\
+\rho_2 &= \phi_1 \rho_1 + \phi_2,   &&\text{(for lag 2)}.
+\end{aligned}
+$$
+
+Hence
+
+$$
+\rho_1(1-\phi_2)=\phi_1\quad\implies\quad \rho_1=\frac{\phi_1}{1-\phi_2},
+$$
+
+and
+
+$$
+\rho_2=\phi_1\frac{\phi_1}{1-\phi_2}+\phi_2.
+$$
+
+The PACF at lag $h$ is the last coefficient in the regression of $y_t$ on $(y_{t-1},\dots,y_{t-h})$.  In particular:
+
+$$
+\begin{aligned}
+\alpha_{11}&=\rho_1 
+            = \frac{\phi_1}{1-\phi_2}, 
+            &&\text{(lag 1)}\\
+\alpha_{22}
+&=\frac{\rho_2-\rho_1^2}{1-\rho_1^2}
+=\phi_2, 
+            &&\text{(lag 2)}\\
+\alpha_{hh}&=0,\quad h\ge3,
+            &&\text{(zero beyond the AR order).}
+\end{aligned}
+$$
+:::
+
+
+:::: {#exr-pfw-2-7-5}
+This question concerns a time series model for continuous and positive outcomes $y_t$. Suppose a series $x_t$ follows a stationary $AR(1)$ model with parameters $\phi$, $v$ and the usual normal innovations. Define a transformed time series $y_t = \exp(\mu + x_t)$ for each $t$ for some known constant $\mu$.
+
+(a)  Show that $y_t$ is a first-order Markov process.
+(b)  Is $y_t$ a stationary process?
+(c)  Find $\mathbb{E}(y_t \mid y_{t−1})$ as a function of $y_{t−1}$ and show that it has the form $\phi$ for some positive constant $a$. Give an expression $\mathbb{E}(y_t \mid y_{t−1}) = ay_{t−1}$ for $a$ in terms of $\mu, \phi, v$.
+(d)  Can you imagine applied time series contexts that might utilize this simple model as a component? Comment on potential uses.
+::::
+
+
+:::: {#exr-pfw-2-7-6}
+Show that the eigenvalues of the matrix $G$ given by [@prado2023time §(2.7)] correspond to the reciprocal roots of the $AR(p)$ characteristic polynomial.
+
+$$
+G = \begin{pmatrix}
+\phi_1 & \phi_2 & \cdots & \phi_{p-1} & \phi_p \\
+1 & 0 & \cdots & 0& 0 \\
+0 & 1 & \cdots & 0& 0 \\
+\vdots & \vdots & \ddots & 0 & \vdots \\
+0 & 0 & \cdots & 1 & 0
+\end{pmatrix}
+$$
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+$$
+\begin{aligned}
+\det\bigl(G - \lambda I\bigr)
+&= \det
+\begin{pmatrix}
+\phi_1 - \lambda & \phi_2 & \cdots & \phi_p \\
+1                & -\lambda& \cdots & 0      \\
+0                & 1       & \ddots & \vdots \\
+\vdots           & \vdots  & \ddots & -\lambda
+\end{pmatrix}
+&\text{(companion‐matrix form)}\\
+&= (-1)^p\bigl(\lambda^p - \phi_1\lambda^{p-1} - \phi_2\lambda^{p-2} - \cdots - \phi_p\bigr)
+&\text{(by cofactor expansion)}\\
+&= 0 
+\quad\Longleftrightarrow\quad 
+\lambda^p - \sum_{i=1}^p\phi_i \lambda^{p-i}=0\\
+&\Longleftrightarrow
+ 1 - \sum_{i=1}^p\phi_i \lambda^{-i}=0
+& \bigl(\text{divide by }\lambda^p\bigr)\\
+&\Longleftrightarrow
+ 1 - \sum_{i=1}^p\phi_i z^i=0
+\quad\text{with }z=\tfrac1\lambda
+\end{aligned}
+$$
+
+Thus the eigenvalues $\lambda$ of $G$ satisfy the reversed‐polynomial equation, so $z=1/\lambda$ are exactly the roots of the $AR(p)$ characteristic polynomial $1-\phi_1 z-\cdots-\phi_p z^p=0,$.
+:::
+
+:::: {#exr-pfw-2-7-7}
+Consider the $AR(2)$ series $y_t = \phi_1 y_{t−1} + \phi_2 y_{t−2} + \varepsilon_t$ with $\varepsilon_t \sim \mathcal{N}(0, \nu)$.
+Following [@prado2023time § 2.1.2], rewrite the model in the standard DLM form
+$y_t = \mathbf{F}^\top \mathbf{x}_t$ and $\mathbf{x}_t = \mathbf{G}x_{t−1} + \mathbf{F}\varepsilon_t$ where
+$$
+\mathbf{F} = \begin{pmatrix}
+1  \\
+0 
+\end{pmatrix}, \quad
+\mathbf{x}_t = \begin{pmatrix}
+y_t \\
+y_{t−1}
+\end{pmatrix}, \quad
+\mathbf{G} = \begin{pmatrix}
+\phi_1 & \phi_2 \\
+1 & 0
+\end{pmatrix}
+$$
+
+We know that this implies that, for any given $t$ and over $k \ge 0$, the
+forecast function is $E(y_{t+k} \mid \boldsymbol{\Lambda}_t ) = \mathbf{F}^\top \mathbf{G}^k \mathbf{x}_t$ .
+
+(a) Show that the eigenvalues of $\mathbf{G}$ denoted by $\lambda_1$ and $\lambda_2$ are the roots of the quadratic in $\lambda$ given by $\lambda^2 −\phi_1 \lambda−\phi_2 = 0$. 
+Deduce that $\phi_1 = \lambda_1 +\lambda_2$ and $\phi_2 = −\lambda_1 \lambda_2$.
+
+(b) Suppose that the eigenvalues $\lambda_1$ , $\lambda_2$ are distinct, whether they be real or a pair of complex conjugates. 
+Define
+$$
+        \begin{align}
+            \boldsymbol{\Lambda} =
+            \begin{pmatrix}
+                \lambda_1 & 0 \\
+                0 & \lambda_2
+            \end{pmatrix} 
+            & \boldsymbol{E} = 
+            \begin{pmatrix}
+                \lambda_1 & \lambda_2 \\
+                1 & 1
+            \end{pmatrix} \tau
+        \end{align}
+$$
+
+for any nonzero $\tau$. 
+Note that $\boldsymbol{E}$ is non-singular since $\lambda_1 \ne \lambda_2$. 
+Verify that $\mathbf{GE} = \mathbf{E} \boldsymbol{\Lambda}$, so that $\boldsymbol{G} = \boldsymbol{E} \Lambda \boldsymbol{E}^{-1}$, that is, $\boldsymbol{E}$ has columns that are eigenvectors of $\boldsymbol{G}$ corresponding to eigenvalues $(\lambda_1, \lambda_2)$.
+
+(c) We can take $\tau = 1$ with no loss of generality as $\tau$ cancels in
+the identity $\mathbf{G} = \mathbf{E} \boldsymbol{\Lambda} \mathbf{E}^{-1}$; do so from here on.
+Show that
+$$
+\begin{align}
+\boldsymbol{\Lambda} ^k \mathbf{E}^{-1} =\frac{1}{\lambda_1-\lambda_2}\begin{pmatrix}
+\lambda_1^k & -\lambda_1^k\lambda_2 \\
+-\lambda_1^k & \lambda_1 \lambda_2^k
+\end{pmatrix}
+\end{align}
+$$
+
+(d) Deduce that $\mathbf{E}(y_{t+k} |x_t ) = a_k y_t + b_k y_{t−1}$ with lagged coefficients
+$a_k = \frac{(\lambda_1^{k+1} − \lambda_2^{k+1})}{(\lambda_1 − \lambda_2 )}$
+and 
+$b_k = \frac{(−\lambda_1{k+1}  \lambda_2 + \lambda_1 \lambda_{k+1})}{(\lambda_1 − \lambda_2 )}$
+
+(e) Verify that this resulting expression 
+$\mathbf{E}(y_{t+k} \mid x_t ) = a_k y_t + b_k y_{t−1}$ gives
+the known results in terms of $\phi_1 , \phi_2$ when $k = 0$ and $k = 1$.
+
+(f) Consider now the special case of complex eigenvalues 
+$\lambda_1 = re^{i\omega}$ and $\lambda_2 = re^{−i\omega}$ for some real-valued modulus $r > 0$ and argument $\omega > 0$.
+Show that the lagged coefficients $a_k, b_k$ become
+$a_k = r^k \frac{sin((k + 1)\omega)}{sin(\omega)}$
+and 
+$b_k = −r^{k +1} \frac{sin(k\omega)}{sin(\omega)}$
+
+(g) Continuing in the case of complex eigenvalues, use simple trigonometric 
+identities to show that the forecast function can be reduced to
+$\mathbf{E}(y_{t+k} \mid x_t) = r^k h_t \cos(k\omega + g_t ), \quad k = 0, 1, \ldots,$
+a damped cosine form in $k$ (in stationary models with $0 < r < 1$).
+Give explicit expressions for the time-dependent amplitude $h_t > 0$
+and phase $g_t$ in terms of $\omega$ and $y_{t−1}$ , $y_t$ .
+::::
+
+:::: {#exr-pfw-2-7-8}
+Show that the general solution of the homogeneous difference Equation for 
+The autocorrelation structure of an AR(p) is given in terms of the solution
+of the homogeneous difference equation
+$$
+\rho(h) − \phi_1 \rho(h − 1) − \cdots − \phi_p \rho(h − p) = 0, h > 0.
+$$
+
+has the form:
+
+$$
+\rho(h) = \alpha_1^h p_1(h) + \alpha_2^h p_2(h) + \cdots + \alpha_r^h p_r(h), h > 0
+$$
+
+- where:
+    - $\alpha_r$ denote the reciprocal roots of the characteristic polynomial $\Phi(u)$
+    - with each root $\alpha_j$ having multiplicity $m_j$,
+    - $p_j(h)$ is a polynomial of degree $m_j − 1$.
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+Use the back‑shift operator $B$, so that $B\rho(h)=\rho(h-1)$. Then the recurrence
+
+$$
+\rho(h)-\phi_1\rho(h-1)-\cdots-\phi_p\rho(h-p)=0
+$$
+
+can be written as
+
+$$
+L(B) \rho(h) = (1-\phi_1B-\cdots-\phi_pB^p) \rho(h) = 0.
+$$
+
+Let the characteristic polynomial factor as
+
+$$
+L(z) = \prod_{j=1}^r (1-\alpha_j z)^{m_j},
+$$
+
+where the $\alpha_j$ are the (reciprocal) roots, with multiplicity $m_j$.  Then
+
+$$
+L(B)=\prod_{j=1}^r(1-\alpha_jB)^{m_j},
+$$
+
+so each factor $(1-\alpha_jB)^{m_j}$ must annihilate $\rho(h)$.  But one checks easily that
+
+$$
+(1-\alpha_jB) \bigl [\alpha_j^h \bigr ]=0
+$$
+
+and more generally, by taking finite differences, that
+
+$$
+(1-\alpha_jB)^{m_j}\Bigl[h^k \alpha_j^h\Bigr]=0
+\quad\text{for each }k=0,1,\dots,m_j-1.
+$$
+
+Hence the general solution is the linear combination of those basis‐solutions:
+
+$$
+\rho(h)
+=\sum_{j=1}^r\sum_{k=0}^{m_j-1}c_{j,k} h^k \alpha_j^h
+=\sum_{j=1}^r\alpha_j^h p_j(h),
+$$
+
+where each $p_j(h)$ is an arbitrary polynomial of degree $\le m_j-1$.  This is exactly the stated form.
+:::
+
+:::: {#exr-pfw-2-7-9}
+Show that, when the characteristic roots are all different, $f_t(h)$ the forecast function of an $AR(p)$ process has the representation given in @eq-ar-p-forecast-function
+
+$$
+f_t(h) =\sum_{j=1}^p  c_{tj} \alpha_j^h ,
+$$ {#eq-ar-p-forecast-function}
+
+- where 
+    - $c_{tj}$  are (possibly complex-valued) constants depending on $\phi$ and
+    the current state $\mathbf{x}_t$ , and 
+    - the $\alpha_j$ s are the $p$ distinct eigenvalues/reciprocal roots.
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+Define the $h$‑step forecast
+
+$$
+f_t(h)=\mathbb{E}[y_{t+h}\mid \mathbf x_t] 
+$$
+
+which for an $AR(p)$ satisfies the homogeneous recurrence (since the innovations have mean zero):
+
+$$
+f_t(h)=\phi_1 f_t(h-1) + \cdots+ \phi_p f_t(h-p) \qquad h\ge1,
+$$
+
+with "initial" values
+
+$$
+f_t(0)=y_t, f_t(−1)=y_{t−1}, \dots, f_t(−p+1)=y_{t−p+1} 
+$$
+
+When the characteristic polynomial
+
+$$
+u^p - \phi_1 u^{p-1}-\cdots-\phi_{p-1}u - \phi_p 
+$$
+
+has $p$ **distinct** roots $\alpha_1,\dots,\alpha_p$, the **general solution** of the recurrence is a linear combination of the root‐powers.  Concretely,
+
+$$
+\begin{aligned}
+    f_t(h) &= \phi_1 f_t(h-1) + \cdots + \phi_p f_t(h-p) &&\text{(forecast recurrence)}\\
+    &= \sum_{j=1}^p c_{tj} \alpha_j^h && \text{(general solution of a p th‐order linear recurrence)}
+\end{aligned}
+$$
+
+where the constants $c_{tj}$ are determined by matching the "initial" conditions
+
+$$
+f_t(k)=\sum_{j=1}^p c_{tj} \alpha_j^k,\quad k=0,1,\dots,p-1,
+$$
+
+i.e.\ by solving the $p\times p$ Vandermonde system
+
+$$
+\begin{pmatrix}
+    1        & 1        & \cdots & 1\\
+    \alpha_1 & \alpha_2 & \cdots & \alpha_p\\
+    \vdots   & \vdots & & \vdots\\
+    \alpha_1^{ p-1}    & \alpha_2^{ p-1} & \cdots & \alpha_p^{ p-1}
+\end{pmatrix}
+\begin{pmatrix}
+    c_{t1}\\
+    c_{t2}\\ 
+    \vdots\\
+    c_{tp}
+\end{pmatrix}
+=
+\begin{pmatrix}
+y_t\\y_{t+1}\\\vdots\\y_{t+p-1}
+\end{pmatrix}
+$$
+
+Thus, under distinct roots, the $h$‑step forecast takes the form
+
+$$
+\boxed{%
+f_t(h)=\sum_{j=1}^p c_{tj} \alpha_j^h}
+$$
+
+as required.
+
+:::
+
+
+:::: {#exr-pfw-2-7-10}
+Show that if an $AR(2)$ process has a pair of complex roots given by $r\sqrt{\exp(\pm i\omega)}$, they can be written in terms of the AR coefficients as $r =\sqrt{- \phi_2}$ and $cos(\omega) = \phi_1 /2r$.
+::::
+
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+$$
+\begin{aligned}
+\phi(L)&=1-\phi_1L-\phi_2L^2 \\
+   &=(1 - r e^{i\omega}L)(1 - r e^{-i\omega}L) 
+   &&\text{by assumption of roots }r e^{\pm i\omega}\\
+&=1 - (r e^{i\omega} + r e^{-i\omega}) L + (r e^{i\omega})(r e^{-i\omega}) L^2 
+   &&\text{expanding the product}\\
+&=1 - 2r\cos(\omega) L + r^2 L^2
+   &&\bigl(re^{i\omega} + re^{-i\omega}= 2r\cos\omega, e^{i\omega} e^{-i\omega}=1\bigr)
+\end{aligned}
+$$
+
+Matching coefficients with $1-\phi_1L-\phi_2L^2$ gives:
+
+$$
+\phi_1=2r\cos\omega,\qquad \phi_2= -r^2
+$$
+
+Solving these,
+
+$$
+r=\sqrt{-\phi_2}, \qquad \cos(\omega) = \frac{\phi_1}{2r}
+$$
+
+:::
+
+
+:::: {#exr-pfw-2-7-11}
+Plot the corresponding forecast functions for the $AR(2)$ processes considered in Example 2.1.
+
+(a) $\phi_1 = 0.1, \phi_2 = 0.8$
+(b) $\phi_1 = 1.8, \phi_2 = −0.81$ 
+(c) $\phi_1 = 1.2, \phi_2 = −0.9$
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+TODO
+
+:::
+
+
+:::: {#exr-pfw-2-7-12}
+Verify that the expressions for the conditional posterior distributions in [@prado2023time § 2.4.1] are correct.
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+TODO
+
+:::
+
+
+:::: {#exr-pfw-2-7-13}
+Show that a prior on the vector of $AR(p)$ coefficients $\phi$ of the form 
+$\mathcal{N} (\phi_1 \mid 0, w/\delta_1 )$ and 
+$\mathcal{N} (\phi_j \mid \phi_{j−1} , w/ \delta_j)$ for 
+$1 < j \le p$ 
+can be written as 
+$p(\phi) = \mathcal{N} (\phi \mid 0, A^{−1} w)$, where 
+$A = H^\top \Delta H$ with $H$ and $\Delta$ defined in [@prado2023time § 2.4.2].
+
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+TODO
+
+:::
+
+
+:::: {#exr-pfw-2-7-14}
+Verify the ACF of a $MA(q)$ process given in (2.33).
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+TODO
+
+:::
+
+
+### ARMA Models
+
+The questions on ARMA are mostly beyond the scope of the courses I took, I might get to them later.
+Because there are extra chapters on NDLM which we did cover in the course which I plan to solve first.
+
+:::: {#exr-pfw-2-7-15}
+Find the ACF of a general $ARMA(1,1)$ process.
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+Let's find the **autocorrelation function (ACF)** of the **ARMA(1,1)** process 
+
+---
+
+An $ARMA(1,1)$ process is given by:
+
+$$
+y_t = \phi y_{t-1} + \varepsilon_t + \theta \varepsilon_{t-1}, \quad \varepsilon_t \overset{i.i.d.}{\sim} \mathcal{N}(0, \sigma^2)
+$$ {#eq-ar-2-arma-model}
+
+- where
+    -  $\phi$ is the AR parameter, 
+    - $\theta$ is the MA parameter, and 
+    - $\varepsilon_t$ are white noise innovations.
+
+I assume the process is **stationary**. 
+
+---
+
+- We want to compute the **autocovariance function** 
+
+$$
+\gamma(h) = \operatorname{Cov}(y_t, y_{t-h})
+$$
+
+- the **ACF** is:
+
+$$
+\rho(h) = \frac{\gamma(h)}{\gamma(0)}
+$$
+
+So let's start with $\gamma(0)$, then $\gamma(1)$, and then find a recurrence for $\gamma(h)$.
+
+---
+
+### Step 3: Compute $\gamma(0)$
+
+We'll compute the variance of $y_t$:
+
+$$
+y_t = \phi y_{t-1} + \varepsilon_t + \theta \varepsilon_{t-1}
+$$ {#eq-ar-2-arma-prediction-error}
+
+To do this, let's define the **Wold representation** (if we write $y_t$ as a moving average):
+
+$$
+y_t = \sum_{j=0}^{\infty} \psi_j \varepsilon_{t-j}
+$$ {#eq-ar-2-wold-representation}
+
+where
+
+$$
+\psi_0 = 1,\quad \psi_1 = \phi + \theta,\quad \psi_j = \phi \psi_{j-1} \text{ for } j \ge 2
+$$
+
+So:
+
+$$
+\begin{array}{c} \psi_j = 
+\begin{cases}
+1 & \text{if } j = 0 \\
+(\phi + \theta)\phi^{j-1} & \text{if } j \ge 1
+\end{cases} \end{array}
+$$
+
+Then the variance is:
+
+$$
+\begin{aligned}
+\gamma(0) &= \operatorname{Var}(y_t) 
+ & \text{}
+\\ &= \sigma^2 \sum_{j=0}^{\infty} \psi_j^2
+& \text{}
+\\ &= \sigma^2 \left[ \psi_0^2 + \sum_{j=1}^\infty \psi_j^2 \right]
+& \text{}
+\\ &= \sigma^2 \left[ 1 + \sum_{j=1}^\infty (\phi + \theta)^2 \phi^{2(j-1)} \right] 
+& \text{substituting from above}
+\\ &= \sigma^2 \left[ 1 + (\phi + \theta)^2 \sum_{j=1}^\infty \phi^{2(j-1)} \right] 
+& \text{}
+\\ &= \sigma^2 \left[ 1 + (\phi + \theta)^2 \sum_{k=0}^\infty \phi^{2k} \right] 
+& \text{a geometric series (assuming } |\phi| < 1 \text{)}
+\\ &= \sigma^2 \left[ 1 + \frac{(\phi + \theta)^2}{1 - \phi^2} \right]
+\end{aligned}
+$$
+
+:::
+
+
+:::: {#exr-pfw-2-7-16}
+Show that Equations @eq-ar-2-arma-prediction-error and @eq-ar-2-ms-prediction-error hold by taking expected values in @eq-ar-infinite-order and @eq-ma-infinite-order with respect to the whole past history $y_{−\infty,t}$.
+::::
+
+::: {.solution .callout-tip collapse="true"}
+#### Solution:
+
+
+$$
+y_{t+h} = \sum_{j=1}^\infty \phi_j^* y_{t+h-j} + \varepsilon_{t+h}
+$$ {#eq-ar-infinite-order}
+
+
+$$
+y_{t+h} = \sum _{j=1}^\infty \theta_j^* \varepsilon_{t+h-j} +\varepsilon_{t+h}
+$$ {#eq-ma-infinite-order}
+
+
+$$
+y_{t+h} − y_{t+h}^{-\infty} = \sum_{j=0}^{h−1} \theta_j^* \varepsilon_{t+h−j}
+$$ {#eq-ar-2-arma-prediction-error}
+
+
+$$
+MSE_{t+h}^{−\infty} = \mathbb{E}(y_{t+h} − y_{t+h}^{-\infty}) = v \sum_{j=0}^{h−1} (\theta_j^*)^2
+$$ {#eq-ar-2-ms-prediction-error}
+
+
+:::
+
+
+:::: {#exr-pfw-2-7-17}
+Consider the $AR(1)$ model given by $(1 − \phi B)(y_t − \mu) = \varepsilon_t$
+where $\varepsilon_t \sim \mathcal{N} (0, \nu)$.
+
+(a) Find the MLEs for $\phi$ and \mu when $\mu \ne 0$.
+(b) Assume that $\nu$ is known, $\mu=0$, and that the prior distribution for $\phi$ is $\mathcal{U}(\phi \mid 0,1)$. Find an expression for the posterior distribution of $\phi$.
+::::
+
+::: {#exr-pfw-2-7-18}
+Suppose you observe $y_t = x_t + \nu_t$ where:
+
+- $x_t$ follows a stationary $AR(1)$ process with AR parameter $\phi$ and innovation variance $v$, i.e., $x_t = \phi x_{t−1} + \varepsilon_t$ with independent innovations $\varepsilon_t \sim \mathcal{N} (0, v)$
+- The $\nu_t$ are independent measurement errors with $\nu_t \sim \mathcal{N}(0, w)$;
+- The $\varepsilon_t$ and $\nu_t$ series are mutually independent.
+
+It easily follows that 
+$q = V (y_t ) = s + w$ where $s = V (x_t ) = v/(1 − \phi ^2)$
+
+(a) Show that $y_t = \phi y_{t−1} + \eta_t$ where $\eta_t = \varepsilon_t + \nu_t − \phi \nu_{t−1}$.
+(b) Show that the lag−1 correlation in the $\eta_t$ sequence is given by the expression $−\phi w/(w(1 + \phi ^2 ) + v)$.
+(c) Find an expression for the lag−k autocorrelation of the $y_t$ process in terms of $k$, $\phi $, and the signal to noise ratio $s/q$. Comment on this result.
+(d) Is $y_t$ an $AR(1)$ process? 
+    Is it Markov? 
+    Discuss and provide theoretical rationalization.
+::::
+
+:::: {#exr-pfw-2-7-19}
+You observe $y_t = x_t + \mu, t = 1, 2, \dots , \text{ where } x_t$ follows a stationary AR(1) process with AR parameter $\phi$ and innovation variance $v$, i.e., $x_t = \phi x_{t−1} + \varepsilon_t$ with independent innovations $\varepsilon_t \sim \mathcal{N} (0, v)$. 
+Assume all parameters ($/mu$, $\phi$, $\nu$) are known.
+
+(a) Identify the ACF and PACF of $y_t$, and comment of comparisons with those of $x_t$.
+(b) What is the marginal distribution of $y_t$?
+(c) What is the distribution of $(y_t \mid y_{t−1})$?
+(d) What is the distribution of $(y_t \mid y_1 , \ldots , y_{t−1})$?
+(e) Now consider $\mu$ as a parameter to be estimated. As a function of $\mu$ and conditioning on the initial value $y_1$, what is the likelihood function $p(y_2 , \ldots , y_{T +1} \mid y_1 , \mu)$?
+(f) Assume $\phi$, $v$ are known. Under the reference prior $p(\mu) \propto \text{constant}$, show that the resulting posterior for $\mu$ based on the conditional likelihood above is normal with precision $(1 − \phi)^2 T /v$, and give an expression for the mean of this posterior.
+(g) Show that, for large $T$, the reference posterior mean above is approximately the sample mean of the $y_t$ data.
+(h) If $\phi = 0$, we have the usual normal random sampling problem.
+    For nonzero values of $\phi$, the above posterior for the mean of the normal data $y_t$ depends on $\phi$ in the posterior variance.
+    Comment on how the posterior changes with $\phi$ and why this makes sense.
+::::
+
+
+:::: {#exr-pfw-2-7-20}
+
+::::
+
+:::: {#exr-pfw-2-7-21}
+
+::::
+
+:::: {#exr-pfw-2-7-22}
+Let $x_t$ be an $AR(p)$ process with characteristic polynomial $\Phi_x(u)$ and $y_t$ be an $AR(q)$ process with characteristic polynomial $\Phi_y(u)$. 
+What is the structure of the process $z_t$ with $z_t = x_t + y_t$ ?
+::::
+
+:::: {#exr-pfw-2-7-23}
+::::
+
+
+:::: {#exr-pfw-2-7-24}
+Consider the $AR(2)$ process:
+
+$$
+y_t = \phi_1 y_{t−1} + \phi_2 y_{t−2} + \varepsilon_t \text{ with }\varepsilon_t \sim \mathcal{N} (0, v)
+$$ {#eq-ar-2-7-24}
+
+independent with $\phi_1 = 0.9$, and $\phi_2 = −0.9$. Is this process stable?
+If so write the process as an infinite order MA process,
+$y_t = \sum_{j=0}^\infty  \psi_j \varepsilon_{t−j}$.
+Find $\psi_j$ for all $j$.
+::::
+
+:::: {#exr-pfw-2-7-25}
+Consider a process of the form:
+
+$$
+y_t = −2t + \varepsilon_t + 0.5 \varepsilon_{t−1} \qquad \varepsilon_t \stackrel{i.i.d.}{\sim} N (0, v).
+$$ {#eq-ar-2-7-25}
+
+(a) Find the ACF of this process.
+(b) Now define $z_t = y_t − y_{t−1} + 2$. 
+    - What kind of process is this?  
+    - Find its ACF
+
+::::
+
+
+::: {.solution .callout-tip collapse="true"}
+
+
+(a): Find the ACF of the process
+
+We're given:
+
+$$
+y_t = -2t + \varepsilon_t + 0.5 \varepsilon_{t-1}, \qquad \varepsilon_t \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, v)
+$$ {#eq-ar-2-7-25-a}
+
+Let’s break this down:
+
+#### Step 1: Separate the deterministic and stochastic parts
+
+* Deterministic trend: $-2t$
+* Stochastic part: $x_t = \varepsilon_t + 0.5 \varepsilon_{t-1}$
+
+So we can write:
+
+$$
+y_t = -2t + x_t
+$$
+
+The autocovariance and autocorrelation come **only** from the stationary part $x_t$, since the trend $-2t$ is deterministic and doesn’t contribute to the variance or autocorrelation between residuals.
+
+So let’s focus on:
+
+$$
+x_t = \varepsilon_t + 0.5 \varepsilon_{t-1}
+$$
+
+What kind of process is that?
+
+#### Step 2: Recognize it's an MA(1) process
+
+This is a **moving average of order 1**, MA(1), with parameter $\theta = 0.5$. You should remember the ACF of an MA(1) process:
+
+* $\rho(0) = 1$
+* $\rho(1) = \dfrac{\theta}{1 + \theta^2}$
+* $\rho(h) = 0$ for $h > 1$
+
+Let's compute the ACF values:
+
+* $\rho(1) = \dfrac{0.5}{1 + 0.5^2} = \dfrac{0.5}{1.25} = 0.4$
+
+So:
+
+$$
+\rho(0) = 1,\quad \rho(1) = 0.4,\quad \rho(h) = 0 \quad \text{for } h \ge 2
+$$
+
+:::
+
+
+::::: {#exr-pfw-2-7-26}
+Figure 2.14 plots the monthly changes in the US S&P stock market index over 1965 to 2016. 
+Consider an AR(1) model as a very simple exploratory model—for understanding local dependencies but not for forecasting more than a month or two ahead.
+We know there is a great deal of variation across the years in the market economy and that we might expect "change" that an AR(1) model does not capture. 
+
+To explore this, we can simply fit the $AR(1)$ model to shorter sections of the data and examine the resulting inferences on parameters to see if they seem to vary across time. 
+
+Do this as follows. 
+The full series has T = 621 months of data; look at many separate time series by selecting a month m and taking some number k months either side; for example, you might take $k = 84$ and for any month m analyze the data over the "windowed period" from $m − k$ to $m + k$ inclusive. 
+Repeat this for each month m running from $m = k + 1$ to $m = T − k$. 
+These repeated analyses will define a "trajectory" of AR(1) analyses over time, one for each sub-series.
+
+For each sub-series, subtract the sub-series mean (to roughly center the sub-series series about zero) and then compute the summaries of the reference posterior for an AR(1) model to just those $2k+1$ time points—just treating each selected sub-series separately. 
+Using the theoretical posterior T distribution for the φ parameter, compute and compare graphically) the exact posterior 90% credible intervals.
+
+(a) Comment on what you see in the plot and comparison, and what you might conclude in terms of changes over time.
+(b) Do you believe that short-term changes in S&P have shown real changes in month-month dependencies since 1965?
+(c) How would you suggest also addressing the question of whether or
+not the underlying mean of the series is stable over time?
+(d) What about the innovations variance?
+(e) What does this suggest for more general models that might do a better job of imitating this data?
+
+::::
+
+
+
+
+
+

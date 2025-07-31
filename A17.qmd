@@ -1,0 +1,681 @@
+---
+title: "Appendix: Kalman Filter"
+subtitle: "Appendix"
+description: "This appendix explains the Kalman Filter, a mathematical method for estimating the state of a dynamic system from a series of noisy measurements."
+categories: 
+    - "Probability and Statistics"
+keywords: 
+    - "Kalman Filter"
+    - "state estimation"
+    - "linear algebra"
+---
+
+## Kalman Filter - (extra curricular) circa 1960 {#sec-kf-1.1.1-introduction}
+
+The Kalman Filter arises in the filtering equations of the NDLM in the course on Bayesian time series.
+
+One of the mysteries of the NDLM is how the Matrix $G$ takes it form. This is not explained very well in the course that carries on as if the Kalman filter does not exist. However most of what student find difficult to understand in the NDLM is explained by a quick introduction to the the Kalman filter.
+
+This appendix is based on a crash course on the Kalman filter as well as the [@petris2009dynamic].
+
+Note: KF requires a good understanding of linear algebra, matrix operations, and probability theory. If you are not familiar with these concepts, it is recommended to review them before diving into the Kalman filter.
+
+
+
+- Linear algebra:
+  - Vectors and matrices are used to represent the state of a dynamic system.
+  - Eigenvalue decomposition is used to analyze the dynamics of the system.
+  - The matrix exponential is used to solve the state space model.
+  - Jordan form may be needed if the dynamics matrix is not diagonalizable.
+- State space vector representation of dynamic systems.
+- Laplace transforms are used for the state space model.
+- Convolution operation 
+
+## Model-based state estimation {#sec-kf-1.1.2-model-based-state-estimation}
+
+### What are some key Kalman-filter concepts? 
+
+- KFs use sensed measurements and a mathematical model of a dynamic system to estimate its internal hidden state
+- A **model** of the system and its state dynamics is assumed to be known.
+- A system's **state** is a vector of values that completely summarizes the effects of the past on the system
+- The model's state should be a twin of the system's state
+
+
+::: {#exp-system-state-vector .callout-tip}
+### Aircraft state vector
+A system state vector might include the 
+
+$$
+\vec{state} =[ x,y,z, \alpha,\beta,\gamma, x', y', z', \alpha',\beta',\gamma' ] 
+$$ {#eq-aircraft-system-state-vector}
+
+- where:
+  - $x, y, z$ are the position coordinates, 
+  - $\alpha, \beta, \gamma$ are the [Euler angles](https://en.wikipedia.org/wiki/Euler_angles) representing the orientation of the aircraft,  Or more accurately the Tait–Bryan angles
+    - $\alpha$ is the roll angle,
+    - $\beta$ is the pitch angle,
+    - $\gamma$ is the yaw angle,
+  - $x', y', z'$  are the velocities in the respective directions.
+  - $\alpha', \beta', \gamma'$ are the angular velocities in the respective directions.
+
+The number of elements in the state vector is called the **state dimension** or [degrees of freedom](https://en.wikipedia.org/wiki/Degrees_of_freedom_(mechanics)).
+:::
+
+### Why do we need a model?
+
+![simplified  kalman filter block diagram](images/a17/kf-bc-001.png){#fig-kf-001 .column-margin  group="slides" width="53mm"}
+
+
+![kalman filter with feedback block diagram](images/a17/kf-bc-002.png){#fig-kf-002 .column-margin  group="slides" width="53mm"}
+
+- [Generally it is neither possible nor practical to measure the **state of a dynamic system** directly.]{.mark}
+- According to Laplace's view of classical mechanics if we measure the system's inputs we can  propagate those measurements through a model, updating the model's prediction of the true state.
+- We make measurements that are linear or nonlinear functions of members of the state.
+- The measured and predicted outputs are compared.
+- The KF is an algorithm that updates the model's state estimate using this prediction error as feedback regarding the quality of the present state estimate.
+
+### What kind of model do we assume?
+
+- Linear KFs use discrete-time state-space models of the form:
+$$
+\begin{aligned}
+x_{t+1} &= Ax_t + Bu_t + w_t && \text{state eqn.}\\
+z_t &= Cx_t + Du_t + v_t && \text{observation eqn.}
+\end{aligned}
+$$ {#eq-kalman-filter-equations}
+
+- where:
+    - $x_t$ is the state vector at time $t$,
+    - $u_t$ is the input vector at time $t$,
+    - $z_t$ is the output vector at time $t$,
+    - $A \in \mathbb{R}^{n \times n}$ is the **system matrix**,
+    - $B \in \mathbb{R}^{n \times r}$ is the **input matrix**,
+    - $C \in \mathbb{R}^{m \times n}$ is the **output matrix**,
+    - $D \in \mathbb{R}^{m \times r}$ is the **feedforward matrix**,
+    - $w_t \sim \mathcal{N}(0,Q)$ is the process noise
+    - $v_t \sim \mathcal{N}(0,R)$ is the sensor noise
+    - the state  equation describes how the state evolves over time,
+    - the observation equation describes how the state is observed through measurements.
+
+That too many new definitions, I feel like my hair is on fire, so here is an annotated version of the Kalman Equations:
+$$
+\begin{array}{rccccccl}
+\overbrace{x_{t+1}}^{\text{predicted state}} 
+&= \underbrace{A}_{\text{system}} 
+&\overbrace{\color{red} x_t}^{\text{current state}} 
+&+ 
+&\underbrace{B}_{\text{input}} 
+&\overbrace{\color{green} u_t}^{\text{current input}} 
+&+
+& \underbrace{w_t}_{\text{process noise}} \\[2ex]
+\underbrace{z_t}_{\text{predicted output}} 
+&= \underbrace{C}_{\text{output}} 
+&{\color{red} x_t} 
+&+
+& \underbrace{D}_{\text{feed forward}} 
+&{\color{green} u_t} 
+&+
+& \underbrace{v_t}_{\text{sensor noise}} 
+\end{array}
+$$ {#eq-kalman-filter-equations-annotated}
+
+::: {.callout-tip collapse="true"}
+### Kalman Filter v.s. NDLM and interventions
+
+In the NDLM we see simplified versions of these equations, where $B$ and $D$ are set to zero and we don't have a current input $u_t$. 
+
+Another major difference explained in [@petris2009dynamic] is that in a statistics settings the modeler typically knows much less about the system dynamics than users of a Kalman filter who has access to some set of differential equations that describe the system dynamics. 
+
+In [@west2013bayesian] the authors make a big point about their models being able to handle **interventions**.
+
+My initial impression was that there seems to be a gap in their logic regarding this and as far as I can with the absence of the input term $u(t)$ which should embody an interventions, these are supposed to be reflected via a change in the matrix $\mathbf{F}_t,\mathbf{G}_t$. However if these matrices are change every time step $t$, we don't really have a model in any useful sense. (We need to somehow come up with a different model for each time step. This is not feasible even if we have access to the differential equations that describe the system dynamics.) 
+
+Looking deeper into the literature, I found that this kind of intervention is considered  
+in [@west2013bayesian ch. 11]. In fact there is a whole chapter dedicated to 
+interventions and monitoring where the authors eventually discuss arbitrary interventions.
+
+It appears that the interventions seem to lead to the same form being used but with either an additional term for the noise or an expansion of G to incorporate an expansion of the state vector to include new parameters that if such are required.
+
+[@prado2023time p. 154] also discusses three types of interventions but not in the same depth as the above.
+
+1. treating $y_t$ as an outlier
+2. increasing uncertainty at the system level by adding a second error term to the state equation.
+3. arbitrary intervention by setting the prior moments of the state vector to some specific values.
+
+$$
+\begin{array}{rccccl}
+\overbrace{x_{t+1}}^{\text{predicted state}} 
+&= \underbrace{G}_{\text{system}} 
+&\overbrace{\color{red} x_t}^{\text{current state}} 
+&+ 
+& \underbrace{w_t}_{\text{process noise}} 
+\\
+\underbrace{y_t}_{\text{predicted output}} 
+&= \underbrace{F}_{\text{output}} 
+&{\color{red} x_t} 
+&+
+& \underbrace{v_t}_{\text{sensor noise}} 
+\end{array}
+$$ {#eq-NLDM-equations-annotated}
+
+:::
+
+
+### A simple example model
+
+- Concrete example: Consider the 1-d motion of a rigid object.
+  - The state comprises position $p_t$ and velocity (speed) $s_t$ :
+$$
+\underbrace{\begin{bmatrix} p_t \\ s_t \end{bmatrix}}_{x_t} =
+\underbrace{\begin{bmatrix} 1 & \Delta t \\ 0 & 1 \end{bmatrix}}_{A}
+\underbrace{\begin{bmatrix} p_{k-1} \\ s_{k-1} \end{bmatrix}}_{x_{k-1}} +
+\underbrace{\begin{bmatrix} 0 \\ \Delta t \end{bmatrix} }_{B} u_{k-1} + w_{k-1}
+$$ {#eq-kf-rigid-object-motion-1d-state}
+  - where $\Delta t$ is the time interval between iterations $t-1$ and $t$ .
+    - $u_t$ is equal to force divided by mass;
+    - $w_t$ is a vector that perturbs both $p_t$ and $s_t$ .
+- The measurement could be a noisy position estimate:
+$$
+z_t =
+\underbrace{\begin{bmatrix} 1 & 0 \end{bmatrix}}_{C}
+\underbrace{\begin{bmatrix} p_t \\ s_t \end{bmatrix}}_{x_t}  + v_t
+$$ {#eq-kf-rigid-object-motion-1d-observations}
+
+- Example illustrates how the state-space form can model a specific dynamic system.
+- The form is extremely flexible: can be applied to any finite-dimensional linear system.
+
+### Why do we need feedback?
+
+- Our goal is to make an optimal estimate of $x_t$ in: @eq-kalman-filter-equations
+
+- If we knew $x_0, w_t$, and $v_t$ perfectly, and if our model were exact, there would be no need for feedback to estimate $x_t$ at any point in time. We simply simulate the model! However, in practice:
+
+  - [We rarely know the initial conditions]{.mark} $x_0$ exactly
+  - [We never know the system or measurement noise]{.mark} $w_t, v_t$ (by definition).
+  - Also, [no physical system is truly linear]{.mark} and even if one were, we would never know $A$, $B$, $C$, and $D$ exactly.
+
+- So, simulating the model (specifically, simulating the state equation "open loop") is insufficient for robust estimation of $x_t$. 
+
+[**open loop** - without feedback]{.column-margin}
+
+- **Feedback** allows us to compare predicted $z_t$ with measured $z_t$ to adjust $x_t$.
+
+
+### How does the feedback work?
+
+- Discrete-time Kalman filters repeatedly execute two steps:
+  1. [**Predict** the current state-vector values based on all past available data.]{.mark} E.g., a linear KF computes 
+$$
+\hat{x}_t^- = A \hat{x}_{t-1}^+ + B u_{t-1}
+$$ {#eq-kalman-filter-prediction}
+- where 
+  - $\hat{x}_{t-1}^+$ is the *prediction* of $x_{t-1}$.
+  - $\hat{x}_{t-1}^-$ is the *estimate* of $x_{t-1}$.
+  2. [**Estimate** the current state value by updating the prediction based on all presently available data.]{.mark} E.g., a linear KF computes 
+$$
+\hat{x}_{t}^+ = \hat{x}_t^- + {\textcolor{blue} {L_t}}\, (z_t - (C \hat{x}_t^- + D u_t))
+$$ {#eq-kalman-filter-feedback}
+
+- A very straightforward idea. But ...
+  - What should be the *feedback gain matrix* $L_t$?
+    - That is, how do we make this feedback optimal in some meaningful sense?
+- Can we generalize this feedback concept to nonlinear systems?
+- What if we don't know $u_t$ (as in the tracking application)?
+
+### Summary
+
+- [KFs use *sensed measurements* and a mathematical model of a dynamic system to estimate its internal hidden state.]{.mark}
+
+[**Discrete--time state--space format**]{.column-margin}
+
+- For the kind of KFs we will study, the mathematical model must be formulated in a **discrete-time state-space format**. 
+
+- This form is very general, and can apply to nearly any dynamic system of interest.
+
+- [KFs operate by repeatedly predicting the present state, and then updating that prediction using a measured system output to make an estimate of the state.]{.mark}
+
+[**Gain matrix**]{.column-margin}
+
+- [This process is *optimized* by computing an **optimal feedback gain matrix** $L_t$ at every time step that blends the prediction and the new information in the measurement.]{.mark}
+
+- There is a lot to learn, and the next topic will present our roadmap for doing so.
+
+
+## Working through a KF example at high-level {#sec-kf-1.1.3-high-level-ex}
+
+### A problem for which KF should be a good solution
+
+- We will now walk through an example---without going into all the details---to illustrate how a KF works.
+- [Consider a car traveling in a straight line. We would like to estimate its position.]{.mark}
+- We use GPS as a position sensor---but GPS estimates have *measurement uncertainty* and [we wonder if blending our knowledge of the car's dynamics with GPS might let us infer a better position estimate.]{.mark} [**navigation problem**]{.column-margin}
+- We might think, "Maybe we could use a Kalman filter to estimate the car's position better than simply using GPS."
+  - We would be right!
+
+### Designing the Kalman filter: The model
+
+- To design the KF, we require a **discrete-time state-space model** of the dynamics of the car.
+- We adopt the model of 1-d motion of a rigid object from the prior lesson.
+  - The state comprises position pk and velocity (speed) $s_t$ :
+
+$$
+\begin{bmatrix} p_t \\ s_t \end{bmatrix} =
+\begin{bmatrix} 1 & \Delta t \\ 0 & 1 \end{bmatrix}
+\begin{bmatrix} p_{k-1} \\ s_{k-1} \end{bmatrix} +
+\begin{bmatrix} 0 \\ \Delta t \end{bmatrix} u_{k-1} + w_{k-1}
+$$
+
+where $\Delta t$ is the time interval between iterations $t-1$ and $t$ .
+- $u_t$ is equal to force divided by mass;
+- $w_t$ is a vector that perturbs both $p_t$ and $s
+
+The measurement is a noisy GPS position estimate:
+$$
+z_t =
+\begin{bmatrix} 1 & 0 \end{bmatrix}
+\begin{bmatrix} p_t \\ s_t \end{bmatrix}  + v_t
+$$ 
+
+
+### Designing the Kalman filter: The uncertainties
+
+- We also need to describe what we know about the uncertainties of the scenario.
+  - What do we know about the initial state of the car, $x_0$ ?
+  - What do we know about process noise $w_t$ (wind) affecting the state's evolution?
+  - What do we know about the measurement noise $v_t$ (GPS measurement error)?
+- For most of the specialization, we will assume that these uncertainties are
+described by Gaussian (normal) distributions, which can be specified if we know the
+means and standard deviations of the probability density functions. We assume:
+  - That GPS measurement error has zero mean and standard deviation of 1.5 m. The overall confidence is then about 4.5 m.
+  - That $x_0$ is initialized via a GPS measurement, so has zero mean and standard deviation of 5 ft.
+  - That $w_t$ has zero mean and a standard deviation of $3cm\; s^{-1}$ on the velocity state.
+
+### Visualizing the Kalman-filter process: Prediction
+
+- We first initialize the KF state estimate for iteration $t = 0$.
+$x_0$ is uncertain since it is estimated from a GPS measurement.
+- We draw this uncertainty as a shaded blue pdf.
+- We don't know the car's position exactly; but we do know where we expect it to be (at the measurement location) and we know the range of likely true locations (about $\pm 4.5$ m).
+- One time-step later, the car has moved.
+- The KF uses the model plus knowledge of $u_t$ to predict where the car will be, drawn as the shaded yellow pdf.
+- Since we do not know $w_t$, the uncertainty of the position estimate has increased.
+
+
+### Visualizing the Kalman-filter process: Estimation
+
+- At this point, we make a GPS measurement of the car's new position, remembering that the measurement has uncertainty.
+- Again, we show this as a shaded blue pdf.
+  - We now have an uncertain prediction of the position from the model (yellow) and an uncertain measurement (blue).
+- We need to combine these.
+- The KF takes into consideration the prediction and the measurement and their uncertainties to compute an estimate of the car's location.
+- This estimate (green) will be optimal in some sense, and will have less uncertainty than either the prediction or the measurement.
+
+### Properties of the Kalman-filter solution
+
+- The KF repeatedly takes two steps: prediction and correction.
+
+  - The prediction step uses the known dynamics of the state and known characteristics of the process noise $w_t$.
+  - The correction step combines the prediction and the measurement and their uncertainties to make a state estimate valid for this time step.
+
+- The output of the KF at every time step comprises two quantities: the state estimate and confidence bounds on this estimate.
+
+- The [KF never "knows" the true system state exactly and does not converge to the true state]{.mark} (i.e., with vanishingly small confidence bounds) over time, since process noise $w_t$ continuously modifies the state in unknown ways.
+
+- But, the confidence bounds allow us to interpret the output of the KF appropriately.
+
+### Summary
+
+- This lesson has illustrated KF operation for a specific example.
+- We learned that we will need to specify a model of the system and the uncertainties of the signals in the model.
+- We will need to initialize the KF with an estimate of $x_0$.
+- Then, every measurement interval we perform a prediction and a correction step.
+- [Prediction increases uncertainty and correction decreases uncertainty. The KF "fuses" the prediction with the measurement to make an optimal estimate.]{.mark}
+- The *output of the KF* is the **state estimate** as well as its **confidence bounds**.
+- The estimate will always contain some randomness due to $w_t$, so the confidence bounds will not decay to zero width.
+- The confidence bounds are necessary so we know the estimate's accuracy level.
+
+
+## The target Tracking application {#sec-kf-target-tracking}
+
+- One application of KFs is for target tracking. [**target tracking problem**]{.column-margin}
+- We wish to predict the future location of a dynamic system (the target) based on KF estimates and measurements.
+- Ideally we know all the matrices and signals of its continuous-time linear state-space model 
+
+$$
+\begin{aligned}
+\dot{x}_t &= A x(t) + B u(t) + w(t) \\
+z_t &= C x(t) + D u(t) + v(t)
+\end{aligned}
+$$ {#eq-target-tracking-equations}
+
+- in the target tracking application, we typically don't know u(t)$ nor the state space matrices very well.
+- we may need to approximate target dynamics based on some assumed behaviors.
+  - One idea is to come up with a hyper-prior that allows us to assign *intuitive* dynamics to the target. c.f. [@battagliaintuitive] work on intuitive physics
+- If we roll our own we might use:
+  - a nearly constant position (NCP) model, 
+  - a near constant velocity (NCV) model, or 
+  - a coordinated-turn (CT) model.
+
+### The nearly constant position (NCP) model
+
+In the NCP model, we assume that the target is stationary.
+
+$$
+x(t) = \begin{bmatrix} \xi(t) \\ \eta(t) \end{bmatrix}
+$$ {#eq-ncp-model-state-vector}
+
+- our models state equations is 
+$$
+\dot{x}(t) = 0 x(t) + w(t)
+$$ {#eq-ncp-model-state-equation}
+  - with $A= 0_{2\times 2}$ and $B=0_{2\times2}$
+
+- our model's observation equation might be:
+$$
+z(t) = x(t) + v(t)
+$$ {#eq-ncp-model-observation-equation}
+  - with $C= I_{2\times 2}$ and $D=0_{2\times2}$
+
+```{python}
+#| label: ncp-model
+#| lst-label: lst-ncp-model
+#| lst-cap: "NCP model simulation code"
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+maxT = 1000; # <1>
+dT = 0.1;    # <2>
+
+# Define the NCP model
+Ancp = np.eye(2)
+Bwncp =  np.eye(2)
+Cncp =  np.eye(2)
+Dncp  =  np.zeros((2,2))
+
+np.random.seed(42)                      # <3>
+wncp = 0.1*np.random.randn(2,maxT)
+vncp = 0.01*np.random.randn(2,maxT)
+
+xncp = np.zeros(shape=(2,maxT))         # <4>
+xncp[:,0] = [0,0]                       # <5>
+
+for k in range(1,maxT):                 # <6>
+  xncp[:,k] = Ancp @ xncp[:,k-1] + Bwncp @ wncp[:,k-1]
+
+zncp = Cncp @ xncp + vncp
+```
+1. maximum simulation time, used for all models 
+2. sample period used by all models (in seconds)
+3. set seed for reproducibility, 
+4. storage
+5. initial position
+6. simulate the model
+
+
+```{python}
+#| label: fig-plot-ncp
+#| fig-cap: "Plot of the NCP model simulation trajectory"
+
+plt.figure(figsize=(10, 6))
+
+plt.plot(zncp[0, :], zncp[1, :], label='Trajectory of NCP model simulation')
+plt.title('Nearly Constant Position Model Simulation')
+plt.xlabel(r'$\text{x coordinate} - \xi$')
+plt.ylabel(r'$\text{y coordinate} - \eta$')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+
+```{python}
+#| label: lst-ncp-model-final-coordinate
+
+print(f"Final coordinate of the trajectory: {zncp[:, -1]}") # <1>
+```
+1.  Display the final coordinate of the trajectory
+
+### The nearly constant velocity (NCV) model
+
+
+- We now extend our target tracking model from static object to one having momentum: its velocity is nearly constant, but gets perturbed by external forces.
+- The state vector is now:
+$$
+x(t) = \begin{bmatrix} 
+  \xi(t) \\ 
+  \dot{\xi}(t) \\ 
+  \eta(t) \\ 
+  \dot{\eta}(t) 
+  \end{bmatrix}
+$$ {#eq-ncv-model-state-vector}
+- the state equations are:
+$$
+\dot{x}(t) = 
+\underbrace{
+  \begin{bmatrix} 
+    0 & 1 & 0 & 0 \\ 
+    0 & 0 & 0 & 0 \\ 
+    0 & 0 & 0 & 1 \\ 
+    0 & 0 & 0 & 0 
+  \end{bmatrix} x(t) }_{A} + 
+\underbrace{
+  \begin{bmatrix}
+  0 & 0\\ 1&0 \\ 0&0 \\ 0&1
+  \end{bmatrix} x(t) + 
+  \underbrace{\tilde{\omega}(t)}_{\in \mathbb{R}_{2\times 1}}
+}_{\omega(t)}
+$$ {#eq-ncv-model-state-equation}
+- the observation equation might be:
+$$
+z(t) = 
+\underbrace{
+  \begin{bmatrix} 
+    1 & 0 & 0 & 0 \\
+    0 & 0 & 1 & 0 
+  \end{bmatrix}}_{C} x(t) + \nu(t)
+$$ {#eq-ncv-model-observation-equation}
+```{python}
+#| label: ncv-model
+#| lst-label: lst-ncv-model
+#| lst-cap: "NCV model simulation code"
+# Define the NCV model
+Ancv = np.array([[1, dT, 0, 0], 
+                  [0, 1, 0, 0], 
+                  [0, 0, 1, dT], 
+                  [0, 0, 0, 1]])
+Bwncv = np.array([[dT**2/2, 0], 
+                  [dT, 0], 
+                  [0, dT**2/2], 
+                  [0, dT]])
+Cncv = np.array([[1, 0, 0, 0], 
+                 [0, 0, 1, 0]])
+Dncv = np.zeros((2, 2))
+
+np.random.seed(0)                      # Don't change this line
+wncv = 0.1*np.random.randn(2,maxT)
+vncv = 0.01*np.random.randn(2,maxT)
+
+xncv = np.zeros((4,maxT))               # storage
+xncv[:,0] = [0,0.1,0,0.1]               # initial position, velocity
+
+#xncp = np.zeros(shape=(2,maxT))         # storage
+#xncp[:,0] = [0,0]                       # initial posn.
+
+for k in range(1,maxT):                 # simulate model
+  xncv[:,k] = Ancv @ xncv[:,k-1] + Bwncv @ wncv[:,k-1]
+
+zncv = Cncv @ xncv + vncv
+```
+
+```{python}
+#| label: fig-plot-ncv
+#| fig-cap: "Plot of the NCV model simulation trajectory"
+
+# Plot the results
+plt.figure(figsize=(10, 6))
+plt.plot(zncv[0, :], zncv[1, :], label='Trajectory of NCV model simulation')
+plt.title('Near Constant Velocity Model Simulation')
+plt.xlabel(r'$\text{x coordinate} - \xi$')
+plt.ylabel(r'$\text{y coordinate} - \eta$')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+```{python}
+#| label: lst-ncv-model-final-coordinate
+
+print(f"Final coordinate of the trajectory: {zncv[:, -1]}")     # <1>
+```
+1. Display the final coordinate of the trajectory
+
+
+### The coordinated-turn model
+
+We now extend our target tracking model from one having momentum to one moving an angular velocity $\Omega$ 
+- The state vector is now:
+$$
+x(t) = \begin{bmatrix} 
+  \xi(t) \\ 
+  \dot{\xi}(t) \\ 
+  \eta(t) \\ 
+  \dot{\eta}(t) 
+  \end{bmatrix}
+$$ {#eq-ct-model-state-vector}
+- the state equations are:
+$$
+\dot{x}(t) = 
+\underbrace{
+  \begin{bmatrix} 
+    0 & 1 & 0 & 0 \\ 
+    0 & 0 & 0 & -\Omega \\ 
+    0 & 0 & 0 & 1 \\ 
+    0 & \Omega & 0 & 1 
+  \end{bmatrix} x(t) }_{A} + 
+\underbrace{
+  \begin{bmatrix}
+  0 & 0\\ 1&0 \\ 0&0 \\ 0&1
+  \end{bmatrix} x(t) + 
+  \underbrace{\tilde{\omega}(t)}_{\in \mathbb{R}_{2\times 1}}
+}_{\omega(t)}
+$$ {#eq-ct-model-state-equation}
+- the observation equation might be:
+$$
+z(t) = 
+  \underbrace{
+  \begin{bmatrix} 
+    1 & 0 & 0 & 0 \\
+    0 & 0 & 1 & 0 
+  \end{bmatrix}}_{C} x(t) + \nu(t)
+$$ {#eq-ct-model-observation-equation}
+
+```{python}
+# Define the coordinated-turn model
+import numpy as np
+from scipy.signal import StateSpace, lsim
+
+# Parameters
+W = 0.01
+A = np.array([
+    [0, 1, 0, 0],
+    [0, 0, 0, -W],
+    [0, 0, 0, 1],
+    [0, W, 0, 0]
+])
+Bw = np.array([
+    [0, 0],
+    [1, 0],
+    [0, 0],
+    [0, 1]
+])
+C = np.array([
+    [1, 0, 0, 0],
+    [0, 0, 1, 0]
+])
+D = np.zeros((2, 2))
+
+# Create CT state-space model
+ct = StateSpace(A, Bw, C, D)
+
+# Time vector and noise
+np.random.seed(0)  # Match Octave's `randn("state", 0)`
+tct = np.arange(1000) * 1.0
+wct = 0.01  * np.random.randn(1000, 2)  # shape (n_samples, n_inputs)
+vct = 0.001 * np.random.randn(1000, 2)
+
+# Simulate system
+_, yout, _ = lsim(ct, U=wct, T=tct)
+
+# Add sensor noise
+zct = yout + vct
+
+```
+
+```{python}
+# Plot the results
+plt.figure(figsize=(10, 6))
+plt.plot(zct[:, 0], zct[:, 1], label='Trajectory of CT model simulation')
+plt.title('Coordinated-Turn Model Simulation')
+plt.xlabel(r'$\text{x coordinate} - \xi$')
+plt.ylabel(r'$\text{y coordinate} - \eta$')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+```{python}
+# Display the final coordinate of the trajectory
+print(f"Final coordinate of the trajectory: {zct[-1, :]}")
+```
+
+since 
+$$
+\ddot{\xi}(t) = -\Omega\dot{\eta}(t) \qquad \ddot{\eta}(t) = \Omega\dot{\xi}(t) 
+$$
+question why not $\ddot{\eta}(t) = \dot{\xi}(t) = 0$?
+
+so am I correct that we should have the following state vector?
+
+$$
+x(t) = \begin{bmatrix} 
+  \xi(t) \\ 
+  \dot{\xi}(t) \\ 
+  \eta(t) \\ 
+  \dot{\eta}(t) \\ 
+  \ddot{\xi}(t) \\ 
+  \ddot{\eta}(t) 
+  \end{bmatrix}
+$$ {#eq-ct-model-state-vector-extended}
+
+and the state equations are:
+
+$$
+\dot{x}(t) = 
+\underbrace{
+  \begin{bmatrix} 
+    0 & 1 & 0 & 0 & 0 & 0 \\ 
+    0 & 0 & 0 & 0 & 1 & -\Omega \\ 
+    0 & 0 & 0 & 0 & 0 & 0 \\ 
+    0 & 0 & 0 & 0 & 0 & 0 \\ 
+    0 & 0 & \Omega & 0 & 0 & 0 \\ 
+    0 & 0 & 0 & 0 & 0 & 0 
+  \end{bmatrix} x(t) }_{A} + 
+\underbrace{
+  \begin{bmatrix}
+  0 & 0 & 0 & 0\\ 
+  1 & 0 & 0 & 0 \\
+  0 & 0 & 0 & 0 \\ 
+  0 & 1 & 0 & 0 \\
+  0 & 0 & 0 & 0 \\ 
+  0 & 0 & 0 & 0
+  \end{bmatrix} \tilde{\omega}(t)}_{\tilde{\omega}(t)}
+$$ {#eq-ct-model-state-equation-extended}
+
+
+- The matrix exponential is key to understanding the response of a state-space model.
+- Since it is likely an unfamiliar concept to you until this point, it is valuable to develop
+intuition regarding what it looks like.
+- You have learned that we can usually write $e^{At} =Te^{\Delta t}T^-1$, where the columns of T are the eigenvectors of A.
+-  All the dynamics are contained in eƒt , which turn out to be the standard scalar exponentials of (possibly complex) i t terms.
+- So, the matrix exponential is a linear sum of exponentially-enveloped sinusoids.
+- The frequencies of the sinusoids are the eigenvalues of A. The eigenvectors specify the relative weighting of each component to the overall output.

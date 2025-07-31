@@ -137,12 +137,11 @@ computers is filling up. This drive contains the computer’s
 \boldsymbol{\beta}
 ```
 
-1. This is how you can use `vphantom` to [horizontaly align the text in the underbraces]{.mark}. I guess, it add a hidden box  with a sum from the second term to adjust the height of the underbrace.
+1. This is how you can use `vphantom` to [horizontally align the text in the under braces]{.mark}. I guess, it add a hidden box  with a sum from the second term to adjust the height of the underbrace.
 
 ```latex
 \underbrace{y_1^2(1 - \phi^2)\vphantom{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}}_{\text{Initial Loss}} 
 + \underbrace{\sum_{t=2}^T (y_t - \phi y_{t-1})^2}_{\text{Remaining Loss } Q(\phi)}
-
 ```
 
 ### references
