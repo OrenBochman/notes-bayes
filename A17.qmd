@@ -336,6 +336,18 @@ $x_0$ is uncertain since it is estimated from a GPS measurement.
 
 ## The target Tracking application {#sec-kf-target-tracking}
 
+::: {.callout-tip collapse="true"}
+### Greek Notation
+
+1. This section uses Greek letters to denote motion in the x and y direction.
+2. The state vector is defined as $x(t) = [\xi(t), \eta(t), \dot{\xi}(t), \dot{\eta}(t)]^T$.
+3. The reason is rather mundane - the instructor avoids circular definitions and any chance of confusion arising from reusing the same letter for different things. X is already taken for the state vector. So we use $\xi$ and $\eta$ for the x and y coordinates, respectively.
+4. He also uses k for time index which I have replaced.
+
+
+:::
+
+
 - One application of KFs is for target tracking. [**target tracking problem**]{.column-margin}
 - We wish to predict the future location of a dynamic system (the target) based on KF estimates and measurements.
 - Ideally we know all the matrices and signals of its continuous-time linear state-space model 
@@ -439,6 +451,7 @@ print(f"Final coordinate of the trajectory: {zncp[:, -1]}") # <1>
 
 
 - We now extend our target tracking model from static object to one having momentum: its velocity is nearly constant, but gets perturbed by external forces.
+
 - The state vector is now:
 $$
 x(t) = \begin{bmatrix} 
@@ -532,7 +545,12 @@ print(f"Final coordinate of the trajectory: {zncv[:, -1]}")     # <1>
 
 ### The coordinated-turn model
 
-We now extend our target tracking model from one having momentum to one moving an angular velocity $\Omega$ 
+We now extend our target tracking model from one having momentum to one moving a **constant angular velocity** $\Omega$ 
+
+$$
+\ddot{\xi}(t) = -\Omega\dot{\eta}(t) \qquad \ddot{\eta}(t) = \Omega\dot{\xi}(t) 
+$$ {#eq-ct-model-acceleration-equations}
+
 - The state vector is now:
 $$
 x(t) = \begin{bmatrix} 
@@ -628,10 +646,12 @@ plt.show()
 print(f"Final coordinate of the trajectory: {zct[-1, :]}")
 ```
 
+
+::: {.callout-tip collapse="true"}
+### Overthinking the CT model
+
 since 
-$$
-\ddot{\xi}(t) = -\Omega\dot{\eta}(t) \qquad \ddot{\eta}(t) = \Omega\dot{\xi}(t) 
-$$
+
 question why not $\ddot{\eta}(t) = \dot{\xi}(t) = 0$?
 
 so am I correct that we should have the following state vector?
@@ -671,6 +691,22 @@ $$
   \end{bmatrix} \tilde{\omega}(t)}_{\tilde{\omega}(t)}
 $$ {#eq-ct-model-state-equation-extended}
 
+So while this took a while to formulate, it turns out that the CT model is fine. There were a number of factors contributing to my confusion.
+
+1. The fact that this is a constant angular velocity model, so the acceleration is not zero.
+   - what changes is the direction and not size of the velocity vector.
+   - I initially didn't notice that the angular velocity is constant by definition.
+2. I recalled that we need to split the velocity into two orthogonal components over time
+3. The frame of reference is not explained explicitly. 
+   - If we are in the object's frame of reference, then the angular velocity components are constant. 
+   - If we are in the world's frame of reference, then everything is more complicated and the angular velocity components are changing sinusoidally.
+4. There are a bunch of apparent forces/motions involved in circular motion on a spherical surface that surfaced in my mind.... Before I was able to make things more precise and clear.
+5. How first order state representation vectors work, this is what convinced me the formulation is indeed correct and that my idea is most likely to be wrong! 
+   - the idea is simple in @eq-ct-model-state-equation we have the first derivative of the state vector $x(t)$, which is a vector of position and velocity. The acceleration @eq-ct-model-acceleration-equations have been incorporated into the state vector.
+   - We can recover them by taking the second derivative of the state vector!
+
+
+:::
 
 ##  Understanding the time-domain response of a state-space model {#sec-kf-1.2.3-time-domain-response}
 
@@ -774,18 +810,17 @@ $$
 
 ### Summary
 
--  You have learned how to compute the homogeneous and
-forced response of a state-space model.
--  The output $z(t)$  comprises three parts:
-   -  The response due to the initial conditions: $C e^{At} x(0)$
-   -  The dynamic response caused by the forcing input: $\int_0^t Ce^{A(t-\tau)}Bu(\tau) d\tau$
-   -  The instantaneous response due to the model’s feed-through term: $Du(t)$
--  These terms rely on the matrix exponential $e^{At}$, which may be a new concept to you.
-   -  Be careful! $e^{At}$ is not the same thing as taking the exponential of every element
-of $At$. It is not correct to compute it as: ~~`exp(A*t)`~~;
+-  [You have learned how to compute the **homogeneous** and **forced** response of a state-space model.]{.mark}
+-  The output $z(t)$ comprises of:
+   -  [a response due to **initial conditions** :]{.mark} $C e^{At} x(0)$
+   -  [a dynamic response due to **forcing input** :]{.mark} $\int_0^t Ce^{A(t-\tau)}Bu(\tau) d\tau$
+   -  [an instantaneous response due to the **feed-through** :]{.mark} $Du(t)$
+-  These terms rely on the matrix exponential $e^{At}$.
+   -  **Caution** $e^{At}$ is not the term by term exponential operation on elements of $At$. 
+      -  Don't compute it as: ~~`exp(A*t)`~~;
    -  One way to compute it (e.g., by hand) is via: $e^{At} = \mathcal{L}^{-1}[sI - A]^{-1}$.
    -  Or, in Octave, it is correct to compute: `expm(A*t)`;
--  You will learn more about the matrix exponential in the next lesson.
+-  We will dive deeper into the matrix exponential in [@sec-kf-1.2.4-time-domain-response]
 
 
 ## Illustrating the time-domain response {#sec-kf-1.2.4-time-domain-response}
@@ -834,7 +869,7 @@ i.e $v_j$ are the columns of $T$.
    - We have $Av_i = \lambda_i v_i$, so $v_i$ is a right eigenvector of $A$. Also, since $T^{-1}T = I$, we have that $w^T_i v_j = \delta_{i,j}$
 
 
-## How the deconstruction simplifies things
+### How the deconstruction simplifies things 
 
 So $T$ comprises the eigenvectors of $A$. How does this help?
 
