@@ -672,10 +672,242 @@ $$
 $$ {#eq-ct-model-state-equation-extended}
 
 
-- The matrix exponential is key to understanding the response of a state-space model.
-- Since it is likely an unfamiliar concept to you until this point, it is valuable to develop
-intuition regarding what it looks like.
-- You have learned that we can usually write $e^{At} =Te^{\Delta t}T^-1$, where the columns of T are the eigenvectors of A.
--  All the dynamics are contained in eƒt , which turn out to be the standard scalar exponentials of (possibly complex) i t terms.
+##  Understanding the time-domain response of a state-space model {#sec-kf-1.2.3-time-domain-response}
+
+### Intro to continuous-time state-space models
+
+-  You have seen that simulation is a valuable tool for understanding state-space models.
+-  But, we would like to develop more insight into the system response by more general analytic means; specifically, by looking at the time-domain solution for $x(t)$.
+-  We solve first for the homogeneous solution $(u(t) = 0)$:
+   -  Start with $\dot x(t) = A x(t)$ and some initial state $x(0)$.
+   -  Take Laplace transform: 
+$$
+\begin{aligned}
+sX(s) - x(0) &= AX(s)        && \text{Initial value theorem} 
+\\ (sI - A)X(s) &= x(0)      && \text{take care with matrix dimensions!} 
+\\ X(s) &= (sI - A)^{-1}x(0) && \text{Assume invertible}
+\end{aligned}
+$$
+
+      Detailed Laplace-transform knowledge will be helpful
+
+-  So far we have: 
+$$
+x(t) = \mathcal{L}^{-1}[(sI - A)^{-1}]x(0)
+$$ {#eq-ct-model-homogeneous-solution}
+
+
+### The state-transition matrix
+
+-  Recapping, we have: @eq-ct-model-homogeneous-solution. But,
+$$
+(sI - A)^{-1} = \frac{I}{s}+\frac{A}{s^2}+\frac{A^2}{s^3}+\frac{A^3}{s^4}+\cdots \quad\text{(geometric series)}
+$$
+so,
+$$
+\mathcal{L}^{-1}[sI - A]^{-1} = I + At + \frac{1}{2!}A^2t^2 + \frac{1}{3!}A^3t^3 + \cdots \stackrel{\triangle}{=} e^{At} \quad\text{(matrix exponential)}
+$$
+
+-  Therefore, we write $x(t) =e^{At} x(0)$
+   -  $e^{At}$ is called the “transition matrix” or “state-transition matrix.”
+   -  Note that $e^{At}$ is not the same as taking the exponential of every element of $At$.
+   -  $e^{(A+B)t}=e^{At}e^{Bt}$ iff $AB=BA$: (that is, not in general).
+   -  In Octave, can compute $x(t)$  as: `x = expm(A*t)*x0;`
+-  Will say more about $e^{At}$ when we discuss the structure of $A$.
+
+### Computing the state-transition matrix by hand
+
+-  Computing $e^{At} = \mathcal{L}^{-1}[sI - A]^{-1}$ is straightforward for $2 \times 2$.
+-  EXAMPLE: Find $e^{At}$ when $A = \begin{bmatrix} 0 & 1 \\ 2 & 3 \end{bmatrix}$.
+   -  Solve: 
+$$
+\begin{aligned}
+  (sI - A)^{-1} &= \begin{bmatrix} s & -1 \\ 2 & s+3 \end{bmatrix}^{-1} \\
+  &= \frac{1}{s^2 + 3s + 2} \begin{bmatrix} s+3 & 1 \\ -2 & s \end{bmatrix} \\
+  &= \begin{bmatrix} 
+          \frac{ 2}{s+1} - \frac{1}{s+2}  & \frac{ 1}{s+1} - \frac{1}{s+2}  \\ 
+          \frac{-2}{s+1} + \frac{2}{s+2}  & \frac{-1}{s+1} + \frac{2}{s+2}  
+        \end{bmatrix} \\ 
+  e^{At} &= \begin{bmatrix} 
+               2e^{-t} -  e^{-2t}   &   e^{-t} -  e^{-2t}    \\ 
+              -2e^{-t} + 2e^{-2t}   & - e^{-t} + 2e^{-2t}
+            \end{bmatrix} \mathbb{1}(t)
+\end{aligned}
+$$
+
+-  This is probably the best way to find $e^{At}$ if the $A$ matrix is $2 \times 2$ .
+
+### Forced state response
+
+-  Solving for the forced solution $(u(t) \ne 0)$, we find: 
+$$
+x(t) = e^{At} x(0) + \underbrace{\int_0^t e^{A(t-\tau)} B u(\tau) d\tau}_{\text{convolution}}
+$$
+
+-  Where did this come from?
+  1. ${\color{blue} \dot{x}(t) - A x(t)} = {\color{gold}B u(t)}$, simply by rearranging the state equation.
+  2. Multiply both sides by $e^{At}$ and rewrite the LHS as the middle expression: 
+  $$
+  e^{-At} {\color{blue}[\dot x(t) - A x(t)]} = {\color{red}\frac{d}{dt} (e^{-At} x(t))} = e^{-At} {\color{gold}B u(t)} d\tau
+  $$
+  3. Integrate the middle and the RHS; rearrange and keep new middle and RHS: 
+  $$
+  \begin{aligned}
+  \int_0^t {\color{red}\frac{d}{d\tau} [ e^{-A(t-\tau)} x(\tau)]} d\tau &= e^{-At}x(t)-x(0) \\
+  &= \int_0^t e^{-A(t-\tau)} {\color{gold} B u(\tau)} d\tau
+  \end{aligned}
+  $$
+
+### Forced output response
+
+-  So, we have established the following state dynamics:
+$$
+x(t) = e^{At} x(0) + \underbrace{\int_0^t e^{A(t-\tau)}{\color{gold}B u(\tau)} d\tau}_{\text{convolution}}
+$$
+-  Since $z(t) = C x(t) + Du(t)$, the system output is then comprised of three parts:
+$$
+z(t) = 
+\underbrace{\vphantom{\int_0^t} C e^{At} x(0)}_{\text{initial resp}}+
+\underbrace{\int_0^t Ce^{A(t-\tau)}{\color{gold}Bu(\tau)} d\tau}_{\text{convolution}} +
+\underbrace{\vphantom{\int_0^t} Du(t)}_{\text{feed through}}
+$$
+
+### Summary
+
+-  You have learned how to compute the homogeneous and
+forced response of a state-space model.
+-  The output $z(t)$  comprises three parts:
+   -  The response due to the initial conditions: $C e^{At} x(0)$
+   -  The dynamic response caused by the forcing input: $\int_0^t Ce^{A(t-\tau)}Bu(\tau) d\tau$
+   -  The instantaneous response due to the model’s feed-through term: $Du(t)$
+-  These terms rely on the matrix exponential $e^{At}$, which may be a new concept to you.
+   -  Be careful! $e^{At}$ is not the same thing as taking the exponential of every element
+of $At$. It is not correct to compute it as: ~~`exp(A*t)`~~;
+   -  One way to compute it (e.g., by hand) is via: $e^{At} = \mathcal{L}^{-1}[sI - A]^{-1}$.
+   -  Or, in Octave, it is correct to compute: `expm(A*t)`;
+-  You will learn more about the matrix exponential in the next lesson.
+
+
+## Illustrating the time-domain response {#sec-kf-1.2.4-time-domain-response}
+
+### Deconstructing the matrix exponential
+
+- Have seen the key role of $e^{At}$ in the solution for $x(t)$.
+- Impacts the system response, but need more insight.
+- Consider what happens if the matrix A is diagonalizable, that is, there exists a
+matrix $T$ such that $T^{-1}AT = \Delta$ is diagonal. Then,
+$$
+\begin{aligned}
+e^{At} &= I + At + \frac{1}{2!}A^2t^2 + \frac{1}{3!}A^3t^3 + \cdots
+\\ &= I + T \Delta T^{-1}t + \frac{1}{2!}T \Delta^2 T^{-1}t^2 + \frac{1}{3!}T \Delta^3 T^{-1}t^3 + \cdots
+\\ &= T \left( I + \Delta t + \frac{1}{2!} \Delta^2 t^2 + \frac{1}{3!} \Delta^3 t^3 + \cdots \right) T^{-1}
+\\ &= T e^{\Delta t} T^{-1},
+\end{aligned}
+$$
+and
+$$
+e^{\Delta t} = \text{diag} \left( e^{\lambda_1 t}, e^{\lambda_2 t}, \ldots, e^{\lambda_n t} \right)
+$$
+
+### How to find the transformation matrix
+
+- Much simpler form for the exponential, but how to find  $T, \Delta$ ?
+- Write $T^{-1}AT = \Delta$ as $T^{-1}A = \Delta T^{-1}$ with
+
+$$
+T^{-1} = \begin{bmatrix}
+w_1^T \\
+w_2^T \\
+\vdots \\
+w_n^T
+\end{bmatrix}
+\qquad w^T_j \text{ are the rows of } T^{-1}
+$$
+
+- We have: $w^T_i A = \lambda_i w^T_i$; so $w_i$ is a left eigenvector of $A$. 
+- Can also write $T^{-1}AT = \Delta$ as $AT = \Delta T$ with 
+$$
+T = \begin{bmatrix} v_1 & v_2 & \cdots & v_n \end{bmatrix}
+$$
+
+i.e $v_j$ are the columns of $T$. 
+   - We have $Av_i = \lambda_i v_i$, so $v_i$ is a right eigenvector of $A$. Also, since $T^{-1}T = I$, we have that $w^T_i v_j = \delta_{i,j}$
+
+
+## How the deconstruction simplifies things
+
+So $T$ comprises the eigenvectors of $A$. How does this help?
+
+$$
+e^{At} = Te^{\Delta t} T^{-1} 
+= \begin{bmatrix} v_1, v_2, \ldots, v_n \end{bmatrix}
+\begin{bmatrix}
+e^{\lambda_1 t} & 0 & \cdots & 0 \\
+0 & e^{\lambda_2 t} & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & e^{\lambda_n t}
+\end{bmatrix}
+\begin{bmatrix} w_1^T \\ w_2^T \\ \vdots \\ w_n^T \end{bmatrix}
+= \sum _{}^n e^{\lambda_i t} v_i w_i^T
+$$
+
+- Very simple form, which can be used to develop intuition about dynamic response:
+
+$$
+x(t) = e^{At} x(0) =T e^{\Delta t} T^{-1} x(0) = \sum _{}^n e^{\lambda_i t} v_i w_i^T x(0).
+$$
+
+- Notice that the only time-varying components are $e^{\lambda_i t}$ , which are then multiplied by constant matrices so that the states are linear combinations of $e^{\lambda_i t}$ .
+
+### Visualizing $e^{\lambda_i t}$
+
+![Sample output for real eigenvalues](images/a17/kf-bc-016.png){#fig-kf-016 .column-margin  group="slides" width="53mm"}
+
+
+![Output for complex-conjugate eigenvalues](images/a17/kf-bc-017.png){#fig-kf-017 .column-margin  group="slides" width="53mm"}
+
+
+- The signal $e^{\lambda_it}$ can take on several different characteristics,
+as shown in the figures below.
+- If $\lambda_i$ is real, we observe a smooth monotonically growing or decaying signal.
+- If $\lambda_i$ occur in complex-conjugate pairs, the output is of the pair is of the form $e^{\lambda_i t} \cos(\lambda_i t)$ : a cosine with an exponential 
+"envelope."
+
+
+### An example to illustrate the complexity
+
+![Response to initial condition](images/a17/kf-bc-018.png){#fig-kf-018 .column-margin  group="slides" width="53mm"}
+
+- Consider again: $\sum _{i=1}^n e^{\lambda_i t} v_i (w^T_i x(0))$
+- The state $x(t) = e^{At} x(0) =T e^{\Delta t} T^{-1} x(0) = \sum _{}^n e^{\lambda_i t} v_i w_i^T x(0)$ is a linear combination of the modes $e^{\lambda_i t} v_i$.
+- The left eigenvectors $w_i^T$ decompose the initial state $x(0)$ into modal coordinates $w^T_i x(0)$.
+- The modes $e^{\lambda_i t}$ propagate the modal components forward in time.
+- The output $y(t) = C x(t)$ is
+- Can be expressed as a linear combination of modes: $v_i e^{\lambda_i t}$. 
+- Left eigenvectors decompose $x(0)$ into modal coordinates $w^T_i x(0)$. 
+- $e^{\lambda_i t}$ propagates mode forward in time. 
+
+- EXAMPLE: Consider a specific system with $x(t) \in R^{16 \times 1}; \dot{y}(t) \in R (16-state, 1-output):Px(t) = Ax(t)$
+  $\dot{y}(t) = C x(t)$ 
+-  A lightly damped system, for which typical output to initial conditions is shown. 
+- Waveform is complicated. Appears random
+
+### Now  we see the underlying simplicity
+
+![waveforms](images/a17/kf-bc-019.png){#fig-kf-019 .column-margin  group="slides" width="53mm"}
+
+- However, the solution can be decomposed into much simpler modal components.
+- The waveforms to the left show $e^{\lambda_i t}$ for complex-conjugate pairs $\lambda_i,\lambda_i^*$ summed together.
+-  All are decaying sinusoids with different
+magnitudes, frequencies, and phase shifts.
+- When summed together, the result appears complicated; but the individual components of the response are simple.
+
+
+### Summary
+
+- [The matrix exponential is key to understanding the response of a state-space model.]{.mark}
+- Since it is likely an unfamiliar concept to you until this point, it is valuable to develop intuition regarding what it looks like.
+- You have learned that we can usually write $e^{At} = T e^{\Delta t} T^{-1}$, where the columns of $T$ are the eigenvectors of $A$.
+-  All the dynamics are contained in $e^{\Delta t}$ , which turn out to be the standard scalar exponentials of (possibly complex) $\lambda_i t$ terms.
 - So, the matrix exponential is a linear sum of exponentially-enveloped sinusoids.
-- The frequencies of the sinusoids are the eigenvalues of A. The eigenvectors specify the relative weighting of each component to the overall output.
+- The frequencies of the sinusoids are the eigenvalues of $A$. The eigenvectors specify the relative weighting of each component to the overall output.
