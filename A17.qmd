@@ -1124,8 +1124,63 @@ magnitudes, frequencies, and phase shifts.
 ### Summary
 
 - [The matrix exponential is key to understanding the response of a state-space model.]{.mark}
-- Since it is likely an unfamiliar concept to you until this point, it is valuable to develop intuition regarding what it looks like.
+- As it's been a while since I saw the matrix exponent, it's worthwhile to refresh my intuition regarding what it looks like.^[Actually this is the first time I see the matrix exponential being used in an application]
 - You have learned that we can usually write $e^{At} = T e^{\Delta t} T^{-1}$, where the columns of $T$ are the eigenvectors of $A$.
 -  All the dynamics are contained in $e^{\Delta t}$ , which turn out to be the standard scalar exponentials of (possibly complex) $\lambda_i t$ terms.
 - So, the matrix exponential is a linear sum of exponentially-enveloped sinusoids.
 - The frequencies of the sinusoids are the eigenvalues of $A$. The eigenvectors specify the relative weighting of each component to the overall output.
+
+
+## Converting continuous-time state-space models to discrete-time {#sec-kf-1.2.5-continuous-to-discrete}
+
+::: {.callout-tip collapse="true"}
+### Questions {.unnumbered}
+
+Here are question to consider as we learn how to convert continuous-time state-space models to discrete-time state-space models:
+
+- What is the difference between continuous-time and discrete-time state-space models?
+- which matrix are the same for continuous-time and discrete-time state-space models?
+- for the rest how do we convert continuous-time state-space models to discrete-time state-space models?
+- any shortcuts to remember?
+:::
+
+### Discrete-time state-space models
+
+- Computer monitoring of real-time systems requires analog-to-digital (A2D) and digital-to-analog (D2A) conversion
+
+![block diagram showing A2D and D2A conversion](images/a17/kf-bc-020.png){#fig-kf-020  group="slides" width="53mm"}
+
+- Linear discrete-time systems can also be represented in state-space form:
+
+$$
+\begin{aligned}
+x_{t+1} &= A_dx_t + B_du_t + w_t && \text{state eqn.}\\
+z_t &= C_dx_t + D_du_t + v_t && \text{observation eqn.}
+\end{aligned}
+$$ {#eq-kalman-filter-discrete-time-state-space-model}
+
+- The subscript **d** emphasizes that, in general, the $A$, $B$, $C$ and $D$ matrices are different for the same discrete-time and continuous-time system.
+- The  **d** subscript will usually be dropped as it can be interpreted from the context.
+
+
+### Time (dynamic) response of discrete-time models
+
+The full solution, via induction from $x_{t+1} = A_d x_t + B_d u_t + w_t$, is:
+
+$$
+x_{t} = A_d^t x_0 + 
+\underbrace{\sum_{j=0}^{t-1} A_d^{t-j-1} B_d u_j }_{\text{convolution}}
+$$ {#eq-kalman-filter-discrete-time-state-space-model-solution}
+
+Since $z_k = C_d x_k + D_d u_k$, we also have
+
+$$
+z_t= 
+\underbrace{C_d A_d^t x_0}_{\text{initial response}}+
+\underbrace{\sum_{j=0}^{t-1} C_d A_d^{t-j-1} B_d u_j }_{\text{convolution}} 
+\underbrace{+ D_d u_t}_{\text{feed-through}}
+$$ {#eq-kalman-filter-discrete-time-state-space-model-output}
+
+- Comparing with the *continuous-time solution*, 
+   - $e^{At}$ has been replaced by $A_d^t$ and 
+   - integrals have been replaced by summations
