@@ -1155,7 +1155,7 @@ Here are question to consider as we learn how to convert continuous-time state-s
 
 - Computer monitoring of real-time systems requires analog-to-digital (A2D) and digital-to-analog (D2A) conversion
 
-![block diagram showing A2D and D2A conversion](images/a17/kf-bc-020.png){#fig-kf-020  group="slides" width="53mm"}
+![block diagram showing A2D and D2A conversion](images/a17/kf-bc-020.png){#fig-kf-020  group="slides"}
 
 - Linear discrete-time systems can also be represented in state-space form:
 
@@ -1198,10 +1198,9 @@ Note: we wont cover the proof by induction and these are covered in Linear Syste
 
 ### Converting plant dynamics to discrete time (1)
 
-
 - Combine the dynamics of the zero-order hold and the plant.
 
-![block diagram showing ZOH and plant dynamics](images/a17/kf-bc-021.png){#fig-kf-021  group="slides" width="53mm"}
+![block diagram showing ZOH and plant dynamics](images/a17/kf-bc-021.png){#fig-kf-021  group="slides"}
 
 - Recall that the continuous-time state dynamics of the plant are:
 $$
@@ -1307,3 +1306,180 @@ $$
 - Generally, the discrete $A$, $B$, $C$ and $D$ matrices differ from their continuous-time counterparts.
 - We have learned to convert from the continuous $A$, $B$, $C$ and $D$ matrices to the discrete-time $A_d$, $B_d$, $C_d$ and $D_d$ matrices.
 - Next we will see some examples of converting continuous-time to discrete-time and of simulating discrete-time state-space models.
+
+
+## How do I simulate a discrete-time state-space model?
+
+### Simulating discrete-time systems
+
+- When simulating discrete-time state-space models, we have (at least) two options.
+   - There is a direct approach where we write the simulation code ourselves;
+   - Also, Octave has two functions in its `control` package that help us simulate these
+models easily. 
+      - As with continuous-time models, the first of these is `ss`, which creates a
+state-space object from $A$, $B$, $C$, and $D$ matrices. 
+      - The second is `lsim`, which simulates a state-space object for given input
+conditions and an optional initial state.
+- This lesson will show examples of both approaches, applied to the *NCP*, *NCV*, and
+*CT* models that were introduced for continuous-time simulations in Lesson 1.2.2.
+- But first, we need to convert these continuous-time state-space models to
+equivalent discrete-time models.
+
+## Converting the nearly-constant-position model
+
+- We might be interested to simulate a discrete-time version of the continuous-time nearly-constant-position model.
+- Recall that in continuous time, the 2-d NCP model is^[We are treating random input $w(t)$ in the same way we have discussed treating deterministic input $u(t)$ here. As you will learn next week, this assumption is somewhat incorrect, but is "okay for now."] :
+$$
+\begin{aligned}
+\dot x(t) &= 0_{2 \times 2} x(t) + I_2 w(t) \\
+z(t) &= x(t) + v(t)
+\end{aligned}
+$$
+
+In discrete time, we must then have (where ĩt is the sample period):
+
+$$
+\begin{aligned}
+x[k+1] &= e^{0\Delta t} x[k] + \left( \int_0^{\Delta t} e^{0\sigma)} d\sigma \right) I w[k] \\
+z[k] &= x[k] + v[k]
+\end{aligned}
+$$
+
+
+### Scaled discrete-time NCP model
+
+
+### Time (dynamic) response using toolbox
+
+### Time (dynamic) response using direct method
+
+### Converting the nearly-constant-velocity model
+
+### Computing NCV $A_d$
+
+### Computing NCV $B_d$
+
+### Rescaling the discrete-time NCV model
+
+### Time (dynamic) response using toolbox
+
+### Time (dynamic) response using direct method
+
+### Converting the coordinated-turn model
+
+### Time (dynamic) response using toolbox
+
+### Time (dynamic) response using direct method
+
+### Summary
+
+![block diagram of a continuous-time observer](images/a17/kf-bc-023.png){#fig-kf-022  .column-margin  group="slides" width="53mm"}
+
+
+
+![block diagram of a continuous-time observer](images/a17/kf-bc-023.png){#fig-kf-023   .column-margin  group="slides" width="53mm"}
+
+
+
+- In this lesson, you learned two different ways to simulate discrete-time models in Octave: toolbox and direct.
+-  Both methods produce identical results; which one you use is mainly a matter of preference. You also learned how to convert NCP, NCV, and CT
+continuous-time models into discrete-time models.
+-  Note that the continuous-time models and discrete-time models produce identical computations
+at the sample points, but different values in-between sample points (technically, the discrete-time state and output are not defined in-between sample points).
+
+## Is it even possible for a KF to estimate this model’s state? {#sec-kf-1.2.7-kf-estimation}
+
+### Observability: Can I estimate an initial state?
+
+TODO
+
+### Finding an equation describing output derivatives
+
+TODO
+
+### The observability matrix
+
+TODO
+
+### A brute-force continuous-time observer
+
+![block diagram of a continuous-time observer](images/a17/kf-bc-024.png){#fig-kf-024  group="slides"}
+
+- One possible approach to determine the system state, directly
+from the equations, uses differentiators.
+- A big problem is that differentiators amplify noise, corrupting the state estimate.
+- The KF is a more practical observer that doesn’t use differentiators.
+- Regardless of the approach, it turns out that the system must be observable to be able to determine its initial state.
+- CONCLUSION: If $\mathcal{O}$ is nonsingular, we can determine/estimate the initial state $x(0)$ of the system using only $u(t)$ and $z(t)$ (and so we can estimate $x(t)$ for all $t \geq 0$).
+- ADVANCED TOPIC: If some states are unobservable but stable, an observer will still converge to the true state, although $x(0)$ may not be uniquely determined.
+
+### Examples of unobservable models
+
+![Unobservable model 1](images/a17/kf-bc-025.png){#fig-kf-025 .column-margin  group="slides" width="53mm"}
+
+![Unobservable model 2a](images/a17/kf-bc-026.png){#fig-kf-26 .column-margin  group="slides" width="53mm"}
+
+![Unobservable model 2b](images/a17/kf-bc-027.png){#fig-kf-027 .column-margin  group="slides" width="53mm"}
+
+
+- Consider the following two unobservable circuits:
+
+TODO
+
+### Controllability: Can I get there from here?
+
+
+- Controllability is a dual idea to observability. We won’t go into
+depth here since it is not as important for our topic of study.
+- Controllability asks the question, “Can I move from any initial state to any desired state via suitable selection of the control input u.t/?”
+- The answer boils down to a condition on a matrix called the controllability matrix
+$$
+C = [B\; AB\; \cdots\; A^{N-1}B]
+$$
+
+- TEST: If C is nonsingular, then the system is controllable.
+
+
+## Diagonal systems, controllability and observability
+
+![Diagonal system](images/a17/kf-bc-028.png){#fig-kf-028 .column-margin  group="slides" width="53mm"}
+
+TODO
+
+### Why is a system unobservable? Uncontrollable?
+
+
+![Unobservable system](images/a17/kf-bc-030.png){#fig-kf-030 .column-margin  group="slides" width="53mm"}
+
+
+![Uncontrollable system](images/a17/kf-bc-031.png){#fig-kf-031 .column-margin  group="slides" width="53mm"}
+
+
+TODO
+
+### Equations describing discrete-time outputs
+
+TODO
+
+
+### Discrete-time observability matrix
+
+TODO
+
+
+### A brute-force discrete-time observer
+
+TODO
+
+### Discrete-time controllability
+
+TODO
+
+### Summary
+
+- Is it even possible to estimate the state of our model?
+- The (continuous- or discrete-time) observability matrix $\mathcal{O}$ tells us whether the initial state can be found using measurements of input and output. 
+  -  If $\mathcal{O}$ is invertible, the system is observable and we can find $x(0)$ or $x_0$.
+  -  If $\mathcal{O}$ is not invertible, we cannot find $x(0)$ or $x_0$ uniquely because either a state is not connected to the output or multiple states have the same eigenvalues.
+- If we can find the initial state, we can compute it at any other time. Otherwise, we cannot compute the state uniquely at any other time.
+-  Therefore, we will say/assume that it is necessary for our models be observable for the KF to be able to estimate the state. ^[Advanced topic: A system is detectable if all states that cannot be observed are stable. We can apply KF to a detectable system (as the unobservable states decay toward a known trajectory in the absence of process noise) but uncertainties of unobservable states will generally become large.]
