@@ -2334,7 +2334,7 @@ z(t) =
 \end{bmatrix}}_{C} x(t) + \nu(t)
 \tag{O.25}</span></span></li>
 </ul>
-<div id="54795afc" class="cell" data-execution_count="7">
+<div id="23c9adaa" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the coordinated-turn model</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.signal <span class="im">import</span> StateSpace, lsim</span>
@@ -2374,7 +2374,7 @@ z(t) =
 <span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Add sensor noise</span></span>
 <span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>zct <span class="op">=</span> yout <span class="op">+</span> vct</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="e1da9d65" class="cell" data-execution_count="8">
+<div id="307be4d7" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the results</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>plt.plot(zct[:, <span class="dv">0</span>], zct[:, <span class="dv">1</span>], label<span class="op">=</span><span class="st">'Trajectory of CT model simulation'</span>)</span>
@@ -2392,7 +2392,7 @@ z(t) =
 </div>
 </div>
 </div>
-<div id="03efaebd" class="cell" data-execution_count="9">
+<div id="21d5052a" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the final coordinate of the trajectory</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Final coordinate of the trajectory: </span><span class="sc">{</span>zct[<span class="op">-</span><span class="dv">1</span>, :]<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -2854,11 +2854,38 @@ x_{t+1}(t) = x((t+1)\Delta t) = \int_0^{(t+1)\Delta t} e^{A((t+1)\Delta t-\tau)}
 </section>
 <section id="converting-plant-dynamics-to-discrete-time-2" class="level3" data-number="O.8.4">
 <h3 data-number="O.8.4" class="anchored" data-anchor-id="converting-plant-dynamics-to-discrete-time-2"><span class="header-section-number">O.8.4</span> Converting plant dynamics to discrete time (2)</h3>
-<p>TODO:</p>
+<ul>
+<li>We break up the integral into two pieces:</li>
+</ul>
+<p><span class="math display">
+\begin{aligned}
+x_{k+1}(t) &amp;= \int_0^{k\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau \\
+&amp;= \int_0^{k\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau  + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau \\
+&amp;= \int_0^{k\Delta t} e^{A\Delta t}e^{A((k)\Delta t-\tau)} B u(\tau) d\tau  + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau \\
+&amp;= e^{A\Delta t}x(k\Delta t) + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau
+\end{aligned}
+</span></p>
+<p>The first integral has become <span class="math inline">A_d \times x(k \Delta t)</span> The second will become <span class="math inline">B_d \times u(k \Delta t)</span> after a little more work</p>
 </section>
 <section id="converting-plant-dynamics-to-discrete-time-3" class="level3" data-number="O.8.5">
 <h3 data-number="O.8.5" class="anchored" data-anchor-id="converting-plant-dynamics-to-discrete-time-3"><span class="header-section-number">O.8.5</span> Converting plant dynamics to discrete time (3)</h3>
-<p>TODO:</p>
+<ul>
+<li>In the remaining integral, note that <span class="math inline">u(\tau)</span> is assumed to be constant from <span class="math inline">k\Delta t</span> to <span class="math inline">(k+1)\Delta t</span>; and equal to <span class="math inline">u(k\Delta t)</span>.</li>
+<li>We evaluate the integral via change of variables.
+<ul>
+<li>Let <span class="math inline">\sigma = (k+1)\Delta t - \tau</span>,</li>
+<li><span class="math inline">\tau = (k+1)\Delta t - \sigma</span>, and</li>
+<li><span class="math inline">d\tau = -d\sigma</span>.</li>
+</ul></li>
+</ul>
+<p><span class="math display">
+\begin{aligned}
+x_{k+1} &amp; = e^{A\Delta t}x(k\Delta t) + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau)\; d\tau \\
+&amp;= e^{A\Delta t}x(k\Delta t) + \left [\int_{(k+1)\Delta t}^{\Delta t} e^{A\sigma} B\; d\sigma \right ] u(k\Delta t)\\
+&amp;= \underbrace{ e^{A\Delta t}}_{A_d}\; x_k +
+   \underbrace{ \left [\int_{(k+1)\Delta t}^{\Delta t} e^{A\sigma} B\; d\sigma \right ] u_k }_{B_d}
+\end{aligned}
+</span></p>
 </section>
 <section id="computing-a_d-c_d-and-d_d" class="level3" data-number="O.8.6">
 <h3 data-number="O.8.6" class="anchored" data-anchor-id="computing-a_d-c_d-and-d_d"><span class="header-section-number">O.8.6</span> Computing <span class="math inline">A_d, C_d</span>, and <span class="math inline">D_d</span></h3>
@@ -4705,67 +4732,92 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb11-1239"><a href="#cb11-1239" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-1240"><a href="#cb11-1240" aria-hidden="true" tabindex="-1"></a><span class="fu">### Converting plant dynamics to discrete time (2)</span></span>
 <span id="cb11-1241"><a href="#cb11-1241" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1242"><a href="#cb11-1242" aria-hidden="true" tabindex="-1"></a>TODO:</span>
+<span id="cb11-1242"><a href="#cb11-1242" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We break up the integral into two pieces:</span>
 <span id="cb11-1243"><a href="#cb11-1243" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1244"><a href="#cb11-1244" aria-hidden="true" tabindex="-1"></a><span class="fu">### Converting plant dynamics to discrete time (3)</span></span>
-<span id="cb11-1245"><a href="#cb11-1245" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1246"><a href="#cb11-1246" aria-hidden="true" tabindex="-1"></a>TODO:</span>
-<span id="cb11-1247"><a href="#cb11-1247" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1248"><a href="#cb11-1248" aria-hidden="true" tabindex="-1"></a><span class="fu">### Computing $A_d, C_d$, and $D_d$</span></span>
-<span id="cb11-1249"><a href="#cb11-1249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1250"><a href="#cb11-1250" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Summarizing to this point, we have a discrete-time state-space</span>
-<span id="cb11-1251"><a href="#cb11-1251" aria-hidden="true" tabindex="-1"></a>representation from the continuous-time representation:</span>
-<span id="cb11-1252"><a href="#cb11-1252" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb11-1253"><a href="#cb11-1253" aria-hidden="true" tabindex="-1"></a>x_{k+1} = A_d x_k + B_d u_k</span>
-<span id="cb11-1254"><a href="#cb11-1254" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1244"><a href="#cb11-1244" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1245"><a href="#cb11-1245" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb11-1246"><a href="#cb11-1246" aria-hidden="true" tabindex="-1"></a>x_{k+1}(t) &amp;= \int_0^{k\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau <span class="sc">\\</span></span>
+<span id="cb11-1247"><a href="#cb11-1247" aria-hidden="true" tabindex="-1"></a>&amp;= \int_0^{k\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau  + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau <span class="sc">\\</span></span>
+<span id="cb11-1248"><a href="#cb11-1248" aria-hidden="true" tabindex="-1"></a>&amp;= \int_0^{k\Delta t} e^{A\Delta t}e^{A((k)\Delta t-\tau)} B u(\tau) d\tau  + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau <span class="sc">\\</span></span>
+<span id="cb11-1249"><a href="#cb11-1249" aria-hidden="true" tabindex="-1"></a>&amp;= e^{A\Delta t}x(k\Delta t) + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau </span>
+<span id="cb11-1250"><a href="#cb11-1250" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb11-1251"><a href="#cb11-1251" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1252"><a href="#cb11-1252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1253"><a href="#cb11-1253" aria-hidden="true" tabindex="-1"></a>The first integral has become $A_d \times x(k \Delta t)$</span>
+<span id="cb11-1254"><a href="#cb11-1254" aria-hidden="true" tabindex="-1"></a>The second will become $B_d \times u(k \Delta t)$ after a little more work</span>
 <span id="cb11-1255"><a href="#cb11-1255" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1256"><a href="#cb11-1256" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>where</span>
-<span id="cb11-1257"><a href="#cb11-1257" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$A_d = e^{A\Delta t}$ and</span>
-<span id="cb11-1258"><a href="#cb11-1258" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$B_d = \int_0^{\Delta t} e^{A(\Delta t-\sigma)} B d\sigma$.</span>
-<span id="cb11-1259"><a href="#cb11-1259" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Similarly, we have: $z_k = C_d x_k + D_d u_k$.</span>
-<span id="cb11-1260"><a href="#cb11-1260" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>where</span>
-<span id="cb11-1261"><a href="#cb11-1261" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$C_d = C$ and</span>
-<span id="cb11-1262"><a href="#cb11-1262" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$D_d = D$.</span>
-<span id="cb11-1263"><a href="#cb11-1263" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">There is no conversion for the $C$ and $D$ matrices,</span><span class="co">]</span>{.mark}</span>
-<span id="cb11-1264"><a href="#cb11-1264" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">The conversion for $A$ is straightforward via the matrix exponential</span><span class="co">]</span>{.mark} $A_d = e^{A\Delta t}$.</span>
-<span id="cb11-1265"><a href="#cb11-1265" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>If Octave, we can type in: <span class="in">`Ad = expm(A*dT)`</span>.</span>
-<span id="cb11-1266"><a href="#cb11-1266" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Otherwise, we'll need to compute $e^{A\Delta t} = \mathcal{L}^{-1}\left<span class="co">[</span><span class="ot">(sI - A)^{-1}\right</span><span class="co">]</span>\Big|_{t = \Delta t}$</span>
-<span id="cb11-1267"><a href="#cb11-1267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1268"><a href="#cb11-1268" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1269"><a href="#cb11-1269" aria-hidden="true" tabindex="-1"></a><span class="fu">### Computing $B_d$</span></span>
-<span id="cb11-1270"><a href="#cb11-1270" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1271"><a href="#cb11-1271" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Now we focus on computing $B_d$ . Recall that:</span>
-<span id="cb11-1272"><a href="#cb11-1272" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb11-1273"><a href="#cb11-1273" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb11-1274"><a href="#cb11-1274" aria-hidden="true" tabindex="-1"></a>B_d &amp;= \int_0^{\Delta_t} e^{A(\Delta_t-\sigma)} B d\sigma <span class="sc">\\</span></span>
-<span id="cb11-1275"><a href="#cb11-1275" aria-hidden="true" tabindex="-1"></a>    &amp;= \int_0^{\Delta_t} \left( I + A(\sigma) + \frac{1}{2!}A^2(\sigma)^2 + \cdots \right) B d\sigma <span class="sc">\\</span></span>
-<span id="cb11-1276"><a href="#cb11-1276" aria-hidden="true" tabindex="-1"></a>    &amp;= \int_0^{\Delta_t} \left( I + \Delta t + \frac{1}{2!}(\Delta t)^2 + \cdots \right) B d\sigma <span class="sc">\\</span></span>
-<span id="cb11-1277"><a href="#cb11-1277" aria-hidden="true" tabindex="-1"></a>    &amp;= \left( I + \Delta t + \frac{1}{2!}(\Delta t)^2 + A^2 \frac{1}{2!}(\Delta t)^3 + \cdots \right) B <span class="sc">\\</span></span>
-<span id="cb11-1278"><a href="#cb11-1278" aria-hidden="true" tabindex="-1"></a>    &amp;= A^{-1}(e^{A\Delta_t} - I)B  <span class="sc">\\</span></span>
-<span id="cb11-1279"><a href="#cb11-1279" aria-hidden="true" tabindex="-1"></a>    &amp;= A^{-1}(A_d - I)B.</span>
-<span id="cb11-1280"><a href="#cb11-1280" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb11-1281"><a href="#cb11-1281" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb11-1282"><a href="#cb11-1282" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1283"><a href="#cb11-1283" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>If $A$ is invertible, this method works nicely!</span>
-<span id="cb11-1284"><a href="#cb11-1284" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Otherwise, we will need to perform the integral in the first line manually.</span>
-<span id="cb11-1285"><a href="#cb11-1285" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Also, in Octave, <span class="in">`[Ad,Bd]=c2d(A,B,dT)`</span></span>
-<span id="cb11-1286"><a href="#cb11-1286" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1287"><a href="#cb11-1287" aria-hidden="true" tabindex="-1"></a><span class="fu">### Summary</span></span>
-<span id="cb11-1288"><a href="#cb11-1288" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1289"><a href="#cb11-1289" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Computer monitoring of physical systems requires A2D and D2A conversion.</span>
-<span id="cb11-1290"><a href="#cb11-1290" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The system that is “seen” by the computer is a discrete-time system, and must be</span>
-<span id="cb11-1291"><a href="#cb11-1291" aria-hidden="true" tabindex="-1"></a>represented by a discrete-time state-space model:</span>
+<span id="cb11-1256"><a href="#cb11-1256" aria-hidden="true" tabindex="-1"></a><span class="fu">### Converting plant dynamics to discrete time (3)</span></span>
+<span id="cb11-1257"><a href="#cb11-1257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1258"><a href="#cb11-1258" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In the remaining integral, note that $u(\tau)$ is assumed to be constant from $k\Delta t$ to $(k+1)\Delta t$; and equal to $u(k\Delta t)$.</span>
+<span id="cb11-1259"><a href="#cb11-1259" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We evaluate the integral via change of variables. </span>
+<span id="cb11-1260"><a href="#cb11-1260" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Let $\sigma = (k+1)\Delta t - \tau$, </span>
+<span id="cb11-1261"><a href="#cb11-1261" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$\tau = (k+1)\Delta t - \sigma$, and</span>
+<span id="cb11-1262"><a href="#cb11-1262" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$d\tau = -d\sigma$.</span>
+<span id="cb11-1263"><a href="#cb11-1263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1264"><a href="#cb11-1264" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1265"><a href="#cb11-1265" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb11-1266"><a href="#cb11-1266" aria-hidden="true" tabindex="-1"></a>x_{k+1} &amp; = e^{A\Delta t}x(k\Delta t) + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau)\; d\tau <span class="sc">\\</span></span>
+<span id="cb11-1267"><a href="#cb11-1267" aria-hidden="true" tabindex="-1"></a>&amp;= e^{A\Delta t}x(k\Delta t) + \left <span class="co">[</span><span class="ot">\int_{(k+1)\Delta t}^{\Delta t} e^{A\sigma} B\; d\sigma \right </span><span class="co">]</span> u(k\Delta t)<span class="sc">\\</span></span>
+<span id="cb11-1268"><a href="#cb11-1268" aria-hidden="true" tabindex="-1"></a>&amp;= \underbrace{ e^{A\Delta t}}_{A_d}\; x_k + </span>
+<span id="cb11-1269"><a href="#cb11-1269" aria-hidden="true" tabindex="-1"></a>   \underbrace{ \left <span class="co">[</span><span class="ot">\int_{(k+1)\Delta t}^{\Delta t} e^{A\sigma} B\; d\sigma \right </span><span class="co">]</span> u_k }_{B_d} </span>
+<span id="cb11-1270"><a href="#cb11-1270" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb11-1271"><a href="#cb11-1271" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1272"><a href="#cb11-1272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1273"><a href="#cb11-1273" aria-hidden="true" tabindex="-1"></a><span class="fu">### Computing $A_d, C_d$, and $D_d$</span></span>
+<span id="cb11-1274"><a href="#cb11-1274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1275"><a href="#cb11-1275" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Summarizing to this point, we have a discrete-time state-space</span>
+<span id="cb11-1276"><a href="#cb11-1276" aria-hidden="true" tabindex="-1"></a>representation from the continuous-time representation:</span>
+<span id="cb11-1277"><a href="#cb11-1277" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1278"><a href="#cb11-1278" aria-hidden="true" tabindex="-1"></a>x_{k+1} = A_d x_k + B_d u_k</span>
+<span id="cb11-1279"><a href="#cb11-1279" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1280"><a href="#cb11-1280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1281"><a href="#cb11-1281" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>where</span>
+<span id="cb11-1282"><a href="#cb11-1282" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$A_d = e^{A\Delta t}$ and</span>
+<span id="cb11-1283"><a href="#cb11-1283" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$B_d = \int_0^{\Delta t} e^{A(\Delta t-\sigma)} B d\sigma$.</span>
+<span id="cb11-1284"><a href="#cb11-1284" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Similarly, we have: $z_k = C_d x_k + D_d u_k$.</span>
+<span id="cb11-1285"><a href="#cb11-1285" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>where</span>
+<span id="cb11-1286"><a href="#cb11-1286" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$C_d = C$ and</span>
+<span id="cb11-1287"><a href="#cb11-1287" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$D_d = D$.</span>
+<span id="cb11-1288"><a href="#cb11-1288" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">There is no conversion for the $C$ and $D$ matrices,</span><span class="co">]</span>{.mark}</span>
+<span id="cb11-1289"><a href="#cb11-1289" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">The conversion for $A$ is straightforward via the matrix exponential</span><span class="co">]</span>{.mark} $A_d = e^{A\Delta t}$.</span>
+<span id="cb11-1290"><a href="#cb11-1290" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>If Octave, we can type in: <span class="in">`Ad = expm(A*dT)`</span>.</span>
+<span id="cb11-1291"><a href="#cb11-1291" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Otherwise, we'll need to compute $e^{A\Delta t} = \mathcal{L}^{-1}\left<span class="co">[</span><span class="ot">(sI - A)^{-1}\right</span><span class="co">]</span>\Big|_{t = \Delta t}$</span>
 <span id="cb11-1292"><a href="#cb11-1292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1293"><a href="#cb11-1293" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb11-1294"><a href="#cb11-1294" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb11-1295"><a href="#cb11-1295" aria-hidden="true" tabindex="-1"></a>x_{t+1} &amp;= A_dx_t + B_du_t + w_t &amp;&amp; \text{state eqn.}<span class="sc">\\</span></span>
-<span id="cb11-1296"><a href="#cb11-1296" aria-hidden="true" tabindex="-1"></a>z_t &amp;= C_dx_t + D_du_t + v_t &amp;&amp; \text{observation eqn.}</span>
-<span id="cb11-1297"><a href="#cb11-1297" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb11-1298"><a href="#cb11-1298" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb11-1299"><a href="#cb11-1299" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-1300"><a href="#cb11-1300" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Generally, the discrete $A$, $B$, $C$ and $D$ matrices differ from their continuous-time counterparts.</span>
-<span id="cb11-1301"><a href="#cb11-1301" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We have learned to convert from the continuous $A$, $B$, $C$ and $D$ matrices to the discrete-time $A_d$, $B_d$, $C_d$ and $D_d$ matrices.</span>
-<span id="cb11-1302"><a href="#cb11-1302" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Next we will see some examples of converting continuous-time to discrete-time and of simulating discrete-time state-space models.</span>
+<span id="cb11-1293"><a href="#cb11-1293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1294"><a href="#cb11-1294" aria-hidden="true" tabindex="-1"></a><span class="fu">### Computing $B_d$</span></span>
+<span id="cb11-1295"><a href="#cb11-1295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1296"><a href="#cb11-1296" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Now we focus on computing $B_d$ . Recall that:</span>
+<span id="cb11-1297"><a href="#cb11-1297" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1298"><a href="#cb11-1298" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb11-1299"><a href="#cb11-1299" aria-hidden="true" tabindex="-1"></a>B_d &amp;= \int_0^{\Delta_t} e^{A(\Delta_t-\sigma)} B d\sigma <span class="sc">\\</span></span>
+<span id="cb11-1300"><a href="#cb11-1300" aria-hidden="true" tabindex="-1"></a>    &amp;= \int_0^{\Delta_t} \left( I + A(\sigma) + \frac{1}{2!}A^2(\sigma)^2 + \cdots \right) B d\sigma <span class="sc">\\</span></span>
+<span id="cb11-1301"><a href="#cb11-1301" aria-hidden="true" tabindex="-1"></a>    &amp;= \int_0^{\Delta_t} \left( I + \Delta t + \frac{1}{2!}(\Delta t)^2 + \cdots \right) B d\sigma <span class="sc">\\</span></span>
+<span id="cb11-1302"><a href="#cb11-1302" aria-hidden="true" tabindex="-1"></a>    &amp;= \left( I + \Delta t + \frac{1}{2!}(\Delta t)^2 + A^2 \frac{1}{2!}(\Delta t)^3 + \cdots \right) B <span class="sc">\\</span></span>
+<span id="cb11-1303"><a href="#cb11-1303" aria-hidden="true" tabindex="-1"></a>    &amp;= A^{-1}(e^{A\Delta_t} - I)B  <span class="sc">\\</span></span>
+<span id="cb11-1304"><a href="#cb11-1304" aria-hidden="true" tabindex="-1"></a>    &amp;= A^{-1}(A_d - I)B.</span>
+<span id="cb11-1305"><a href="#cb11-1305" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb11-1306"><a href="#cb11-1306" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1307"><a href="#cb11-1307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1308"><a href="#cb11-1308" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>If $A$ is invertible, this method works nicely!</span>
+<span id="cb11-1309"><a href="#cb11-1309" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Otherwise, we will need to perform the integral in the first line manually.</span>
+<span id="cb11-1310"><a href="#cb11-1310" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Also, in Octave, <span class="in">`[Ad,Bd]=c2d(A,B,dT)`</span></span>
+<span id="cb11-1311"><a href="#cb11-1311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1312"><a href="#cb11-1312" aria-hidden="true" tabindex="-1"></a><span class="fu">### Summary</span></span>
+<span id="cb11-1313"><a href="#cb11-1313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1314"><a href="#cb11-1314" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Computer monitoring of physical systems requires A2D and D2A conversion.</span>
+<span id="cb11-1315"><a href="#cb11-1315" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The system that is “seen” by the computer is a discrete-time system, and must be</span>
+<span id="cb11-1316"><a href="#cb11-1316" aria-hidden="true" tabindex="-1"></a>represented by a discrete-time state-space model:</span>
+<span id="cb11-1317"><a href="#cb11-1317" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1318"><a href="#cb11-1318" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1319"><a href="#cb11-1319" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb11-1320"><a href="#cb11-1320" aria-hidden="true" tabindex="-1"></a>x_{t+1} &amp;= A_dx_t + B_du_t + w_t &amp;&amp; \text{state eqn.}<span class="sc">\\</span></span>
+<span id="cb11-1321"><a href="#cb11-1321" aria-hidden="true" tabindex="-1"></a>z_t &amp;= C_dx_t + D_du_t + v_t &amp;&amp; \text{observation eqn.}</span>
+<span id="cb11-1322"><a href="#cb11-1322" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb11-1323"><a href="#cb11-1323" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-1324"><a href="#cb11-1324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-1325"><a href="#cb11-1325" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Generally, the discrete $A$, $B$, $C$ and $D$ matrices differ from their continuous-time counterparts.</span>
+<span id="cb11-1326"><a href="#cb11-1326" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We have learned to convert from the continuous $A$, $B$, $C$ and $D$ matrices to the discrete-time $A_d$, $B_d$, $C_d$ and $D_d$ matrices.</span>
+<span id="cb11-1327"><a href="#cb11-1327" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Next we will see some examples of converting continuous-time to discrete-time and of simulating discrete-time state-space models.</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

@@ -1221,11 +1221,36 @@ $$
 
 ### Converting plant dynamics to discrete time (2)
 
-TODO:
+- We break up the integral into two pieces:
+
+$$
+\begin{aligned}
+x_{k+1}(t) &= \int_0^{k\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau \\
+&= \int_0^{k\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau  + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau \\
+&= \int_0^{k\Delta t} e^{A\Delta t}e^{A((k)\Delta t-\tau)} B u(\tau) d\tau  + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau \\
+&= e^{A\Delta t}x(k\Delta t) + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau) d\tau 
+\end{aligned}
+$$
+
+The first integral has become $A_d \times x(k \Delta t)$
+The second will become $B_d \times u(k \Delta t)$ after a little more work
 
 ### Converting plant dynamics to discrete time (3)
 
-TODO:
+- In the remaining integral, note that $u(\tau)$ is assumed to be constant from $k\Delta t$ to $(k+1)\Delta t$; and equal to $u(k\Delta t)$.
+- We evaluate the integral via change of variables. 
+   - Let $\sigma = (k+1)\Delta t - \tau$, 
+   - $\tau = (k+1)\Delta t - \sigma$, and
+   - $d\tau = -d\sigma$.
+
+$$
+\begin{aligned}
+x_{k+1} & = e^{A\Delta t}x(k\Delta t) + \int_{k\Delta t}^{(k+1)\Delta t} e^{A((k+1)\Delta t-\tau)} B u(\tau)\; d\tau \\
+&= e^{A\Delta t}x(k\Delta t) + \left [\int_{(k+1)\Delta t}^{\Delta t} e^{A\sigma} B\; d\sigma \right ] u(k\Delta t)\\
+&= \underbrace{ e^{A\Delta t}}_{A_d}\; x_k + 
+   \underbrace{ \left [\int_{(k+1)\Delta t}^{\Delta t} e^{A\sigma} B\; d\sigma \right ] u_k }_{B_d} 
+\end{aligned}
+$$
 
 ### Computing $A_d, C_d$, and $D_d$
 
