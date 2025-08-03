@@ -16,7 +16,13 @@ The Kalman Filter arises in the filtering equations of the NDLM in the course on
 
 One of the mysteries of the NDLM is how the Matrix $G$ takes it form. This is not explained very well in the course that carries on as if the Kalman filter does not exist. However most of what student find difficult to understand in the NDLM is explained by a quick introduction to the the Kalman filter.
 
-This appendix is based on a crash course on the Kalman filter as well as the [@petris2009dynamic].
+This appendix is adapted from :
+
+- 95% the material for Gregory Plett's Kalman filter bootcamp. (Occasional I made minor changes) as well as my own insights from the NDLM. also see [Lecture notes and recordings for ECE5550: Applied Kalman Filtering](http://mocha-java.uccs.edu/ECE5550/index.html)
+- Insights relating DLM and Kalman filters  from [@petris2009dynamic], 
+- I plan to will likely also add some insights from [@särkkä2013bayesian]
+- Once I complete the bootcamp I be better able to reduced the material further or migrate it to a separate tome!
+
 
 Note: KF requires a good understanding of linear algebra, matrix operations, and probability theory. If you are not familiar with these concepts, it is recommended to review them before diving into the Kalman filter.
 
@@ -1172,7 +1178,7 @@ x_{t} = A_d^t x_0 +
 \underbrace{\sum_{j=0}^{t-1} A_d^{t-j-1} B_d u_j }_{\text{convolution}}
 $$ {#eq-kalman-filter-discrete-time-state-space-model-solution}
 
-Since $z_k = C_d x_k + D_d u_k$, we also have
+Since $z_t = C_d x_t + D_d u_t$, we also have:
 
 $$
 z_t= 
@@ -1184,3 +1190,94 @@ $$ {#eq-kalman-filter-discrete-time-state-space-model-output}
 - Comparing with the *continuous-time solution*, 
    - $e^{At}$ has been replaced by $A_d^t$ and 
    - integrals have been replaced by summations
+
+Note: we wont cover the proof by induction and these are covered in Linear Systems Theory.
+
+<!-- TODO: find an actual reference for this proof by induction. -->
+
+### Converting plant dynamics to discrete time (1)
+
+
+- Combine the dynamics of the zero-order hold and the plant.
+
+![block diagram showing ZOH and plant dynamics](images/a17/kf-bc-021.png){#fig-kf-021  group="slides" width="53mm"}
+
+- Recall that the continuous-time state dynamics of the plant are:
+$$
+\dot{x} = Ax(t) + Bu(t)
+$$
+
+- Evaluate $x(t)$ at discrete times. Recall also the solution for $x(t)$:
+
+
+$$
+x(t) =  \int_0^t e^{A(t-\tau)} B u(\tau) d\tau
+$$
+
+$$
+x_{t+1}(t) = x((t+1)\Delta t) = \int_0^{(t+1)\Delta t} e^{A((t+1)\Delta t-\tau)} B u(\tau) d\tau
+$$
+
+### Converting plant dynamics to discrete time (2)
+
+TODO:
+
+### Converting plant dynamics to discrete time (3)
+
+TODO:
+
+### Computing $A_d, C_d$, and $D_d$
+
+- Summarizing to this point, we have a discrete-time state-space
+representation from the continuous-time representation:
+$$
+x_{k+1} = A_d x_k + B_d u_k
+$$
+
+- where
+  - $A_d = e^{A\Delta t}$ and
+  - $B_d = \int_0^{\Delta t} e^{A(\Delta t-\sigma)} B d\sigma$.
+- Similarly, we have: $z_k = C_d x_k + D_d u_k$.
+- where
+  - $C_d = C$ and
+  - $D_d = D$.
+- [There is no conversion for the $C$ and $D$ matrices,]{.mark}
+- [The conversion for $A$ is straightforward via the matrix exponential]{.mark} $A_d = e^{A\Delta t}$.
+- If Octave, we can type in: `Ad = expm(A*dT)`.
+- Otherwise, we'll need to compute $e^{A\Delta t} = \mathcal{L}^{-1}\left[(sI - A)^{-1}\right]\Big|_{t = \Delta t}$
+
+
+### Computing $B_d$
+
+- Now we focus on computing $B_d$ . Recall that:
+$$
+\begin{aligned}
+B_d &= \int_0^{\Delta_t} e^{A(\Delta_t-\sigma)} B d\sigma \\
+    &= \int_0^{\Delta_t} \left( I + A(\sigma) + \frac{1}{2!}A^2(\sigma)^2 + \cdots \right) B d\sigma \\
+    &= \int_0^{\Delta_t} \left( I + \Delta t + \frac{1}{2!}(\Delta t)^2 + \cdots \right) B d\sigma \\
+    &= \left( I + \Delta t + \frac{1}{2!}(\Delta t)^2 + A^2 \frac{1}{2!}(\Delta t)^3 + \cdots \right) B \\
+    &= A^{-1}(e^{A\Delta_t} - I)B  \\
+    &= A^{-1}(A_d - I)B.
+\end{aligned}
+$$
+
+- If $A$ is invertible, this method works nicely!
+- Otherwise, we will need to perform the integral in the first line manually.
+- Also, in Octave, `[Ad,Bd]=c2d(A,B,dT)`
+
+### Summary
+
+- Computer monitoring of physical systems requires A2D and D2A conversion.
+- The system that is “seen” by the computer is a discrete-time system, and must be
+represented by a discrete-time state-space model:
+
+$$
+\begin{aligned}
+x_{t+1} &= A_dx_t + B_du_t + w_t && \text{state eqn.}\\
+z_t &= C_dx_t + D_du_t + v_t && \text{observation eqn.}
+\end{aligned}
+$$
+
+- Generally, the discrete $A$, $B$, $C$ and $D$ matrices differ from their continuous-time counterparts.
+- We have learned to convert from the continuous $A$, $B$, $C$ and $D$ matrices to the discrete-time $A_d$, $B_d$, $C_d$ and $D_d$ matrices.
+- Next we will see some examples of converting continuous-time to discrete-time and of simulating discrete-time state-space models.
