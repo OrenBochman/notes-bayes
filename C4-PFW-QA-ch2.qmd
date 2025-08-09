@@ -750,6 +750,91 @@ where $\varepsilon_t \sim \mathcal{N} (0, \nu)$.
 (b) Assume that $\nu$ is known, $\mu=0$, and that the prior distribution for $\phi$ is $\mathcal{U}(\phi \mid 0,1)$. Find an expression for the posterior distribution of $\phi$.
 ::::
 
+::: {.solution collapse="false"}
+#### Solution:
+
+C.f. [@brockwell1991time §8.2] [@hamilton2020time §5.2] and [@prado2023time §1.5] MLEs coincide with OLS of $y_t$ on $(1,y_{t-1})$ for $t=2,\dots,T$.
+
+we can write the Likelihood function as:
+
+$$
+Q(\phi,\mu)\;=\;\frac{1}{\nu}\sum_{t=2}^T\{y_t-\mu-\phi(y_{t-1}-\mu)\}^2,
+\quad
+\ell(\phi,\mu)\propto-\tfrac12 Q(\phi,\mu).
+$$
+
+(a) Conditional MLEs $(\mu\neq0)$
+
+Minimize $Q(\phi,\mu)$ over $(\phi,\mu)$. Let
+
+$$
+\bar y=\frac{1}{T-1}\sum_{t=2}^T y_t,\qquad
+\bar y_-=\frac{1}{T-1}\sum_{t=2}^T y_{t-1},
+$$
+
+$$
+S_{xx}=\sum_{t=2}^T (y_{t-1}-\bar y_-)^2,\qquad
+S_{xy}=\sum_{t=2}^T (y_{t-1}-\bar y_-)(y_t-\bar y).
+$$
+
+Then the normal equations give the OLS solutions
+
+$$
+\hat\phi=\frac{S_{xy}}{S_{xx}},\qquad
+\hat\alpha=\bar y-\hat\phi\,\bar y_-,
+\qquad
+\hat\mu=\frac{\hat\alpha}{1-\hat\phi}\quad(\hat\phi\neq1).
+$$
+
+(Equivalently: regress $y_t$ on $(1,y_{t-1})$ for $t=2{:}T$, then use $\alpha=(1-\phi)\mu$.)
+
+---
+
+(b) Posterior of $\phi$ with known $\nu$, $\mu=0$, prior $\phi \sim \mathcal{U}(0,1)$
+
+With $\mu=0$,
+
+$$
+Q(\phi)=\frac{1}{\nu}\sum_{t=2}^T(y_t-\phi y_{t-1})^2.
+$$
+
+Define
+
+$$
+A=\sum_{t=2}^T y_t^2,\quad
+B=\sum_{t=2}^T y_t y_{t-1},\quad
+C=\sum_{t=2}^T y_{t-1}^2,\quad
+m=\frac{B}{C},\quad
+s^2=\frac{\nu}{C},
+$$
+
+(with the understanding that $C>0$ unless $y_{t-1}\equiv0$). Completing the square:
+
+$$
+\sum_{t=2}^T(y_t-\phi y_{t-1})^2
+= C(\phi-m)^2+\Big(A-\frac{B^2}{C}\Big).
+$$
+
+Thus the conditional likelihood in $\phi$ is proportional to
+$\exp\{-(\phi-m)^2/(2s^2)\}$.
+With the uniform prior on $(0,1)$,
+
+$$
+p(\phi\mid y)\;\propto\;\exp\!\Big(-\frac{(\phi-m)^2}{2s^2}\Big)\,\mathbf 1_{(0,1)}(\phi),
+$$
+
+i.e., a **truncated normal**:
+
+$$
+p(\phi\mid y)=
+\frac{\displaystyle \frac{1}{\sqrt{2\pi}s}\exp\!\Big(-\frac{(\phi-m)^2}{2s^2}\Big)\,\mathbf 1_{(0,1)}(\phi)}
+{\displaystyle \Phi\!\Big(\tfrac{1-m}{s}\Big)-\Phi\!\Big(\tfrac{-m}{s}\Big)}.
+$$
+
+**Edge case:**
+If $C=0$ (i.e., $y_{t-1}=0$ for all $t$), then $Q(\phi)$ is constant in $\phi$ and the posterior reduces to the prior, $p(\phi\mid y)=\mathbf 1_{(0,1)}(\phi)$.
+:::
+
 
 :::: {#exr-pfw-2-7-18}
 Suppose you observe $y_t = x_t + \nu_t$ where:
@@ -769,6 +854,107 @@ It easily follows that: $q = V(y_t) = s + w$ where $s = V (x_t) = \frac{v}{(1 - 
 ::::
 
 
+
+::: {.solution collapse="false"}
+
+Some identities I'll use, c.f. [@prado2023time §1.2, 1.3, 2.2]:
+
+* Stationary AR(1): $x_t=\phi x_{t-1}+\varepsilon_t$, $\varepsilon_t\!\sim\!\mathcal N(0,v)$ ⇒
+  $\gamma_x(k)=\mathrm{Cov}(x_t,x_{t-k})=s\,\phi^{|k|}$ with $s=\dfrac{v}{1-\phi^2}$.
+* If $a_t$ and $b_t$ are independent (across and within series), then
+  $\mathrm{Cov}(a_t+b_t,a_{t-k}+b_{t-k})=\mathrm{Cov}(a_t,a_{t-k})+\mathrm{Cov}(b_t,b_{t-k})$.
+* Measurement noise $\nu_t\sim\mathcal N(0,w)$ is i.i.d., so $\gamma_\nu(k)=0$ for $k\neq 0$.
+
+---
+
+(a) AR representation with colored innovations
+
+$$
+\begin{aligned}
+y_t
+&=x_t+\nu_t \\
+&=\phi x_{t-1}+\varepsilon_t+\nu_t & \text{subst. AR(1)}\\
+&=\phi(y_{t-1}-\nu_{t-1})+\varepsilon_t+\nu_t & (y_{t-1}=x_{t-1}+\nu_{t-1})\\
+&=\phi y_{t-1}+\underbrace{\big(\varepsilon_t+\nu_t-\phi\nu_{t-1}\big)}_{\eta_t} \\
+&= \phi y_{t-1}+\eta_t & \blacksquare
+\end{aligned}
+$$
+
+---
+
+(b) $\mathrm{Corr}(\eta_t,\eta_{t-1})$
+
+$$
+\begin{aligned}
+\eta_t &= \varepsilon_t+\nu_t-\phi\nu_{t-1},\\
+\eta_{t-1} &= \varepsilon_{t-1}+\nu_{t-1}-\phi\nu_{t-2}.
+\end{aligned}
+$$
+
+Independence wipes out all cross-terms except the shared $\nu_{t-1}$:
+
+$$
+\begin{aligned}
+\mathrm{Cov}(\eta_t,\eta_{t-1})&=(-\phi)\cdot 1\cdot \mathrm{Var}(\nu_{t-1}) \\
+&=-\phi w
+\end{aligned}
+$$
+
+Also
+
+$$
+\begin{aligned}
+    \mathrm{Var}(\eta_t)&\stackrel{\triangle}{=}\mathrm{Var}(\varepsilon_t+\nu_t-\phi\nu_{t-1}) \\
+&=\mathrm{Var}(\varepsilon_t)+\mathrm{Var}(\nu_t)+\phi^2\mathrm{Var}(\nu_{t-1}) & \text{(Var props)}\\
+&\stackrel{\triangle}{=}v+w+\phi^2 w \\
+&=v+w(1+\phi^2) & \text{(collecting terms)}
+\end{aligned} 
+$$
+
+Hence
+
+$$
+\rho_\eta(1)=\frac{\mathrm{Cov}(\eta_t,\eta_{t-1})}{\mathrm{Var}(\eta_t)}
+=\frac{-\phi w}{v+w(1+\phi^2)} \quad \blacksquare
+$$
+
+---
+
+(c) ACF of $y_t$ in terms of $k,\phi, \frac{s}{q}$
+
+For $k\ge 1$:
+
+$$
+\gamma_y(k)
+=\mathrm{Cov}(x_t+\nu_t,\,x_{t-k}+\nu_{t-k})
+=\gamma_x(k)+0
+=s\,\phi^k.
+$$
+
+At lag 0: $\gamma_y(0)=\mathrm{Var}(y_t)=s+w=q$.
+Thus, for $k\ge 1$,
+
+$$
+\rho_y(k)=\frac{\gamma_y(k)}{\gamma_y(0)}=\frac{s\,\phi^k}{q}=\Big(\frac{s}{q}\Big)\phi^k,
+\qquad \rho_y(0)=1.
+$$
+
+Note: Measurement error leaves the *shape* of the AR(1) ACF ($\phi^k$) intact, yet shrinks its *amplitude* by the signal-to-total variance ratio $s/q\in(0,1]$. As SNR $(s/q)$ drops, the sample ACF is uniformly attenuated toward 0.
+
+---
+
+(d) Is $y_t$ AR(1)? Markov?
+
+* **AR(1)?** In general **no**. From (a), $y_t-\phi y_{t-1}=\eta_t$ and $\eta_t$ is **not white** (it has $\rho_\eta(1)\neq 0$). This is an **ARMA(1,1)** process with AR parameter $\phi$ and an MA(1) part determined by the noise mix (indeed $\eta_t$ is MA(1)). Special cases that reduce to AR(1)/white noise:
+
+  * $w=0$: no measurement noise ⇒ $y_t=x_t$ is AR(1).
+  * $\phi=0$: signal is white ⇒ $y_t$ is white + measurement white ⇒ white.
+* **Markov?** The scalar observed process $\{y_t\}$ is **not first-order Markov** (nor finite-order Markov in general) because $\eta_t$ depends on the unobserved $\nu_{t-1}$ that is not measurable from $\sigma(y_{t-1},y_{t-2},\dots)$. However, the **state-space** representation with latent state $(x_t,\nu_t)$ is first-order Markov (linear–Gaussian). So $\{y_t\}$ is ARMA(1,1) and non-Markov in its own filtration, but the *hidden state* is Markov-1.
+
+:::
+
+Note: Item (d) suggests a resolution to a long standing issue in the course where by different views (AR and State Space) we get an apparently contradiction regarding the markov property. In one we have potentially infinite or at least long term memory while the other is independent of its past conditional on the present!
+
 :::: {#exr-pfw-2-7-19}
 You observe $y_t = x_t + \mu \quad t \in \mathbb{N}$ where $x_t$ follows a stationary $AR(1)$ process with AR parameter $\phi$ and innovation variance $\nu$, 
 i.e., $x_t = \phi x_{t-1} + \varepsilon_t$ with independent innovations $\varepsilon_t \sim \mathcal{N} (0, \nu)$ . 
@@ -786,6 +972,11 @@ Assume all parameters $(\mu, \phi, \nu)$ are known.
     For nonzero values of $\phi$, the above posterior for the mean of the normal data $y_t$ depends on $\phi$ in the posterior variance.
     Comment on how the posterior changes with $\phi$ and why this makes sense.
 ::::
+
+
+::: {.solution collapse="false"}
+
+:::
 
 
 :::: {#exr-pfw-2-7-20}
@@ -898,7 +1089,6 @@ $$
 since 
 
 $\rho(h)=\gamma(h)/\gamma(0)$ we get 
-
 
 
 $\rho(1)=\dfrac{\nu(\theta_1+\theta_1\theta_2)}{\nu(1+\theta_1^2+\theta_2^2)}=\dfrac{\theta_1+\theta_1\theta_2}{1+\theta_1^2+\theta_2^2}=0$

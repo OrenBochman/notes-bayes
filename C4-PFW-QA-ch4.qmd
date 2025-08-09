@@ -1,0 +1,419 @@
+---
+title: "Q&A for Chapter 4"
+subtitle: "Time Series: Modeling, Computation, and Inference"
+bibliography: references.bib
+---
+
+### Chapter 4 Problems
+
+This is about the Dynamic Linear Models
+
+
+[distributions]{.column-margin}
+
+:::: {#exr-pfw-4-1}
+Assuming a DLM structure given by $\{\textbf{F}_t, \textbf{G}_t, v_t, \textbf{W} _t\}$, find the distributions of $(\boldsymbol{\theta}_{t+k}, \boldsymbol{\theta}_{t+j} \mid \mathcal{D}_t)$, $(y_{t+k}, y_{t+j} \mid \mathcal{D}_t)$, $(\boldsymbol{\theta}_{t+k}, y_{t+j} \mid \mathcal{D}_t)$, $(\boldsymbol{y}_{t+k}, \boldsymbol{\theta}_{t+j} \mid \mathcal{D}_t)$, $(\boldsymbol{\theta}_{t-k-j}, \boldsymbol{\theta}_{t-k} \mid \mathcal{D}_t)$.
+::::
+
+:::: {#exr-pfw-4-2}
+Show that the smoothing equations in  
+[smoothing equations]{.column-margin}
+$a_T(t - T) = \mathbf{m}_t - \mathbf{B}_t \,[\mathbf{a}_{t+1} - a_T(t - T + 1)] \quad (4.10)$  
+$\mathbf{R}_T(t - T) = \mathbf{C}_t - \mathbf{B}_t \,[\mathbf{R}_{t+1} - \mathbf{R}_T(t - T + 1)] \, \mathbf{B}_t' \quad (4.11)$  
+where $\mathbf{B}_t = \mathbf{C}_t \, \mathbf{G}_{t+1}^0 \, \mathbf{R}_{t+1}^{-1}$  
+
+can be written as  
+$a_T(t - T) = (1 - \delta) \mathbf{m}_t + \delta \, \mathbf{G}_{t+1}^{-1} \, a_T(t - T + 1) \quad (4.15)$  
+$\mathbf{R}_T(t - T) = (1 - \delta) \mathbf{C}_t + \delta^2 \, \mathbf{G}_{t+1}^{-1} \, \mathbf{R}_T(t - T + 1) \,(\mathbf{G}_{t+1}')^{-1} \quad (4.16)$  
+
+[discount factor]{.column-margin}
+when a single discount factor $\delta \in (0, 1]$ is used to specify $\mathbf{W}_t$,  
+using the fact that $\mathbf{B}_t = \mathbf{C}_t \, \mathbf{G}_{t+1}' \, \mathbf{R}_{t+1}^{-1}$.
+::::
+
+
+:::: {#exr-pfw-4-3}
+Consider a DLM with time $t$ observation variance $\nu_t$ known.  
+At time $t - 1$, we have the summary posterior $(\boldsymbol{\theta}_{t-1} \mid \mathcal{D}_{t-1}) \sim \mathcal{N}(\mathbf{m}_{t-1}, \mathbf{C}_{t-1})$ and the state vector evolves through the state equation  $\boldsymbol{\theta}_t = \mathbf{G}_t \, \boldsymbol{\theta}_{t-1} + \boldsymbol{\omega}_t$ where $\boldsymbol{\omega}_t \sim \mathcal{N}(\mathbf{0}, \mathbf{W}_t)$ with $\boldsymbol{\theta}_{t-1}$ and $\boldsymbol{\omega}_t$ independent.  
+
+Suppose now the special case in which:  
+
+- the evolution is a random walk, i.e., $\mathbf{G}_t = \mathbf{I}$ for all $t$, and  
+- $\mathbf{W}_t = \epsilon \, \mathbf{C}_{t-1}$ where $\epsilon = \frac{1 - \delta}{\delta}$ for some discount factor $\delta \in (0, 1)$.
+
+(a) Show how the update equations for prior:posterior analysis at time $t$ simplify in this special case.  
+(b) Comment on the simplified structure and how it depends on the chosen/specified discount factor $\delta$.  
+(c) Comment on the computational implications of this simplified structure. As part of this, you might consider how the update for $\mathbf{C}_t$ can be rewritten in terms of how the precision matrix $\mathbf{C}^{-1}_t$ is updated from $\mathbf{C}^{-1}_{t-1}$.
+::::
+
+
+:::: {#exr-pfw-4-4}
+For a univariate series $y_t$, consider the simple first-order polynomial (locally constant) DLM with local level $\mu_t$ at time $t$. The $p=1$–dimensional state is $\boldsymbol{\theta}_t=\mu_t$, while $\mathbf{F}_t=1$ and $\mathbf{G}_t=1$ for all $t$. Also assume a constant, known observation variance $v$.
+
+(a) Show that the usual updating equations for $\mathbf{m}_t, \mathbf{C}_t$ can be written as
+$$
+\mathbf{m}_t \;=\; \mathbf{C}_t\!\left(\mathbf{R}_t^{-1} \mathbf{m}_{t-1} + v^{-1} y_t\right),
+\qquad
+\mathbf{C}_t^{-1} \;=\; \mathbf{R}_t^{-1} + v^{-1}.
+$$
+
+(b) Suppose that $\mathbf{R}_t = \mathbf{C}_{t-1}/\delta$ for some discount factor $\delta \in (0,1]$. Show that  
+$$
+\mathbf{C}_t^{-1} \;=\; v^{-1} + \delta v^{-1} + \delta^2 v^{-1} + \cdots + \delta^{t}\, \mathbf{C}_0^{-1}.
+$$
+
+(c) Deduce that, as $t \to \infty$, the variance $\mathbf{C}_t$ has the limiting form $\mathbf{C}_t \approx (1-\delta)\,v$.  Comment on this in connection with the amount of information for inference on the local level at time $t$ after observing data over many time points.  
+(d) Show that the implied limiting form of the usual updating equation for the posterior mean $\mathbf{m}_t$ is, as $t \to \infty$,
+$$
+\mathbf{m}_t \;\approx\; \delta\, \mathbf{m}_{t-1} \;+\; (1-\delta)\, y_t,
+$$
+and comment on this form.  
+(e) Assuming $t$ is large enough for the limiting form in (d) to be accurate, what is the contribution of a past observation $y_{t-k}$ to the value of $\mathbf{m}_t$?
+::::
+
+
+:::: {#exr-pfw-4-5}
+Consider a dynamic regression DLM for a univariate time series,
+$$
+y_t = \mathbf{F}_t^\top\,\boldsymbol{\theta}_t + \nu_t,\quad \nu_t \sim \mathcal{N}(0, v)\ \text{with $v$ known.}
+$$
+
+Suppose a random-walk evolution for $\boldsymbol{\theta}_t$ so that $\mathbf{G}=\mathbf{I}$ and
+$$
+\boldsymbol{\theta}_t = \boldsymbol{\theta}_{t-1} + \boldsymbol{\omega}_t,\quad \boldsymbol{\omega}_t \sim \mathcal{N}(\mathbf{0}, v \mathbf{W}_t),
+$$
+
+where $\mathbf{W}_t$ is defined by a single discount factor $\delta$. With an initial prior
+$\boldsymbol{\theta}_0 \mid \mathcal{D}_0 \sim \mathcal{N}(\mathbf{m}_0, v \mathbf{C}_0)$, it follows for all $t \ge 1$ that
+$\boldsymbol{\theta}_t \mid \mathcal{D}_t \sim \mathcal{N}(\mathbf{m}_t, v \mathbf{C}_t)$ where $(\mathbf{m}_t, \mathbf{C}_t)$ are updated by the usual filtering equations.
+
+(a) Show that the updating equations can be written in an alternative form using precision matrices as, for all $t>0$,
+$$
+\mathbf{m}_t \;=\; \mathbf{C}_t\!\left(\mathbf{R}_t^{-1} \mathbf{m}_{t-1} + \mathbf{F}_t\, y_t\right),\qquad
+\mathbf{C}_t^{-1} \;=\; \mathbf{R}_t^{-1} + \mathbf{F}_t \mathbf{F}_t^\top,
+$$
+where $\mathbf{R}_t = \mathbf{C}_{t-1} + \mathbf{W}_t$.
+
+(b) Show that
+$$
+\mathbf{C}_t^{-1}
+\;=\;
+\delta^{\,t}\, \mathbf{C}_0^{-1}
+\;+\;
+\sum_{r=1}^{t} \delta^{\,t-r}\, \mathbf{F}_r \mathbf{F}_r^\top.
+$$
+
+(c) Show that
+$$
+\mathbf{C}_t \mathbf{m}_t
+\;=\;
+\delta^{\,t}\, \mathbf{C}_0 \mathbf{m}_0
+\;+\;
+\sum_{r=1}^{t} \delta^{\,t-r}\, \mathbf{F}_r\, y_r .
+$$
+
+(d) Interpret these results in connection with the role and choice of the discount factor $\delta$.
+::::
+
+:::: {#exr-pfw-4-6}
+A DLM for the univariate series $y_t$ is given by $y_t = \mathbf{F}^\top \boldsymbol{\theta}_t + \nu_t$ where $\nu_t \sim \mathcal{N}(0,v)$, and $\boldsymbol{\theta}_t = \mathbf{G} \boldsymbol{\theta}_{t-1} + \boldsymbol{\omega}_t$ where $\boldsymbol{\omega}_t \sim \mathcal{N}(\mathbf{0}, v \mathbf{W})$ with the usual conditional independence assumptions. All model parameters $\mathbf{F}, v, \mathbf{G}, \mathbf{W}$ are known and *constant over time*. The modeler specifies:
+
+- $\mathbf{G}$ has $p$ *real and distinct* eigenvalues $\lambda_i,\ i=1,\dots,p$, with $|\lambda_i|<1$ for each $i$; and
+- at $t=0$, the state distribution $\boldsymbol{\theta}_0 \mid \mathcal{D}_0 \sim \mathcal{N}(\mathbf{m}_0, v \mathbf{C}_0)$ where $\mathbf{m}_0=\mathbf{0}$ and $\mathbf{C}_0 \equiv \mathbf{C}$ satisfies $\mathbf{C} = \mathbf{G} \mathbf{C} \mathbf{G}^\top + \mathbf{W}$. It can be shown
+that there is a unique variance matrix $\mathbf{C}$ satisfying this equation when $|\lambda_i|<1$ as is true in this exercise.
+
+(a) Show that the $t$–step-ahead prior for future states $p(\theta_t \mid \mathcal{D}_0 )$ satisfies $\boldsymbol{\theta}_t \mid \mathcal{D}_0 \sim \mathcal{N}(\mathbf{0}, v \mathbf{C})$ for all $t \ge 0$.  
+(b) For any $t$ and $k \ge 0$, show that $\mathrm{C}(\boldsymbol{\theta}_{t+k}, \boldsymbol{\theta}_t \mid \mathcal{D}_0) = v\, \mathbf{G}^k \mathbf{C}$.  
+(c) Show that the $t$–step-ahead forecast $p(y_t \mid \mathcal{D}_0) = \mathcal{N}(0, v s)$ for some $s>0$, and give $s$ in terms of $\mathbf{F},\mathbf{G},\mathbf{C}$.  
+(d) For any $t$ and $k \ge 1$, show that $p(y_{t+k}, y_t \mid \mathcal{D}_0)$ is bivariate normal with covariance that depends on $k$ but not on $t$. Give this covariance in terms of $k$ and the model parameters.  
+(e) Deduce that $y_t$ is a stationary time series.  
+(f) Describe the qualitative form of the implied autocorrelation function $\rho(k)$ as a function of lag $k$.  
+(g) Comment on the connections with a stationary AR($p$) model for $y_t$.
+::::
+
+:::: {#exr-pfw-4-7}
+A DLM has the forecast function—over $k=0,1,\ldots$ at any “current” time $t$—given by
+$$
+f_t(k) \;=\; a_{t,1} \;+\; a_{t,2}\,k \;+\; a_{t,3}\, r^{k}\cos\!\left(\tfrac{2\pi k}{\mu} + c_t\right),
+$$
+for some positive wavelength $\mu$ and some $0<r<1$, where $a_{t,1}, a_{t,2}, a_{t,3}, c_t$ are constants known at time $t$.
+  
+Give real-valued and constant observation vector $\mathbf{F}$ and state evolution matrix $\mathbf{G}$ of **two different DLMs** with this forecast function.
+::::
+
+::: {.solution}
+Let $\omega = 2\pi/\mu$. We want $\;f_t(k)=a_{t,1}+a_{t,2}\,k+a_{t,3}\,r^{k}\cos(\omega k + c_t)
+= \mathbf{F}^\top \mathbf{G}^{\,k}\,\theta_t\;$ with **constant** real $\mathbf{F},\mathbf{G}$.
+
+**Model A (rotation–damping cycle + local linear trend).**  
+
+State 
+$\theta_t=\big[\alpha_t,\;\beta_t,\;u_t,\;v_t\big]^\top$ 
+with
+$[\alpha_t,\beta_t]$ = level/slope, and 
+$[u_t,v_t]=a_{t,3}\,[\cos c_t,\;\sin c_t]$.
+
+$$
+\mathbf{F}=\begin{bmatrix}1\\[2pt]0\\[2pt]1\\[2pt]0\end{bmatrix},\qquad
+\mathbf{G}=
+\begin{bmatrix}
+1 & 1 & 0 & 0\\
+0 & 1 & 0 & 0\\
+0 & 0 & r\cos(\omega) & -r\sin(\omega)\\
+0 & 0 & r\sin(\omega) & \phantom{-}r\cos(\omega)
+\end{bmatrix}.
+$$
+
+Then $\mathbf{F}^\top \mathbf{G}^{k}\theta_t=\alpha_t+\beta_t k+ a_{t,3} r^k \cos(\omega k+c_t)$.
+
+**Model B (real companion AR(2) cycle + local linear trend).** 
+
+State $\theta_t=\big[\alpha_t,\;\beta_t,\;s_t,\;s_{t-1}\big]^\top$ with cycle given by
+$s_{t+1}=2r\cos\omega\,s_t - r^2 s_{t-1}$, initialized so that
+$[s_t,s_{t-1}]=a_{t,3}\,[\cos c_t,\;\cos(c_t-\omega)]$.
+
+$$
+\mathbf{F}=\begin{bmatrix}1\\[2pt]0\\[2pt]1\\[2pt]0\end{bmatrix},\qquad
+\mathbf{G}=
+\begin{bmatrix}
+1 & 1 & 0 & 0\\
+0 & 1 & 0 & 0\\
+0 & 0 & 2r\cos(\omega) & -r^2\\
+0 & 0 & 1 & 0
+\end{bmatrix}.
+$$
+
+Again $\mathbf{F}^\top \mathbf{G}^{k}\theta_t=\alpha_t+\beta_t k+ a_{t,3} r^k \cos(\omega k+c_t)$.
+
+Both $\mathbf{F},\mathbf{G}$ are real and constant in $t$ and $k$; $r\in(0,1)$, $\mu>0$.
+
+:::
+
+
+:::: {#exr-pfw-4-8}
+Consider the three DLMs below, each with a $2$–dimensional state vector  $\boldsymbol{\theta}_t = (\theta_{t,1}, \theta_{t,2})^\top$. Each model is defined by the constant $\mathbf{F}$, $\mathbf{G}$ elements shown. For each DLMs:  
+
+- give details of the implied form of the forecast function $f_t(k)$ over $k=1,2,\ldots$, and  
+- comment on the meaning/interpretation of the elements of the state vector.
+
+(a) The first DLM has  
+$$
+\mathbf{F} = \begin{pmatrix} 1 \\ 0 \end{pmatrix} \qquad \mathbf{G} = \begin{pmatrix} 1 & 0.9 \\ 0 & 0.9 \end{pmatrix}.
+$$
+
+(b) The second DLM has  
+$$
+\mathbf{F} = \begin{pmatrix} 1 \\ 1 \end{pmatrix} \qquad \mathbf{G} = \begin{pmatrix} 0.95 & 0 \\ 0 & 0.80 \end{pmatrix}
+$$
+
+(c) The third DLM has  
+$$
+\mathbf{F} = \begin{pmatrix} 1 \\ 1 \end{pmatrix} \qquad \mathbf{G} = \begin{pmatrix} 1 & 0 \\ 0 & 0 \end{pmatrix}
+$$
+::::
+
+:::: {#exr-pfw-4-9}
+Work through the key results of Section 4.3.5 to ensure understanding of the role of the Markovian structure of a DLM in retrospective analysis. Do this in a DLM which, for all time $t$, has known observation variance $v_t$. Given $\mathcal{D}_{t-1}$, the two consecutive state vectors $\boldsymbol{\theta}_t$ and $\boldsymbol{\theta}_{t-1}$ are related
+linearly with Gaussian error, and so the two state vectors have a joint
+normal distribution $p(\boldsymbol{\theta}_t, \boldsymbol{\theta}_{t-1} \mid \mathcal{D}_{t-1})$ with
+$$
+\begin{array}{rcl}
+E(\boldsymbol{\theta}_{t-1} \mid \mathcal{D}_{t-1}) &= \mathbf{m}_{t-1}, &&
+E(\boldsymbol{\theta}_t \mid \mathcal{D}_{t-1}) &= \mathbf{a}_t, \\
+V(\boldsymbol{\theta}_{t-1} \mid \mathcal{D}_{t-1}) &= \mathbf{C}_{t-1}, &&
+V(\boldsymbol{\theta}_t \mid \mathcal{D}_{t-1}) &= \mathbf{R}_t.
+\end{array}
+$$
+
+(a) Show that the covariance matrix $\mathbf{C}(\boldsymbol{\theta}_t, \boldsymbol{\theta}_{t-1} \mid \mathcal{D}_{t-1}) = \mathbf{G}_t \mathbf{C}_{t-1}$, and
+hence that $\mathbf{C}(\boldsymbol{\theta}_{t-1}, \boldsymbol{\theta}_t \mid \mathcal{D}_{t-1}) = \mathbf{C}_{t-1} \mathbf{G}_t'$.
+
+(b) Deduce that $p(\boldsymbol{\theta}_{t-1} \mid \boldsymbol{\theta}_t, \mathcal{D}_{t-1})$ is normal with mean vector $\mathbf{m}^\ast_{t-1}$ and
+variance matrix $\mathbf{C}^\ast_{t-1}$ as defined in Section 4.3.5.
+
+(c) For a time specified $T \ge t$, what is the distribution $p(\boldsymbol{\theta}_{t-1} \mid \boldsymbol{\theta}_t, \mathcal{D}_T)$?
+
+(d) Comment on the role of this theory in quantifying the retrospective
+distribution for a full trajectory of states $p(\boldsymbol{\theta}_1, \ldots, \boldsymbol{\theta}_T \mid \mathcal{D}_T)$.
+
+(e) Consider now a specific class of DLMs in which:
+    - the evolution is a random walk, i.e., $\mathbf{G}_t = \mathbf{I}$ for all $t$, and
+    - $\mathbf{W}_t = \epsilon\, \mathbf{C}_{t-1}$ where $\epsilon = \frac{1-\delta}{\delta}$ for some discount factor $\delta \in (0,1)$.
+
+    Show how the above results simplify in these special cases, discussing both the role of $\delta$ as well as computational considerations.
+::::
+:::: {#exr-pfw-4-10}
+The basic distribution theory in this question underlies the discount
+volatility model of Section 4.3.7 and the results to be shown below in
+Problem 11. Two positive scalar random quantities $\phi_0$ and $\phi_1$ have a
+joint distribution under which:
+
+- $\phi_0 \sim \mathcal{G}(a, b)$ for some scalars $a > 0, b > 0$; and
+- $p(\phi_1 \mid \phi_0)$ is implicitly defined by  
+  $\phi_1 = \frac{\phi_0 \eta}{\beta}$,  
+  where $\eta \sim \mathcal{B}e(\beta a, (1 - \beta)a)$  
+  with $\eta$ independent of $\phi_0$ and where $\beta \in (0, 1)$ is a known, constant
+  discount factor.
+
+(a) What is $E(\phi_1 \mid \phi_0)$?  
+
+(b) What are $E(\phi_0)$ and $E(\phi_1)$?  
+
+(c) Starting with the joint density $p(\phi_0) p(\eta)$ (a product form since $\phi_0$ and
+$\eta$ are independent), make the bivariate transformation to $(\phi_0, \phi_1)$ and
+show that
+$$
+p(\phi_0, \phi_1) = c \, e^{-b \phi_0} \, \phi_0^{\beta a - 1} \, 
+\left( \phi_0 - \beta \phi_1 \right)^{(1 - \beta)a - 1},
+$$
+
+    on $0 < \phi_1 < \frac{\phi_0}{\beta}$, being zero otherwise. 
+    Here $c$ is a normalizing constant that does not depend on the conditioning value of $\phi_0$.
+
+(d) Derive the p.d.f. $p(\phi_1)$ (up to a proportionality constant). Deduce
+that the marginal distribution of $\phi_1$ is $\phi_1 \sim \mathcal{G}(\beta a, \beta b)$.
+
+(e) Show that the reverse conditional $p(\phi_0 \mid \phi_1)$ is implicitly defined by  
+$\phi_0 = \beta \phi_1 + \gamma$  
+where $\gamma \sim \mathcal{G}((1 - \beta)a, b)$  
+with $\gamma$ independent of $\phi_1$.
+::::  
+
+
+:::: {#exr-pfw-4-11}
+Consider the observational variance discount model of Section 4.3.7. You
+may use the results from Problem @exr-pfw-4-10.
+
+(a) Show that the time $t - 1$ prior $(\phi_{t-1} \mid \mathcal{D}_{t-1}) \sim \mathcal{G}\!\left(\frac{n_{t-1}}{2}, \frac{d_{t-1}}{2}\right)$ 
+    combined with the beta-gamma evolution 
+    model $\phi_t = \frac{\phi_{t-1} \gamma_t}{\beta}$ yields 
+    a conditional density $p(\phi_{t-1} \mid \phi_t, \mathcal{D}_{t-1})$ that 
+    can be expressed as  $\phi_{t-1} = \beta \phi_t + \upsilon_{t-1}^\ast$, where  
+    $(\upsilon_{t-1}^\ast \mid \mathcal{D}_{t-1}) \sim \mathcal{G}\!\left(\frac{(1 - \beta) n_{t-1}}{2}, \frac{d_{t-1}}{2}\right)$  is independent of $\phi_t$.
+
+(b) Show further that 
+    $p(\phi_{t-1} \mid \phi_t, \mathcal{D}_T) \equiv p(\phi_{t-1} \mid \phi_t, \mathcal{D}_{t-1})$ 
+    for all $T \ge t$.
+
+(c) Describe how this result can be used to recursively compute retrospective 
+    point estimates $E(\phi_t \mid \mathcal{D}_T)$ backward in time, 
+    beginning at $t = T$.
+
+(d) Describe how this result can similarly be used to recursively simulate 
+    a full trajectory of values of $\phi_T, \phi_{T-1}, \ldots, \phi_1$ from 
+    the retrospective smoothed posterior conditional on $\mathcal{D}_T$.
+::::  
+
+
+:::: {#exr-pfw-4-12}
+Go to Google Trends and download the monthly data for the searches of
+the term "time series" in the U.S. and the rest of the world from January
+2004 until December 2019. For each of these two time series fit the
+following DLMs and provide a summary of the filtering and smoothing
+distributions of the model parameters and also summaries of the one-
+step ahead predictions:
+
+(a) DLMs with a second order polynomial and the first 4 harmonics of
+    a Fourier representation with fundamental period $p = 12$. 
+    Use a single discount factor $\delta \in [0.9, 1.0]$ to determine the 
+    system variance choosing the optimal discount factor that minimizes the MSE.
+
+(b) Now consider the same DLM structure above but fit the model to the
+    log volume index data.
+::::
+
+:::: {#exr-pfw-4-13}
+13. Consider the following model:
+
+$$
+y_t = \theta_t + \nu_t , \quad \nu_t \sim \mathcal{N}(0, \sigma^2),
+$$
+
+$$
+\theta_t = \sum_{j=1}^{p} \phi_j \theta_{t-j} + \omega_t , \quad \omega_t \sim \mathcal{N}(0, \tau^2).
+$$
+
+This model is a simplified version of that proposed in West (1997c).
+Develop the conditional distributions required to define an MCMC algo-
+rithm to obtain samples from $p(\theta_{1:T}, \phi, \tau^2, \sigma^2 \mid y_{1:T})$, and implement the
+algorithm.
+::::  
+
+
+:::: {#exr-pfw-4-14}
+Derive the conditional distributions for posterior MCMC simulation in
+Example 4.10, verifying that the algorithm outlined there is correct.
+::::
+
+:::: {#exm-410}
+::: {.callout-note}
+
+#### Example 4.10 AR(1) with normal mixture structure on observational errors.
+
+Consider the model
+
+$$
+y_t = \mu_t + \nu_t, \qquad (4.19)
+$$
+
+$$
+\mu_t = \phi \mu_{t-1} + w_t,
+$$
+
+where $\nu_t$ has the following distribution,
+
+$$
+\nu_t \sim \pi\, \mathcal{N}(0, v) + (1 - \pi)\, \mathcal{N}(0, \kappa^{2} v), \qquad (4.20)
+$$
+
+and $w_t \sim \mathcal{N}(0, w)$. Here $\kappa > 1$ and $\pi \in (0, 1)$, with $\kappa$ and $\pi$ assumed
+known. This model can be written as a conditionally Gaussian DLM given
+by $\{F_t, G_t, v \lambda_t, w\}$, where $\lambda_t$ is a latent variable that takes the values $1$
+or $\kappa^{2}$ with probabilities $\pi$ and $(1 - \pi)$, respectively.
+:::
+::::
+
+:::: {#exr-pfw-4-15}
+Consider again the AR(1) model with mixture observational errors described in [@exm-410].
+Modify the MCMC algorithm in order to perform posterior inference when $\lambda_t$ has the following Markovian structure:
+
+$$
+\Pr(\lambda_t = \kappa^{2} \mid \lambda_{t-1} = \kappa^{2}) = \Pr(\lambda_t = 1 \mid \lambda_{t-1} = 1) = p
+$$
+
+and
+
+$$
+\Pr(\lambda_t = \kappa^{2} \mid \lambda_{t-1} = 1) = \Pr(\lambda_t = 1 \mid \lambda_{t-1} = \kappa^{2}) = (1 - p),
+$$
+
+where $p$ is known. For suggestions see, for instance, [@Carter95Gibbs].
+::::  
+
+
+:::: {#exr-pfw-4-16}
+Consider the dynamic trend model $\{F, G, v(\alpha_1), W(\alpha_2, \alpha_3)\}$ introduced
+by Harrison and Stevens (1976) and revisited in Fruehwirth-Schnatter
+(1994), where
+
+$$
+F' = \begin{bmatrix} 1 & 0 \end{bmatrix}, \qquad
+G = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}, \qquad
+v(\alpha_1) = \alpha_1,
+$$
+
+and
+
+$$
+W(\alpha_2, \alpha_3) = G \,\mathrm{diag}(\alpha_2, \alpha_3)\, G^{\top} =
+\begin{bmatrix}
+\alpha_2 + \alpha_3 & \alpha_3 \\
+\alpha_3 & \alpha_3
+\end{bmatrix}.
+$$
+
+Simulate a time series data set from this model. Propose and implement
+a MCMC algorithm for posterior simulation assuming that $\alpha_1$, $\alpha_2$, and
+$\alpha_3$ are unknown, where each $\alpha_i$ is assumed to follow an inverse gamma
+prior distribution
+::::
