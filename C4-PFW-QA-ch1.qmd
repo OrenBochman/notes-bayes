@@ -16,6 +16,7 @@ Also it can help keep document to a more manageable length as this will keep gro
 
 2. Adding per problem metadata will allow create a problem set that is better suited to specific topics.
 
+3. More problems from harrison & west!
 
 -->
 
@@ -36,7 +37,7 @@ It turns out that while this **mental model** of memory in time series etc is us
 - Stationarity, 
     - Strict stationarity,
     - Weak stationarity,
-- Order of a TS process like p in AR(p) and q in MA(q),
+- Order of a TS process like p in AR($p$) and q in MA($q$),
 - Periodicity, and 
 - Pseudo-periodicity a nemesis of stationarity.
 
@@ -216,20 +217,29 @@ $$
 
 ::::
 
+::: {.callout-note}
+## Overthinking Reference Analysis {.unnumbered .unlisted}
 
-Comment: I think We mentioned **reference analysis** in course two of the specialization but I assumed a base line model. This looks pretty scary at first glance. 
+The term **reference analysis** is mentioned a few times in course two of the specialization but my impression was that this was a *base line model* that we often use in data science, to make our model look better. The reason we would want a reference analysis rather than just a base line model is that along with **prior sensitivity analysis** can help puts the bayesian analysis on even footing with frequentist approach. Here is one definition
 
-However, I recall seeing Student t's t-distribution appearing out of the blue in a couple of places, could it be due to the reference analysis i.e. introducing a Jeffreys prior? I think so!
+> A reference prior is a non-informative prior distribution in Bayesian statistics that aims to minimize its influence on the posterior distribution, **allowing the data to dominate the inference**. It's chosen to maximize the Kullback-Leibler (KL) divergence between the prior and the posterior, effectively making the prior as "uninformative" as possible. 
+-- Definition: Reference prior distribution in @StatProofBook
 
-::: {.solution .callout-tip collapse="true"}
-#### Solution:
+This reference analysis in [@prado2023time] looks pretty scary out of the blue as it doesn't even have the above paragraph to motivate it or explain that an improper prior can lead to problems stemming out of Jeffreys prior not being a proper prior. Though, ideally, the posterior should be a well defined distribution, it is not always the case and another reason why one is less likely to see a reference analysis in practice.
+
+Later in the course I recall seeing Student t-distribution popping up in the last video on filtering and smoothing, and the I suppose the math for it might be similar to the  reference analysis here i.e. introducing an improper prior? So it may still worth reading though this and doing the exercises to get a feel for it for the next time you encounter this frequentist-bayesian hybrid developed by Jeffreys' to placate Fischer objection to the subjective nature of the Bayesian priors. Or even worse if you are asked for one by an editor of a predominantly frequentist publication which could set you back a long time.
+
+One final caveat, the form of the reference prior strongly depends on the likelihood being used and thus deriving reference priors can be mathematically challenging, especially for complex models.
+:::
+
+::: {.solution  collapse="false"}
 
 Let $y\in\mathbb R^{n}$, $F\in\mathbb R^{p\times n}$, $\beta\in\mathbb R^{p}$,
 model $y\mid\beta,v \sim \mathcal N(F^\top\beta, v I_n)$, and prior $p(\beta,v)\propto 1/v$ [@prado2023time §1.5.3]
 
 ---
 
-### 0. Posterior kernel
+### Posterior kernel {.unnumbered .unlisted}
 
 $$
 \begin{aligned}
@@ -261,7 +271,7 @@ $$
 
 ---
 
-### 1. Marginal posterior of $\beta$
+### Marginal posterior of $\beta$ {.unnumbered .unlisted}
 
 Integrate out $v$:
 
@@ -291,7 +301,7 @@ as required.
 
 ---
 
-### 2. Marginal likelihood (evidence)
+### Marginal likelihood (evidence) {.unnumbered .unlisted}
 
 Integrate out $\beta$ first, then $v$:
 
@@ -316,8 +326,6 @@ p(y\mid F)
         {\big[\pi (n-p) s^2\big]^{(n-p)/2}} .
 \end{aligned}
 $$
-
-
 :::
 
 :::: {#exr-pfw-1-7-4}
@@ -343,13 +351,76 @@ where $m = \frac{1}{T − 1} \sum_{t=2}^T y_t y_{t−1}$ and $SSE(\phi) = \sum_{
 
 ::::
 
+
+::: {.solution collapse="false"}
+
+a derivation for [@exr-pfw-1-7-4] (conditional likelihood, reference prior $p(\phi,v)\propto 1/v$).
+
+Let $n=T-1$, $y=(y_2,\dots,y_T)^\top$, $F=(y_1,\dots,y_{T-1})^\top$. Model: $y=\phi F+\varepsilon$, $\varepsilon\sim\mathcal N(0,v I_n)$. The conditional likelihood is
+
+$$
+p(y\mid \phi,v,F)\ \propto\ v^{-n/2}\exp\!\left(-\frac{1}{2v}(y-\phi F)^\top(y-\phi F)\right).
+$$
+
+Define the sufficient statistics:
+
+$$
+\begin{array}{lcr}
+S_{11}&=F^\top F                && S_{yy} &=y^\top y                              && S_{y1}&=y^\top F,\\
+\hat\phi&=\frac{S_{y1}}{S_{11}} && \mathrm{SSE}_0&=S_{yy}-\frac{S_{y1}^2}{S_{11}} &&
+\end{array}
+$$
+
+Using $p(\phi,v)\propto 1/v$:
+
+$$
+\begin{aligned}
+p(\phi,v\mid y,F) 
+&\propto v^{-\frac n2-1}\exp\!\left(-\frac{1}{2v}\big[(\phi-\hat\phi)^2 S_{11}+\mathrm{SSE}_0\big]\right) & \text{complete the square}
+\\[2mm]
+\Rightarrow\ \phi\mid v,y,F 
+&\sim \mathcal N\!\left(\hat\phi,\ \frac{v}{S_{11}}\right) & \text{read off quadratic in }\phi
+\\[2mm]
+p(v\mid y,F)
+&\propto v^{-\frac{n+1}{2}}\exp\!\left(-\frac{\mathrm{SSE}_0}{2v}\right) & \text{integrate }\phi
+\\
+\Rightarrow\ v\mid y,F 
+&\sim \mathcal{IG}\!\left(\frac{n-1}{2},\ \frac{(n-1)s^2}{2}\right),\quad s^2=\frac{\mathrm{SSE}_0}{n-1}. & \text{inverse-gamma form}
+\end{aligned}
+$$
+
+Marginalizing $v$ gives a Student-$t$ for $\phi$:
+
+$$
+\phi\mid y,F\ \sim\ t_{\,n-1}\!\left(\hat\phi,\ \frac{s^2}{S_{11}}\right).
+$$
+
+with $n=T-1$ so $n-1=T-2$,
+
+$$
+\begin{aligned}
+\phi\mid y,F\ &\sim\ t_{\,T-2}\!\Big(m,\ \frac{C}{T-2}\Big),\\
+m&=\frac{\sum_{t=2}^T y_t y_{t-1}}{\sum_{t=1}^{T-1} y_{t-1}^2},\\ 
+C&=\frac{\sum_{t=2}^T y_t^2\ \sum_{t=1}^{T-1} y_{t-1}^2-(\sum_{t=2}^T y_t y_{t-1})^2}{\sum_{t=1}^{T-1} y_{t-1}^2}
+\end{aligned}
+$$
+
+and
+
+$$
+v\mid y,F\ \sim\ \mathcal{IG}\!\left(\frac{T-2}{2},\ \frac{(T-2)s^2}{2}\right),\quad
+s^2=\frac{1}{T-2}\sum_{t=2}^T (y_t-m\,y_{t-1})^2
+$$
+
+:::
+
 :::: {#exr-pfw-1-7-5}
-5. Show that the expressions for the distributions of $(y\mid F, v)$, $(v\mid y, F)$, and $(\beta \mid y, F)$ under the **conjugate analysis** in [@prado2023time § 1.5.3] are those given on page 24.
+Show that the expressions for the distributions of $(y\mid F, v)$, $(v\mid y, F)$, and $(\beta \mid y, F)$ under the **conjugate analysis** in [@prado2023time § 1.5.3] are those given on page 24.
 
 i.e.
 
 $$
-(y|F, v) \sim \mathcal{N} (F^\top m_0, v(F^\top C_0 F + I_n))
+(y \mid F, v) \sim \mathcal{N} (F^\top m_0, v(F^\top C_0 F + I_n))
 $$
 
 
@@ -362,16 +433,109 @@ $$
     - $d^* = (y − F^\top m_0 )^\top Q^{-1} (y − F^\top m_0 ) + d_0$
 
 $$
-(\beta|y, F) ∼ T_{n^*} [m, d^* C/n^* ].
+(\beta \mid y, F) \sim \mathcal{T}_{n^*} [m, d^* C/n^* ].
 $$
 
 ::::
 
-::: {.solution .callout-tip collapse="true"}
-#### Solution:
+::: {.solution collapse="false"}
+ 
+Conjugate Bayesian linear model with $y\in\mathbb R^{n}$, design $F\in\mathbb R^{p\times n}$ so that $y\mid \beta,v\sim\mathcal N(F^\top\beta,\,vI_n)$; prior $\beta\mid v\sim\mathcal N(m_0,\,vC_0)$, $v\sim\mathcal{IG}(n_0/2,d_0/2)$. 
 
-...
 
+### Model {.unnumbered .unlisted}
+$$
+\begin{aligned}
+\textbf{Model:}\quad 
+p(y\mid \beta,v) 
+&\propto v^{-n/2}\exp\!\left[-\tfrac{1}{2v}(y-F^\top\beta)^\top(y-F^\top\beta)\right] 
+& \text{Gaussian likelihood} \\
+p(\beta\mid v) 
+&\propto v^{-p/2}\exp\!\left[-\tfrac{1}{2v}(\beta-m_0)^\top C_0^{-1}(\beta-m_0)\right] 
+& \text{Gaussian prior} \\
+p(v) 
+&\propto v^{-(n_0/2+1)}\exp\!\left[-\tfrac{d_0}{2v}\right] 
+& \text{IG prior}
+\end{aligned}
+$$
+
+### 1) Prior predictive $y\mid F,v$ {.unnumbered .unlisted}
+
+$$
+\begin{aligned}
+\mathbb E[y\mid v]
+&= \mathbb E[F^\top\beta\mid v] = F^\top m_0 
+    & \text{linearity} \\
+\mathrm{Var}(y\mid v)
+&= \mathrm{Var}(F^\top\beta\mid v)+\mathrm{Var}(\varepsilon) \\
+&= vF^\top C_0 F + v I_n
+    & \text{indep., Var}[A X]=A\,\mathrm{Var}(X)A^\top \\
+\Rightarrow\quad
+(y\mid F,v) 
+&\sim \mathcal N\!\big(F^\top m_0,\ v(F^\top C_0 F+I_n)\big).
+    & \text{collect terms}
+\end{aligned}
+$$
+
+### 2) $v\mid y,F$ {.unnumbered .unlisted}
+
+Let $Q \equiv F^\top C_0 F + I_n$ and $r \equiv y - F^\top m_0$.
+
+$$
+\begin{aligned}
+p(y\mid v)
+&= \int p(y\mid \beta,v)p(\beta\mid v)\,d\beta
+= (2\pi v)^{-n/2}\,|Q|^{-1/2}\,
+\exp\!\left[-\tfrac{1}{2v} r^\top Q^{-1} r\right]
+& \text{Gaussian integral} \\
+p(v\mid y,F) 
+&\propto p(y\mid v)\,p(v)
+\ \propto\ v^{-(n/2+n_0/2+1)} 
+\exp\!\left[-\tfrac{1}{2v}\{r^\top Q^{-1} r+d_0\}\right]
+& \text{multiply kernels} \\
+\Rightarrow\quad
+(v\mid y,F) 
+&\sim \mathcal{IG}\!\left(\frac{n^*}{2},\,\frac{d^*}{2}\right),
+\quad n^*=n+n_0,\ \ d^*=r^\top Q^{-1} r+d_0.
+& \text{read off IG form}
+\end{aligned}
+$$
+
+### 3) $\beta\mid y,F$ {.unnumbered .unlisted}
+
+Complete the square in $\beta$ inside the joint $p(y,\beta\mid v)\,p(\beta\mid v)$:
+
+Let $C \equiv (C_0^{-1}+F F^\top)^{-1}$, $m \equiv C(C_0^{-1}m_0 + F y)$.
+
+$$
+\begin{aligned}
+p(\beta\mid y,F,v)
+&\propto \exp\!\left[-\tfrac{1}{2v}\big\{(\beta-m)^\top C^{-1}(\beta-m)\big\}\right]
+& \text{complete the square} \\
+\Rightarrow\quad 
+(\beta\mid y,F,v)
+&\sim \mathcal N(m,\ vC). 
+& \text{Gaussian kernel}
+\end{aligned}
+$$
+
+Now integrate $v$ under $v\mid y,F$ from step 2:
+
+$$
+\begin{aligned}
+(\beta\mid y,F) 
+&\sim T_{\,n^*}\!\left(m,\ \frac{d^*}{n^*}\,C\right)
+& \text{Normal–IG ⇒ multivariate }t
+\end{aligned}
+$$
+
+These are exactly the stated results:
+
+$$
+\boxed{(y\mid F,v)\sim \mathcal N(F^\top m_0,\ v(F^\top C_0 F + I_n))},\quad
+\boxed{(v\mid y,F)\sim \mathcal{IG}(n^*/2,\,d^*/2)},\quad
+\boxed{(\beta\mid y,F)\sim T_{n^*}\!\big(m,\ (d^*/n^*)\,C\big)}.
+$$
 :::
 
 :::: {#exr-pfw-1-7-6}
@@ -391,9 +555,88 @@ $v \sim \mathcal{IG}(n0 /2, d0 /2)$, with $n0$ and $d0$ known.
 
 ::::
 
-::: {.solution .callout-tip collapse="true"}
-#### Solution:
-...
+::: {.solution collapse="false"}
+
+Here’s **103.6** in your preferred style (AR(1), conditional likelihood; prior $\phi\mid v\sim\mathcal N(0,v)$, $v\sim\mathcal{IG}(n_0/2,d_0/2)$; let $n=T-1$, $y=(y_2,\ldots,y_T)^\top$, $F=(y_1,\ldots,y_{T-1})^\top$ as a column vector):
+
+$$
+\begin{aligned}
+\textbf{Model:}\quad 
+y \mid \phi,v &\sim \mathcal N(F\phi,\ v I_n) 
+& \text{AR(1) conditional likelihood} \\
+\phi\mid v &\sim \mathcal N(0,\ v) 
+& \text{conjugate normal (scalar)} \\
+v &\sim \mathcal{IG}\!\left(\frac{n_0}{2},\ \frac{d_0}{2}\right) 
+& \text{inverse–gamma prior}
+\end{aligned}
+$$
+
+### 1) Posterior of $\phi\mid y,v$  {.unnumbered .unlisted}
+
+Let $S_{11}=F^\top F$ and $S_{y1}=y^\top F$. Complete the square in $\phi$:
+
+$$
+\begin{aligned}
+\log p(\phi\mid y,v) 
+&= -\frac{1}{2v}\Big[(y-F\phi)^\top(y-F\phi)+\phi^2\Big]+ \text{const} 
+& \text{subst. lik.+prior} \\
+&= -\frac{1}{2v}\Big[ (S_{11}+1)\phi^2 - 2 S_{y1}\phi + y^\top y \Big]+\text{const}
+& \text{expand} \\
+&= -\frac{1}{2v}\Big[ (S_{11}+1)\big(\phi-m\big)^2 + \underbrace{y^\top y-\frac{S_{y1}^2}{S_{11}+1}}_{\text{indep. of }\phi}\Big] + \text{const}
+& \text{complete square}
+\end{aligned}
+$$
+
+Hence
+
+$$
+\boxed{\ \phi\mid y,v \ \sim\ \mathcal N\!\big(m,\ vC\big)\ },\qquad 
+C=\frac{1}{\,1+S_{11}\,},\quad m=C\,S_{y1}.
+$$
+
+### 2) Posterior of $v\mid y$  {.unnumbered .unlisted}
+
+Integrate $\phi$ out of $p(y\mid \phi,v)p(\phi\mid v)$: with
+
+$$
+Q \equiv I_n + F F^\top \quad (\text{Sherman–Morrison form}),
+$$
+
+we have
+
+$$
+\begin{aligned}
+p(y\mid v)
+&= (2\pi v)^{-n/2}\,|Q|^{-1/2}\,
+\exp\!\left(-\frac{1}{2v}y^\top Q^{-1}y\right)
+& \text{Gaussian integral} \\
+p(v\mid y) 
+&\propto p(y\mid v)\,p(v)
+\ \propto\ v^{-\frac{n+n_0}{2}-1}
+\exp\!\left(-\frac{1}{2v}\Big[y^\top Q^{-1}y+d_0\Big]\right)
+& \text{multiply kernels}
+\end{aligned}
+$$
+
+Thus
+
+$$
+\boxed{\ v\mid y\ \sim\ \mathcal{IG}\!\left(\frac{n^*}{2},\ \frac{d^*}{2}\right)\ },\qquad
+n^*=n+n_0,\quad d^*=y^\top Q^{-1}y+d_0.
+$$
+
+An equivalent and often useful form uses $m$ above:
+
+$$
+y^\top Q^{-1}y
+= y^\top y - \frac{(y^\top F)^2}{1+F^\top F}
+= y^\top y - \frac{m^2}{C}
+= (y - F m)^\top Q^{-1}(y - F m),
+$$
+
+where the last equality follows from completing the square/Woodbury; any of these shows the same $d^*$.
+
+This matches the statement of **Example 1.7** (scalar Bayesian regression with prior variance proportional to $v$): $\phi\mid y,v\sim\mathcal N(m,vC)$ and $v\mid y\sim \mathcal{IG}(n^*/2,d^*/2)$. 
 :::
 
 :::: {#exr-pfw-1-7-7}
