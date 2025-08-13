@@ -1,67 +1,5 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-
-<meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.11">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-
-<meta name="author" content="Oren Bochman">
-<meta name="dcterms.date" content="2024-11-05">
-<meta name="keywords" content="time series, AR(p) process, inference, order of an AR process, characteristic lag polynomial, autocorrelation function, ACF, partial autocorrelation function, PACF, smoothing, State Space Model, ARMA process, ARIMA, moving average, R code">
-<meta name="description" content="The AR(P) process, its state-space representation, the characteristic polynomial, and the forecast function">
-
-<title>95&nbsp; Bayesian Inference in the AR(p) - M2L5 – Bayesian Statistics</title>
-<style>
-code{white-space: pre-wrap;}
-span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
-div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-ul.task-list{list-style: none;}
-ul.task-list li input[type="checkbox"] {
-  width: 0.8em;
-  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
-  vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-</style>
-
-
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
@@ -88,90 +26,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/bootstrap/bootstrap-cec409635dab7d42c7b562035797153a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
-<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
-<script id="quarto-search-options" type="application/json">{
-  "location": "sidebar",
-  "copy-button": false,
-  "collapse-after": 3,
-  "panel-placement": "start",
-  "type": "textbox",
-  "limit": 50,
-  "keyboard-shortcut": [
-    "f",
-    "/",
-    "s"
-  ],
-  "show-item-context": false,
-  "language": {
-    "search-no-results-text": "No results",
-    "search-matching-documents-text": "matching documents",
-    "search-copy-link-title": "Copy link to search",
-    "search-hide-matches-text": "Hide additional matches",
-    "search-more-match-text": "more match in this document",
-    "search-more-matches-text": "more matches in this document",
-    "search-clear-button-title": "Clear",
-    "search-text-placeholder": "",
-    "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit",
-    "search-label": "Search"
-  }
-}</script>
-<style>
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.11">
 
-      .quarto-title-block .quarto-title-banner {
-        background-image: url(images/banner_deep.jpg);
-background-size: cover;
-      }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
-  <script>document.addEventListener("DOMContentLoaded", function () {
- var mathElements = document.getElementsByClassName("math");
- var macros = [];
- for (var i = 0; i < mathElements.length; i++) {
-  var texText = mathElements[i].firstChild;
-  if (mathElements[i].tagName == "SPAN") {
-   katex.render(texText.data, mathElements[i], {
-    displayMode: mathElements[i].classList.contains('display'),
-    throwOnError: false,
-    macros: macros,
-    fleqn: false
-   });
-}}});
-  </script>
-  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="styles.css">
-</head>
-
-<body class="nav-sidebar floating slimcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+<meta name="author" content="Oren Bochman">
+<meta name="dcterms.date" content="2024-11-05">
+<meta name="keywords" content="time series, AR(<span class=" math="" inline"=""></head><body class="nav-sidebar floating slimcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -342,7 +204,143 @@ window.Quarto = {
     } else {
       toggleColorMode(false);
     }
+  </script>p) process, inference, order of an AR process, characteristic lag polynomial, autocorrelation function, ACF, partial autocorrelation function, PACF, smoothing, State Space Model, ARMA process, ARIMA, moving average, R code" /&gt;
+<meta name="description" content="The AR(p) process, its state-space representation, the characteristic polynomial, and the forecast function">
+
+<title>95&nbsp; Bayesian Inference in the AR(p) - M2L5 – Bayesian Statistics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<!-- htmldependencies:E3FAD763 -->
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+
+      .quarto-title-block .quarto-title-banner {
+        background-image: url(images/banner_deep.jpg);
+background-size: cover;
+      }
+</style>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
   </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+
+
+
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
@@ -351,7 +349,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C4-L00.html">Time Series Analysis</a></li><li class="breadcrumb-item"><a href="./C4-L05.html"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(p) - M2L5</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C4-L00.html">Time Series Analysis</a></li><li class="breadcrumb-item"><a href="./C4-L05.html"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(<span class="math inline">p</span>) - M2L5</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -363,12 +361,12 @@ window.Quarto = {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-body"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C4-L00.html">Time Series Analysis</a></li><li class="breadcrumb-item"><a href="./C4-L05.html"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(p) - M2L5</span></a></li></ol></nav>
-      <div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(p) - M2L5</span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+    <div class="quarto-title column-body"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C4-L00.html">Time Series Analysis</a></li><li class="breadcrumb-item"><a href="./C4-L05.html"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(<span class="math inline">p</span>) - M2L5</span></a></li></ol></nav>
+      <div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(<span class="math inline">p</span>) - M2L5</span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
             <p class="subtitle lead">Time Series Analysis</p>
                   <div>
         <div class="description">
-          The AR(P) process, its state-space representation, the characteristic polynomial, and the forecast function
+          The AR(<span class="math inline">p</span>) process, its state-space representation, the characteristic polynomial, and the forecast function
         </div>
       </div>
                           <div class="quarto-categories">
@@ -405,7 +403,7 @@ window.Quarto = {
   <div>
     <div class="keywords">
       <div class="block-title">Keywords</div>
-      <p>time series, AR(p) process, inference, order of an AR process, characteristic lag polynomial, autocorrelation function, ACF, partial autocorrelation function, PACF, smoothing, State Space Model, ARMA process, ARIMA, moving average, R code</p>
+      <p>time series, AR(<span class="math inline">p</span>) process, inference, order of an AR process, characteristic lag polynomial, autocorrelation function, ACF, partial autocorrelation function, PACF, smoothing, State Space Model, ARMA process, ARIMA, moving average, R code</p>
     </div>
   </div>
   
@@ -1006,7 +1004,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L02-Ex1.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">89</span>&nbsp; <span class="chapter-title">Homework Bayesian analysis of an EEG dataset using an AR(p) - M1L2HW2</span></span></a>
+ <span class="menu-text"><span class="chapter-number">89</span>&nbsp; <span class="chapter-title">Homework Bayesian analysis of an EEG dataset using an AR(<span class="math inline">p</span>) - M1L2HW2</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -1030,7 +1028,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L04.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(p) process</span></span></a>
+ <span class="menu-text"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(<span class="math inline">p</span>) process</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -1042,13 +1040,13 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L05.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(p) - M2L5</span></span></a>
+ <span class="menu-text"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(<span class="math inline">p</span>) - M2L5</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L05-Ex1.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">96</span>&nbsp; <span class="chapter-title">Quiz: Spectral representation of the AR(p)</span></span></a>
+ <span class="menu-text"><span class="chapter-number">96</span>&nbsp; <span class="chapter-title">Quiz: Spectral representation of the AR(<span class="math inline">p</span>)</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -1161,7 +1159,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C5-L03.1.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">113</span>&nbsp; <span class="chapter-title">Bayesian location mixture of AR(p) models - M3L3</span></span></a>
+ <span class="menu-text"><span class="chapter-number">113</span>&nbsp; <span class="chapter-title">Bayesian location mixture of AR(<span class="math inline">p</span>) models - M3L3</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -1324,7 +1322,7 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#bayesian-inference-in-the-arp-reference-prior-conditional-likelihood" id="toc-bayesian-inference-in-the-arp-reference-prior-conditional-likelihood" class="nav-link active" data-scroll-target="#bayesian-inference-in-the-arp-reference-prior-conditional-likelihood"><span class="header-section-number">95.1</span> Bayesian inference in the AR(p): Reference prior, conditional likelihood <span class="emoji" data-emoji="movie_camera">🎥</span></a>
+  <li><a href="#bayesian-inference-in-the-arp-reference-prior-conditional-likelihood" id="toc-bayesian-inference-in-the-arp-reference-prior-conditional-likelihood" class="nav-link active" data-scroll-target="#bayesian-inference-in-the-arp-reference-prior-conditional-likelihood"><span class="header-section-number">95.1</span> Bayesian inference in the AR(<span class="math inline">p</span>): Reference prior, conditional likelihood <span class="emoji" data-emoji="movie_camera">🎥</span></a>
   <ul class="collapse">
   <li><a href="#model-setup" id="toc-model-setup" class="nav-link" data-scroll-target="#model-setup"><span class="header-section-number">95.1.1</span> Model Setup</a></li>
   <li><a href="#conditional-likelihood" id="toc-conditional-likelihood" class="nav-link" data-scroll-target="#conditional-likelihood"><span class="header-section-number">95.1.2</span> Conditional likelihood</a></li>
@@ -1333,7 +1331,7 @@ window.Quarto = {
   <li><a href="#simulation-based-inference" id="toc-simulation-based-inference" class="nav-link" data-scroll-target="#simulation-based-inference"><span class="header-section-number">95.1.5</span> Simulation-based Inference</a></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">95.1.6</span> Summary</a></li>
   </ul></li>
-  <li><a href="#r-code-maximum-likelihood-estimation-arp-conditional-likelihood" id="toc-r-code-maximum-likelihood-estimation-arp-conditional-likelihood" class="nav-link" data-scroll-target="#r-code-maximum-likelihood-estimation-arp-conditional-likelihood"><span class="header-section-number">95.2</span> R code: Maximum likelihood estimation, AR(p), conditional likelihood <span class="emoji" data-emoji="spiral_notepad">🗒️</span></a></li>
+  <li><a href="#r-code-maximum-likelihood-estimation-arp-conditional-likelihood" id="toc-r-code-maximum-likelihood-estimation-arp-conditional-likelihood" class="nav-link" data-scroll-target="#r-code-maximum-likelihood-estimation-arp-conditional-likelihood"><span class="header-section-number">95.2</span> R code: Maximum likelihood estimation, AR(<span class="math inline">p</span>), conditional likelihood <span class="emoji" data-emoji="spiral_notepad">🗒️</span></a></li>
   <li><a href="#sec-arp-order-selection" id="toc-sec-arp-order-selection" class="nav-link" data-scroll-target="#sec-arp-order-selection"><span class="header-section-number">95.3</span> Model order selection <span class="emoji" data-emoji="movie_camera">🎥</span></a>
   <ul class="collapse">
   <li><a href="#goal" id="toc-goal" class="nav-link" data-scroll-target="#goal"><span class="header-section-number">95.3.1</span> Goal</a></li>
@@ -1341,8 +1339,8 @@ window.Quarto = {
   <li><a href="#step-2-estimate-residual-variance-for-each-model" id="toc-step-2-estimate-residual-variance-for-each-model" class="nav-link" data-scroll-target="#step-2-estimate-residual-variance-for-each-model"><span class="header-section-number">95.3.3</span> Step 2: Estimate residual variance for each model</a></li>
   <li><a href="#step-3-compute-model-selection-criteria" id="toc-step-3-compute-model-selection-criteria" class="nav-link" data-scroll-target="#step-3-compute-model-selection-criteria"><span class="header-section-number">95.3.4</span> Step 3: Compute model selection criteria</a></li>
   </ul></li>
-  <li><a href="#example-bayesian-inference-in-the-arp-conditional-likelihood" id="toc-example-bayesian-inference-in-the-arp-conditional-likelihood" class="nav-link" data-scroll-target="#example-bayesian-inference-in-the-arp-conditional-likelihood"><span class="header-section-number">95.4</span> Example: Bayesian inference in the AR(p), conditional likelihood <span class="emoji" data-emoji="movie_camera">🎥</span></a></li>
-  <li><a href="#sec-arp-bayesian-inference" id="toc-sec-arp-bayesian-inference" class="nav-link" data-scroll-target="#sec-arp-bayesian-inference"><span class="header-section-number">95.5</span> code: Bayesian inference, AR(p), conditional likelihood <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></a>
+  <li><a href="#example-bayesian-inference-in-the-arp-conditional-likelihood" id="toc-example-bayesian-inference-in-the-arp-conditional-likelihood" class="nav-link" data-scroll-target="#example-bayesian-inference-in-the-arp-conditional-likelihood"><span class="header-section-number">95.4</span> Example: Bayesian inference in the AR(<span class="math inline">p</span>), conditional likelihood <span class="emoji" data-emoji="movie_camera">🎥</span></a></li>
+  <li><a href="#sec-arp-bayesian-inference" id="toc-sec-arp-bayesian-inference" class="nav-link" data-scroll-target="#sec-arp-bayesian-inference"><span class="header-section-number">95.5</span> code: Bayesian inference, AR(<span class="math inline">p</span>), conditional likelihood <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></a>
   <ul class="collapse">
   <li><a href="#simulate-300-observations-from-an-ar2-with-one-pair-of-complex-valued-roots" id="toc-simulate-300-observations-from-an-ar2-with-one-pair-of-complex-valued-roots" class="nav-link" data-scroll-target="#simulate-300-observations-from-an-ar2-with-one-pair-of-complex-valued-roots"><span class="header-section-number">95.5.1</span> Simulate 300 observations from an AR(2) with one pair of complex-valued roots</a></li>
   <li><a href="#compute-the-mle-of-phi-and-the-unbiased-estimator-of-v-using-the-conditional-likelihood" id="toc-compute-the-mle-of-phi-and-the-unbiased-estimator-of-v-using-the-conditional-likelihood" class="nav-link" data-scroll-target="#compute-the-mle-of-phi-and-the-unbiased-estimator-of-v-using-the-conditional-likelihood"><span class="header-section-number">95.5.2</span> Compute the MLE of phi and the unbiased estimator of v using the conditional likelihood</a></li>
@@ -1352,16 +1350,16 @@ window.Quarto = {
   <li><a href="#sec-ar-2-model-order-selection" id="toc-sec-ar-2-model-order-selection" class="nav-link" data-scroll-target="#sec-ar-2-model-order-selection"><span class="header-section-number">95.6</span> code: Model order selection <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></a>
   <ul class="collapse">
   <li><a href="#simulate-data-from-an-ar2" id="toc-simulate-data-from-an-ar2" class="nav-link" data-scroll-target="#simulate-data-from-an-ar2"><span class="header-section-number">95.6.1</span> Simulate data from an AR(2)</a></li>
-  <li><a href="#compute-mle-for-different-arps" id="toc-compute-mle-for-different-arps" class="nav-link" data-scroll-target="#compute-mle-for-different-arps"><span class="header-section-number">95.6.2</span> compute MLE for different AR(p)s</a></li>
-  <li><a href="#compute-aic-and-bic-for-different-arps-based-on-simulated-data" id="toc-compute-aic-and-bic-for-different-arps-based-on-simulated-data" class="nav-link" data-scroll-target="#compute-aic-and-bic-for-different-arps-based-on-simulated-data"><span class="header-section-number">95.6.3</span> Compute AIC and BIC for different AR(p)s based on simulated data</a></li>
+  <li><a href="#compute-mle-for-different-arps" id="toc-compute-mle-for-different-arps" class="nav-link" data-scroll-target="#compute-mle-for-different-arps"><span class="header-section-number">95.6.2</span> compute MLE for different AR(<span class="math inline">p</span>)s</a></li>
+  <li><a href="#compute-aic-and-bic-for-different-arps-based-on-simulated-data" id="toc-compute-aic-and-bic-for-different-arps-based-on-simulated-data" class="nav-link" data-scroll-target="#compute-aic-and-bic-for-different-arps-based-on-simulated-data"><span class="header-section-number">95.6.3</span> Compute AIC and BIC for different AR(<span class="math inline">p</span>)s based on simulated data</a></li>
   <li><a href="#plot-aic-bic-and-the-marginal-likelihood" id="toc-plot-aic-bic-and-the-marginal-likelihood" class="nav-link" data-scroll-target="#plot-aic-bic-and-the-marginal-likelihood"><span class="header-section-number">95.6.4</span> Plot AIC, BIC, and the marginal likelihood</a></li>
   </ul></li>
-  <li><a href="#spectral-representation-of-the-arp" id="toc-spectral-representation-of-the-arp" class="nav-link" data-scroll-target="#spectral-representation-of-the-arp"><span class="header-section-number">95.7</span> Spectral representation of the AR(p) <span class="emoji" data-emoji="movie_camera">🎥</span></a></li>
-  <li><a href="#spectral-representation-of-the-arp-example" id="toc-spectral-representation-of-the-arp-example" class="nav-link" data-scroll-target="#spectral-representation-of-the-arp-example"><span class="header-section-number">95.8</span> Spectral representation of the AR(p): Example <span class="emoji" data-emoji="movie_camera">🎥</span></a>
+  <li><a href="#spectral-representation-of-the-arp" id="toc-spectral-representation-of-the-arp" class="nav-link" data-scroll-target="#spectral-representation-of-the-arp"><span class="header-section-number">95.7</span> Spectral representation of the AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="movie_camera">🎥</span></a></li>
+  <li><a href="#spectral-representation-of-the-arp-example" id="toc-spectral-representation-of-the-arp-example" class="nav-link" data-scroll-target="#spectral-representation-of-the-arp-example"><span class="header-section-number">95.8</span> Spectral representation of the AR(<span class="math inline">p</span>): Example <span class="emoji" data-emoji="movie_camera">🎥</span></a>
   <ul class="collapse">
   <li><a href="#summary-posterior-spectral-density-estimation-for-ar2" id="toc-summary-posterior-spectral-density-estimation-for-ar2" class="nav-link" data-scroll-target="#summary-posterior-spectral-density-estimation-for-ar2"><span class="header-section-number">95.8.1</span> Summary: Posterior Spectral Density Estimation for AR(2)</a></li>
   </ul></li>
-  <li><a href="#code-spectral-density-of-arp-mathcalr" id="toc-code-spectral-density-of-arp-mathcalr" class="nav-link" data-scroll-target="#code-spectral-density-of-arp-mathcalr"><span class="header-section-number">95.9</span> code: Spectral density of AR(p) <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></a></li>
+  <li><a href="#code-spectral-density-of-arp-mathcalr" id="toc-code-spectral-density-of-arp-mathcalr" class="nav-link" data-scroll-target="#code-spectral-density-of-arp-mathcalr"><span class="header-section-number">95.9</span> code: Spectral density of AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></a></li>
   <li><a href="#arima-processes" id="toc-arima-processes" class="nav-link" data-scroll-target="#arima-processes"><span class="header-section-number">95.10</span> ARIMA processes <span class="emoji" data-emoji="spiral_notepad">🗒️</span></a>
   <ul class="collapse">
   <li><a href="#spectral-density-of-arma-processes" id="toc-spectral-density-of-arma-processes" class="nav-link" data-scroll-target="#spectral-density-of-arma-processes"><span class="header-section-number">95.10.1</span> Spectral Density of ARMA Processes</a></li>
@@ -1378,7 +1376,7 @@ window.Quarto = {
 
 
 <section id="bayesian-inference-in-the-arp-reference-prior-conditional-likelihood" class="level2 page-columns page-full" data-number="95.1">
-<h2 data-number="95.1" class="anchored" data-anchor-id="bayesian-inference-in-the-arp-reference-prior-conditional-likelihood"><span class="header-section-number">95.1</span> Bayesian inference in the AR(p): Reference prior, conditional likelihood <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
+<h2 data-number="95.1" class="anchored" data-anchor-id="bayesian-inference-in-the-arp-reference-prior-conditional-likelihood"><span class="header-section-number">95.1</span> Bayesian inference in the AR(<span class="math inline">p</span>): Reference prior, conditional likelihood <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
 
 <div class="no-row-height column-margin column-container"><div id="fig-ar-p-process" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1386,18 +1384,18 @@ window.Quarto = {
 <a href="images/m2_0031.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;95.1: inference for AR(p)"><img src="images/m2_0031.png" class="img-fluid figure-img" style="width:53mm"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ar-p-process-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;95.1: inference for AR(p)
+Figure&nbsp;95.1: inference for AR(<span class="math inline">p</span>)
 </figcaption>
 </figure>
 </div></div><section id="model-setup" class="level3" data-number="95.1.1">
 <h3 data-number="95.1.1" class="anchored" data-anchor-id="model-setup"><span class="header-section-number">95.1.1</span> Model Setup</h3>
-<p>we start with an <strong>AR(p)</strong> model as we define in the previous lesson: <span id="eq-arp-inf-model"><span class="math display">
+<p>we start with an <strong>AR(<span class="math inline">p</span>)</strong> model as we define in the previous lesson: <span id="eq-arp-inf-model"><span class="math display">
 y_t = \phi_1 y_{t-1} + \ldots + \phi_p y_{t-p} + \varepsilon_t \qquad \varepsilon_t \stackrel{iid}{\sim} \mathcal{N}(0, \nu)
 \tag{95.1}</span></span></p>
 <ul>
 <li>We wish to infer:
 <ul>
-<li><span class="math inline">\phi_i</span> the <em>AR(p)</em> coefficients and</li>
+<li><span class="math inline">\phi_i</span> the <em>AR(<span class="math inline">p</span>)</em> coefficients and</li>
 <li><span class="math inline">\nu</span> the innovation variance.</li>
 </ul></li>
 </ul>
@@ -1470,8 +1468,8 @@ p(\beta,v) \propto 1/v
 <section id="summary" class="level3" data-number="95.1.6">
 <h3 data-number="95.1.6" class="anchored" data-anchor-id="summary"><span class="header-section-number">95.1.6</span> Summary</h3>
 <ul>
-<li>In this lesson, we discussed the Bayesian inference for the <em>AR(p)</em> process using the conditional likelihood and reference prior.</li>
-<li>We have established a connection between the <em>AR(p)</em> process and a regression model, allowing us to use standard regression techniques to estimate the parameters.</li>
+<li>In this lesson, we discussed the Bayesian inference for the <em>AR(<span class="math inline">p</span>)</em> process using the conditional likelihood and reference prior.</li>
+<li>We have established a connection between the <em>AR(<span class="math inline">p</span>)</em> process and a regression model, allowing us to use standard regression techniques to estimate the parameters.</li>
 <li>The posterior distribution can be derived, and we can perform simulation-based inference to obtain samples from the posterior distribution of the AR coefficients and variance.</li>
 </ul>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -1486,14 +1484,14 @@ p(\beta,v) \propto 1/v
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>We can now think about Bayesian in the general case of an AR(P) process. In the Bayesian in case, we have two choices to make first what kind of likelihood we are going to be using and then what kind of prior distribution we’re going to be using for the model parameters. I’m going to discuss the case in which we use the conditional likelihood. We have to condition this time on the first p values of the process. And then I’m also going to discuss the case in which we use the reference prior for the model parameters. As in the AR(1) case, there is a correspondence between that conditional likelihood setting and the regression model. So recall we can write down the process, Like this. So, And the assumption is that the epsilon t are iid normally distributed random variables with zero mean and variance v. So that’s the variance of the process. The parameters of the process are going to be all the phi’s, And the variance of the process. So we want to make inference on those parameters. What we know given the conditional dependency structure and past values of the series, is that if I think about the distribution of yt, given yt -1 all the way to y t-p.&nbsp;And then also given the phi’s, And v, this is a normally distributed, Random variable with the mean is going to be the sum, Of these. Past values weighted by the phi’s, And then I have variance v here. So now that I use this conditionally independent structure, I can write a likelihood function as the product of these terms. So if I think about my density here for y p+1 all the way to capital T. So let’s assume that we have capital T, we have observed capital T. Data points and then we are conditioning on y1. And p, all the first p observations and all the phi’s again and v. I can write this as the product of all these terms. All these are are going to have a normal density given by this expression. So as we said before, there is a correspondence between this likelihood function, the conditional likelihood and a regression model of the form y=Xbeta +epsilon. Where y here is a vector, X matrix, beta is a vector and epsilon is another vector with this vector being multivariate normal. And then we’re going to have a v times the identity. So I can write down this expression and make a a connection with this model by simply setting y. Again, because I’m conditioning on the first p values. I’m going to start with yp+1, yp+2 and so on all the way to yT. Then here my beta is the vector that goes with the coefficients. In this case, the linear component has to do with the phi’s. So it’s going to be my beta with all the phi’s. And those are the AR parameters that we want to estimate. And then I’m going to have an X matrix. The design matrix here for the linear regression in the case of an AR(P), again, if I think about the first row is going to be related to the yp+1. So we are regressing on the past p values. So it’s going to go from yp, All the way, so that’s the first row, to y1. Then for y p+2, I’m going to have something similar and then I go all the way down to yT. And so I’m going to have yT -1, -2 all the way to yT-p.&nbsp;So this is my X matrix. So as you know, I can find my maximum likelihood estimator for this process. Which I’m just simply going to call beta hat, its going to be assuming that the design matrix is full rank. We can write it down like this. So we can simply just plug in this X and this y vector to obtain the maximum likelihood estimator of the model parameters for the AR coefficients. And then using these results, we can also write the posterior distribution using a reference prior. So again, this gives me the likelihood. The reference prior assumes that we are going to use a prior of this form. And in this case, the Bayesian inference can be done by writing down the density of the beta given all the y’s and v. This is going to be normally distributed. The mean it’s going to be beta hat, which is the maximum likelihood estimator. And then I have my v times X transpose X inverse. And then I have my marginal distribution for v given all the observations here, it’s going to be an inverse gamma. And then the parameters for the inverse gamma distribution are going to be related to, again, you think about what is the dimension of the vector here y. In the case of the AR(p) I have something that is dimension T- p.&nbsp;So that’s the first dimension that we are going to consider. But then we also have to subtract the dimension of the beta vector which is p.&nbsp;So I’m going to have T -p-p, which gives me my 2p here. And then I have the other component is my s square over 2. So once again, if I want to do simulation based posterior inference, I can simply get a sample of v from this inverse gamma distribution. And then I plug in that sample here and I get a sample for the AR coefficients. So I can get full posterior inference in this way.</p>
+<p>We can now think about Bayesian in the general case of an AR(<span class="math inline">p</span>) process. In the Bayesian in case, we have two choices to make first what kind of likelihood we are going to be using and then what kind of prior distribution we’re going to be using for the model parameters. I’m going to discuss the case in which we use the conditional likelihood. We have to condition this time on the first p values of the process. And then I’m also going to discuss the case in which we use the reference prior for the model parameters. As in the AR(1) case, there is a correspondence between that conditional likelihood setting and the regression model. So recall we can write down the process, Like this. So, And the assumption is that the epsilon t are iid normally distributed random variables with zero mean and variance v. So that’s the variance of the process. The parameters of the process are going to be all the phi’s, And the variance of the process. So we want to make inference on those parameters. What we know given the conditional dependency structure and past values of the series, is that if I think about the distribution of yt, given yt -1 all the way to y t-p.&nbsp;And then also given the phi’s, And v, this is a normally distributed, Random variable with the mean is going to be the sum, Of these. Past values weighted by the phi’s, And then I have variance v here. So now that I use this conditionally independent structure, I can write a likelihood function as the product of these terms. So if I think about my density here for y p+1 all the way to capital T. So let’s assume that we have capital T, we have observed capital T. Data points and then we are conditioning on y1. And p, all the first p observations and all the phi’s again and v. I can write this as the product of all these terms. All these are are going to have a normal density given by this expression. So as we said before, there is a correspondence between this likelihood function, the conditional likelihood and a regression model of the form y=Xbeta +epsilon. Where y here is a vector, X matrix, beta is a vector and epsilon is another vector with this vector being multivariate normal. And then we’re going to have a v times the identity. So I can write down this expression and make a a connection with this model by simply setting y. Again, because I’m conditioning on the first p values. I’m going to start with yp+1, yp+2 and so on all the way to yT. Then here my beta is the vector that goes with the coefficients. In this case, the linear component has to do with the phi’s. So it’s going to be my beta with all the phi’s. And those are the AR parameters that we want to estimate. And then I’m going to have an X matrix. The design matrix here for the linear regression in the case of an AR(<span class="math inline">p</span>), again, if I think about the first row is going to be related to the yp+1. So we are regressing on the past p values. So it’s going to go from yp, All the way, so that’s the first row, to y1. Then for y p+2, I’m going to have something similar and then I go all the way down to yT. And so I’m going to have yT -1, -2 all the way to yT-p.&nbsp;So this is my X matrix. So as you know, I can find my maximum likelihood estimator for this process. Which I’m just simply going to call beta hat, its going to be assuming that the design matrix is full rank. We can write it down like this. So we can simply just plug in this X and this y vector to obtain the maximum likelihood estimator of the model parameters for the AR coefficients. And then using these results, we can also write the posterior distribution using a reference prior. So again, this gives me the likelihood. The reference prior assumes that we are going to use a prior of this form. And in this case, the Bayesian inference can be done by writing down the density of the beta given all the y’s and v. This is going to be normally distributed. The mean it’s going to be beta hat, which is the maximum likelihood estimator. And then I have my v times X transpose X inverse. And then I have my marginal distribution for v given all the observations here, it’s going to be an inverse gamma. And then the parameters for the inverse gamma distribution are going to be related to, again, you think about what is the dimension of the vector here y. In the case of the AR(<span class="math inline">p</span>) I have something that is dimension T- p.&nbsp;So that’s the first dimension that we are going to consider. But then we also have to subtract the dimension of the beta vector which is p.&nbsp;So I’m going to have T -p-p, which gives me my 2p here. And then I have the other component is my s square over 2. So once again, if I want to do simulation based posterior inference, I can simply get a sample of v from this inverse gamma distribution. And then I plug in that sample here and I get a sample for the AR coefficients. So I can get full posterior inference in this way.</p>
 </div>
 </div>
 </div>
 </section>
 </section>
 <section id="r-code-maximum-likelihood-estimation-arp-conditional-likelihood" class="level2" data-number="95.2">
-<h2 data-number="95.2" class="anchored" data-anchor-id="r-code-maximum-likelihood-estimation-arp-conditional-likelihood"><span class="header-section-number">95.2</span> R code: Maximum likelihood estimation, AR(p), conditional likelihood <span class="emoji" data-emoji="spiral_notepad">🗒️</span></h2>
+<h2 data-number="95.2" class="anchored" data-anchor-id="r-code-maximum-likelihood-estimation-arp-conditional-likelihood"><span class="header-section-number">95.2</span> R code: Maximum likelihood estimation, AR(<span class="math inline">p</span>), conditional likelihood <span class="emoji" data-emoji="spiral_notepad">🗒️</span></h2>
 <p></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
@@ -1586,7 +1584,7 @@ BIC_p = (T-p^*) \log(S_p^2) + p \log(T-p^*)
 </section>
 </section>
 <section id="example-bayesian-inference-in-the-arp-conditional-likelihood" class="level2" data-number="95.4">
-<h2 data-number="95.4" class="anchored" data-anchor-id="example-bayesian-inference-in-the-arp-conditional-likelihood"><span class="header-section-number">95.4</span> Example: Bayesian inference in the AR(p), conditional likelihood <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
+<h2 data-number="95.4" class="anchored" data-anchor-id="example-bayesian-inference-in-the-arp-conditional-likelihood"><span class="header-section-number">95.4</span> Example: Bayesian inference in the AR(<span class="math inline">p</span>), conditional likelihood <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
 <p>This video walks through the code in the next section which demonstrates Bayesian inference for an AR(2) process with complex-valued roots.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
@@ -1606,7 +1604,7 @@ BIC_p = (T-p^*) \log(S_p^2) + p \log(T-p^*)
 </div>
 </section>
 <section id="sec-arp-bayesian-inference" class="level2" data-number="95.5">
-<h2 data-number="95.5" class="anchored" data-anchor-id="sec-arp-bayesian-inference"><span class="header-section-number">95.5</span> code: Bayesian inference, AR(p), conditional likelihood <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></h2>
+<h2 data-number="95.5" class="anchored" data-anchor-id="sec-arp-bayesian-inference"><span class="header-section-number">95.5</span> code: Bayesian inference, AR(<span class="math inline">p</span>), conditional likelihood <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></h2>
 <section id="simulate-300-observations-from-an-ar2-with-one-pair-of-complex-valued-roots" class="level3" data-number="95.5.1">
 <h3 data-number="95.5.1" class="anchored" data-anchor-id="simulate-300-observations-from-an-ar2-with-one-pair-of-complex-valued-roots"><span class="header-section-number">95.5.1</span> Simulate 300 observations from an AR(2) with one pair of complex-valued roots</h3>
 <div class="cell">
@@ -1778,7 +1776,7 @@ Figure&nbsp;95.6: Simulated AR(2) process with complex-valued roots
 </div>
 </section>
 <section id="compute-mle-for-different-arps" class="level3" data-number="95.6.2">
-<h3 data-number="95.6.2" class="anchored" data-anchor-id="compute-mle-for-different-arps"><span class="header-section-number">95.6.2</span> compute MLE for different AR(p)s</h3>
+<h3 data-number="95.6.2" class="anchored" data-anchor-id="compute-mle-for-different-arps"><span class="header-section-number">95.6.2</span> compute MLE for different AR(<span class="math inline">p</span>)s</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>pmax<span class="ot">=</span><span class="dv">10</span> <span class="co"># the maximum of model order</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>Xall<span class="ot">=</span><span class="fu">t</span>(<span class="fu">matrix</span>(yt[<span class="fu">rev</span>(<span class="fu">rep</span>((<span class="dv">1</span><span class="sc">:</span>pmax),T<span class="sc">-</span>pmax)<span class="sc">+</span><span class="fu">rep</span>((<span class="dv">0</span><span class="sc">:</span>(T<span class="sc">-</span>pmax<span class="dv">-1</span>)),</span>
@@ -1802,7 +1800,7 @@ Figure&nbsp;95.6: Simulated AR(2) process with complex-valued roots
 </div>
 </section>
 <section id="compute-aic-and-bic-for-different-arps-based-on-simulated-data" class="level3" data-number="95.6.3">
-<h3 data-number="95.6.3" class="anchored" data-anchor-id="compute-aic-and-bic-for-different-arps-based-on-simulated-data"><span class="header-section-number">95.6.3</span> Compute AIC and BIC for different AR(p)s based on simulated data</h3>
+<h3 data-number="95.6.3" class="anchored" data-anchor-id="compute-aic-and-bic-for-different-arps-based-on-simulated-data"><span class="header-section-number">95.6.3</span> Compute AIC and BIC for different AR(<span class="math inline">p</span>)s based on simulated data</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="do">## function for AIC and BIC computation </span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>AIC_BIC <span class="ot">&lt;-</span> <span class="cf">function</span>(y, Xall, p){</span>
@@ -1885,7 +1883,7 @@ Figure&nbsp;95.6: Simulated AR(2) process with complex-valued roots
 <a href="C4-L05_files/figure-html/fig-ar-2-model-order-selection-plot-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;95.7: AIC, BIC for different AR(p) model orders"><img src="C4-L05_files/figure-html/fig-ar-2-model-order-selection-plot-1.png" class="img-fluid figure-img" width="672"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ar-2-model-order-selection-plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;95.7: AIC, BIC for different AR(p) model orders
+Figure&nbsp;95.7: AIC, BIC for different AR(<span class="math inline">p</span>) model orders
 </figcaption>
 </figure>
 </div>
@@ -1894,7 +1892,7 @@ Figure&nbsp;95.7: AIC, BIC for different AR(p) model orders
 </section>
 </section>
 <section id="spectral-representation-of-the-arp" class="level2 page-columns page-full" data-number="95.7">
-<h2 data-number="95.7" class="anchored" data-anchor-id="spectral-representation-of-the-arp"><span class="header-section-number">95.7</span> Spectral representation of the AR(p) <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
+<h2 data-number="95.7" class="anchored" data-anchor-id="spectral-representation-of-the-arp"><span class="header-section-number">95.7</span> Spectral representation of the AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
 
 <div class="no-row-height column-margin column-container"><div id="fig-ar-p-spectral-representation" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1902,16 +1900,16 @@ Figure&nbsp;95.7: AIC, BIC for different AR(p) model orders
 <a href="images/C4-L05-T03.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;95.8: Spectral representation of the AR(p)"><img src="images/C4-L05-T03.png" class="img-fluid figure-img" style="width:53mm"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ar-p-spectral-representation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;95.8: Spectral representation of the AR(p)
+Figure&nbsp;95.8: Spectral representation of the AR(<span class="math inline">p</span>)
 </figcaption>
 </figure>
-</div></div><p>The spectral representation of the <em>AR(p)</em> process is a powerful tool for understanding the frequency domain properties of the process. It allows us to analyze how the process behaves at different frequencies and provides insights into its periodicity and persistence.</p>
-<p>Supose we have an <em>AR(p)</em> process with parameters:</p>
+</div></div><p>The spectral representation of the <em>AR(<span class="math inline">p</span>)</em> process is a powerful tool for understanding the frequency domain properties of the process. It allows us to analyze how the process behaves at different frequencies and provides insights into its periodicity and persistence.</p>
+<p>Supose we have an <em>AR(<span class="math inline">p</span>)</em> process with parameters:</p>
 <p><span class="math display">
 \phi_1, \ldots, \phi_2, v
 </span></p>
 <p>Properties related to the autocorrelation function of the process, and the forecast function as well as we have seen, are related to the reciprocal roots of the characteristic polynomial.</p>
-<p>Using this information, we can also obtain a spectral representation of the process, meaning a representation in the frequency domain. We can think of this as a <mark>density in the frequency domain where you’re going to have a power associated to different frequencies.</mark> In the case of an <em>AR(p)</em> process, I can write down the spectral density of the process, as:</p>
+<p>Using this information, we can also obtain a spectral representation of the process, meaning a representation in the frequency domain. We can think of this as a <mark>density in the frequency domain where you’re going to have a power associated to different frequencies.</mark> In the case of an <em>AR(<span class="math inline">p</span>)</em> process, I can write down the spectral density of the process, as:</p>
 <p><span class="math display">
 f(\omega) = \frac{v}{ \mid 1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omega p}) \mid^2 2\pi}
 </span></p>
@@ -1938,9 +1936,9 @@ f(\omega) = \frac{v}{ \mid 1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omeg
 </div>
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>It is good to talk a little bit about what is the relationship between, the AR(p) in the <em>time domain</em> and what spectral representation in the <em>frequency domain</em> we can get. This is important for <em>interpretability</em> and it provides a way to just see what’s happening or what kind of properties we have in the process as well. In the case of an <em>AR(p)</em>, you’re going to have your coefficients and your variance <span class="math inline">v</span>. If you have an <em>AR(p)</em>, those are the AR coefficients that we have talked about. Properties related to the autocorrelation function of the process, and the forecast function as well. We’ve seen that they are related to the reciprocal roots of the characteristic polynomial.</p>
+<p>It is good to talk a little bit about what is the relationship between, the AR(<span class="math inline">p</span>) in the <em>time domain</em> and what spectral representation in the <em>frequency domain</em> we can get. This is important for <em>interpretability</em> and it provides a way to just see what’s happening or what kind of properties we have in the process as well. In the case of an <em>AR(<span class="math inline">p</span>)</em>, you’re going to have your coefficients and your variance <span class="math inline">v</span>. If you have an <em>AR(<span class="math inline">p</span>)</em>, those are the AR coefficients that we have talked about. Properties related to the autocorrelation function of the process, and the forecast function as well. We’ve seen that they are related to the reciprocal roots of the characteristic polynomial.</p>
 <p>Using this information, we can also obtain a spectral representation of the process, meaning a representation in the frequency domain.</p>
-<p>Think of this as a density in the frequency domain where you’re going to have a power associated to different frequencies. In the case of an <em>AR(p)</em>, I can write down the spectral density of the process, calling that <span class="math inline">f(\omega)</span> here is a frequency between 0 and <span class="math inline">\pi</span>. You can think of this frequency. Then I can write this down as <span class="math inline">v</span>, which is the variance of the process. Then I’m going to have here, let me write it in terms of the <span class="math inline">1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omega p}</span>. I have my component here, and then I have a times <span class="math inline">2\pi</span> over here. If I think about a frequency between zero and <span class="math inline">\pi</span>, for example, then I can plug in a frequency here. You can see that this is essentially the <em>AR</em> characteristic polynomial evaluated on <span class="math inline">e^{-i\omega}</span>, which is that representation. Once again, this frequency domain representation is going to be related to the characteristic roots of the <em>AR</em> polynomial.</p>
+<p>Think of this as a density in the frequency domain where you’re going to have a power associated to different frequencies. In the case of an <em>AR(<span class="math inline">p</span>)</em>, I can write down the spectral density of the process, calling that <span class="math inline">f(\omega)</span> here is a frequency between 0 and <span class="math inline">\pi</span>. You can think of this frequency. Then I can write this down as <span class="math inline">v</span>, which is the variance of the process. Then I’m going to have here, let me write it in terms of the <span class="math inline">1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omega p}</span>. I have my component here, and then I have a times <span class="math inline">2\pi</span> over here. If I think about a frequency between zero and <span class="math inline">\pi</span>, for example, then I can plug in a frequency here. You can see that this is essentially the <em>AR</em> characteristic polynomial evaluated on <span class="math inline">e^{-i\omega}</span>, which is that representation. Once again, this frequency domain representation is going to be related to the characteristic roots of the <em>AR</em> polynomial.</p>
 <p>For instance, if you have an <em>AR(2)</em>, an autoregressive process of order 2, and you happen to have a pair of complex roots. Let’s assume that the reciprocal roots are <span class="math inline">\alpha_1</span> and <span class="math inline">\alpha_2</span>, and then that I have a modulus which is 0.7.</p>
 <p>Then a frequency that I’m going to write it in terms of the period. The periodicity here, let’s say that is the quasi periodicity in the AR is given by 12.</p>
 <p>There is again, I can go back and forth between the complex valued representation and the polar coordinates and so on.</p>
@@ -1954,7 +1952,7 @@ f(\omega) = \frac{v}{ \mid 1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omeg
 </div>
 </section>
 <section id="spectral-representation-of-the-arp-example" class="level2" data-number="95.8">
-<h2 data-number="95.8" class="anchored" data-anchor-id="spectral-representation-of-the-arp-example"><span class="header-section-number">95.8</span> Spectral representation of the AR(p): Example <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
+<h2 data-number="95.8" class="anchored" data-anchor-id="spectral-representation-of-the-arp-example"><span class="header-section-number">95.8</span> Spectral representation of the AR(<span class="math inline">p</span>): Example <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
 <p>This video walks through the code in the next section.</p>
 <section id="summary-posterior-spectral-density-estimation-for-ar2" class="level3" data-number="95.8.1">
 <h3 data-number="95.8.1" class="anchored" data-anchor-id="summary-posterior-spectral-density-estimation-for-ar2"><span class="header-section-number">95.8.1</span> Summary: Posterior Spectral Density Estimation for AR(2)</h3>
@@ -2017,7 +2015,7 @@ f(\omega) = \frac{v}{ \mid 1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omeg
 </section>
 </section>
 <section id="code-spectral-density-of-arp-mathcalr" class="level2" data-number="95.9">
-<h2 data-number="95.9" class="anchored" data-anchor-id="code-spectral-density-of-arp-mathcalr"><span class="header-section-number">95.9</span> code: Spectral density of AR(p) <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></h2>
+<h2 data-number="95.9" class="anchored" data-anchor-id="code-spectral-density-of-arp-mathcalr"><span class="header-section-number">95.9</span> code: Spectral density of AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></h2>
 <p> We will now obtain the spectral density of an autoregressive process, as well as visualize posterior distributions of the spectral densities of this AR process just based on data that we have</p>
 <p>Simulate 300 observations from an <em>AR(2)</em> process with a pair of complex-valued roots</p>
 <div class="cell">
@@ -2137,7 +2135,7 @@ Figure&nbsp;95.10: Spectral density of AR(2) process using arma.spec
 <p>A time series process is a zero-mean autoregressive moving average process if it is given by</p>
 <p><span id="eq-arma-definition"><span class="math display">
 \operatorname{ARMA}(p,q)= \textcolor{red}
-                {\underbrace{\sum_{i=1}^{p} \phi_i y_{t-i}}_{AR(P)}}
+                {\underbrace{\sum_{i=1}^{p} \phi_i y_{t-i}}_{AR($p$)}}
       +
       \textcolor{blue}
                 {\underbrace{\sum_{j=1}^{q} \theta_j \varepsilon_{t-j}}_{MA(Q)}}
@@ -2145,7 +2143,7 @@ Figure&nbsp;95.10: Spectral density of AR(2) process using arma.spec
 \tag{95.9}</span></span></p>
 <p>with <span class="math inline">\varepsilon_t \sim N(0, v)</span>.</p>
 <ul>
-<li>For <span class="math inline">q = 0</span>, we get an AR(p) process.</li>
+<li>For <span class="math inline">q = 0</span>, we get an AR(<span class="math inline">p</span>) process.</li>
 <li>For <span class="math inline">p = 0</span>, we get a MA(q) i.e.&nbsp;moving average process of order <span class="math inline">q</span>.</li>
 </ul>
 </div>
@@ -2166,7 +2164,7 @@ Figure&nbsp;95.10: Spectral density of AR(2) process using arma.spec
 \Phi(u) = 1 - \phi_1 u - \phi_2 u^2 - \ldots - \phi_p u^p
 </span></p>
 <p>lie outside the unit circle, i.e., for all <span class="math inline">u</span> such that <span class="math inline">\Phi(u) = 0</span>, <span class="math inline">\|u\| &gt; 1</span>.</p>
-<p>Equivalently, this happens when the reciprocal roots of the <em>AR(p) polynomial</em> have moduli smaller than 1.</p>
+<p>Equivalently, this happens when the reciprocal roots of the <em>AR(<span class="math inline">p</span>) polynomial</em> have moduli smaller than 1.</p>
 <p>This condition implies stationarity.</p>
 </div>
 </div>
@@ -2215,7 +2213,7 @@ Figure&nbsp;95.10: Spectral density of AR(2) process using arma.spec
 <p>Estimation in ARIMA processes can be done via <em>least squares</em>, <em>maximum likelihood</em>, and also <em>in a Bayesian way</em>. We don’t discuss Bayesian estimation of ARIMA processes in this course.</p>
 <section id="spectral-density-of-arma-processes" class="level3" data-number="95.10.1">
 <h3 data-number="95.10.1" class="anchored" data-anchor-id="spectral-density-of-arma-processes"><span class="header-section-number">95.10.1</span> Spectral Density of ARMA Processes</h3>
-<p> For a given <strong>AR(p)</strong> process with AR coefficients <span class="math inline">\phi_1, \dots, \phi_p</span> and variance <span class="math inline">v</span>, we can obtain its <strong>spectral density</strong> as</p>
+<p> For a given <strong>AR(<span class="math inline">p</span>)</strong> process with AR coefficients <span class="math inline">\phi_1, \dots, \phi_p</span> and variance <span class="math inline">v</span>, we can obtain its <strong>spectral density</strong> as</p>
 <p><span id="eq-ar-spectral-density"><span class="math display">
 f(\omega) = \frac{v}{2\pi \|\Phi(e^{-i\omega})\|^2} = \frac{v}{2\pi \|1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-ip\omega}\|^2},
 \tag{95.12}</span></span></p>
@@ -2763,16 +2761,16 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./C4-L05-Ex1.html" class="pagination-link" aria-label="Quiz: Spectral representation of the AR(p)">
-        <span class="nav-page-text"><span class="chapter-number">96</span>&nbsp; <span class="chapter-title">Quiz: Spectral representation of the AR(p)</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./C4-L05-Ex1.html" class="pagination-link" aria-label="Quiz: Spectral representation of the AR($p$)">
+        <span class="nav-page-text"><span class="chapter-number">96</span>&nbsp; <span class="chapter-title">Quiz: Spectral representation of the AR(<span class="math inline">p</span>)</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="sourceCode" id="cb26" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2024-11-05</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Bayesian Inference in the AR(p) -  M2L5"</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Bayesian Inference in the AR($p$) -  M2L5"</span></span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> Time Series Analysis</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "The AR(P) process, its state-space representation, the characteristic polynomial, and the forecast function"</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "The AR($p$) process, its state-space representation, the characteristic polynomial, and the forecast function"</span></span>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> </span></span>
 <span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - Coursera </span></span>
 <span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - notes</span></span>
@@ -2781,7 +2779,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="co">  - Time Series</span></span>
 <span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a><span class="an">keywords:</span><span class="co"> </span></span>
 <span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="co">  - time series</span></span>
-<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a><span class="co">  - AR(p) process  </span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a><span class="co">  - AR($p$) process  </span></span>
 <span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a><span class="co">  - inference</span></span>
 <span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a><span class="co">  - order of an AR process </span></span>
 <span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a><span class="co">  - characteristic lag polynomial</span></span>
@@ -2797,20 +2795,20 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a><span class="co">  - R code</span></span>
 <span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a><span class="fu">## Bayesian inference in the AR(p): Reference prior, conditional likelihood  :movie_camera: </span></span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a><span class="fu">## Bayesian inference in the AR($p$): Reference prior, conditional likelihood  :movie_camera: </span></span>
 <span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a><span class="al">![inference for AR(p)](images/m2_0031.png)</span>{#fig-ar-p-process .column-margin  group="slides" width="53mm"}</span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a><span class="al">![inference for AR($p$)](images/m2_0031.png)</span>{#fig-ar-p-process .column-margin  group="slides" width="53mm"}</span>
 <span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a><span class="fu">### Model Setup</span></span>
 <span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>we start with an **AR(p)** model as we define in the previous lesson:</span>
+<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>we start with an **AR($p$)** model as we define in the previous lesson:</span>
 <span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>y_t = \phi_1 y_{t-1} + \ldots + \phi_p y_{t-p} + \varepsilon_t \qquad \varepsilon_t \stackrel{iid}{\sim} \mathcal{N}(0, \nu)</span>
 <span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>$$ {#eq-arp-inf-model}</span>
 <span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We wish to infer:</span>
-<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$\phi_i$ the *AR(p)* coefficients and </span>
+<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$\phi_i$ the *AR($p$)* coefficients and </span>
 <span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$\nu$ the innovation variance.</span>
 <span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a><span class="fu">### Conditional likelihood</span></span>
@@ -2901,8 +2899,8 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-131"><a href="#cb26-131" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-132"><a href="#cb26-132" aria-hidden="true" tabindex="-1"></a><span class="fu">### Summary</span></span>
 <span id="cb26-133"><a href="#cb26-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-134"><a href="#cb26-134" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In this lesson, we discussed the Bayesian inference for the *AR(p)* process using the conditional likelihood and reference prior. </span>
-<span id="cb26-135"><a href="#cb26-135" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We have established a connection between the *AR(p)* process and a regression model, allowing us to use standard regression techniques to estimate the parameters. </span>
+<span id="cb26-134"><a href="#cb26-134" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In this lesson, we discussed the Bayesian inference for the *AR($p$)* process using the conditional likelihood and reference prior. </span>
+<span id="cb26-135"><a href="#cb26-135" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We have established a connection between the *AR($p$)* process and a regression model, allowing us to use standard regression techniques to estimate the parameters. </span>
 <span id="cb26-136"><a href="#cb26-136" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The posterior distribution can be derived, and we can perform simulation-based inference to obtain samples from the posterior distribution of the AR coefficients and variance.</span>
 <span id="cb26-137"><a href="#cb26-137" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-138"><a href="#cb26-138" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
@@ -2912,7 +2910,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-142"><a href="#cb26-142" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-143"><a href="#cb26-143" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb26-144"><a href="#cb26-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-145"><a href="#cb26-145" aria-hidden="true" tabindex="-1"></a><span class="fu">## R code: Maximum likelihood estimation, AR(p), conditional likelihood  :spiral_notepad: </span></span>
+<span id="cb26-145"><a href="#cb26-145" aria-hidden="true" tabindex="-1"></a><span class="fu">## R code: Maximum likelihood estimation, AR($p$), conditional likelihood  :spiral_notepad: </span></span>
 <span id="cb26-146"><a href="#cb26-146" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-147"><a href="#cb26-147" aria-hidden="true" tabindex="-1"></a>\index{Maximum Likelihood Estimation}</span>
 <span id="cb26-148"><a href="#cb26-148" aria-hidden="true" tabindex="-1"></a></span>
@@ -2997,7 +2995,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-229"><a href="#cb26-229" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-230"><a href="#cb26-230" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb26-231"><a href="#cb26-231" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-232"><a href="#cb26-232" aria-hidden="true" tabindex="-1"></a><span class="fu">## Example: Bayesian inference in the AR(p), conditional likelihood  :movie_camera: </span></span>
+<span id="cb26-232"><a href="#cb26-232" aria-hidden="true" tabindex="-1"></a><span class="fu">## Example: Bayesian inference in the AR($p$), conditional likelihood  :movie_camera: </span></span>
 <span id="cb26-233"><a href="#cb26-233" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-234"><a href="#cb26-234" aria-hidden="true" tabindex="-1"></a>This video walks through the code in the next section which demonstrates Bayesian inference for an AR(2) process with complex-valued roots.</span>
 <span id="cb26-235"><a href="#cb26-235" aria-hidden="true" tabindex="-1"></a></span>
@@ -3009,7 +3007,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-241"><a href="#cb26-241" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb26-242"><a href="#cb26-242" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-243"><a href="#cb26-243" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-244"><a href="#cb26-244" aria-hidden="true" tabindex="-1"></a><span class="fu">## code: Bayesian inference, AR(p), conditional likelihood  :spiral_notepad:  $\mathcal{R}${#sec-arp-bayesian-inference}</span></span>
+<span id="cb26-244"><a href="#cb26-244" aria-hidden="true" tabindex="-1"></a><span class="fu">## code: Bayesian inference, AR($p$), conditional likelihood  :spiral_notepad:  $\mathcal{R}${#sec-arp-bayesian-inference}</span></span>
 <span id="cb26-245"><a href="#cb26-245" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-246"><a href="#cb26-246" aria-hidden="true" tabindex="-1"></a><span class="fu">### Simulate 300 observations from an AR(2) with one pair of complex-valued roots </span></span>
 <span id="cb26-247"><a href="#cb26-247" aria-hidden="true" tabindex="-1"></a></span>
@@ -3118,7 +3116,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-360"><a href="#cb26-360" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(yt)</span>
 <span id="cb26-361"><a href="#cb26-361" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb26-362"><a href="#cb26-362" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-363"><a href="#cb26-363" aria-hidden="true" tabindex="-1"></a><span class="fu">###   compute MLE for different AR(p)s</span></span>
+<span id="cb26-363"><a href="#cb26-363" aria-hidden="true" tabindex="-1"></a><span class="fu">###   compute MLE for different AR($p$)s</span></span>
 <span id="cb26-364"><a href="#cb26-364" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-367"><a href="#cb26-367" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb26-368"><a href="#cb26-368" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ar-2-model-order-selection-MLE</span></span>
@@ -3143,7 +3141,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-387"><a href="#cb26-387" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb26-388"><a href="#cb26-388" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-389"><a href="#cb26-389" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb26-390"><a href="#cb26-390" aria-hidden="true" tabindex="-1"></a><span class="fu">### Compute AIC and BIC for different AR(p)s based on simulated data</span></span>
+<span id="cb26-390"><a href="#cb26-390" aria-hidden="true" tabindex="-1"></a><span class="fu">### Compute AIC and BIC for different AR($p$)s based on simulated data</span></span>
 <span id="cb26-393"><a href="#cb26-393" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb26-394"><a href="#cb26-394" aria-hidden="true" tabindex="-1"></a><span class="do">## function for AIC and BIC computation </span></span>
 <span id="cb26-395"><a href="#cb26-395" aria-hidden="true" tabindex="-1"></a>AIC_BIC <span class="ot">&lt;-</span> <span class="cf">function</span>(y, Xall, p){</span>
@@ -3186,7 +3184,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-432"><a href="#cb26-432" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-435"><a href="#cb26-435" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb26-436"><a href="#cb26-436" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-ar-2-model-order-selection-plot</span></span>
-<span id="cb26-437"><a href="#cb26-437" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: AIC, BIC for different AR(p) model orders</span></span>
+<span id="cb26-437"><a href="#cb26-437" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: AIC, BIC for different AR($p$) model orders</span></span>
 <span id="cb26-438"><a href="#cb26-438" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>) )</span>
 <span id="cb26-439"><a href="#cb26-439" aria-hidden="true" tabindex="-1"></a><span class="fu">matplot</span>(<span class="dv">1</span><span class="sc">:</span>pmax,<span class="fu">matrix</span>(<span class="fu">c</span>(aic,bic),pmax,<span class="dv">2</span>),<span class="at">ylab=</span><span class="st">'value'</span>,</span>
 <span id="cb26-440"><a href="#cb26-440" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlab=</span><span class="st">'AR order p'</span>,<span class="at">pch=</span><span class="st">"ab"</span>, <span class="at">col =</span> <span class="st">'black'</span>, <span class="at">main =</span> <span class="st">"AIC and BIC for Model Selection"</span>)</span>
@@ -3202,13 +3200,13 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-450"><a href="#cb26-450" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb26-451"><a href="#cb26-451" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-452"><a href="#cb26-452" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-453"><a href="#cb26-453" aria-hidden="true" tabindex="-1"></a><span class="fu">## Spectral representation of the AR(p)  :movie_camera: </span></span>
+<span id="cb26-453"><a href="#cb26-453" aria-hidden="true" tabindex="-1"></a><span class="fu">## Spectral representation of the AR($p$)  :movie_camera: </span></span>
 <span id="cb26-454"><a href="#cb26-454" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-455"><a href="#cb26-455" aria-hidden="true" tabindex="-1"></a><span class="al">![Spectral representation of the AR(p)](images/C4-L05-T03.png)</span>{#fig-ar-p-spectral-representation .column-margin  group="slides" width="53mm"}</span>
+<span id="cb26-455"><a href="#cb26-455" aria-hidden="true" tabindex="-1"></a><span class="al">![Spectral representation of the AR($p$)](images/C4-L05-T03.png)</span>{#fig-ar-p-spectral-representation .column-margin  group="slides" width="53mm"}</span>
 <span id="cb26-456"><a href="#cb26-456" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-457"><a href="#cb26-457" aria-hidden="true" tabindex="-1"></a>The spectral representation of the *AR(p)* process is a powerful tool for understanding the frequency domain properties of the process. It allows us to analyze how the process behaves at different frequencies and provides insights into its periodicity and persistence.</span>
+<span id="cb26-457"><a href="#cb26-457" aria-hidden="true" tabindex="-1"></a>The spectral representation of the *AR($p$)* process is a powerful tool for understanding the frequency domain properties of the process. It allows us to analyze how the process behaves at different frequencies and provides insights into its periodicity and persistence.</span>
 <span id="cb26-458"><a href="#cb26-458" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-459"><a href="#cb26-459" aria-hidden="true" tabindex="-1"></a>Supose we have an *AR(p)* process with parameters:</span>
+<span id="cb26-459"><a href="#cb26-459" aria-hidden="true" tabindex="-1"></a>Supose we have an *AR($p$)* process with parameters:</span>
 <span id="cb26-460"><a href="#cb26-460" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-461"><a href="#cb26-461" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb26-462"><a href="#cb26-462" aria-hidden="true" tabindex="-1"></a>\phi_1, \ldots, \phi_2, v</span>
@@ -3216,7 +3214,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-464"><a href="#cb26-464" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-465"><a href="#cb26-465" aria-hidden="true" tabindex="-1"></a>Properties related to the autocorrelation function of the process, and the forecast function as well as we have seen, are related to the reciprocal roots of the characteristic polynomial.</span>
 <span id="cb26-466"><a href="#cb26-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-467"><a href="#cb26-467" aria-hidden="true" tabindex="-1"></a>Using this information, we can also obtain a spectral representation of the process, meaning a representation in the frequency domain. We can think of this as a <span class="co">[</span><span class="ot">density in the frequency domain where you’re going to have a power associated to different frequencies.</span><span class="co">]</span>{.mark} In the case of an *AR(p)* process, I can write down the spectral density of the process, as:</span>
+<span id="cb26-467"><a href="#cb26-467" aria-hidden="true" tabindex="-1"></a>Using this information, we can also obtain a spectral representation of the process, meaning a representation in the frequency domain. We can think of this as a <span class="co">[</span><span class="ot">density in the frequency domain where you’re going to have a power associated to different frequencies.</span><span class="co">]</span>{.mark} In the case of an *AR($p$)* process, I can write down the spectral density of the process, as:</span>
 <span id="cb26-468"><a href="#cb26-468" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-469"><a href="#cb26-469" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-470"><a href="#cb26-470" aria-hidden="true" tabindex="-1"></a>$$</span>
@@ -3246,7 +3244,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-494"><a href="#cb26-494" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-495"><a href="#cb26-495" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb26-496"><a href="#cb26-496" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-497"><a href="#cb26-497" aria-hidden="true" tabindex="-1"></a><span class="fu">## Spectral representation of the AR(p): Example  :movie_camera: </span></span>
+<span id="cb26-497"><a href="#cb26-497" aria-hidden="true" tabindex="-1"></a><span class="fu">## Spectral representation of the AR($p$): Example  :movie_camera: </span></span>
 <span id="cb26-498"><a href="#cb26-498" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-499"><a href="#cb26-499" aria-hidden="true" tabindex="-1"></a>This video walks through the code in the next section.</span>
 <span id="cb26-500"><a href="#cb26-500" aria-hidden="true" tabindex="-1"></a></span>
@@ -3278,8 +3276,8 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-526"><a href="#cb26-526" aria-hidden="true" tabindex="-1"></a><span class="ss">  * </span>Posterior spectral densities are overlaid.</span>
 <span id="cb26-527"><a href="#cb26-527" aria-hidden="true" tabindex="-1"></a><span class="ss">  * </span>**Solid line** = MLE-based spectrum; **dotted line** = true spectrum peak.</span>
 <span id="cb26-528"><a href="#cb26-528" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-529"><a href="#cb26-529" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!spectral density estimation}</span>
-<span id="cb26-530"><a href="#cb26-530" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!frequency-domain}</span>
+<span id="cb26-529"><a href="#cb26-529" aria-hidden="true" tabindex="-1"></a>\index{AR($p$)!spectral density estimation}</span>
+<span id="cb26-530"><a href="#cb26-530" aria-hidden="true" tabindex="-1"></a>\index{AR($p$)!frequency-domain}</span>
 <span id="cb26-531"><a href="#cb26-531" aria-hidden="true" tabindex="-1"></a>This process illustrates Bayesian uncertainty in frequency-domain features of AR processes.</span>
 <span id="cb26-532"><a href="#cb26-532" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-533"><a href="#cb26-533" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
@@ -3290,9 +3288,9 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-538"><a href="#cb26-538" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb26-539"><a href="#cb26-539" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-540"><a href="#cb26-540" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-541"><a href="#cb26-541" aria-hidden="true" tabindex="-1"></a><span class="fu">## code: Spectral density of AR(p)  :spiral_notepad:  $\mathcal{R}$</span></span>
+<span id="cb26-541"><a href="#cb26-541" aria-hidden="true" tabindex="-1"></a><span class="fu">## code: Spectral density of AR($p$)  :spiral_notepad:  $\mathcal{R}$</span></span>
 <span id="cb26-542"><a href="#cb26-542" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-543"><a href="#cb26-543" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!spectral density}</span>
+<span id="cb26-543"><a href="#cb26-543" aria-hidden="true" tabindex="-1"></a>\index{AR($p$)!spectral density}</span>
 <span id="cb26-544"><a href="#cb26-544" aria-hidden="true" tabindex="-1"></a>We will now obtain the spectral density of an autoregressive process, as well as visualize posterior distributions of the spectral densities of this AR process just based on data that we have</span>
 <span id="cb26-545"><a href="#cb26-545" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-546"><a href="#cb26-546" aria-hidden="true" tabindex="-1"></a>Simulate 300 observations from an *AR(2)* process with a pair of complex-valued roots</span>
@@ -3402,7 +3400,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-662"><a href="#cb26-662" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-663"><a href="#cb26-663" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb26-664"><a href="#cb26-664" aria-hidden="true" tabindex="-1"></a>\operatorname{ARMA}(p,q)= \textcolor{red}</span>
-<span id="cb26-665"><a href="#cb26-665" aria-hidden="true" tabindex="-1"></a>                {\underbrace{\sum_{i=1}^{p} \phi_i y_{t-i}}_{AR(P)}}</span>
+<span id="cb26-665"><a href="#cb26-665" aria-hidden="true" tabindex="-1"></a>                {\underbrace{\sum_{i=1}^{p} \phi_i y_{t-i}}_{AR($p$)}}</span>
 <span id="cb26-666"><a href="#cb26-666" aria-hidden="true" tabindex="-1"></a><span class="ss">      + </span></span>
 <span id="cb26-667"><a href="#cb26-667" aria-hidden="true" tabindex="-1"></a>      \textcolor{blue}</span>
 <span id="cb26-668"><a href="#cb26-668" aria-hidden="true" tabindex="-1"></a>                {\underbrace{\sum_{j=1}^{q} \theta_j \varepsilon_{t-j}}_{MA(Q)}} </span>
@@ -3411,7 +3409,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-671"><a href="#cb26-671" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-672"><a href="#cb26-672" aria-hidden="true" tabindex="-1"></a>with $\varepsilon_t \sim N(0, v)$.</span>
 <span id="cb26-673"><a href="#cb26-673" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-674"><a href="#cb26-674" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>For $q = 0$, we get an AR(p) process.</span>
+<span id="cb26-674"><a href="#cb26-674" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>For $q = 0$, we get an AR($p$) process.</span>
 <span id="cb26-675"><a href="#cb26-675" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>For $p = 0$, we get a MA(q) i.e. moving average process of order $q$.</span>
 <span id="cb26-676"><a href="#cb26-676" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-677"><a href="#cb26-677" aria-hidden="true" tabindex="-1"></a>:::</span>
@@ -3431,7 +3429,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-691"><a href="#cb26-691" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-692"><a href="#cb26-692" aria-hidden="true" tabindex="-1"></a>lie outside the unit circle, i.e., for all $u$ such that $\Phi(u) = 0$, $<span class="sc">\|</span>u<span class="sc">\|</span> &gt; 1$.</span>
 <span id="cb26-693"><a href="#cb26-693" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-694"><a href="#cb26-694" aria-hidden="true" tabindex="-1"></a>Equivalently, this happens when the reciprocal roots of the *AR(p) polynomial* have moduli smaller than 1.</span>
+<span id="cb26-694"><a href="#cb26-694" aria-hidden="true" tabindex="-1"></a>Equivalently, this happens when the reciprocal roots of the *AR($p$) polynomial* have moduli smaller than 1.</span>
 <span id="cb26-695"><a href="#cb26-695" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-696"><a href="#cb26-696" aria-hidden="true" tabindex="-1"></a>This condition implies stationarity.</span>
 <span id="cb26-697"><a href="#cb26-697" aria-hidden="true" tabindex="-1"></a></span>
@@ -3480,7 +3478,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb26-740"><a href="#cb26-740" aria-hidden="true" tabindex="-1"></a><span class="fu">### Spectral Density of ARMA Processes</span></span>
 <span id="cb26-741"><a href="#cb26-741" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-742"><a href="#cb26-742" aria-hidden="true" tabindex="-1"></a>\index{ARMA process!spectral density}</span>
-<span id="cb26-743"><a href="#cb26-743" aria-hidden="true" tabindex="-1"></a>For a given **AR(p)** process with AR coefficients $\phi_1, \dots, \phi_p$ and variance $v$, we can obtain its **spectral density** as</span>
+<span id="cb26-743"><a href="#cb26-743" aria-hidden="true" tabindex="-1"></a>For a given **AR($p$)** process with AR coefficients $\phi_1, \dots, \phi_p$ and variance $v$, we can obtain its **spectral density** as</span>
 <span id="cb26-744"><a href="#cb26-744" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-745"><a href="#cb26-745" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb26-746"><a href="#cb26-746" aria-hidden="true" tabindex="-1"></a>f(\omega) = \frac{v}{2\pi <span class="sc">\|</span>\Phi(e^{-i\omega})<span class="sc">\|</span>^2} = \frac{v}{2\pi <span class="sc">\|</span>1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-ip\omega}<span class="sc">\|</span>^2},</span>

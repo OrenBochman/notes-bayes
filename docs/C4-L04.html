@@ -1,87 +1,5 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-
-<meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.11">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-
-<meta name="author" content="Oren Bochman">
-<meta name="dcterms.date" content="2024-11-04">
-<meta name="keywords" content="Autoregressive Models, time series, stability, order of an AR process, characteristic lag polynomial, autocorrelation function, ACF, partial autocorrelation function, PACF, smoothing, State Space Model, ARMA process, ARIMA, moving average, AR(p) process, R code, notes, Coursera">
-<meta name="description" content="The AR(P) process, its state-space representation, the characteristic polynomial, and the forecast function">
-
-<title>93&nbsp; The AR(p) process – Bayesian Statistics</title>
-<style>
-code{white-space: pre-wrap;}
-span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
-div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-ul.task-list{list-style: none;}
-ul.task-list li input[type="checkbox"] {
-  width: 0.8em;
-  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
-  vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-  margin-bottom: 0em;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
-
-
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
@@ -108,90 +26,14 @@ div.csl-indent {
 <link href="site_libs/bootstrap/bootstrap-cec409635dab7d42c7b562035797153a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
-<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
-<script id="quarto-search-options" type="application/json">{
-  "location": "sidebar",
-  "copy-button": false,
-  "collapse-after": 3,
-  "panel-placement": "start",
-  "type": "textbox",
-  "limit": 50,
-  "keyboard-shortcut": [
-    "f",
-    "/",
-    "s"
-  ],
-  "show-item-context": false,
-  "language": {
-    "search-no-results-text": "No results",
-    "search-matching-documents-text": "matching documents",
-    "search-copy-link-title": "Copy link to search",
-    "search-hide-matches-text": "Hide additional matches",
-    "search-more-match-text": "more match in this document",
-    "search-more-matches-text": "more matches in this document",
-    "search-clear-button-title": "Clear",
-    "search-text-placeholder": "",
-    "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit",
-    "search-label": "Search"
-  }
-}</script>
-<style>
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.11">
 
-      .quarto-title-block .quarto-title-banner {
-        background-image: url(images/banner_deep.jpg);
-background-size: cover;
-      }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
-  <script>document.addEventListener("DOMContentLoaded", function () {
- var mathElements = document.getElementsByClassName("math");
- var macros = [];
- for (var i = 0; i < mathElements.length; i++) {
-  var texText = mathElements[i].firstChild;
-  if (mathElements[i].tagName == "SPAN") {
-   katex.render(texText.data, mathElements[i], {
-    displayMode: mathElements[i].classList.contains('display'),
-    throwOnError: false,
-    macros: macros,
-    fleqn: false
-   });
-}}});
-  </script>
-  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="styles.css">
-</head>
-
-<body class="nav-sidebar floating slimcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+<meta name="author" content="Oren Bochman">
+<meta name="dcterms.date" content="2024-11-04">
+<meta name="keywords" content="Autoregressive Models, time series, stability, order of an AR process, characteristic lag polynomial, autocorrelation function, ACF, partial autocorrelation function, PACF, smoothing, State Space Model, ARMA process, ARIMA, moving average, AR(<span class=" math="" inline"=""></head><body class="nav-sidebar floating slimcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -362,7 +204,163 @@ window.Quarto = {
     } else {
       toggleColorMode(false);
     }
+  </script>p) process, R code, notes, Coursera" /&gt;
+<meta name="description" content="The AR(p) process, its state-space representation, the characteristic polynomial, and the forecast function">
+
+<title>93&nbsp; The AR(p) process – Bayesian Statistics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+<!-- htmldependencies:E3FAD763 -->
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+
+      .quarto-title-block .quarto-title-banner {
+        background-image: url(images/banner_deep.jpg);
+background-size: cover;
+      }
+</style>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
   </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+
+
+
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
@@ -371,7 +369,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C4-L00.html">Time Series Analysis</a></li><li class="breadcrumb-item"><a href="./C4-L04.html"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(p) process</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C4-L00.html">Time Series Analysis</a></li><li class="breadcrumb-item"><a href="./C4-L04.html"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(<span class="math inline">p</span>) process</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -383,12 +381,12 @@ window.Quarto = {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-body"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C4-L00.html">Time Series Analysis</a></li><li class="breadcrumb-item"><a href="./C4-L04.html"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(p) process</span></a></li></ol></nav>
-      <div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(p) process</span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+    <div class="quarto-title column-body"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./C4-L00.html">Time Series Analysis</a></li><li class="breadcrumb-item"><a href="./C4-L04.html"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(<span class="math inline">p</span>) process</span></a></li></ol></nav>
+      <div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(<span class="math inline">p</span>) process</span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
             <p class="subtitle lead">Time Series Analysis</p>
                   <div>
         <div class="description">
-          The AR(P) process, its state-space representation, the characteristic polynomial, and the forecast function
+          The AR(<span class="math inline">p</span>) process, its state-space representation, the characteristic polynomial, and the forecast function
         </div>
       </div>
                           <div class="quarto-categories">
@@ -422,7 +420,7 @@ window.Quarto = {
   <div>
     <div class="keywords">
       <div class="block-title">Keywords</div>
-      <p>Autoregressive Models, time series, stability, order of an AR process, characteristic lag polynomial, autocorrelation function, ACF, partial autocorrelation function, PACF, smoothing, State Space Model, ARMA process, ARIMA, moving average, AR(p) process, R code, notes, Coursera</p>
+      <p>Autoregressive Models, time series, stability, order of an AR process, characteristic lag polynomial, autocorrelation function, ACF, partial autocorrelation function, PACF, smoothing, State Space Model, ARMA process, ARIMA, moving average, AR(<span class="math inline">p</span>) process, R code, notes, Coursera</p>
     </div>
   </div>
   
@@ -1023,7 +1021,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L02-Ex1.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">89</span>&nbsp; <span class="chapter-title">Homework Bayesian analysis of an EEG dataset using an AR(p) - M1L2HW2</span></span></a>
+ <span class="menu-text"><span class="chapter-number">89</span>&nbsp; <span class="chapter-title">Homework Bayesian analysis of an EEG dataset using an AR(<span class="math inline">p</span>) - M1L2HW2</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -1047,7 +1045,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L04.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(p) process</span></span></a>
+ <span class="menu-text"><span class="chapter-number">93</span>&nbsp; <span class="chapter-title">The AR(<span class="math inline">p</span>) process</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -1059,13 +1057,13 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L05.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(p) - M2L5</span></span></a>
+ <span class="menu-text"><span class="chapter-number">95</span>&nbsp; <span class="chapter-title">Bayesian Inference in the AR(<span class="math inline">p</span>) - M2L5</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C4-L05-Ex1.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">96</span>&nbsp; <span class="chapter-title">Quiz: Spectral representation of the AR(p)</span></span></a>
+ <span class="menu-text"><span class="chapter-number">96</span>&nbsp; <span class="chapter-title">Quiz: Spectral representation of the AR(<span class="math inline">p</span>)</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -1178,7 +1176,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C5-L03.1.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">113</span>&nbsp; <span class="chapter-title">Bayesian location mixture of AR(p) models - M3L3</span></span></a>
+ <span class="menu-text"><span class="chapter-number">113</span>&nbsp; <span class="chapter-title">Bayesian location mixture of AR(<span class="math inline">p</span>) models - M3L3</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -1341,12 +1339,12 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#sec-arp-defn-state-space-rep" id="toc-sec-arp-defn-state-space-rep" class="nav-link active" data-scroll-target="#sec-arp-defn-state-space-rep"><span class="header-section-number">93.1</span> AR(p) Definition and State-space Representation <span class="emoji" data-emoji="movie_camera">🎥</span></a>
+  <li><a href="#sec-arp-defn-state-space-rep" id="toc-sec-arp-defn-state-space-rep" class="nav-link active" data-scroll-target="#sec-arp-defn-state-space-rep"><span class="header-section-number">93.1</span> AR(<span class="math inline">p</span>) Definition and State-space Representation <span class="emoji" data-emoji="movie_camera">🎥</span></a>
   <ul class="collapse">
-  <li><a href="#sec-arp-definition" id="toc-sec-arp-definition" class="nav-link" data-scroll-target="#sec-arp-definition"><span class="header-section-number">93.1.1</span> AR(p) definition</a></li>
-  <li><a href="#sec-arp-characteristic-polynomial" id="toc-sec-arp-characteristic-polynomial" class="nav-link" data-scroll-target="#sec-arp-characteristic-polynomial"><span class="header-section-number">93.1.2</span> AR(p) Characteristic Polynomial</a></li>
-  <li><a href="#sec-state-space-ar-p" id="toc-sec-state-space-ar-p" class="nav-link" data-scroll-target="#sec-state-space-ar-p"><span class="header-section-number">93.1.3</span> State Space Representation of AR(p)</a></li>
-  <li><a href="#sec-forecast-function-ar-p" id="toc-sec-forecast-function-ar-p" class="nav-link" data-scroll-target="#sec-forecast-function-ar-p"><span class="header-section-number">93.1.4</span> The forecast function of <span class="math inline">AR(p)</span></a></li>
+  <li><a href="#sec-arp-definition" id="toc-sec-arp-definition" class="nav-link" data-scroll-target="#sec-arp-definition"><span class="header-section-number">93.1.1</span> AR(<span class="math inline">p</span>) definition</a></li>
+  <li><a href="#sec-arp-characteristic-polynomial" id="toc-sec-arp-characteristic-polynomial" class="nav-link" data-scroll-target="#sec-arp-characteristic-polynomial"><span class="header-section-number">93.1.2</span> AR(<span class="math inline">p</span>) Characteristic Polynomial</a></li>
+  <li><a href="#sec-state-space-ar-p" id="toc-sec-state-space-ar-p" class="nav-link" data-scroll-target="#sec-state-space-ar-p"><span class="header-section-number">93.1.3</span> State Space Representation of AR(<span class="math inline">p</span>)</a></li>
+  <li><a href="#sec-forecast-function-ar-p" id="toc-sec-forecast-function-ar-p" class="nav-link" data-scroll-target="#sec-forecast-function-ar-p"><span class="header-section-number">93.1.4</span> The forecast function of AR(<span class="math inline">p</span>)</a></li>
   </ul></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples"><span class="header-section-number">93.2</span> Examples <span class="emoji" data-emoji="movie_camera">🎥</span></a>
   <ul class="collapse">
@@ -1354,19 +1352,19 @@ window.Quarto = {
   <li><a href="#ar2-process" id="toc-ar2-process" class="nav-link" data-scroll-target="#ar2-process"><span class="header-section-number">93.2.2</span> <strong>AR(2) Process</strong></a></li>
   <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts"><span class="header-section-number">93.2.3</span> Key Concepts</a></li>
   </ul></li>
-  <li><a href="#acf-of-the-arp" id="toc-acf-of-the-arp" class="nav-link" data-scroll-target="#acf-of-the-arp"><span class="header-section-number">93.3</span> ACF of the AR(p) <span class="emoji" data-emoji="movie_camera">🎥</span></a></li>
-  <li><a href="#simulating-data-from-an-arp" id="toc-simulating-data-from-an-arp" class="nav-link" data-scroll-target="#simulating-data-from-an-arp"><span class="header-section-number">93.4</span> Simulating data from an AR(p) <span class="emoji" data-emoji="movie_camera">🎥</span></a></li>
+  <li><a href="#acf-of-the-arp" id="toc-acf-of-the-arp" class="nav-link" data-scroll-target="#acf-of-the-arp"><span class="header-section-number">93.3</span> ACF of the AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="movie_camera">🎥</span></a></li>
+  <li><a href="#simulating-data-from-an-arp" id="toc-simulating-data-from-an-arp" class="nav-link" data-scroll-target="#simulating-data-from-an-arp"><span class="header-section-number">93.4</span> Simulating data from an AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="movie_camera">🎥</span></a></li>
   <li><a href="#computing-the-roots-of-the-ar-polynomial-mathcalr" id="toc-computing-the-roots-of-the-ar-polynomial-mathcalr" class="nav-link" data-scroll-target="#computing-the-roots-of-the-ar-polynomial-mathcalr"><span class="header-section-number">93.5</span> Computing the roots of the AR polynomial <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></a></li>
-  <li><a href="#simulating-data-from-an-arp-mathcalr" id="toc-simulating-data-from-an-arp-mathcalr" class="nav-link" data-scroll-target="#simulating-data-from-an-arp-mathcalr"><span class="header-section-number">93.6</span> Simulating data from an AR(p) <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></a></li>
-  <li><a href="#sec-arp-review" id="toc-sec-arp-review" class="nav-link" data-scroll-target="#sec-arp-review"><span class="header-section-number">93.7</span> The <span class="math inline">AR(p)</span>: Review <span class="emoji" data-emoji="spiral_notepad">🗒️</span></a>
+  <li><a href="#simulating-data-from-an-arp-mathcalr" id="toc-simulating-data-from-an-arp-mathcalr" class="nav-link" data-scroll-target="#simulating-data-from-an-arp-mathcalr"><span class="header-section-number">93.6</span> Simulating data from an AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></a></li>
+  <li><a href="#sec-arp-review" id="toc-sec-arp-review" class="nav-link" data-scroll-target="#sec-arp-review"><span class="header-section-number">93.7</span> The AR(<span class="math inline">p</span>): Review <span class="emoji" data-emoji="spiral_notepad">🗒️</span></a>
   <ul class="collapse">
-  <li><a href="#sec-arp-definition-stability-stationarity" id="toc-sec-arp-definition-stability-stationarity" class="nav-link" data-scroll-target="#sec-arp-definition-stability-stationarity"><span class="header-section-number">93.7.1</span> AR(p): Definition, stability, and stationarity</a></li>
-  <li><a href="#arp" id="toc-arp" class="nav-link" data-scroll-target="#arp">AR(p)</a></li>
-  <li><a href="#sec-arp-state-space-representation" id="toc-sec-arp-state-space-representation" class="nav-link" data-scroll-target="#sec-arp-state-space-representation"><span class="header-section-number">93.7.2</span> AR(p): State-space representation</a></li>
-  <li><a href="#sec-arp-acf" id="toc-sec-arp-acf" class="nav-link" data-scroll-target="#sec-arp-acf"><span class="header-section-number">93.7.3</span> ACF of AR(p)</a></li>
+  <li><a href="#sec-arp-definition-stability-stationarity" id="toc-sec-arp-definition-stability-stationarity" class="nav-link" data-scroll-target="#sec-arp-definition-stability-stationarity"><span class="header-section-number">93.7.1</span> AR(<span class="math inline">p</span>): Definition, stability, and stationarity</a></li>
+  <li><a href="#arp" id="toc-arp" class="nav-link" data-scroll-target="#arp">AR(<span class="math inline">p</span>)</a></li>
+  <li><a href="#sec-arp-state-space-representation" id="toc-sec-arp-state-space-representation" class="nav-link" data-scroll-target="#sec-arp-state-space-representation"><span class="header-section-number">93.7.2</span> AR(<span class="math inline">p</span>): State-space representation</a></li>
+  <li><a href="#sec-arp-acf" id="toc-sec-arp-acf" class="nav-link" data-scroll-target="#sec-arp-acf"><span class="header-section-number">93.7.3</span> ACF of AR(<span class="math inline">p</span>)</a></li>
   <li><a href="#sec-arp-example-ar1" id="toc-sec-arp-example-ar1" class="nav-link" data-scroll-target="#sec-arp-example-ar1"><span class="header-section-number">93.7.4</span> Example: AR(1)</a></li>
   <li><a href="#sec-arp-example-ar2" id="toc-sec-arp-example-ar2" class="nav-link" data-scroll-target="#sec-arp-example-ar2"><span class="header-section-number">93.7.5</span> Example: AR(2)</a></li>
-  <li><a href="#sec-arp-pacf" id="toc-sec-arp-pacf" class="nav-link" data-scroll-target="#sec-arp-pacf"><span class="header-section-number">93.7.6</span> PACF of AR(p)</a></li>
+  <li><a href="#sec-arp-pacf" id="toc-sec-arp-pacf" class="nav-link" data-scroll-target="#sec-arp-pacf"><span class="header-section-number">93.7.6</span> PACF of AR(<span class="math inline">p</span>)</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -1390,22 +1388,22 @@ window.Quarto = {
 </div>
 <div class="callout-body-container callout-body">
 <ul class="task-list">
-<li><label><input type="checkbox" checked="">Define an <strong>AR(p)</strong>, or <mark>autoregressive process of order p</mark> and use <strong>R</strong> to obtain samples from such process</label></li>
+<li><label><input type="checkbox" checked="">Define an <strong>AR(<span class="math inline">p</span>)</strong>, or <mark>autoregressive process of order p</mark> and use <strong>R</strong> to obtain samples from such process</label></li>
 <li><label><input type="checkbox" checked="">Define ARIMA (autoregressive moving average) models (honors)</label></li>
-<li><label><input type="checkbox" checked="">Perform posterior inference for the AR(p) under the conditional likelihood and the reference prior</label></li>
-<li><label><input type="checkbox" checked="">Perform a full data analysis in R using an AR(p) including</label>
+<li><label><input type="checkbox" checked="">Perform posterior inference for the AR(<span class="math inline">p</span>) under the conditional likelihood and the reference prior</label></li>
+<li><label><input type="checkbox" checked="">Perform a full data analysis in R using an AR(<span class="math inline">p</span>) including</label>
 <ul>
 <li>likelihood estimation,</li>
 <li>Bayesian inference,</li>
 <li>model order selection,</li>
 <li>forecasting.</li>
 </ul></li>
-<li><label><input type="checkbox" checked="">Explain the relationship between the <em>AR characteristic polynomial</em>, <em>the forecast function</em>, <em>the ACF</em> and <em>the spectral density</em> in the case of an AR(p)</label></li>
+<li><label><input type="checkbox" checked="">Explain the relationship between the <em>AR characteristic polynomial</em>, <em>the forecast function</em>, <em>the ACF</em> and <em>the spectral density</em> in the case of an AR(<span class="math inline">p</span>)</label></li>
 </ul>
 </div>
 </div>
 <section id="sec-arp-defn-state-space-rep" class="level2 page-columns page-full" data-number="93.1">
-<h2 data-number="93.1" class="anchored" data-anchor-id="sec-arp-defn-state-space-rep"><span class="header-section-number">93.1</span> AR(p) Definition and State-space Representation <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
+<h2 data-number="93.1" class="anchored" data-anchor-id="sec-arp-defn-state-space-rep"><span class="header-section-number">93.1</span> AR(<span class="math inline">p</span>) Definition and State-space Representation <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
 
 <div class="no-row-height column-margin column-container"><div id="fig-ar-p-state-space-representation" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1413,15 +1411,15 @@ window.Quarto = {
 <a href="images/m2_0001.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;93.1: AR(p) process, characteristic polynomial, stability, stationarity and MA representation"><img src="images/m2_0001.png" class="img-fluid figure-img" style="width:53mm"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ar-p-state-space-representation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;93.1: AR(p) process, characteristic polynomial, stability, stationarity and MA representation
+Figure&nbsp;93.1: AR(<span class="math inline">p</span>) process, characteristic polynomial, stability, stationarity and MA representation
 </figcaption>
 </figure>
 </div></div><p>The under tildes used in the slides denote a vector or a matrix rather than a statistical property. They are usually denoted via bold fonts and not by under tildes which have other meanings too so for the sake of clarity I have replaced them with bold font in the outline. I provide detailed derivation in this section but there is a shorter outline in <a href="#sec-arp-review" class="quarto-xref"><span>Section 93.7</span></a> which may be easier to review once you know the derivations.</p>
-<p>In this segment we will see two important representations of the <strong>AR(p)</strong> process. You can follow along in <span class="citation" data-cites="prado2000bayesian">(<a href="references.html#ref-prado2000bayesian" role="doc-biblioref">Prado, Huerta, and West 2000</a> ch.&nbsp;2)</span></p>
+<p>In this segment we will see two important representations of the <strong>AR(<span class="math inline">p</span>)</strong> process. You can follow along in <span class="citation" data-cites="prado2000bayesian">(<a href="references.html#ref-prado2000bayesian" role="doc-biblioref">Prado, Huerta, and West 2000</a> ch.&nbsp;2)</span></p>
 <section id="sec-arp-definition" class="level3 page-columns page-full" data-number="93.1.1">
-<h3 data-number="93.1.1" class="anchored" data-anchor-id="sec-arp-definition"><span class="header-section-number">93.1.1</span> AR(p) definition</h3>
-<div class="page-columns page-full"><p><mark><strong>AR(p)</strong>, shorthand, for <em>Auto Regressive Process of order p</em> which generalizes the <strong>AR(1)</strong> process by defining the current time step in terms of the previous <span class="math inline">p</span> time steps. We denote the number of parameter required to characterize the current value as <span class="math inline">p</span>, and call it the <strong>order</strong> of the autoregressive process. The order tells us how many <em>lags</em> we will be considering.</mark>.  Therefore the <strong>AR(1)</strong> process as a special case of the more general <strong>AR(p)</strong> process with <span class="math inline">p=1</span>.</p><div class="no-row-height column-margin column-container"><span class=""><strong>order p</strong></span></div></div>
-<div class="page-columns page-full"><p> We will assume AR(P) has the following structure:</p><div class="no-row-height column-margin column-container"><span class=""><strong>AR(P)</strong></span></div></div>
+<h3 data-number="93.1.1" class="anchored" data-anchor-id="sec-arp-definition"><span class="header-section-number">93.1.1</span> AR(<span class="math inline">p</span>) definition</h3>
+<div class="page-columns page-full"><p><mark><strong>AR(<span class="math inline">p</span>)</strong>, shorthand, for <em>Auto Regressive Process of order p</em> which generalizes the <strong>AR(1)</strong> process by defining the current time step in terms of the previous <span class="math inline">p</span> time steps. We denote the number of parameter required to characterize the current value as <span class="math inline">p</span>, and call it the <strong>order</strong> of the autoregressive process. The order tells us how many <em>lags</em> we will be considering.</mark>.  Therefore the <strong>AR(1)</strong> process as a special case of the more general <strong>AR(<span class="math inline">p</span>)</strong> process with <span class="math inline">p=1</span>.</p><div class="no-row-height column-margin column-container"><span class=""><strong>order p</strong></span></div></div>
+<div class="page-columns page-full"><p> We will assume AR(<span class="math inline">p</span>) has the following structure:</p><div class="no-row-height column-margin column-container"><span class=""><strong>AR(<span class="math inline">p</span>)</strong></span></div></div>
 <p><span id="eq-ar-p-annotated"><span class="math display">
 \textcolor{red}{y_t} = \textcolor{blue}{\phi_1} \textcolor{red}{y_{t-1}} + \textcolor{blue}{\phi_2} \textcolor{red}{y_{t-2}} + \ldots + \textcolor{blue}{\phi_p} \textcolor{red}{y_{t-p}} + \textcolor{grey}{\varepsilon_t}, \qquad \textcolor{grey}{\varepsilon_t} \overset{\text{iid}}{\sim} \mathcal{N}(0,v) \quad \forall t
 \tag{93.1}</span></span></p>
@@ -1433,8 +1431,8 @@ Figure&nbsp;93.1: AR(p) process, characteristic polynomial, stability, stationar
 </ul>
 </section>
 <section id="sec-arp-characteristic-polynomial" class="level3 page-columns page-full" data-number="93.1.2">
-<h3 data-number="93.1.2" class="anchored" data-anchor-id="sec-arp-characteristic-polynomial"><span class="header-section-number">93.1.2</span> AR(p) Characteristic Polynomial</h3>
-<div class="page-columns page-full"><p>A central outcome of the autoregressive nature of the <strong>AR(p)</strong> is due to the properties the AR characteristic polynomial <span class="math inline">\Phi</span>.  This is defined as :</p><div class="no-row-height column-margin column-container"><span class=""><span class="math inline">\Phi</span> AR characteristic polynomial</span></div></div>
+<h3 data-number="93.1.2" class="anchored" data-anchor-id="sec-arp-characteristic-polynomial"><span class="header-section-number">93.1.2</span> AR(<span class="math inline">p</span>) Characteristic Polynomial</h3>
+<div class="page-columns page-full"><p>A central outcome of the autoregressive nature of the <strong>AR(<span class="math inline">p</span>)</strong> is due to the properties the AR characteristic polynomial <span class="math inline">\Phi</span>.  This is defined as :</p><div class="no-row-height column-margin column-container"><span class=""><span class="math inline">\Phi</span> AR characteristic polynomial</span></div></div>
 <p>recall the backshift operator <span class="math inline">B</span> is defined as:</p>
 <p><span class="math display">
 \operatorname{B} y_t = y_{t-1}
@@ -1443,9 +1441,9 @@ Figure&nbsp;93.1: AR(p) process, characteristic polynomial, stability, stationar
 <p><span class="math display">
 \operatorname{B}^j y_t = y_{t-j}
 </span></p>
-<p>We now use the backshift operator to rewrite the <strong>AR(p)</strong> as a inhomogeneous linear difference equation: <span id="eq-ar-poly-derivation"><span class="math display">
+<p>We now use the backshift operator to rewrite the <strong>AR(<span class="math inline">p</span>)</strong> as a inhomogeneous linear difference equation: <span id="eq-ar-poly-derivation"><span class="math display">
 \begin{aligned}
-       y_t &amp;= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \varepsilon_t  &amp;&amp; \text{(Ar(p) defn.)} \newline
+       y_t &amp;= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \varepsilon_t  &amp;&amp; \text{(AR($p$) defn.)} \newline
        y_t &amp;= \phi_1 \operatorname{B} y_t + \phi_2 \operatorname{B}^2 y_t + \ldots + \phi_p \operatorname{B}^p y_t + \varepsilon_t &amp;&amp; \text{(B defn.)} \newline
 \varepsilon_t &amp;= y_t - \phi_1 \operatorname{B} y_t - \phi_2 \operatorname{B}^2 y_t - \ldots - \phi_p \operatorname{B}^p y_t    &amp;&amp; \text{(rearranging)} \newline
 \varepsilon_t  &amp;= (1- \phi_1 \operatorname{B} - \phi_2 \operatorname{B}^2 - \ldots - \phi_p \operatorname{B}^p) y_t            &amp;&amp; \text{(factoring out $y_t$)}
@@ -1499,7 +1497,7 @@ B = \begin{pmatrix}
 <p>This matrix is nilpotent because if you multiply it by itself enough times, it will eventually become the zero matrix. This is a key property that allows us to define the characteristic polynomial in terms of the backshift operator.</p>
 <p>Note: that the above derivation wasn’t presented in the slides but is my own attempt to clarify the steps involved I hope it is helpful not 100% sure it is correct.</p>
 <ul>
-<li><mark>This polynomial and its roots tells us a lot about the process and its properties. One of the main characteristics is it allows us to think about things like <strong>quasi-periodic behavior</strong>, whether it’s present or not in a particular <strong>AR(p)</strong> process.</mark></li>
+<li><mark>This polynomial and its roots tells us a lot about the process and its properties. One of the main characteristics is it allows us to think about things like <strong>quasi-periodic behavior</strong>, whether it’s present or not in a particular <strong>AR(<span class="math inline">p</span>)</strong> process.</mark></li>
 <li>It allows us to think about whether a process is <strong>stationary or not</strong>, depending on some properties related to this polynomial.</li>
 <li>In particular, we are going to say that the process is <strong>stable</strong> if all the roots of the characteristic polynomial have a modulus greater than one. </li>
 </ul>
@@ -1514,7 +1512,7 @@ B = \begin{pmatrix}
 <li><p>If a process is stable, it will also be stationary.</p></li>
 </ul>
 <p>We can show this as follows:</p>
-<p><mark>If the AR(p) has all the roots of its characteristic polynomial outside the unit circle, it is <em>stable</em> and <em>stationary</em> and can be written in terms of an infinite order <em>moving average</em> process:</mark></p>
+<p><mark>If the AR(<span class="math inline">p</span>) has all the roots of its characteristic polynomial outside the unit circle, it is <em>stable</em> and <em>stationary</em> and can be written in terms of an infinite order <em>moving average</em> process:</mark></p>
 <p><span id="eq-ar-stationary"><span class="math display">
 y_t = \Psi(\operatorname{B}) \varepsilon_t = \sum_{j=0}^{\infty} \psi_j \varepsilon_{t-j} \quad \text {with} \ \psi_0 = 1 \quad \text{ and } \sum_{j=0}^{\infty} |\psi_j| &lt; \infty
 \tag{93.6}</span></span></p>
@@ -1544,7 +1542,7 @@ y_t = \Psi(\operatorname{B}) \varepsilon_t = \sum_{j=0}^{\infty} \psi_j \varepsi
 </div>
 </div>
 <p>We can also rewrite the characteristic polynomial in terms of the reciprocal roots of the polynomial.</p>
-<p>The zeros of the characteristic polynomial are the roots of the <strong>AR(p)</strong> process.</p>
+<p>The zeros of the characteristic polynomial are the roots of the <strong>AR(<span class="math inline">p</span>)</strong> process.</p>
 <p><span id="eq-ar-p-reciprocal-roots"><span class="math display">
 \Phi(u) = \prod_{j=1}^{p} (1 - \alpha_j u) = 0  \implies u = \frac{1}{ \alpha_j} \qquad \text{(reciprocal roots)}
 \tag{93.7}</span></span></p>
@@ -1560,25 +1558,25 @@ It would be nice to state this explicitly and linked to the appropriate sections
  -->
 </section>
 <section id="sec-state-space-ar-p" class="level3 page-columns page-full" data-number="93.1.3">
-<h3 data-number="93.1.3" class="anchored" data-anchor-id="sec-state-space-ar-p"><span class="header-section-number">93.1.3</span> State Space Representation of AR(p)</h3>
+<h3 data-number="93.1.3" class="anchored" data-anchor-id="sec-state-space-ar-p"><span class="header-section-number">93.1.3</span> State Space Representation of AR(<span class="math inline">p</span>)</h3>
 
 <div class="no-row-height column-margin column-container"><div id="fig-ar-p-state-space" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ar-p-state-space-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="images/m2_0002.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;93.2: A state space representation of Ar(p)"><img src="images/m2_0002.png" class="img-fluid figure-img" style="width:53mm"></a>
+<a href="images/m2_0002.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;93.2: A state space representation of AR(p)"><img src="images/m2_0002.png" class="img-fluid figure-img" style="width:53mm"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ar-p-state-space-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;93.2: A state space representation of Ar(p)
+Figure&nbsp;93.2: A state space representation of AR(<span class="math inline">p</span>)
 </figcaption>
 </figure>
 </div></div><p>This material is covered in <span class="citation" data-cites="prado2000bayesian">(<a href="references.html#ref-prado2000bayesian" role="doc-biblioref">Prado, Huerta, and West 2000, sec. 2.1.2</a>)</span></p>
-<p><mark>Another important representation of the AR(P) process, is based on a state-space representation of the process. This representation is useful because it allows us to study some important properties of the process.</mark> We will make some connections with these representations later when we talk about dynamic linear models, is given as follows for an AR(P).</p>
+<p><mark>Another important representation of the AR(<span class="math inline">p</span>) process, is based on a state-space representation of the process. This representation is useful because it allows us to study some important properties of the process.</mark> We will make some connections with these representations later when we talk about dynamic linear models, is given as follows for an AR(<span class="math inline">p</span>).</p>
 <p><span id="eq-state-space-observational-equation"><span class="math display">
 y_t = \operatorname{F}^\top \mathbf{x}_t \qquad \text{(observational equation)}
 \tag{93.8}</span></span></p>
 <p>where:</p>
 <ul>
-<li><span class="math inline">\operatorname{F}</span> is a linear mapping from the state space into the state space, so it is just vector of coefficients, specifically <span class="math inline">F = (1, 0, \ldots, 0)^\top</span> for the AR(P) process. The rank for this operator is <span class="math inline">p</span> since it has to match the dimension of the state vector <span class="math inline">\mathbf{x}_t</span>.</li>
+<li><span class="math inline">\operatorname{F}</span> is a linear mapping from the state space into the state space, so it is just vector of coefficients, specifically <span class="math inline">F = (1, 0, \ldots, 0)^\top</span> for the AR(<span class="math inline">p</span>) process. The rank for this operator is <span class="math inline">p</span> since it has to match the dimension of the state vector <span class="math inline">\mathbf{x}_t</span>.</li>
 <li><span class="math inline">\mathbf{x}_t</span> is a vector with the state of the process at time <span class="math inline">t</span>.</li>
 </ul>
 <p>To demystify <span class="math inline">\operatorname{F}</span>, it is just picking the current state from vector <span class="math inline">\mathbf{x}_t</span> with states for the p previous time steps.</p>
@@ -1606,10 +1604,10 @@ G = \begin{pmatrix}
 <p>This state transition matrix <span class="math inline">\mathbf{G}</span> is important because it is related to the characteristic polynomial, in particular, is related to the reciprocal roots representation of the characteristic polynomial that we discussed before. The structure of this <span class="math inline">\mathbf{G}</span> matrix is such that it captures the Markovian dynamics of the autoregressive process, wherein each <span class="math inline">\mathbf{x}_t</span> is a function of <span class="math inline">\mathbf{x}_{t-1}</span>.</p>
 <p>The eigenvalues of this matrix correspond precisely to the reciprocal roots of the characteristic polynomial.</p>
 <p>Prado points out that if you perform the matrix operations described in <a href="#eq-state-space-observational-equation" class="quarto-xref">Equation&nbsp;<span>93.8</span></a> and <a href="#eq-state-space-state-equation" class="quarto-xref">Equation&nbsp;<span>93.9</span></a>, you will recover the form of your autoregressive process from the definition in <a href="#eq-ar-p-annotated" class="quarto-xref">Equation&nbsp;<span>93.1</span></a> .</p>
-<p>So we have given the state-space representation of an AR(p). One advantage of working with this representation is that we can use with it some definitions that apply to dynamic linear models or state-space models. One such definition is the so-called forecast function.</p>
+<p>So we have given the state-space representation of an AR(<span class="math inline">p</span>). One advantage of working with this representation is that we can use with it some definitions that apply to dynamic linear models or state-space models. One such definition is the so-called forecast function.</p>
 </section>
 <section id="sec-forecast-function-ar-p" class="level3" data-number="93.1.4">
-<h3 data-number="93.1.4" class="anchored" data-anchor-id="sec-forecast-function-ar-p"><span class="header-section-number">93.1.4</span> The forecast function of <span class="math inline">AR(p)</span></h3>
+<h3 data-number="93.1.4" class="anchored" data-anchor-id="sec-forecast-function-ar-p"><span class="header-section-number">93.1.4</span> The forecast function of AR(<span class="math inline">p</span>)</h3>
 <p> The forecast function, which we denote as <span class="math inline">f_t(h)</span> is a function <span class="math inline">f</span> that depends on the time <span class="math inline">t</span> that you’re considering, and then you’re looking at forecasting <span class="math inline">h</span> steps ahead in your time series. If you have observations up to today and you want to look at what is the forecast function five days later, we will set <span class="math inline">h=5</span> there. The forecast function is just the expected value and we can just think of this as the expected value of <span class="math inline">y_{t+h}.</span> conditional on all the observations or all the information you have received up to time <span class="math inline">t</span>.</p>
 <p><span id="eq-ar-p-forecast-function-derivation"><span class="math display">
 \begin{aligned}
@@ -1624,7 +1622,7 @@ f_t(h) &amp;= \mathbb{E}[y_{t+h} \mid y_{1:t}] &amp;\text{(defn)}\\
 <ul>
 <li><p><span class="math inline">y_{1:t}</span> is the vector of all observations up to time <span class="math inline">t</span>,</p></li>
 <li><p><span class="math inline">\mathbf{x}_t</span> is the state vector at time <span class="math inline">t</span>.</p></li>
-<li><p><span class="math inline">\mathbf{G}^h</span> is the state transition matrix raised to the power <span class="math inline">h</span>, which captures the dynamics of the AR process over <span class="math inline">h</span> steps ahead. The eigenvalues of this matrix are the reciprocal roots of the characteristic polynomial of the AR(p) process.</p></li>
+<li><p><span class="math inline">\mathbf{G}^h</span> is the state transition matrix raised to the power <span class="math inline">h</span>, which captures the dynamics of the AR process over <span class="math inline">h</span> steps ahead. The eigenvalues of this matrix are the reciprocal roots of the characteristic polynomial of the AR(<span class="math inline">p</span>) process.</p></li>
 <li><p>In this derivation:</p>
 <ul>
 <li>We start with the expectation and rewrite it expectation using the state-space representation equations:</li>
@@ -1686,7 +1684,7 @@ f_t(h) = E(y_{t+h} \mid y_{1:t}) = F^\top G^h x_t, \quad h &gt; 0, \quad \forall
 <li><span class="math inline">c_t</span> are constants that depend on the <span class="math inline">E</span> matrix.</li>
 <li><span class="math inline">\alpha_i^h</span> are the reciprocal roots raised to the power <span class="math inline">h</span>.</li>
 </ul>
-<p>We can see from the form of <a href="C4-PFW-QA-ch2.html#eq-ar-p-forecast-function" class="quarto-xref">Equation&nbsp;<span>104.6</span></a> that if the process is stable, i.e.&nbsp;all the all the moduli of my reciprocal roots are going to be below one. So it is going to decay exponentially as a function of h. And this AR(p) process is going to be stationary.</p>
+<p>We can see from the form of <a href="C4-PFW-QA-ch2.html#eq-ar-p-forecast-function" class="quarto-xref">Equation&nbsp;<span>104.6</span></a> that if the process is stable, i.e.&nbsp;all the all the moduli of my reciprocal roots are going to be below one. So it is going to decay exponentially as a function of h. And this AR(<span class="math inline">p</span>) process is going to be stationary.</p>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1697,11 +1695,11 @@ f_t(h) = E(y_{t+h} \mid y_{1:t}) = F^\top G^h x_t, \quad h &gt; 0, \quad \forall
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>I recall that in physics we often view the eigenvectors as resonances of the system’s dynamics, and the eigenvalues as the corresponding resonant frequencies. This is a good analogy to think about the reciprocal roots of the AR(p) process. The contribution of each of the roots <span class="math inline">\alpha_i</span> to <span class="math inline">f(t)</span> depends on how close that modulus of that reciprocal root is to 1 or -1. For roots that have relatively large values of the modulus, then they are going to have more contribution in terms of what’s going to happen in the future.</p>
+<p>I recall that in physics we often view the eigenvectors as resonances of the system’s dynamics, and the eigenvalues as the corresponding resonant frequencies. This is a good analogy to think about the reciprocal roots of the AR(<span class="math inline">p</span>) process. The contribution of each of the roots <span class="math inline">\alpha_i</span> to <span class="math inline">f(t)</span> depends on how close that modulus of that reciprocal root is to 1 or -1. For roots that have relatively large values of the modulus, then they are going to have more contribution in terms of what’s going to happen in the future.</p>
 <p>Depending on whether those reciprocal roots <span class="math inline">\alpha_i</span> are real-valued or complex-valued, you’re going to have behavior here that may be quasiperiodic for complex-valued roots or just non-quasiperiodic for the real valued roots.</p>
 </div>
 </div>
-<p>In the text book AR(p) forecasting is covered in <span class="citation" data-cites="prado2000bayesian">(<a href="references.html#ref-prado2000bayesian" role="doc-biblioref">Prado, Huerta, and West 2000, sec. 2.2</a>)</span> and the mean square errors can be estimated using an algorithm by <span class="citation" data-cites="brockwell1991time">(<a href="references.html#ref-brockwell1991time" role="doc-biblioref">Brockwell and Davis 1991</a>)</span>.</p>
+<p>In the text book AR(<span class="math inline">p</span>) forecasting is covered in <span class="citation" data-cites="prado2000bayesian">(<a href="references.html#ref-prado2000bayesian" role="doc-biblioref">Prado, Huerta, and West 2000, sec. 2.2</a>)</span> and the mean square errors can be estimated using an algorithm by <span class="citation" data-cites="brockwell1991time">(<a href="references.html#ref-brockwell1991time" role="doc-biblioref">Brockwell and Davis 1991</a>)</span>.</p>
 <!-- TODO: summarize this transcript -->
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
@@ -1857,7 +1855,7 @@ Figure&nbsp;93.5: AR(2) complex roots
 </section>
 </section>
 <section id="acf-of-the-arp" class="level2 page-columns page-full" data-number="93.3">
-<h2 data-number="93.3" class="anchored" data-anchor-id="acf-of-the-arp"><span class="header-section-number">93.3</span> ACF of the AR(p) <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
+<h2 data-number="93.3" class="anchored" data-anchor-id="acf-of-the-arp"><span class="header-section-number">93.3</span> ACF of the AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
 
 <div class="no-row-height column-margin column-container"><div id="fig-acf-ar-p" class="quarto-float quarto-figure quarto-figure-center anchored" data-group="slides">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1865,10 +1863,10 @@ Figure&nbsp;93.5: AR(2) complex roots
 <a href="images/m2_0021.png" class="lightbox" data-gallery="slides" title="Figure&nbsp;93.6: ACF of the AR(p)"><img src="images/m2_0021.png" class="img-fluid figure-img" style="width:53mm"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-acf-ar-p-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;93.6: ACF of the AR(p)
+Figure&nbsp;93.6: ACF of the AR(<span class="math inline">p</span>)
 </figcaption>
 </figure>
-</div></div><p>For a <strong>stationary AR(p)</strong> process, the <strong>autocorrelation function (ACF)</strong> satisfies a homogeneous linear difference equation whose solution is a sum of terms involving the <strong>reciprocal roots</strong> of the characteristic polynomial. Key points:</p>
+</div></div><p>For a <strong>stationary AR(<span class="math inline">p</span>)</strong> process, the <strong>autocorrelation function (ACF)</strong> satisfies a homogeneous linear difference equation whose solution is a sum of terms involving the <strong>reciprocal roots</strong> of the characteristic polynomial. Key points:</p>
 <ul>
 <li><p>If there are <span class="math inline">r</span> distinct reciprocal roots <span class="math inline">\alpha_1, \ldots, \alpha_r</span> with multiplicities <span class="math inline">m_1, \ldots, m_r</span> such that <span class="math inline">\sum m_j = p</span>, the ACF has the general form:</p>
 <p><span class="math display">
@@ -1884,7 +1882,7 @@ Figure&nbsp;93.6: ACF of the AR(p)
 <li>One real root with multiplicity 2 → decay with polynomial factor.</li>
 </ol></li>
 <li><p>ACF decays <strong>exponentially</strong> if all reciprocal roots lie inside the unit circle.</p></li>
-<li><p>The <strong>Partial ACF (PACF)</strong> of AR(p) is <strong>zero for all lags &gt; p</strong>.</p></li>
+<li><p>The <strong>Partial ACF (PACF)</strong> of AR(<span class="math inline">p</span>) is <strong>zero for all lags &gt; p</strong>.</p></li>
 <li><p>PACF values can be computed recursively via the <strong>Durbin–Levinson algorithm</strong>, using sample autocorrelations.</p></li>
 </ul>
 <!-- TODO: summarize this transcript -->
@@ -1906,8 +1904,8 @@ Figure&nbsp;93.6: ACF of the AR(p)
 </div>
 </section>
 <section id="simulating-data-from-an-arp" class="level2" data-number="93.4">
-<h2 data-number="93.4" class="anchored" data-anchor-id="simulating-data-from-an-arp"><span class="header-section-number">93.4</span> Simulating data from an AR(p) <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
-<p>This video goes through the code in the following sections, which simulates data from an AR(p) process and plots the sample ACF and PACF.</p>
+<h2 data-number="93.4" class="anchored" data-anchor-id="simulating-data-from-an-arp"><span class="header-section-number">93.4</span> Simulating data from an AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
+<p>This video goes through the code in the following sections, which simulates data from an AR(<span class="math inline">p</span>) process and plots the sample ACF and PACF.</p>
 <ol type="1">
 <li><p><strong>Characteristic Roots from AR Coefficients</strong>:</p>
 <ul>
@@ -1987,7 +1985,7 @@ Figure&nbsp;93.6: ACF of the AR(p)
 </div>
 </section>
 <section id="simulating-data-from-an-arp-mathcalr" class="level2" data-number="93.6">
-<h2 data-number="93.6" class="anchored" data-anchor-id="simulating-data-from-an-arp-mathcalr"><span class="header-section-number">93.6</span> Simulating data from an AR(p) <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></h2>
+<h2 data-number="93.6" class="anchored" data-anchor-id="simulating-data-from-an-arp-mathcalr"><span class="header-section-number">93.6</span> Simulating data from an AR(<span class="math inline">p</span>) <span class="emoji" data-emoji="spiral_notepad">🗒️</span> <span class="math inline">\mathcal{R}</span></h2>
 <p> </p>
 <ol type="1">
 <li>R code to simulate data from an AR(2) with one pair of complex-valued reciprocal roots and plot the corresponding sample ACF and sample PACF</li>
@@ -2098,14 +2096,14 @@ Figure&nbsp;93.6: ACF of the AR(p)
 </div>
 </section>
 <section id="sec-arp-review" class="level2" data-number="93.7">
-<h2 data-number="93.7" class="anchored" data-anchor-id="sec-arp-review"><span class="header-section-number">93.7</span> The <span class="math inline">AR(p)</span>: Review <span class="emoji" data-emoji="spiral_notepad">🗒️</span></h2>
+<h2 data-number="93.7" class="anchored" data-anchor-id="sec-arp-review"><span class="header-section-number">93.7</span> The AR(<span class="math inline">p</span>): Review <span class="emoji" data-emoji="spiral_notepad">🗒️</span></h2>
 <p>This section is based on material from the <a href="handouts/c4-arp_summary.pdf">handout</a> but we also covered it in greater detail at the beginning of the lecture.</p>
 <section id="sec-arp-definition-stability-stationarity" class="level3" data-number="93.7.1">
-<h3 data-number="93.7.1" class="anchored" data-anchor-id="sec-arp-definition-stability-stationarity"><span class="header-section-number">93.7.1</span> AR(p): Definition, stability, and stationarity</h3>
+<h3 data-number="93.7.1" class="anchored" data-anchor-id="sec-arp-definition-stability-stationarity"><span class="header-section-number">93.7.1</span> AR(<span class="math inline">p</span>): Definition, stability, and stationarity</h3>
 </section>
 <section id="arp" class="level3 unnumbered callout-info">
-<h3 class="unnumbered anchored" data-anchor-id="arp">AR(p)</h3>
-<p>A time series follows a zero-mean autoregressive process of order <span class="math inline">p</span>, of AR(p), if:</p>
+<h3 class="unnumbered anchored" data-anchor-id="arp">AR(<span class="math inline">p</span>)</h3>
+<p>A time series follows a zero-mean autoregressive process of order <span class="math inline">p</span>, of AR(<span class="math inline">p</span>), if:</p>
 <p><span id="eq-ar-p"><span class="math display">
 y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \varepsilon_t \qquad
 \tag{93.15}</span></span></p>
@@ -2117,7 +2115,7 @@ y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \varepsilon_t 
 \Phi(u) = 1 - \phi_1 u - \phi_2 u^2 - \ldots - \phi_p u^p,
 </span></p>
 <p>with <span class="math inline">u</span> complex-valued.</p>
-<p>The AR(p) process is stable if <span class="math inline">\phi(u) = 0</span> only when <span class="math inline">\|u\| &gt; 1</span>. In this case, the process is also stationary and can be written as</p>
+<p>The AR(<span class="math inline">p</span>) process is stable if <span class="math inline">\phi(u) = 0</span> only when <span class="math inline">\|u\| &gt; 1</span>. In this case, the process is also stationary and can be written as</p>
 <p><span class="math display">
 y_t = \psi(B) \varepsilon_t = \sum_{j=0}^{\infty} \psi_j \varepsilon_{t-j},
 </span></p>
@@ -2131,8 +2129,8 @@ y_t = \psi(B) \varepsilon_t = \sum_{j=0}^{\infty} \psi_j \varepsilon_{t-j},
 </span></p>
 <p>with <span class="math inline">\alpha_j</span> being the reciprocal roots of the characteristic polynomial. For the process to be stable (and consequently stationary), <span class="math inline">|\alpha_j| &lt; 1</span> for all <span class="math inline">j = 1, \ldots, p</span>.</p>
 <section id="sec-arp-state-space-representation" class="level3" data-number="93.7.2">
-<h3 data-number="93.7.2" class="anchored" data-anchor-id="sec-arp-state-space-representation"><span class="header-section-number">93.7.2</span> AR(p): State-space representation</h3>
-<p>An AR(p) can also be represented using the following state-space or dynamic linear (DLM) model representation:</p>
+<h3 data-number="93.7.2" class="anchored" data-anchor-id="sec-arp-state-space-representation"><span class="header-section-number">93.7.2</span> AR(<span class="math inline">p</span>): State-space representation</h3>
+<p>An AR(<span class="math inline">p</span>) can also be represented using the following state-space or dynamic linear (DLM) model representation:</p>
 <p><span id="eq-ar-p-state-space-y"><span class="math display">
 y_t = F^{\top} x_t,
 \tag{93.16}</span></span></p>
@@ -2191,8 +2189,8 @@ f_t(h) = \sum_{j=1}^{p} c_{tj} \alpha_j^h.
 </span></p>
 </section>
 <section id="sec-arp-acf" class="level3" data-number="93.7.3">
-<h3 data-number="93.7.3" class="anchored" data-anchor-id="sec-arp-acf"><span class="header-section-number">93.7.3</span> ACF of AR(p)</h3>
-<p>For a general AR(p), the ACF is given in terms of the homogeneous difference equation:</p>
+<h3 data-number="93.7.3" class="anchored" data-anchor-id="sec-arp-acf"><span class="header-section-number">93.7.3</span> ACF of AR(<span class="math inline">p</span>)</h3>
+<p>For a general AR(<span class="math inline">p</span>), the ACF is given in terms of the homogeneous difference equation:</p>
 <p><span class="math display">
 \rho(h) - \phi_1 \rho(h-1) - \ldots - \phi_p \rho(h-p) = 0, \quad h &gt; 0.
 </span></p>
@@ -2218,10 +2216,10 @@ f_t(h) = \sum_{j=1}^{p} c_{tj} \alpha_j^h.
 </span></p>
 </section>
 <section id="sec-arp-pacf" class="level3" data-number="93.7.6">
-<h3 data-number="93.7.6" class="anchored" data-anchor-id="sec-arp-pacf"><span class="header-section-number">93.7.6</span> PACF of AR(p)</h3>
-<p> We can use the <strong>Durbin-Levinson recursion</strong> to obtain the PACF of an AR(p). c.f. <a href="A13.html#sec-durbin-levinson" class="quarto-xref"><span>Section K.1</span></a>.</p>
+<h3 data-number="93.7.6" class="anchored" data-anchor-id="sec-arp-pacf"><span class="header-section-number">93.7.6</span> PACF of AR(<span class="math inline">p</span>)</h3>
+<p> We can use the <strong>Durbin-Levinson recursion</strong> to obtain the PACF of an AR(<span class="math inline">p</span>). c.f. <a href="A13.html#sec-durbin-levinson" class="quarto-xref"><span>Section K.1</span></a>.</p>
 <p>Using the same representation but substituting the true <strong>autocovariances</strong> and <strong>autocorrelations</strong> with their sampled versions, we can also obtain the <strong>sample PACF</strong>.</p>
-<p>It is possible to show that the PACF of an AR(p) is equal to zero for <span class="math inline">h &gt; p</span>.</p>
+<p>It is possible to show that the PACF of an AR(<span class="math inline">p</span>) is equal to zero for <span class="math inline">h &gt; p</span>.</p>
 
 
 <!-- -->
@@ -2773,9 +2771,9 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2024-11-04</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "The AR(p) process"</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "The AR($p$) process"</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> Time Series Analysis</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "The AR(P) process, its state-space representation, the characteristic polynomial, and the forecast function"</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "The AR($p$) process, its state-space representation, the characteristic polynomial, and the forecast function"</span></span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> </span></span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - Bayesian Statistics</span></span>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - Time Series</span></span>
@@ -2794,7 +2792,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="co">  - ARMA process</span></span>
 <span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="co">  - ARIMA</span></span>
 <span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="co">  - moving average</span></span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="co">  - AR(p) process  </span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="co">  - AR($p$) process  </span></span>
 <span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="co">  - R code</span></span>
 <span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="co">  - notes</span></span>
 <span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="co">  - Coursera </span></span>
@@ -2804,35 +2802,35 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="fu">## Learning Objectives</span></span>
 <span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[x]</span>  Define an **AR(p)**, or [autoregressive process of order p]{.mark} and use **R** to obtain samples from such process</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[x]</span>  Define an **AR($p$)**, or [autoregressive process of order p]{.mark} and use **R** to obtain samples from such process</span>
 <span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[x]</span> Define ARIMA (autoregressive moving average) models (honors)</span>
-<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[x]</span> Perform posterior inference for the AR(p) under the conditional likelihood and the reference prior</span>
-<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[x]</span>   Perform a full data analysis in R using an AR(p) including</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[x]</span> Perform posterior inference for the AR($p$) under the conditional likelihood and the reference prior</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[x]</span>   Perform a full data analysis in R using an AR($p$) including</span>
 <span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>likelihood estimation,</span>
 <span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Bayesian inference,</span>
 <span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>model order selection,</span>
 <span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>forecasting.</span>
-<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[x]</span>  Explain the relationship between the *AR characteristic polynomial*, *the forecast function*, *the ACF* and *the spectral density* in the case of an AR(p)</span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[x]</span>  Explain the relationship between the *AR characteristic polynomial*, *the forecast function*, *the ACF* and *the spectral density* in the case of an AR($p$)</span>
 <span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a><span class="fu">## AR(p) Definition and State-space Representation  :movie_camera:  {#sec-arp-defn-state-space-rep}</span></span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a><span class="fu">## AR($p$) Definition and State-space Representation  :movie_camera:  {#sec-arp-defn-state-space-rep}</span></span>
 <span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a><span class="al">![AR(p) process, characteristic polynomial, stability, stationarity and MA representation ](images/m2_0001.png)</span>{#fig-ar-p-state-space-representation .column-margin  group="slides" width="53mm"}</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a><span class="al">![AR($p$) process, characteristic polynomial, stability, stationarity and MA representation ](images/m2_0001.png)</span>{#fig-ar-p-state-space-representation .column-margin  group="slides" width="53mm"}</span>
 <span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>The under tildes used in the slides denote a vector or a matrix rather than a statistical property. They are usually denoted via bold fonts and not by under tildes which have other meanings too so for the sake of clarity I have replaced them with bold font in the outline. I provide detailed derivation in this section but there is a shorter outline in @sec-arp-review which may be easier to review once you know the derivations.</span>
 <span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>In this segment we will see two important representations of the **AR(p)** process. </span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>In this segment we will see two important representations of the **AR($p$)** process. </span>
 <span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>You can follow along in <span class="co">[</span><span class="ot">@prado2000bayesian ch. 2</span><span class="co">]</span></span>
 <span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR(p) definition {#sec-arp-definition}</span></span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR($p$) definition {#sec-arp-definition}</span></span>
 <span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**AR(p)**, shorthand, for *Auto Regressive Process of order p* which generalizes the **AR(1)** process by defining the current time step in terms of the previous $p$ time steps. We denote the number of parameter required to characterize the current value as $p$, and call it the **order** of the autoregressive process. The order tells us how many *lags* we will be considering.</span><span class="co">]</span>{.mark}. </span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**AR($p$)**, shorthand, for *Auto Regressive Process of order p* which generalizes the **AR(1)** process by defining the current time step in terms of the previous $p$ time steps. We denote the number of parameter required to characterize the current value as $p$, and call it the **order** of the autoregressive process. The order tells us how many *lags* we will be considering.</span><span class="co">]</span>{.mark}. </span>
 <span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**order p**</span><span class="co">]</span>{.column-margin}</span>
-<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>Therefore the **AR(1)** process as a special case of the more general **AR(p)** process with $p=1$.</span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>Therefore the **AR(1)** process as a special case of the more general **AR($p$)** process with $p=1$.</span>
 <span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**AR(P)**</span><span class="co">]</span>{.column-margin}</span>
-<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>We will assume AR(P) has the following structure:</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">**AR($p$)**</span><span class="co">]</span>{.column-margin}</span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>We will assume AR($p$) has the following structure:</span>
 <span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>\textcolor{red}{y_t} = \textcolor{blue}{\phi_1} \textcolor{red}{y_{t-1}} + \textcolor{blue}{\phi_2} \textcolor{red}{y_{t-2}} + \ldots + \textcolor{blue}{\phi_p} \textcolor{red}{y_{t-p}} + \textcolor{grey}{\varepsilon_t}, \qquad \textcolor{grey}{\varepsilon_t} \overset{\text{iid}}{\sim} \mathcal{N}(0,v) \quad \forall t</span>
@@ -2845,9 +2843,9 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$\textcolor{grey}{\varepsilon_t} \overset{\text{iid}}{\sim} \mathcal{N}(0,v) \quad \forall t$  is a **white noise process** with zero mean and constant variance $v$.</span>
 <span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR(p) Characteristic Polynomial {#sec-arp-characteristic-polynomial}</span></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR($p$) Characteristic Polynomial {#sec-arp-characteristic-polynomial}</span></span>
 <span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a>A central outcome of the autoregressive nature of the  **AR(p)** is due to the properties the AR characteristic polynomial $\Phi$. <span class="co">[</span><span class="ot">$\Phi$ AR characteristic polynomial</span><span class="co">]</span>{.column-margin} This is defined as : </span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a>A central outcome of the autoregressive nature of the  **AR($p$)** is due to the properties the AR characteristic polynomial $\Phi$. <span class="co">[</span><span class="ot">$\Phi$ AR characteristic polynomial</span><span class="co">]</span>{.column-margin} This is defined as : </span>
 <span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a>recall the backshift operator $B$ is defined as:</span>
 <span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a></span>
@@ -2861,10 +2859,10 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a>\operatorname{B}^j y_t = y_{t-j}</span>
 <span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a>$$ </span>
 <span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a>We now use the backshift operator to rewrite the **AR(p)** as a inhomogeneous linear difference equation:</span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a>We now use the backshift operator to rewrite the **AR($p$)** as a inhomogeneous linear difference equation:</span>
 <span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a>       y_t &amp;= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \varepsilon_t  &amp;&amp; \text{(Ar(p) defn.)} \newline</span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a>       y_t &amp;= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \varepsilon_t  &amp;&amp; \text{(AR($p$) defn.)} \newline</span>
 <span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a>       y_t &amp;= \phi_1 \operatorname{B} y_t + \phi_2 \operatorname{B}^2 y_t + \ldots + \phi_p \operatorname{B}^p y_t + \varepsilon_t &amp;&amp; \text{(B defn.)} \newline</span>
 <span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a>\varepsilon_t &amp;= y_t - \phi_1 \operatorname{B} y_t - \phi_2 \operatorname{B}^2 y_t - \ldots - \phi_p \operatorname{B}^p y_t    &amp;&amp; \text{(rearranging)} \newline</span>
 <span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a>\varepsilon_t  &amp;= (1- \phi_1 \operatorname{B} - \phi_2 \operatorname{B}^2 - \ldots - \phi_p \operatorname{B}^p) y_t            &amp;&amp; \text{(factoring out $y_t$)}</span>
@@ -2913,7 +2911,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a>Note: that the above derivation wasn't presented in the slides but is my own attempt to clarify the steps involved I hope it is helpful not 100% sure it is correct.</span>
 <span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">This polynomial and its roots tells us a lot about the process and its properties. One of the main characteristics is it allows us to think about things like **quasi-periodic behavior**, whether it's present or not in a particular **AR(p)** process. </span><span class="co">]</span>{.mark}</span>
+<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">This polynomial and its roots tells us a lot about the process and its properties. One of the main characteristics is it allows us to think about things like **quasi-periodic behavior**, whether it's present or not in a particular **AR($p$)** process. </span><span class="co">]</span>{.mark}</span>
 <span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>It allows us to think about whether a process is **stationary or not**, depending on some properties related to this polynomial. </span>
 <span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In particular, we are going to say that the process is **stable** if all the roots of the characteristic polynomial have a modulus greater than one. <span class="co">[</span><span class="ot">stability condition</span><span class="co">]</span>{.column-margin}</span>
 <span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a></span>
@@ -2930,7 +2928,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-157"><a href="#cb12-157" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-158"><a href="#cb12-158" aria-hidden="true" tabindex="-1"></a>We can show this as follows:</span>
 <span id="cb12-159"><a href="#cb12-159" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-160"><a href="#cb12-160" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">If the AR(p) has all the roots of its characteristic polynomial outside the unit circle, it is *stable* and *stationary* and can be written in terms of an infinite order *moving average* process:</span><span class="co">]</span>{.mark}</span>
+<span id="cb12-160"><a href="#cb12-160" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">If the AR($p$) has all the roots of its characteristic polynomial outside the unit circle, it is *stable* and *stationary* and can be written in terms of an infinite order *moving average* process:</span><span class="co">]</span>{.mark}</span>
 <span id="cb12-161"><a href="#cb12-161" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-162"><a href="#cb12-162" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-163"><a href="#cb12-163" aria-hidden="true" tabindex="-1"></a>$$</span>
@@ -2957,7 +2955,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-184"><a href="#cb12-184" aria-hidden="true" tabindex="-1"></a>We can also rewrite the characteristic polynomial in terms of the reciprocal roots of the polynomial.</span>
 <span id="cb12-185"><a href="#cb12-185" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-186"><a href="#cb12-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-187"><a href="#cb12-187" aria-hidden="true" tabindex="-1"></a>The zeros of the characteristic polynomial are the roots of the **AR(p)** process.</span>
+<span id="cb12-187"><a href="#cb12-187" aria-hidden="true" tabindex="-1"></a>The zeros of the characteristic polynomial are the roots of the **AR($p$)** process.</span>
 <span id="cb12-188"><a href="#cb12-188" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-189"><a href="#cb12-189" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb12-190"><a href="#cb12-190" aria-hidden="true" tabindex="-1"></a>\Phi(u) = \prod_{j=1}^{p} (1 - \alpha_j u) = 0  \implies u = \frac{1}{ \alpha_j} \qquad \text{(reciprocal roots)}</span>
@@ -2977,13 +2975,13 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-204"><a href="#cb12-204" aria-hidden="true" tabindex="-1"></a><span class="co"> --&gt;</span></span>
 <span id="cb12-205"><a href="#cb12-205" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-206"><a href="#cb12-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-207"><a href="#cb12-207" aria-hidden="true" tabindex="-1"></a><span class="fu">### State Space Representation of AR(p) {#sec-state-space-ar-p}</span></span>
+<span id="cb12-207"><a href="#cb12-207" aria-hidden="true" tabindex="-1"></a><span class="fu">### State Space Representation of AR($p$) {#sec-state-space-ar-p}</span></span>
 <span id="cb12-208"><a href="#cb12-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-209"><a href="#cb12-209" aria-hidden="true" tabindex="-1"></a><span class="al">![A state space representation of Ar(p)](images/m2_0002.png)</span>{#fig-ar-p-state-space .column-margin  group="slides" width="53mm"}</span>
+<span id="cb12-209"><a href="#cb12-209" aria-hidden="true" tabindex="-1"></a><span class="al">![A state space representation of AR($p$)](images/m2_0002.png)</span>{#fig-ar-p-state-space .column-margin  group="slides" width="53mm"}</span>
 <span id="cb12-210"><a href="#cb12-210" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-211"><a href="#cb12-211" aria-hidden="true" tabindex="-1"></a>This material is covered in <span class="co">[</span><span class="ot">@prado2000bayesian § 2.1.2</span><span class="co">]</span></span>
 <span id="cb12-212"><a href="#cb12-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-213"><a href="#cb12-213" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Another important representation of the AR(P) process, is based on a state-space representation of the process. This representation is useful because it allows us to study some important properties of the process.</span><span class="co">]</span>{.mark} We will make some connections with these representations later when we talk about dynamic linear models, is given as follows for an AR(P). </span>
+<span id="cb12-213"><a href="#cb12-213" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Another important representation of the AR($p$) process, is based on a state-space representation of the process. This representation is useful because it allows us to study some important properties of the process.</span><span class="co">]</span>{.mark} We will make some connections with these representations later when we talk about dynamic linear models, is given as follows for an AR($p$). </span>
 <span id="cb12-214"><a href="#cb12-214" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-215"><a href="#cb12-215" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-216"><a href="#cb12-216" aria-hidden="true" tabindex="-1"></a>$$</span>
@@ -2992,7 +2990,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-219"><a href="#cb12-219" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-220"><a href="#cb12-220" aria-hidden="true" tabindex="-1"></a>where:</span>
 <span id="cb12-221"><a href="#cb12-221" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-222"><a href="#cb12-222" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\operatorname{F}$ is a linear mapping from the state space into the state space, so it is just  vector of coefficients, specifically $F = (1, 0, \ldots, 0)^\top$ for the AR(P) process. The rank for this operator is $p$ since it has to match the dimension of the state vector $\mathbf{x}_t$.</span>
+<span id="cb12-222"><a href="#cb12-222" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\operatorname{F}$ is a linear mapping from the state space into the state space, so it is just  vector of coefficients, specifically $F = (1, 0, \ldots, 0)^\top$ for the AR($p$) process. The rank for this operator is $p$ since it has to match the dimension of the state vector $\mathbf{x}_t$.</span>
 <span id="cb12-223"><a href="#cb12-223" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{x}_t$ is a vector with the state of the process at time $t$.</span>
 <span id="cb12-224"><a href="#cb12-224" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-225"><a href="#cb12-225" aria-hidden="true" tabindex="-1"></a>To demystify $\operatorname{F}$, it is just picking the current state from vector $\mathbf{x}_t$ with states for the p previous time steps.</span>
@@ -3008,7 +3006,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-235"><a href="#cb12-235" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{x}_{t-1}$ is a vector of the previous state of the process.</span>
 <span id="cb12-236"><a href="#cb12-236" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{w}_t$ is a vector of *innovations* or noise at time $t$, which is assumed to be normally distributed with zero mean and constant variance. The first component is going to be the $\varepsilon_t$ and the rest of the components are going to be zero and the dimension of this vector is going to be $p$.</span>
 <span id="cb12-237"><a href="#cb12-237" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-238"><a href="#cb12-238" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!state transition matrix}</span>
+<span id="cb12-238"><a href="#cb12-238" aria-hidden="true" tabindex="-1"></a>\index{AR($p$)!state transition matrix}</span>
 <span id="cb12-239"><a href="#cb12-239" aria-hidden="true" tabindex="-1"></a>and state transition matrix G</span>
 <span id="cb12-240"><a href="#cb12-240" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-241"><a href="#cb12-241" aria-hidden="true" tabindex="-1"></a>The $G$ matrix in this representation is going to be a very important matrix, the first row is going to contain the AR parameters, the AR coefficients, and we have $p$ of those. In the block below this is an identity matrix, and a zero column on it's right.</span>
@@ -3031,11 +3029,11 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-258"><a href="#cb12-258" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-259"><a href="#cb12-259" aria-hidden="true" tabindex="-1"></a>Prado points out that if you perform the matrix operations described in @eq-state-space-observational-equation and @eq-state-space-state-equation, you will recover the form of your autoregressive process from the definition in @eq-ar-p-annotated .</span>
 <span id="cb12-260"><a href="#cb12-260" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-261"><a href="#cb12-261" aria-hidden="true" tabindex="-1"></a>So we have given the state-space representation of an AR(p). One advantage of working with this representation is that we can use with it some definitions that apply to dynamic linear models or state-space models. One such definition is the so-called forecast function.</span>
+<span id="cb12-261"><a href="#cb12-261" aria-hidden="true" tabindex="-1"></a>So we have given the state-space representation of an AR($p$). One advantage of working with this representation is that we can use with it some definitions that apply to dynamic linear models or state-space models. One such definition is the so-called forecast function.</span>
 <span id="cb12-262"><a href="#cb12-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-263"><a href="#cb12-263" aria-hidden="true" tabindex="-1"></a><span class="fu">### The forecast function of $AR(p)$ {#sec-forecast-function-ar-p}</span></span>
+<span id="cb12-263"><a href="#cb12-263" aria-hidden="true" tabindex="-1"></a><span class="fu">### The forecast function of AR($p$) {#sec-forecast-function-ar-p}</span></span>
 <span id="cb12-264"><a href="#cb12-264" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-265"><a href="#cb12-265" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!forecast function}</span>
+<span id="cb12-265"><a href="#cb12-265" aria-hidden="true" tabindex="-1"></a>\index{AR($p$)!forecast function}</span>
 <span id="cb12-266"><a href="#cb12-266" aria-hidden="true" tabindex="-1"></a>The forecast function, which we denote as $f_t(h)$ is a function $f$ that depends on the time $t$ that you're considering, and then you're looking at forecasting $h$ steps ahead in your time series. </span>
 <span id="cb12-267"><a href="#cb12-267" aria-hidden="true" tabindex="-1"></a>If you have observations up to today and you want to look at what is the forecast function five days later, we will set $h=5$ there. The forecast function is just the expected value and we can just think of this as the expected value of $y_{t+h}.$ conditional on all the observations or all the information you have received up to time $t$. </span>
 <span id="cb12-268"><a href="#cb12-268" aria-hidden="true" tabindex="-1"></a></span>
@@ -3053,7 +3051,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-280"><a href="#cb12-280" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-281"><a href="#cb12-281" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$y_{1:t}$ is the vector of all observations up to time $t$, </span>
 <span id="cb12-282"><a href="#cb12-282" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{x}_t$ is the state vector at time $t$.</span>
-<span id="cb12-283"><a href="#cb12-283" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{G}^h$ is the state transition matrix raised to the power $h$, which captures the dynamics of the AR process over $h$ steps ahead. The eigenvalues of this matrix are the reciprocal roots of the characteristic polynomial of the AR(p) process.</span>
+<span id="cb12-283"><a href="#cb12-283" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{G}^h$ is the state transition matrix raised to the power $h$, which captures the dynamics of the AR process over $h$ steps ahead. The eigenvalues of this matrix are the reciprocal roots of the characteristic polynomial of the AR($p$) process.</span>
 <span id="cb12-284"><a href="#cb12-284" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-285"><a href="#cb12-285" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In this derivation:</span>
 <span id="cb12-286"><a href="#cb12-286" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>We start with the expectation and rewrite it expectation using the state-space representation equations:</span>
@@ -3110,16 +3108,16 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-337"><a href="#cb12-337" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$c_t$ are constants that depend on the $E$ matrix.</span>
 <span id="cb12-338"><a href="#cb12-338" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\alpha_i^h$ are the reciprocal roots raised to the power $h$.</span>
 <span id="cb12-339"><a href="#cb12-339" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-340"><a href="#cb12-340" aria-hidden="true" tabindex="-1"></a>We can see from the form of @eq-ar-p-forecast-function that if the process is stable, i.e. all the  all the moduli of my reciprocal roots are going to be below one. So it is going to decay exponentially as a function of h. And this AR(p) process is going to be stationary.</span>
+<span id="cb12-340"><a href="#cb12-340" aria-hidden="true" tabindex="-1"></a>We can see from the form of @eq-ar-p-forecast-function that if the process is stable, i.e. all the  all the moduli of my reciprocal roots are going to be below one. So it is going to decay exponentially as a function of h. And this AR($p$) process is going to be stationary.</span>
 <span id="cb12-341"><a href="#cb12-341" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-342"><a href="#cb12-342" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
 <span id="cb12-343"><a href="#cb12-343" aria-hidden="true" tabindex="-1"></a><span class="fu">### Interpreting the forecast function {.unnumbered}</span></span>
-<span id="cb12-344"><a href="#cb12-344" aria-hidden="true" tabindex="-1"></a>I recall that in physics we often view the eigenvectors as resonances of the system's dynamics, and the eigenvalues as the corresponding resonant frequencies. This is a good analogy to think about the reciprocal roots of the AR(p) process. The contribution of each of the roots $\alpha_i$ to $f(t)$ depends on how close that modulus of that reciprocal root is to 1 or -1. For roots that have relatively large values of the modulus, then they are going to have more contribution in terms of what's going to happen in the future.</span>
+<span id="cb12-344"><a href="#cb12-344" aria-hidden="true" tabindex="-1"></a>I recall that in physics we often view the eigenvectors as resonances of the system's dynamics, and the eigenvalues as the corresponding resonant frequencies. This is a good analogy to think about the reciprocal roots of the AR($p$) process. The contribution of each of the roots $\alpha_i$ to $f(t)$ depends on how close that modulus of that reciprocal root is to 1 or -1. For roots that have relatively large values of the modulus, then they are going to have more contribution in terms of what's going to happen in the future.</span>
 <span id="cb12-345"><a href="#cb12-345" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-346"><a href="#cb12-346" aria-hidden="true" tabindex="-1"></a>Depending on whether those reciprocal roots $\alpha_i$ are real-valued or complex-valued, you're going to have behavior here that may be quasiperiodic for complex-valued roots or just non-quasiperiodic for the real valued roots. </span>
 <span id="cb12-347"><a href="#cb12-347" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb12-348"><a href="#cb12-348" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-349"><a href="#cb12-349" aria-hidden="true" tabindex="-1"></a>In the text book AR(p) forecasting is covered in <span class="co">[</span><span class="ot">@prado2000bayesian § 2.2</span><span class="co">]</span> and the mean square errors can be estimated using an algorithm by <span class="co">[</span><span class="ot">@brockwell1991time</span><span class="co">]</span>.</span>
+<span id="cb12-349"><a href="#cb12-349" aria-hidden="true" tabindex="-1"></a>In the text book AR($p$) forecasting is covered in <span class="co">[</span><span class="ot">@prado2000bayesian § 2.2</span><span class="co">]</span> and the mean square errors can be estimated using an algorithm by <span class="co">[</span><span class="ot">@brockwell1991time</span><span class="co">]</span>.</span>
 <span id="cb12-350"><a href="#cb12-350" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-351"><a href="#cb12-351" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-352"><a href="#cb12-352" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- </span><span class="al">TODO</span><span class="co">: summarize this transcript --&gt;</span></span>
@@ -3208,13 +3206,13 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-435"><a href="#cb12-435" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-436"><a href="#cb12-436" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb12-437"><a href="#cb12-437" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-438"><a href="#cb12-438" aria-hidden="true" tabindex="-1"></a><span class="fu">## ACF of the AR(p)  :movie_camera: </span></span>
+<span id="cb12-438"><a href="#cb12-438" aria-hidden="true" tabindex="-1"></a><span class="fu">## ACF of the AR($p$)  :movie_camera: </span></span>
 <span id="cb12-439"><a href="#cb12-439" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-440"><a href="#cb12-440" aria-hidden="true" tabindex="-1"></a><span class="al">![ACF of the AR(p)](images/m2_0021.png)</span>{#fig-acf-ar-p .column-margin  group="slides" width="53mm"}</span>
+<span id="cb12-440"><a href="#cb12-440" aria-hidden="true" tabindex="-1"></a><span class="al">![ACF of the AR($p$)](images/m2_0021.png)</span>{#fig-acf-ar-p .column-margin  group="slides" width="53mm"}</span>
 <span id="cb12-441"><a href="#cb12-441" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-442"><a href="#cb12-442" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-443"><a href="#cb12-443" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-444"><a href="#cb12-444" aria-hidden="true" tabindex="-1"></a>For a **stationary AR(p)** process, the **autocorrelation function (ACF)** satisfies a homogeneous linear difference equation whose solution is a sum of terms involving the **reciprocal roots** of the characteristic polynomial. Key points:</span>
+<span id="cb12-444"><a href="#cb12-444" aria-hidden="true" tabindex="-1"></a>For a **stationary AR($p$)** process, the **autocorrelation function (ACF)** satisfies a homogeneous linear difference equation whose solution is a sum of terms involving the **reciprocal roots** of the characteristic polynomial. Key points:</span>
 <span id="cb12-445"><a href="#cb12-445" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-446"><a href="#cb12-446" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>If there are $r$ distinct reciprocal roots $\alpha_1, \ldots, \alpha_r$ with multiplicities $m_1, \ldots, m_r$ such that $\sum m_j = p$, the ACF has the general form:</span>
 <span id="cb12-447"><a href="#cb12-447" aria-hidden="true" tabindex="-1"></a></span>
@@ -3236,7 +3234,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-463"><a href="#cb12-463" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-464"><a href="#cb12-464" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>ACF decays **exponentially** if all reciprocal roots lie inside the unit circle.</span>
 <span id="cb12-465"><a href="#cb12-465" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-466"><a href="#cb12-466" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>The **Partial ACF (PACF)** of AR(p) is **zero for all lags &gt; p**.</span>
+<span id="cb12-466"><a href="#cb12-466" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>The **Partial ACF (PACF)** of AR($p$) is **zero for all lags &gt; p**.</span>
 <span id="cb12-467"><a href="#cb12-467" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-468"><a href="#cb12-468" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>PACF values can be computed recursively via the **Durbin–Levinson algorithm**, using sample autocorrelations.</span>
 <span id="cb12-469"><a href="#cb12-469" aria-hidden="true" tabindex="-1"></a></span>
@@ -3250,9 +3248,9 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-477"><a href="#cb12-477" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-478"><a href="#cb12-478" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb12-479"><a href="#cb12-479" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-480"><a href="#cb12-480" aria-hidden="true" tabindex="-1"></a><span class="fu">## Simulating data from an AR(p)  :movie_camera: </span></span>
+<span id="cb12-480"><a href="#cb12-480" aria-hidden="true" tabindex="-1"></a><span class="fu">## Simulating data from an AR($p$)  :movie_camera: </span></span>
 <span id="cb12-481"><a href="#cb12-481" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-482"><a href="#cb12-482" aria-hidden="true" tabindex="-1"></a>This video goes through the code in the following sections, which simulates data from an AR(p) process and plots the sample ACF and PACF.</span>
+<span id="cb12-482"><a href="#cb12-482" aria-hidden="true" tabindex="-1"></a>This video goes through the code in the following sections, which simulates data from an AR($p$) process and plots the sample ACF and PACF.</span>
 <span id="cb12-483"><a href="#cb12-483" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-484"><a href="#cb12-484" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-485"><a href="#cb12-485" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Characteristic Roots from AR Coefficients**:</span>
@@ -3325,9 +3323,9 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-554"><a href="#cb12-554" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb12-555"><a href="#cb12-555" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-556"><a href="#cb12-556" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-557"><a href="#cb12-557" aria-hidden="true" tabindex="-1"></a><span class="fu">## Simulating data from an AR(p) :spiral_notepad: $\mathcal{R}$</span></span>
+<span id="cb12-557"><a href="#cb12-557" aria-hidden="true" tabindex="-1"></a><span class="fu">## Simulating data from an AR($p$) :spiral_notepad: $\mathcal{R}$</span></span>
 <span id="cb12-558"><a href="#cb12-558" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-559"><a href="#cb12-559" aria-hidden="true" tabindex="-1"></a>\index{AR(p)}</span>
+<span id="cb12-559"><a href="#cb12-559" aria-hidden="true" tabindex="-1"></a>\index{AR($p$)}</span>
 <span id="cb12-560"><a href="#cb12-560" aria-hidden="true" tabindex="-1"></a>\index{ARIMA}</span>
 <span id="cb12-561"><a href="#cb12-561" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-562"><a href="#cb12-562" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>R code to simulate data from an AR(2) with one pair of complex-valued reciprocal roots and plot the corresponding sample ACF and sample PACF</span>
@@ -3413,17 +3411,17 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-648"><a href="#cb12-648" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-649"><a href="#cb12-649" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb12-650"><a href="#cb12-650" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-651"><a href="#cb12-651" aria-hidden="true" tabindex="-1"></a><span class="fu">## The $AR(p)$: Review  :spiral_notepad:  {#sec-arp-review}</span></span>
+<span id="cb12-651"><a href="#cb12-651" aria-hidden="true" tabindex="-1"></a><span class="fu">## The AR($p$): Review  :spiral_notepad:  {#sec-arp-review}</span></span>
 <span id="cb12-652"><a href="#cb12-652" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-653"><a href="#cb12-653" aria-hidden="true" tabindex="-1"></a>This section is based on material from the <span class="co">[</span><span class="ot">handout</span><span class="co">](handouts/c4-arp_summary.pdf)</span> but we also covered it in greater detail at the beginning of the lecture.</span>
 <span id="cb12-654"><a href="#cb12-654" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-655"><a href="#cb12-655" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR(p): Definition, stability, and stationarity {#sec-arp-definition-stability-stationarity}</span></span>
+<span id="cb12-655"><a href="#cb12-655" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR($p$): Definition, stability, and stationarity {#sec-arp-definition-stability-stationarity}</span></span>
 <span id="cb12-656"><a href="#cb12-656" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-657"><a href="#cb12-657" aria-hidden="true" tabindex="-1"></a>::: {.callout-info}</span>
 <span id="cb12-658"><a href="#cb12-658" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-659"><a href="#cb12-659" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR(p) {.unnumbered}</span></span>
+<span id="cb12-659"><a href="#cb12-659" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR($p$) {.unnumbered}</span></span>
 <span id="cb12-660"><a href="#cb12-660" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-661"><a href="#cb12-661" aria-hidden="true" tabindex="-1"></a>A time series follows a zero-mean autoregressive process of order $p$, of AR(p), if:</span>
+<span id="cb12-661"><a href="#cb12-661" aria-hidden="true" tabindex="-1"></a>A time series follows a zero-mean autoregressive process of order $p$, of AR($p$), if:</span>
 <span id="cb12-662"><a href="#cb12-662" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-663"><a href="#cb12-663" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb12-664"><a href="#cb12-664" aria-hidden="true" tabindex="-1"></a>y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \ldots + \phi_p y_{t-p} + \varepsilon_t \qquad</span>
@@ -3443,7 +3441,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-678"><a href="#cb12-678" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-679"><a href="#cb12-679" aria-hidden="true" tabindex="-1"></a>with $u$ complex-valued.</span>
 <span id="cb12-680"><a href="#cb12-680" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-681"><a href="#cb12-681" aria-hidden="true" tabindex="-1"></a>The AR(p) process is stable if $\phi(u) = 0$ only when $<span class="sc">\|</span>u<span class="sc">\|</span> &gt; 1$. In this case, the process is also stationary and can be written as</span>
+<span id="cb12-681"><a href="#cb12-681" aria-hidden="true" tabindex="-1"></a>The AR($p$) process is stable if $\phi(u) = 0$ only when $<span class="sc">\|</span>u<span class="sc">\|</span> &gt; 1$. In this case, the process is also stationary and can be written as</span>
 <span id="cb12-682"><a href="#cb12-682" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-683"><a href="#cb12-683" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb12-684"><a href="#cb12-684" aria-hidden="true" tabindex="-1"></a>y_t = \psi(B) \varepsilon_t = \sum_{j=0}^{\infty} \psi_j \varepsilon_{t-j},</span>
@@ -3463,9 +3461,9 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-698"><a href="#cb12-698" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-699"><a href="#cb12-699" aria-hidden="true" tabindex="-1"></a>with $\alpha_j$ being the reciprocal roots of the characteristic polynomial. For the process to be stable (and consequently stationary), $|\alpha_j| &lt; 1$ for all $j = 1, \ldots, p$.</span>
 <span id="cb12-700"><a href="#cb12-700" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-701"><a href="#cb12-701" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR(p): State-space representation {#sec-arp-state-space-representation}</span></span>
+<span id="cb12-701"><a href="#cb12-701" aria-hidden="true" tabindex="-1"></a><span class="fu">### AR($p$): State-space representation {#sec-arp-state-space-representation}</span></span>
 <span id="cb12-702"><a href="#cb12-702" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-703"><a href="#cb12-703" aria-hidden="true" tabindex="-1"></a>An AR(p) can also be represented using the following state-space or dynamic linear (DLM) model representation:</span>
+<span id="cb12-703"><a href="#cb12-703" aria-hidden="true" tabindex="-1"></a>An AR($p$) can also be represented using the following state-space or dynamic linear (DLM) model representation:</span>
 <span id="cb12-704"><a href="#cb12-704" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-705"><a href="#cb12-705" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb12-706"><a href="#cb12-706" aria-hidden="true" tabindex="-1"></a>y_t = F^{\top} x_t,</span>
@@ -3491,7 +3489,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-726"><a href="#cb12-726" aria-hidden="true" tabindex="-1"></a>\omega_t = (\varepsilon_t, 0, \dots, 0)^{\top}</span>
 <span id="cb12-727"><a href="#cb12-727" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar-p-state-space-omega-vector}</span>
 <span id="cb12-728"><a href="#cb12-728" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-729"><a href="#cb12-729" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!state transition matrix}</span>
+<span id="cb12-729"><a href="#cb12-729" aria-hidden="true" tabindex="-1"></a>\index{AR($p$)!state transition matrix}</span>
 <span id="cb12-730"><a href="#cb12-730" aria-hidden="true" tabindex="-1"></a>and state transition matrix G</span>
 <span id="cb12-731"><a href="#cb12-731" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-732"><a href="#cb12-732" aria-hidden="true" tabindex="-1"></a>$$</span>
@@ -3504,7 +3502,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-739"><a href="#cb12-739" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}.</span>
 <span id="cb12-740"><a href="#cb12-740" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ar-p-state-space-g-matrix}</span>
 <span id="cb12-741"><a href="#cb12-741" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-742"><a href="#cb12-742" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!forecast function}</span>
+<span id="cb12-742"><a href="#cb12-742" aria-hidden="true" tabindex="-1"></a>\index{AR($p$)!forecast function}</span>
 <span id="cb12-743"><a href="#cb12-743" aria-hidden="true" tabindex="-1"></a>Using this representation, the expected behavior of the process in the future can be exhibited via the forecast function:</span>
 <span id="cb12-744"><a href="#cb12-744" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-745"><a href="#cb12-745" aria-hidden="true" tabindex="-1"></a>$$</span>
@@ -3533,9 +3531,9 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-768"><a href="#cb12-768" aria-hidden="true" tabindex="-1"></a>f_t(h) = \sum_{j=1}^{p} c_{tj} \alpha_j^h.</span>
 <span id="cb12-769"><a href="#cb12-769" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb12-770"><a href="#cb12-770" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-771"><a href="#cb12-771" aria-hidden="true" tabindex="-1"></a><span class="fu">### ACF of AR(p) {#sec-arp-acf}</span></span>
+<span id="cb12-771"><a href="#cb12-771" aria-hidden="true" tabindex="-1"></a><span class="fu">### ACF of AR($p$) {#sec-arp-acf}</span></span>
 <span id="cb12-772"><a href="#cb12-772" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-773"><a href="#cb12-773" aria-hidden="true" tabindex="-1"></a>For a general AR(p), the ACF is given in terms of the homogeneous difference equation:</span>
+<span id="cb12-773"><a href="#cb12-773" aria-hidden="true" tabindex="-1"></a>For a general AR($p$), the ACF is given in terms of the homogeneous difference equation:</span>
 <span id="cb12-774"><a href="#cb12-774" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-775"><a href="#cb12-775" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb12-776"><a href="#cb12-776" aria-hidden="true" tabindex="-1"></a>\rho(h) - \phi_1 \rho(h-1) - \ldots - \phi_p \rho(h-p) = 0, \quad h &gt; 0.</span>
@@ -3568,16 +3566,16 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb12-803"><a href="#cb12-803" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb12-804"><a href="#cb12-804" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-805"><a href="#cb12-805" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-806"><a href="#cb12-806" aria-hidden="true" tabindex="-1"></a><span class="fu">### PACF of AR(p) {#sec-arp-pacf}</span></span>
+<span id="cb12-806"><a href="#cb12-806" aria-hidden="true" tabindex="-1"></a><span class="fu">### PACF of AR($p$) {#sec-arp-pacf}</span></span>
 <span id="cb12-807"><a href="#cb12-807" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-808"><a href="#cb12-808" aria-hidden="true" tabindex="-1"></a>\index{PACF}</span>
-<span id="cb12-809"><a href="#cb12-809" aria-hidden="true" tabindex="-1"></a>\index{AR(p)!PACF}</span>
+<span id="cb12-809"><a href="#cb12-809" aria-hidden="true" tabindex="-1"></a>\index{AR($p$)!PACF}</span>
 <span id="cb12-810"><a href="#cb12-810" aria-hidden="true" tabindex="-1"></a>\index{Durbin-Levinson}</span>
-<span id="cb12-811"><a href="#cb12-811" aria-hidden="true" tabindex="-1"></a>We can use the **Durbin-Levinson recursion** to obtain the PACF of an AR(p). c.f. @sec-durbin-levinson.</span>
+<span id="cb12-811"><a href="#cb12-811" aria-hidden="true" tabindex="-1"></a>We can use the **Durbin-Levinson recursion** to obtain the PACF of an AR($p$). c.f. @sec-durbin-levinson.</span>
 <span id="cb12-812"><a href="#cb12-812" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-813"><a href="#cb12-813" aria-hidden="true" tabindex="-1"></a>Using the same representation but substituting the true **autocovariances** and **autocorrelations** with their sampled versions, we can also obtain the **sample PACF**.</span>
 <span id="cb12-814"><a href="#cb12-814" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-815"><a href="#cb12-815" aria-hidden="true" tabindex="-1"></a>It is possible to show that the PACF of an AR(p) is equal to zero for $h &gt; p$.</span>
+<span id="cb12-815"><a href="#cb12-815" aria-hidden="true" tabindex="-1"></a>It is possible to show that the PACF of an AR($p$) is equal to zero for $h &gt; p$.</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

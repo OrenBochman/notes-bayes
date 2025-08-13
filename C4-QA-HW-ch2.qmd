@@ -1,0 +1,808 @@
+---
+title: "Q&A from Bayesian Forecasting and Dynamic Models "
+---
+
+## Section 2.8 - Introduction to the DLM
+
+::: {.callout-tip}
+Unless stated otherwise, the exercises relate to the first-order polynomial DLM ${1, 1, V_t , W_t }$ with known variances ${V_t , W_t }$ and/or discount factor $δ$ and with $D_t = {Y_t , D_{t−1} }$:
+
+$$
+\begin{aligned}
+Y_t &= \mu_t + \nu_t     && \nu_t \sim \mathcal{N}[0, V_t ], \\
+\mu_t &= \mu_{t−1} + \omega_t && \epsilon_t \sim \mathcal{N}[0, W_t ],                        && (\mu_{t−1} \mid \mathcal{D}_{t−1} ) \sim \mathcal{N}[m_{t−1} , C_{t−1} ].
+\end{aligned}
+$$
+:::
+
+::: {#exr-ch2-ex1}
+### Simulating from a Constant DLM
+Write a computer program to graph 100 simulated observations from the DLM $\{1, 1, 1, W \}$ starting with $\mu_0 = 25$.
+Simulate several series for each value of $W = 0.05$ and 0.5. 
+
+From these simulations, become familiar with the forms of behavior such series can display.
+:::
+
+::: {#exr-ch2-ex2}
+### Posterior Updating as a Weighted Average
+
+For the DLM $\{1, 1, V_t , W_t \}$ show that:
+
+(a) the *posterior precision* of $(\mu_t \mid \mathcal{D}_t)$ is the sum of the *prior precision* of $(\mu_t \mid \mathcal{D}_{t-1})$ and the *observation precision* of $(Y_t \mid \mu_t)$, namely
+
+$$
+C_{t}^{-1} = R_{t}^{-1} + V_{t}^{-1}
+$$
+
+(b) the posterior mean of $(\mu_t \mid \mathcal{D}_t)$ is *a weighted average* of the sum of the prior mean $\mathbb{E}[\mu_t \mid \mathcal{D}_{t-1}]$ and the observation $Y_t$ with weights proportional to the precisions $R_{t}^{-1}$ and $V_{t}^{-1}$, namely
+
+$$
+m_t = C_t \left( R_{t}^{-1} m_{t-1} + V_{t}^{-1} Y_t \right)
+$$
+:::
+
+::: {#exr-ch2-ex3}
+### Recurrence Relations for Priors
+
+Consider the DLM $\{1, 1, V_t , W_t\}$ extended so that $\nu_t \sim \mathcal{N}[\bar{v}_t , V_t]$ and $\omega_t \sim \mathcal{N}[\bar{w}_t , W_t]$ may have non-zero means.  
+Obtain the recurrence relations for $\{m_t , C_t\}$
+
+(a) using Bayes' theorem
+
+(b) deriving the joint distribution $(\mu_t , Y_t \mid \mathcal{D}_{t-1})$ and using normal theory to obtain the appropriate conditional distribution.
+:::
+
+::: {#exr-ch2-ex4-static-dlm}
+### Static DLM
+
+Show that the static DLM $\{1, 1, V, 0\}$, is equivalent to the model
+
+$$
+(Y_t \mid \mu) \sim \mathcal{N}[\mu, V], \quad (\mu \mid \mathcal{D}_0) \sim \mathcal{N}[m_0, C_0].
+$$
+
+Now suppose that $C_0$ is very large relative to $V$, so that $V C_0^{-1} \approx 0$.  
+Show that
+
+(a)
+
+$$
+m_1 \approx Y_1
+$$
+
+and
+
+$$
+C_1 \approx V 
+$$
+
+and
+
+(b)
+
+$$
+m_t \approx \frac{1}{t} \sum_{j=1}^{t} Y_j
+$$
+
+and
+
+$$
+C_t \approx \frac{V}{t}.
+$$
+
+Comment on these results in relation to classical estimates.
+:::
+
+::: {#exr-ch2-ex5-constant-dlm}
+### Constant DLM
+
+For the constant DLM $\{1, 1, 100, 4\}$, if $(\mu_t \mid \mathcal{D}_t) \sim \mathcal{N}[200, 20]$, what are your forecasts of
+
+(a) $(Y_{t+4} \mid \mathcal{D}_t)$,
+
+(b) $(Y_{t+1} + Y_{t+2} \mid \mathcal{D}_t)$,
+
+(c) $(Y_{t+3} + Y_{t+4} \mid \mathcal{D}_t)$?
+:::
+
+::: {#exr-ch2-ex6-missing-observation}
+### Missing Observation
+
+Suppose that $Y_t$ is a missing observation, so that $\mathcal{D}_t = \mathcal{D}_{t-1}$. Given $(\mu_{t-1} \mid \mathcal{D}_{t-1}) \sim \mathcal{N}[m_{t-1}, C_{t-1}]$, obtain the distributions of $(\mu_t \mid \mathcal{D}_t)$ and $(Y_{t+1} \mid \mathcal{D}_t)$.  
+
+Do this for the constant DLM $\{1, 1, 100, 4\}$ when 
+$$
+(\mu_{t-1} \mid \mathcal{D}_{t-1}) \sim \mathcal{N}[200, 40]
+$$
+:::
+
+::: {#exr-ch2-ex7}
+### Coping with Outliers
+Bearing in mind the previous question, suggest a method for 
+coping with outliers and general maverick observations with 
+respect to subsequent forecasts.
+:::
+
+How would you call $\{1, 1, V_t, W_t\}$ ?
+
+
+
+::: {#exr-ch2-ex8}
+### Constant DLM with known changing observational and system variances.
+
+For the DLM $\{1, 1, V_t, W_t\}$, with $(\mu_t \mid \mathcal{D}_{t-1}) \sim \mathcal{N}[m_{t-1}, R_t]$,  
+
+(a) obtain the joint distribution of $(\nu_t, Y_t \mid \mathcal{D}_{t-1})$.  
+
+(b) Hence prove that the posterior distribution for $\nu_t$ is  
+$$
+(\nu_t \mid \mathcal{D}_t) \sim \mathcal{N}[(1 - A_t) e_t, A_t V_t].
+$$  
+
+(c) Could you have deduced (b) immediately from $(\mu_t \mid \mathcal{D}_t)$?
+:::
+
+::: {#exr-ch2-ex9}
+### Retrospective Analysis
+
+It is often of interest to perform a *retrospective analysis* [**retrospective analysis**]{.column-margin} that looks back in time to make inferences about historical levels of a time
+series based on all the current data. 
+As a simple case, consider inferences about $\mu_{t-1}$ based on $\mathcal{D}_t = \{ Y_t , \mathcal{D}_{t-1} \}$.
+
+(a) Obtain the joint distribution $(\mu_{t-1} , Y_t \mid \mathcal{D}_{t-1})$;
+
+(b) hence with $B_{t-1} = C_{t-1} / R_t$ deduce that  
+$(\mu_{t-1} \mid \mathcal{D}_t) \sim \mathcal{N}[a_t(-1), R_t(-1)]$,  
+where
+
+$$
+a_t(-1) = m_{t-1} + B_{t-1} (m_t - m_{t-1})
+$$
+
+and
+
+$$
+R_t(-1) = C_{t-1} - B_{t-1}^2 (R_t - C_t).
+$$
+
+(c) Write these equations for the discount DLM of [@west2013bayesian Section 2.4.2.]
+:::
+
+::: {#exr-ch2-ex10}
+### Missing Observation
+
+For the constant DLM $\{1, 1, V, W\}$, $(\mu_{t-1} \mid \mathcal{D}_{t-1}) \sim \mathcal{N}[m_{t-1}, C_{t-1}]$,
+suppose that the data recording procedure at times $t$ and $t+1$ is such
+that $Y_t$ and $Y_{t+1}$ cannot be separately observed, but $X = Y_t + Y_{t+1}$
+is observed at $t + 1$. Hence $\mathcal{D}_t = \mathcal{D}_{t-1}$ and $\mathcal{D}_{t+1} = \{\mathcal{D}_{t-1}, X\}$.
+
+(a) Obtain the distributions of $(X \mid \mathcal{D}_{t-1})$ and $(\mu_{t+1} \mid \mathcal{D}_{t+1})$.
+
+(b) Generalize this result to the case
+
+$$
+X = \sum_{v=0}^{k} Y_{t+v} \text{ and } \mathcal{D}_{t+k} = \{X, \mathcal{D}_{t-1}\}
+$$
+
+(c) For integers $j$ and $k$ such that $0 \le j < j + k$, find the forecast
+distribution of 
+
+$$
+\sum_{v=j}^{j+k} Y_{t+v} \text{ given } \mathcal{D}_{t-1}
+$$
+:::
+
+::: {#exr-ch2-ex11}
+### Coping with Uncertainty
+
+There is a maxim, 
+
+> “When in doubt about a parameter value, err on the side of more uncertainty.”
+
+To investigate this, repeat the exercise of Example 2.1 using in turn the following prior settings:
+
+(a) $(\mu_0 \mid \mathcal{D}_0) \sim \mathcal{N}[650, 100000]$
+
+(b) $(\mu_0 \mid \mathcal{D}_0) \sim \mathcal{N}[130, 4]$
+
+(c) $(\mu_0 \mid \mathcal{D}_0) \sim \mathcal{N}[11, 1]$
+
+In particular, examine the time graphs of $\{A_t\}$, $\{f_t, f_t \pm Q_t, Y_t\}$,
+and of $\{m_t, Y_t\}$. What conclusions do you draw? We once designed
+a more general forecasting system which the customer tried to break
+by setting priors with silly prior means $m_0$ and large variances $C_0$.
+He drew the conclusion that the system was so robust it could not
+be broken. How would you show that it could be broken if it were
+not protected by a monitoring system?
+:::
+
+::: {#exr-ch2-ex12}
+### Discount Factors high and low
+
+Another maxim is, 
+
+> "In a complete forecast system higher rather than lower values of the discount factor are to be preferred." 
+
+Investigate this by redoing Example 2.1 using the prior $(\mu_0 \mid \mathcal{D}_0) \sim \mathcal{N}[130, 400]$ but employing the discount DLM so that $R_t = C_{t-1} / \delta$. Use in turn the discount factors $\delta = 0.8, 1.0$ and $0.01$. In particular, examine time graphs of the $\{f_t , C_t \}$ in each case. What conclusions do you draw? Do you see any mimicry? Too many systems fall between two stools in trying to select adaptive/discount factors that will not overly respond to random fluctuations yet will quickly adapt to major changes; the result is an unsatisfactory compromise.
+
+A complete forecasting system generally chooses high discount factors, usually $0.8 \leq \delta < 0.99$, to capture the routine system movements but relies on a monitoring system to signal major changes that need to be brought to the notice of decision makers and that require expert intervention.
+:::
+
+::: {#exr-ch2-ex13}
+### Limiting Identities in Constant DLM
+
+In the constant DLM $\{1, 1, V, W\}$, verify the limiting identities
+
+$$
+R = \frac{A V}{1 - A}, \qquad
+Q = \frac{V}{1 - A}, \qquad
+W = A^2 Q.
+$$
+
+:::
+
+::: {#exr-ch2-ex14}
+### Closed Constant DLM
+
+In the closed, constant DLM with limiting values $A$, $C$, $R$, etc., prove that the sequence $C_t$ decreases/increases as $t$ increases according to whether $C_0$ is greater/less than the limiting value $C$. Show that the sequence $A_t$ behaves similarly.
+:::
+
+::: {#exr-ch2-ex15}
+### Discount Weighted Regression (DWR)
+
+Discount weighted regression applied to a locally constant process estimates the current level at time $t$ as that value $M_t$ of $\mu$ that, given $Y_1, \ldots, Y_t$, minimises the discounted sum of squares
+
+$$
+S_t(\mu) = \sum_{j=0}^{t-1} \delta^j \left( Y_{t-j} - \mu \right)^2 .
+$$
+
+(a) Prove that $M_t$ is a discount weighted average of the $t$ observations
+
+$$
+M_t = \frac{1 - \delta}{1 - \delta^t} \sum_{v=0}^{t-1} \delta^v Y_{t-v} .
+$$
+
+(b) Show that writing $e_t = Y_t - M_{t-1}$, neat recurrence forms are
+
+$$
+M_t = \frac{1 - \delta}{1 - \delta^{t}} Y_t + \frac{\delta(1 - \delta^{t-1})}{1 - \delta^t} M_{t-1}
+$$
+
+and
+
+$$
+M_t = M_{t-1} + \frac{1 - \delta}{1 - \delta^t} e_t .
+$$
+
+(c) Show that as $t \to \infty$ the limiting form of this recurrence relationship is that of Brown’s method of EWR, Section 2.3.5(c),
+
+$$
+M_t = \delta M_{t-1} + (1 - \delta) Y_t = M_{t-1} + (1 - \delta) e_t .
+$$
+:::
+
+::: {#exr-ch2-ex16}
+### DWR and the Constant DLM
+
+In the context of question (16) on DWR, note that as $t \to \infty$,
+$$
+V[e_t \mid \mathcal{D}_{t-1}] \to Q \text{ and } (Y_{t+1} - Y_t - e_{t+1} + \delta e_t) \to 0
+$$
+
+This suggests that the process can be modelled as
+
+$$
+Y_{t+1} - Y_t = a_{t+1} - \delta a_t,
+$$
+
+where $a_t \sim \mathcal{N}[0, Q]$ are independent random variables.  
+Then an estimate of $Q$ given $Y_{t+1}, \ldots, Y_1$ is
+
+$$
+\hat{Q}(t + 1) = \frac{1}{t} \sum_{v=1}^t \frac{ (Y_{v+1} - Y_v)^2}{1 + \delta^2}.
+$$
+
+(a) Do you consider this a reasonable point estimate of $Q$?
+
+(b) Show that
+
+$$
+\hat{Q}(t + 1) = \hat{Q}(t) +  \frac{1}{t} \left[  \frac{(y_{t+1} - y_t)^2 }{1 + \delta^2} - \hat{Q}(t) \right]
+$$
+
+and that a reasonable point estimate of $V[Y_t \mid \mathcal{D}_{t-1}]$ is
+
+$$
+\hat{Q}_t = \left\{ \delta + \frac{(1 - \delta)(1 - \delta^t)}{(1 - \delta^{t-1})^2} \right \} \, \hat{Q}(t - 1)
+$$
+
+with $t - 1$ degrees of freedom.
+:::
+
+
+::: {#exr-ch2-ex17}
+### Discount DLM with Constant Discount Factor
+
+In the $\{1, 1, V, W_t\}$ discount DLM with constant discount factor $\delta$,
+suppose that $C_0$ is very large relative to $V$. Show that
+
+(a)  
+$$
+C_t \approx \frac{V (1 - \delta)}{1 - \delta^t}, \qquad  \forall t \ge 1
+$$  
+
+
+(b)  
+$$
+m_t \approx \frac{1 - \delta}{1 - \delta^t} \sum_{j=0}^{t-1} \delta^j Y_{t-j},
+$$
+
+(c)  
+$$
+m_t \approx \frac{1 - \delta}{1 - \delta^t} Y_t + 
+\frac{1 - \delta^{t-1}}{1 - \delta^t} \, \delta \, m_{t-1},
+$$
+
+(d)  
+$$
+m_t \approx m_{t-1} + \frac{1 - \delta}{1 - \delta^t} \, e_t.
+$$
+
+(e) Compare these results with those of the relevant DWR approach in question (16) above. 
+What do you conclude? What do you think about applying that variance estimate $\hat{Q}_t$ of $Q$, from question (16), to this DLM? 
+If you do adopt the method, what is the corresponding point estimate of $V$?
+:::
+
+::: {#exr-ch2-ex18}
+###  Constant DLM Updating Equations
+
+In the constant DLM $\{1, 1, V, W\}$, show that $R_t = C_{t-1}/\delta_t$, where $\delta_t$ lies between $0$ and $1$. Thus, the constant DLM updating equations are equivalent to those in a discount DLM with discount factors $\delta_t$ changing over time. Find the limiting value of $\delta_t$ as $t$ increases, and verify that $\delta_t$ increases/decreases with $t$ according to whether the initial variance $C_0$ lies below/above the limiting value $C$.
+:::
+
+::: {#exr-ch2-ex19}
+(19) Consider the lead time forecast variance $L_t(k)$ in Section 2.3.6.
+
+(a) Show that the value of $k$ minimising the lead time coeﬃcient of
+variation is independent of $C_t$. What is this value when $V = 97$
+and $W = 6$?
+
+(b) Supposing that $C_t = C$, the limiting value, show that the cor-
+responding value of $L_t(k)/V$ depends only on $k$ and $r = W/V$.
+For each value of $r = 0.05$ and $r = 0.2$, plot the ratio $L_t(k)/V$
+as a function of $k$ over $k = 1, \ldots, 20$. Comment on the form of
+the plots and the diﬀerences between the two cases.
+:::
+
+
+
+::: {#exr-ch2-ex19}
+(19) Consider the lead time forecast variance $L_t(k)$ in Section 2.3.6.
+
+(a) Show that the value of $k$ minimising the lead time coeﬃcient of
+variation is independent of $C_t$. What is this value when $V = 97$
+and $W = 6$?
+
+(b) Supposing that $C_t = C$, the limiting value, show that the cor-
+responding value of $L_t(k)/V$ depends only on $k$ and $r = W/V$.
+For each value of $r = 0.05$ and $r = 0.2$, plot the ratio $L_t(k)/V$
+as a function of $k$ over $k = 1, \ldots, 20$. Comment on the form of
+the plots and the diﬀerences between the two cases.
+:::
+
+
+
+
+
+
+
+
+Ask ChatGPT
+You said:
+::: {#exr-ch2-ex20}
+Become familiar with just how heavy-tailed Student T distributions
+with small and moderate degrees of freedom are relative to normal
+distributions. To do this graph the distribution using an appropriate
+computer package and ﬁnd the upper 90%, 95%, 97.5% and 99%
+points of the Tn [0, 1] distribution for n =2, 5, 10 and 20 degrees
+of freedom, comparing these with those of the N[0, 1] distribution.
+Statistical tables can also be used (Lindley and Scott, 1984, p45).
+:::
+
+::: {#exr-ch2-ex20}
+### Heavy-tailed Student t Distributions
+
+Become familiar with just how heavy-tailed Student T distributions
+with small and moderate degrees of freedom are relative to normal
+distributions. 
+
+To do this graph the distribution using an appropriate
+computer package and ﬁnd the upper 90%, 95%, 97.5% and 99%
+points of the $\mathcal{T}_n[0, 1]$ distribution for n =2, 5, 10 and 20 degrees
+of freedom, comparing these with those of the $\mathcal{N}[0, 1]$ distribution.
+
+~~~Statistical tables can also be used (Lindley and Scott, 1984, p45).~~~
+:::
+
+
+
+::: {#exr-ch2-ex21}
+###  Sensitivity Analysis of the DLM for Exchange Rates
+
+Perform analyses of the USA/UK exchange rate index series along
+the lines of those in Section 2.6, one for each value of the discount
+factor $\delta = 0.6, 0.65, \ldots, 0.95, 1$. Relative to the DLM with $\delta = 1$,
+plot the MSE, MAD and LLR measures as functions of $\delta$. Comment
+on these plots. Sensitivity analyses explore how inferences change
+with respect to model assumptions. At $t = 115$, explore how sensitive 
+this model is to values of $\delta$ in terms of inferences about the
+final level $\mu_{115}$, the variance $V$ and the next observation $Y_{116}$.
+:::
+
+
+::: {#exr-ch2-ex22}
+(22) In the DLM {1, 1, 1, W }, deﬁne Zt = Yt+1 −Yt . Show that for integer
+k such that |k| > 1,
+E[Zt ] = 0,
+V[Zt ] = 2 + W,
+C[Zt , Zt−1 ] = −1
+and C[Zt , Zt+k ] = 0. Based upon n + 1 observations (Y1 , . . . , Yn+1 ),
+giving the n values (Z1 , . . . , Zn ), the usual sample estimate of the
+autocorrelation coeﬃcient of lag k, C[Zt , Zt+k ]/V[Zt ], is
+rk =
+n−k
+
+i=1
+Zi+k Zi
+n
+
+Zi2 .
+i=1
+Using the computer program of question 1, generate 100 values of zi
+and plot the sample autocorrelation graph {rk , k : k = 0, . . . , 12}
+for W = 0.05 and also W = 0.5. Assuming the model true, the prior
+√
+marginal distribution of rk , for every |k| > 1, is roughly N [0, 1/ n].
+Do the data support or contradict the model? This is an approach
+used in identifying the constant DLM and an ARIMA(0,1,1) model.
+Supposing the more general DLM {1, 1, Vt , Wt }, show that again
+C[Zt , Zt+k ] = 0 for all |k| > 1, so the graph {rk , k : k > 1}
+is expected to look exactly the same. Note also that if Vt /Wt is
+constant, the whole graph {rk , k} is expected to look exactly the2.8
+Exercises
+67
+same. What is rk now measuring and what are the implications for
+identifying the constant DLM and the ARIMA(0,1,1)?
+:::
+
+::: {#exr-ch2-ex23}
+Suppose an observation series {Yt } is generated by the constant DLM {1, 1, V ∗ , W ∗ }. We can write Yt − Yt−1 = at − δ ∗ at−1 where at ∼ N[0, Q∗ ] are independent random variables and Q∗ is the associated limiting one-step forecast variance. In order to investigate robustness, suppose a non-optimal DLM {1, 1, V, W } is employed, so that in the limit, Yt − Yt−1 = et − δet−1 where the errors will have a larger variance Q and no longer be independent. Show that for integer k such that |k| ≥ 1, Q = V[et ] = [1 + (δ − δ ∗ )2 /(1 − δ 2 )]Q∗ and C(k) = C[et+k , et ] = δ |k|−1 Q∗ (δ − δ ∗ )(1 − δδ ∗ )/(1 − δ 2 ). 
+Examine graphs of {δ, Q/Q∗ } and of {δ, C(1)/Q} for the typical
+practical cases $δ^∗ = 0.9, δ^∗ = 0.8$ and for the atypical case $δ^∗ = 0.5$.
+:::
+
+## Section 3.5
+
+Unless otherwise stated these exercises refer to a univariate time series {Yt }
+modelled by the closed regression DLM {Ft , 1, Vt , Wt } of Deﬁnition 3.2 with
+known variances and/or known discount factor δ as follows:
+Observation equation:Yt = Ft θt + νt ,νt ∼ N[0, Vt ],
+System equation:θt = θt−1 + ωt ,ωt ∼ N[0, Wt ],
+Initial prior:
+(θ0 |D0 ) ∼ N[m0 , C0 ].
+
+
+:::
+
+::: {#exr-ch3-ex01}
+In the DLM {Ft , 1, 100, 0} suppose that the sequence θt = θ is a
+precisely known constant but that the regressor variable sequence
+Ft is not controllable. You model Ft as a sequence of independent
+normal random quantities, Ft ∼ N[0, 400]. Given Dt−1 , answer the
+following questions.
+
+(a) Prove that Yt and Ft have a bivariate normal distribution and
+identify its mean vector and variance matrix.
+(b) What is the correlation between Yt and Ft ?
+(c) What is the regression coeﬃcient of Ft on Yt ?
+(d) What is the posterior distribution of (Ft |Yt , Dt−1 )?
+:::
+
+::: {#exr-ch3-ex02}
+In the previous question suppose that the sequence θt is known but
+not constant. You also adopt a random walk model for Ft , so that
+Ft = Ft−1 +t with independent t ∼ N[0, U ]. Show that your overall
+model is equivalent to the simple regression DLM {θt , 1, 100, U } with
+regressor variable θt and parameter Ft .
+
+:::
+
+::: {#exr-ch3-ex07}
+In the DLM {Ft , 1, Vt , Wt }, suppose that Ft = 0 for all t.
+
+(a) Show that the series Xt = Yt /Ft follows a ﬁrst-order polynomial
+DLM and identify it fully.
+(b) Verify that the updating equations for the regression DLM can
+be deduced from those of the ﬁrst-order polynomial DLM.
+(c) What happens if Ft = 0?
+
+:::
+
+::: {#exr-ch3-ex07}
+
+One measure of the predictability of Yt at time t − 1 is the modulus
+1/2 of the reciprocal of the coeﬃcient of variation, given by |ft /Qt |
+Explore this measure as a function of Ft ∈ [−100, 100] for each of
+the cases Rt = 0, 10, 20, 50, when mt = 10, and Vt = 100.
+
+:::
+
+::: {#exr-ch3-ex05}
+Suppose that Vt is a known function of a control variable Ft . In
+particular, let Vt = V (a + |Ft |p ) for known quantities V , a and p.
+
+(a) How should Ft be chosen in order to maximise the posterior
+precision Ct−1 subject to |Ft | < k for some k > 0? What is the
+optimal design value of Ft in the case a = 8, p = 3 and k = 10?
+(b) How does this problem change when V is unknown and is
+estimated from the data?
+
+:::
+
+::: {#exr-ch3-ex06}
+For the discount regression DLM in which Vt is known for all t and
+Rt = Ct−1 /δ, show that the updating equations can be written as
+mt = Ct δ t C0−1 m0 + Ct
+t−1
+
+−1
+δ j Ft−j Vt−j
+Yt−j
+j=0
+and
+Ct−1 = δ t C0−1 +
+t−1
+
+−1
+2
+δ j Ft−j
+Vt−j
+.
+j=0
+Deduce that as t → ∞, Ct−1 → 0 and
+mt →
+t−1
+
+−1
+δ j Ft−j Vt−j
+Yt−j
+t−1
+
+j=0
+−1
+2
+δ j Ft−j
+Vt−j
+.
+j=0
+
+:::
+
+::: {#exr-ch3-ex07}
+(7) Consider discount weighted regression applied to the estimation of
+a parameter θt by the value mt . In DWR, the estimate mt is chosen
+to minimise the discounted sum of squares
+S(θ) =
+t−1
+
+2
+δ j (Yt−j − Ft−j θ) ,
+j=0
+where all quantities other than θ are known.
+(a) Show that
+mt =
+t−1
+
+δ j Ft−j Yt−j
+j=0
+t−1
+
+2
+δ j Ft−j
+.
+j=0
+(b) Generalising (a), suppose that
+Yt = Ft θ + νt ,
+νt ∼ N[0, Vt ],
+and that mt is more appropriately chosen to minimise
+S(θ) =
+t−1
+
+j=0
+2
+−1
+δ j Vt−j
+(Yt−j − Ft−j θ)
+
+Show that
+mt =
+t−1
+
+j=0
+−1
+δ j Ft−j Vt−j
+Yt−j
+t−1
+
+−1
+2
+δ j Ft−j
+Vt−j
+.
+j=0
+(c) Compare these results with those of the previous question to
+see that the estimates correspond to those from the discount
+DLM with the uninformative prior C0−1 = 0.
+:::
+
+::: {#exr-ch3-ex08}
+Suppose that Vt = V kt , where V = 1/φ is unknown and kt is a
+known variance multiplier. Show how the analysis summarized in
+the table in Section 3.4.1 is modified.
+:::
+
+::: {#exr-ch3-ex09}
+Consider the simple regression DLM {(−1)t k, 1, V, W }, in which
+k > 0 is a known constant.
+
+(a) By reference to the ﬁrst-order polynomial constant DLM convergence 
+results or otherwise, prove that limt→∞ Ct = C exists.
+Obtain C and the limiting values of Qt and |At |.
+(b) Treating the limiting value C as a function of k, verify that it
+is equal to W when k = V /2W .
+
+:::
+
+::: {#exr-ch3-ex10} 
+Consider the company sales/total market series in the example of
+Section 3.4.2. Perform similar analyses of this data using the same
+DLM but varying the discount factor over the range 0.6, 0.65, . . . , 1.
+Explore the sensitivity to inferences about the time trajectory of θt
+as the discount factor varies in the following ways:
+1/2
+
+(a) Plot mt versus t, with intervals based on Ct
+to represent
+uncertainty, for each value of δ and comment on diﬀerences
+with respect to δ.
+(b) Compare the final estimates of observational variance S42 as δ
+varies. Do the same for prediction variances Q42 . Discuss the
+patterns of behaviour.
+(c) Use MSE, MAD and LLR measures to assess the predictive
+performance of the models relative to the static model deﬁned
+by δ = 1.
+:::
+
+::: {#exr-ch3-ex11}
+Consider a retrospective analysis in which inferences are made about
+historical parametric values based on the current data. 
+In particular, this question concerns inferences about θt−1 given Dt for the
+DLM {Ft , 1, Vt , Wt } with known variances.
+
+(a) Use the system equation directly to show that
+C[θt , θt−1 |Dt−1 ] = Bt−1 V[θt |Dt−1 ],
+for some Bt−1 lying between 0 and 1, and identify Bt−1 .
+(b) Deduce that
+C[θt−1 , Yt |Dt−1 ] = Bt−1 C[θt , Yt |Dt−1 ].
+(c) Hence identify the moments of the joint normal distribution
+of (θt−1 , θt , Yt |Dt−1 ), and from this, those of the conditional
+distribution of (θt−1 |Dt ) (by conditioning on Yt in addition to
+Dt−1 ). Verify that the regression coeﬃcient of θt−1 on Yt is
+Bt−1 At , where At is the usual regression coeﬃcient (adaptive
+coeﬃcient) of θt on Yt given Dt−1 .
+(d) Deduce that (θt−1 |Dt ) is normal with moments that can be
+written as
+E[θt−1 |Dt ] = mt−1 + Bt−1 (E[θt |Dt ] − E[θt |Dt−1 ])
+and
+2
+(V[θt |Dt−1 ] − V[θt |Dt ]).
+V[θt−1 |Dt ] = Ct−1 − Bt−1
+:::
+
+::: {#exr-ch3-ex12}
+(12) Generalise the results of the previous exercise to allow retrospection
+back over time for more than one step, calculating the distribution
+of (θt−k |Dt ) for any k, (0 ≤ k ≤ t). Do this as follows:
+(a) Using the observation and evolution equations directly, show
+that for any r ≥ 1,
+C[θt−k , Yt−k+r |Dt−k ] = Bt−k C[θt−k+1 , Yt−k+r |Dt−k ],
+where for any s, Bs = Cs /Rs+1 lies between 0 and 1.
+(b) Writing Xt (k) = (Yt−k+1 , . . . , Yt ) , deduce from (a) that
+C[θt−k , Xt (k)|Dt−k ] = Bt−k C[θt−k+1 , Xt (k)|Dt−k ].
+(c) Hence identify the moments of the joint normal distribution of
+(θt−k , θt−k+1 , Xt (k)|Dt−k ),
+and from this those of the conditional distributions of (θt−k |Dt )
+and (θt−k+1 |Dt ) (by conditioning on Xt (k) in addition to Dt−k
+and noting that Dt = {Xt (k), Dt−k }). Using (b), verify that
+the regression coeﬃcient vector of θt−k on Xt (k) is Bt−k times
+that of θt−k+1 on Xt (k).
+(d) Deduce that (θt−k |Dt ) is normal with moments that can be
+written as
+E[θt−k |Dt ] =mt−k +
+Bt−k (E[θt−k+1 |Dt ] − E[θt−k+1 |Dt−k ])
+and
+V[θt−k |Dt ] =Ct−k −
+2
+(V[θt−k+1 |Dt−k ] − V[θt−k+1 |Dt ]).
+Bt−k
+(e) Let the above moments be denoted by at (−k) and Rt (−k),
+so that (θt−k |Dt ) ∼ N[at (−k), Rt (−k)]. Verify that the above,
+retrospective updating equations provide these moments back-
+wards over time for k = t − 1, t − 2, . . . , 0 via
+at (−k) = mt−k + Bt−k [at (−k + 1) − at−k+1 ]
+
+and
+2
+[Rt (−k + 1) − Rt−k+1 ]
+Rt (−k) = Ct−k − Bt−k
+with as = ms−1 and Rs = Cs−1 +Ws for all s, and initial values
+at (0) = mt and Rt (0) = Ct .
+:::
+
+::: {#exr-ch3-ex13}
+In the last two questions, employing the discount regression model
+{Ft , 1, V, Wt }, where Wt = Ct−1 (δ −1 − 1), show that for k ≥ 0,
+Bt−1 = δ,
+at (−k) = at−1 (−k + 1) + δ k At et
+and
+Rt (−k) = Rt−1 (−k + 1) − δ 2k A2t Qt .
+This provides for neat and simple updating of the retrospective means and variances.
+:::
+
+::: {#exr-ch3-ex14}
+(14) Suppose the yield Yt of the tth batch of a manufacturing plant is
+truly represented by
+Yt = 70 − (Xt − 3)2 + ηt ,
+Xt ∼ {Ft , 1, V, W },
+ηt ∼ N[0, V ],
+(θ0 |D0 ) ∼ N[1, V ].
+Initially, the setting F1 = 3 is optimal in the sense of maximising the expected yield.
+
+(a) If Ft is kept constant at 3, or if from any other speciﬁed time it
+is kept constant at its then perceived optimal value, what are
+the consequences?
+(b) Plant managers have production targets to meet and dislike
+changing operating conditions, fearing a drop in yield. If you
+were the production director would you approve this attitude
+or would you introduce a policy encouraging plant managers
+to make regular small experimental variations about the then
+perceived optimal value of Ft ?
+:::
+
+::: {#exr-ch3-ex15}
+The following data set refers to an internationally famous canned
+product. The objective is to establish a relationship between market
+share and price in order to make short-term pricing decisions. The
+observation series Yt is the percentage market share for quarter t
+minus 42%, and Ft is a linear function of the real price.
+
+
+|Qtr. t|  1  |  2   |  3  | 4|5|6|7|8|9|10|11|12|
+|---   |---  |---   |---  |---  |---  |---  |---  |---  |---  |---  |---  |---  |
+|$Y_t$ | 0.45| 0.83 | 1.45| 0.88|-1.43|-1.50|-2.33|-0.78| 0.58| 1.10| ?| ?
+|$F_T$ |-0.50|-1.30 |-1.50|-0.84|-0.65|-1.19|2.12|0.46|-0.63|-1.22|-2.00|2.00|
+
+Adopt the simple discount regression DLM $\{F_t , 1, V, W_t \}$ with
+$δ = 0.975.$
+
+(a) Carry out sequential forecasting with known variance $V = 0.2$ and $θ_0 \sim N[0, 1]$. Either by hand or computer prepare a calculation table that produces $R_t , A_t , f_t , Q_t , e_t , m_t$ and $C_t$ for each $t$. What are your final inferences about the price elasticity $θ_{10}$ ?
+What is your forecast for the market share in the next two quarters?
+(b) Repeat the analysis and inference when $V$ is an unknown constant variance starting with $n_0 = 1$ and $S_0 = 0.2$.
+:::
+
+
+### Section 4.
+
+
+::: {#exr-ch4-ex1}
+
+:::
