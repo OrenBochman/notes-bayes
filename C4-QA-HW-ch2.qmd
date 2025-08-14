@@ -775,6 +775,140 @@ What is your forecast for the market share in the next two quarters?
 ::::
 
 
+:::: {.solution}
+
+```{python}
+
+# Compute tables for Exercise ch3-ex15 parts (a) and (b) and save as CSVs
+import pandas as pd
+import numpy as np
+import math
+
+delta = 0.975
+V_known = 0.2
+m0 = 0.0
+C0 = 1.0
+
+Y = [0.45, 0.83, 1.45, 0.88, -1.43, -1.50, -2.33, -0.78, 0.58, 1.10]  # t=1..10
+F = [-0.50, -1.30, -1.50, -0.84, -0.65, -1.19, 2.12, 0.46, -0.63, -1.22, -2.00, 2.00]  # t=1..12
+
+def run_known_variance(Y, F, m0, C0, delta, V):
+    rows = []
+    m_prev = m0
+    C_prev = C0
+    for t in range(1, 11):  # t=1..10
+        Ft = F[t-1]
+        yt = Y[t-1]
+        a_t = m_prev
+        R_t = C_prev / delta
+        f_t = Ft * a_t
+        Q_t = Ft*Ft * R_t + V
+        e_t = yt - f_t
+        A_t = R_t * Ft / Q_t
+        m_t = a_t + A_t * e_t
+        C_t = (1 - A_t * Ft) * R_t
+        rows.append({
+            "t": t, "Ft": Ft, "Yt": yt, "R_t": R_t, "A_t": A_t, "f_t": f_t, "Q_t": Q_t, "e_t": e_t, "m_t": m_t, "C_t": C_t
+        })
+        m_prev, C_prev = m_t, C_t
+    # forecasts for t=11 and t=12 without new data
+    forecasts = []
+    C_t = C_prev
+    m_t = m_prev
+    for h in [1,2]:
+        Ft = F[10 + h - 1]  # F_11, F_12
+        R_h = C_t / (delta**h)
+        f_h = Ft * m_t
+        Q_h = Ft*Ft * R_h + V
+        forecasts.append({"h": h, "Ft": Ft, "f": f_h, "Q": Q_h, "sd": math.sqrt(Q_h),
+                          "Share_mean_%": 42.0 + f_h})
+    return pd.DataFrame(rows), {"m10": m_prev, "C10": C_prev}, pd.DataFrame(forecasts)
+
+def run_unknown_variance(Y, F, m0, C0_star, delta, n0, S0):
+    rows = []
+    m_prev = m0
+    C_prev = C0_star
+    n = n0
+    S = S0
+    for t in range(1, 11):
+        Ft = F[t-1]; yt = Y[t-1]
+        a_t = m_prev
+        R_t = C_prev / delta  # starred
+        f_t = Ft * a_t
+        q_t = Ft*Ft * R_t + 1.0  # starred
+        e_t = yt - f_t
+        A_t = R_t * Ft / q_t
+        m_t = a_t + A_t * e_t
+        C_t = (1 - A_t * Ft) * R_t
+        n_new = n + 1
+        S_new = (n * S + (e_t**2) / q_t) / n_new
+        rows.append({
+            "t": t, "Ft": Ft, "Yt": yt, "R_t*": R_t, "A_t": A_t, "f_t": f_t, "q_t*": q_t, "e_t": e_t, 
+            "m_t": m_t, "C_t*": C_t, "n_t": n_new, "S_t": S_new
+        })
+        m_prev, C_prev, n, S = m_t, C_t, n_new, S_new
+    forecasts = []
+    for h in [1,2]:
+        Ft = F[10 + h - 1]
+        R_h = C_prev / (delta**h)
+        q_h = Ft*Ft * R_h + 1.0
+        var = S * q_h
+        mean = Ft * m_prev
+        forecasts.append({"h": h, "Ft": Ft, "f": mean, "q*": q_h, "S": S, "Q": var, "sd": math.sqrt(var),
+                          "Share_mean_%": 42.0 + mean})
+    return pd.DataFrame(rows), {"m10": m_prev, "C10*": C_prev, "n10": n, "S10": S}, pd.DataFrame(forecasts)
+
+# Run both parts
+df_known, state10_known, fc_known = run_known_variance(Y, F, m0, C0, delta, V_known)
+df_u, state10_u, fc_u = run_unknown_variance(Y, F, m0, 1.0, delta, 1, 0.2)
+
+# Save CSVs
+df_known.to_csv('exr-ch3-ex15_partA_knownV_filter.csv', index=False)
+fc_known.to_csv('exr-ch3-ex15_partA_knownV_forecasts.csv', index=False)
+df_u.to_csv('exr-ch3-ex15_partB_unknownV_filter.csv', index=False)
+fc_u.to_csv('exr-ch3-ex15_partB_unknownV_forecasts.csv', index=False)
+
+# Show compact summaries
+state10_known, state10_u, fc_known.round(4), fc_u.round(4)
+```
+
+
+Here’s the full sequential fit and the forecasts.
+
+### (a) Known $V=0.2$, $\delta=0.975$, $\theta_0\sim\mathcal N(0,1)$
+
+* Final posterior for price elasticity at $t=10$:
+  $\hat\theta_{10}= -0.6356,\quad \mathrm{Var}(\theta_{10})=0.01650$ $\Rightarrow$ s.e. $=0.1285$.
+  95% CI: $[-0.8874,\,-0.3838]$.
+* One- and two-step forecasts (market share = $42\%+Y$):
+
+  * Q11: $\mathbb E[\text{share}]=43.27\%$, 95% PI $[42.26,\,44.29]\%$.
+  * Q12: $\mathbb E[\text{share}]=40.73\%$, 95% PI $[39.71,\,41.75]\%$.
+
+Calc table (per $t=1{:}10$) with $R_t,A_t,f_t,Q_t,e_t,m_t,C_t$:
+[part A filter (CSV)](exr-ch3-ex15_partA_knownV_filter.csv) · [part A forecasts (CSV)](exr-ch3-ex15_partA_knownV_forecasts.csv)
+
+---
+
+### (b) Unknown $V$ with $n_0=1,\,S_0=0.2$ (standard NIG DLM; starred form, $\delta=0.975$)
+
+* Final posterior for price elasticity at $t=10$:
+  $\hat\theta_{10}= -0.6046,\quad \mathrm{Var}(\theta_{10}\mid V)=S_{10}C_{10}^*=0.9760\times0.07849=0.0766$ $\Rightarrow$ s.e. $=0.2768$, $n_{10}=11$.
+  95% $t_{11}$ CI: $[-1.2138,\,0.0046]$.
+* Forecasts (wider, since $V$ unknown):
+
+  * Q11: $\mathbb E[\text{share}]=43.21\%$, 95% PI $[40.71,\,45.71]\%$.
+  * Q12: $\mathbb E[\text{share}]=40.79\%$, 95% PI $[38.28,\,43.30]\%$.
+
+Calc table (per $t=1{:}10$) with $R_t^*,A_t,f_t,q_t^*,e_t,m_t,C_t^*,n_t,S_t$:
+[part B filter (CSV)](exr-ch3-ex15_partB_unknownV_filter.csv) · [part B forecasts (CSV)](sandbox:/exr-ch3-ex15_partB_unknownV_forecasts.csv)
+
+---
+
+Notes: Discount-regression recursions as in *Prado, Ferreira & West (2023),* ch. 3. For (b), starred forms use $q_t^*=F_t^2 R_t^*+1$, $A_t=R_t^*F_t/q_t^*$, $C_t^*=(1-A_tF_t)R_t^*$, and $S_t=(n_{t-1}S_{t-1}+e_t^2/q_t^*)/n_t$; predictive variances are $S_t q_{t+h}^*$.
+:::
+
+
 ### Section 4.
 
 
