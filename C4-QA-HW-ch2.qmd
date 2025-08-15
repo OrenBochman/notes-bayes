@@ -1,5 +1,5 @@
 ---
-title: "Q&A from Bayesian Forecasting and Dynamic Models "
+title: "Q&A from Bayesian Forecasting and Dynamic Models Chapter 2"
 ---
 
 ## Section 2.8 - Introduction to the DLM
@@ -15,6 +15,7 @@ Y_t &= \mu_t + \nu_t     && \nu_t \sim \mathcal{N}[0, V_t ], \\
 $$
 :::
 
+
 ::: {#exr-ch2-ex1}
 ### Simulating from a Constant DLM
 Write a computer program to graph 100 simulated observations from the DLM $\{1, 1, 1, W \}$ starting with $\mu_0 = 25$.
@@ -22,6 +23,148 @@ Simulate several series for each value of $W = 0.05$ and 0.5.
 
 From these simulations, become familiar with the forms of behavior such series can display.
 :::
+
+::: {.solution}
+
+Let's simulates/plots 100 observations from the constant DLM $\{F=1,G=1,V=1,W\}$ with $\mu_0=25$, for $W\in\{0.05,0.5\}$ Using R `DLM` library and the Python `pyDLM` package
+
+:::: {.panel-tabset}
+
+## R
+
+```{r}
+#| label: lst-sim-constant-dlm
+#| echo: true
+#| warning: false
+# Simulate & plot constant DLM {1,1,1,W} with mu0=25 using dlm
+
+library(dlm)
+
+make_model <- function(W, m0 = 25, C0 = 0) {
+  # Local-level DLM with V=1 and chosen W
+  dlmModPoly(order = 1, dV = 1, dW = W, m0 = m0, C0 = C0)
+}
+
+sim_constant <- function(mod, n = 100, seed = NULL) {
+  # Unconditional simulation from a 1D DLM
+  if (!is.null(seed)) set.seed(seed)
+  V <- as.numeric(mod$V); W <- as.numeric(mod$W)
+  F <- as.numeric(mod$FF); G <- as.numeric(mod$GG)
+  theta <- numeric(n); y <- numeric(n)
+  th <- as.numeric(mod$m0)
+  for (t in seq_len(n)) {
+    th <- G * th + rnorm(1, 0, sqrt(W))   # state
+    y[t] <- F * th + rnorm(1, 0, sqrt(V)) # observation
+    theta[t] <- th
+  }
+  list(y = y, theta = theta)
+}
+
+simulate_replicates <- function(W, n = 100, R = 6, seed = 1) {
+  mod <- make_model(W)
+  lapply(seq_len(R), function(r) sim_constant(mod, n, seed + r))
+}
+
+plot_replicates <- function(sims, W) {
+  Y <- do.call(cbind, lapply(sims, `[[`, "y"))
+  matplot(Y, type = "l", lty = 1, lwd = 1,
+          xlab = "t", ylab = expression(y[t]),
+          main = paste0("Constant DLM  {1,1,1,W}  with W = ", W))
+  abline(h = 25, lty = 3)
+}
+
+# --- run ---
+par(mfrow = c(1, 2))
+plot_replicates(simulate_replicates(W = 0.05, R = 6, seed = 42), W = 0.05)
+plot_replicates(simulate_replicates(W = 0.5,  R = 6, seed = 4242), W = 0.5)
+par(mfrow = c(1, 1))
+```
+
+## Python
+
+```{python}
+#| label: lst-sim-constant-dlm-py
+
+# Simulate and plot constant DLM {F=1, G=1, V=1, W} with mu0=25
+# Falls back to a pure NumPy simulator so it runs anywhere.
+# If pyDLM is installed, you can later fit the same series with:
+#   from pydlm import dlm, trend; dlm(y) + trend(1)
+#
+# Two figures are produced (no subplots): one for W=0.05 and one for W=0.5.
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def simulate_constant_dlm(n: int, W: float, mu0: float = 25.0, V: float = 1.0, seed: int | None = None):
+    """
+    Simulate y_t from the constant DLM {F=1, G=1, V, W} with initial state theta_0 = mu0.
+    State eq.:    theta_t = theta_{t-1} + omega_t,  omega_t ~ N(0, W)
+    Obs eq.:      y_t     = theta_t + epsilon_t,    epsilon_t ~ N(0, V)
+    Returns (y, theta).
+    """
+    rng = np.random.default_rng(seed)
+    theta = np.empty(n, dtype=float)
+    y = np.empty(n, dtype=float)
+    th = mu0
+    for t in range(n):
+        th = th + rng.normal(0.0, np.sqrt(W))     # evolve
+        y[t] = th + rng.normal(0.0, np.sqrt(V))   # observe
+        theta[t] = th
+    return y, theta
+
+def simulate_replicates(W: float, n: int = 100, R: int = 6, seed: int = 0):
+    """
+    Generate R replicate series for given W. Seeds are offset to vary paths.
+    Returns list of dicts with 'y' and 'theta'.
+    """
+    reps = []
+    for r in range(R):
+        y, th = simulate_constant_dlm(n=n, W=W, seed=seed + r)
+        reps.append({"y": y, "theta": th})
+    return reps
+
+def plot_replicates(reps, W: float, mu0: float = 25.0, fname: str | None = None):
+    """
+    Plot multiple simulated observation series y_t for a fixed W.
+    Saves figure if fname is provided.
+    """
+    plt.figure()
+    for rep in reps:
+        plt.plot(rep["y"], linewidth=1)
+    plt.axhline(mu0, linestyle="--")
+    plt.xlabel("t")
+    plt.ylabel("y_t")
+    plt.title(f"Constant DLM {{1,1,1,W}} with W = {W}")
+    if fname:
+        plt.savefig(fname, bbox_inches="tight", dpi=150)
+
+# --- Run simulations and plotting ---
+W_values = [0.05, 0.5]
+paths = []
+for W in W_values:
+    reps = simulate_replicates(W=W, n=100, R=6, seed=42 if W == 0.05 else 4242)
+    fname = f"constant_dlm_W{str(W).replace('.', '')}.png"
+    plot_replicates(reps, W=W, fname=fname)
+    paths.append(fname)
+
+paths
+
+```
+
+::::
+
+:::
+
+::: {.callout-note}
+### Comments {.unlisted .unnumbered}
+
+* $W=0.05$: series stay close to 25 with mild wandering.
+* $W=0.5$: visibly rougher random-walk level, larger meanders.
+
+- TODO: To vary $V$ or $\mu_0$, they should be promoted to args in `simulate_replicates()` and `make_model()`.
+- TODO: add margins to figures.
+:::
+
 
 ::: {#exr-ch2-ex2}
 ### Posterior Updating as a Weighted Average
@@ -96,7 +239,7 @@ Comment on these results in relation to classical estimates.
 ::: {#exr-ch2-ex5-constant-dlm}
 ### Constant DLM
 
-For the constant DLM $\{1, 1, 100, 4\}$, if $(\mu_t \mid \mathcal{D}_t) \sim \mathcal{N}[200, 20]$, what are your forecasts of
+For the constant DLM $\{1, 1, 100, 4\}$, if $(\mu_t \mid \mathcal{D}_t) \sim \mathcal{N}[200, 20]$, what are your forecasts of:
 
 (a) $(Y_{t+4} \mid \mathcal{D}_t)$,
 
@@ -104,6 +247,8 @@ For the constant DLM $\{1, 1, 100, 4\}$, if $(\mu_t \mid \mathcal{D}_t) \sim \ma
 
 (c) $(Y_{t+3} + Y_{t+4} \mid \mathcal{D}_t)$?
 :::
+
+
 
 ::: {#exr-ch2-ex6-missing-observation}
 ### Missing Observation
@@ -116,14 +261,12 @@ $$
 $$
 :::
 
+
+
 ::: {#exr-ch2-ex7}
 ### Coping with Outliers
-Bearing in mind the previous question, suggest a method for 
-coping with outliers and general maverick observations with 
-respect to subsequent forecasts.
+Bearing in mind the previous question, suggest a method for coping with outliers and general maverick observations with  respect to subsequent forecasts.
 :::
-
-How would you call $\{1, 1, V_t, W_t\}$ ?
 
 
 
@@ -141,6 +284,7 @@ $$
 
 (c) Could you have deduced (b) immediately from $(\mu_t \mid \mathcal{D}_t)$?
 :::
+
 
 ::: {#exr-ch2-ex9}
 ### Retrospective Analysis
@@ -447,833 +591,4 @@ $$
 
 Examine graphs of $\{\delta, Q/Q^*\}$ and of $\{\delta, C(1)/Q\}$ for the typical practical cases $\delta^* = 0.9, \delta^* = 0.8$ and for the atypical case $\delta^* = 0.5$.
 :::
-
-## Section 3.5
-
-::: {.callout-tip}
-Unless otherwise stated these exercises refer to a univariate time series $\{Y_t\}$
-modelled by the closed regression DLM $\{F_t , 1, V_t , W_t\}$ of Definition 3.2 with
-known variances and/or known discount factor $\delta$ as follows:
-Observation equation:$Y_t = F_t \theta_t + \nu_t$, $\nu_t \sim \mathcal{N}[0, V_t]$,
-System equation:$\theta_t = \theta_{t-1} + \omega_t$, $\omega_t \sim \mathcal{N}[0, W_t]$,
-Initial prior:
-$(\theta_0 \mid \mathcal{D}_0) \sim \mathcal{N}[m_0 , C_0]$.
-:::
-
-:::: {#exr-ch3-ex01}
-### Bivariate Normal Distribution in DLM
-
-In the DLM $\{F_t , 1, 100, 0\}$ suppose that the sequence $\theta_t = \theta$ is a
-precisely known constant but that the regressor variable sequence $F_t$ is uncontrollable [**uncontrollable**]{.column-margin}. 
-You model $F_t$ as a sequence of independent normal random quantities, $F_t \sim \mathcal{N}[0, 400]$. 
-Given $\mathcal{D}_{t-1}$, answer the following questions.
-
-(a) Prove that $Y_t$ and $F_t$ have a bivariate normal distribution and
-identify its mean vector and variance matrix.
-
-(b) What is the correlation between $Y_t$ and $F_t$?
-
-(c) What is the regression coefficient of $F_t$ on $Y_t$?
-
-(d) What is the posterior distribution of $(F_t \mid Y_t, \mathcal{D}_{t-1})$?
-::::
-
-::: {#exr-ch3-ex02}
-### Regression DLM with Known $F_t$
-
-In @exr-ch3-ex01 suppose that the sequence $\theta_t$ is known but not constant. 
-You also adopt a random walk model for $F_t$, so that $F_t = F_{t-1} + \varepsilon_t$ with independent $\varepsilon_t \sim \mathcal{N}[0, U ]$. 
-Show that your overall model is equivalent to the simple regression DLM $\{\theta_t , 1, 100, U \}$ with regressor variable $\theta_t$ and parameter $F_t$.
-:::
-
-
-::: {#exr-ch3-ex03}
-### First-order Polynomial DLM
-
-In the DLM $\{F_t , 1, V_t , W_t\}$, suppose that $F_t \neq 0$ for all $t$.
-
-(a) Show that the series $X_t = Y_t / F_t$ follows a first-order polynomial
-    DLM and identify it fully.
-
-(b) Verify that the updating equations for the regression DLM can be 
-    deduced from those of the first-order polynomial DLM.
-
-(c) What happens if $F_t = 0$?
-:::
-
-
-::: {#exr-ch3-ex04}
-### Predictability Measure
-One measure of the predictability of $Y_t$ at time $t-1$ is the modulus
-$1/2$ of the reciprocal of the coefficient of variation, given by $|f_t/Q_t|$
-Explore this measure as a function of $F_t \in [-100, 100]$ for each of
-the cases $R_t = 0, 10, 20, 50$, when $m_t = 10$, and $V_t = 100$.
-:::
-
-::: {#exr-ch3-ex05}
-### Optimal Design of Control Variable
-
-Suppose that $V_t$ is a known function of a control variable $F_t$. In
-particular, let $V_t = V(a + |F_t|^p)$ for known quantities $V$, $a$ and $p$.
-
-(a) How should $F_t$ be chosen in order to maximise the posterior
-precision $C_{t-1}$ subject to $|F_t| < k$ for some $k > 0$? What is the
-optimal design value of $F_t$ in the case $a = 8$, $p = 3$ and $k = 10$?
-
-(b) How does this problem change when $V$ is unknown and is
-estimated from the data?
-:::
-
-
-::: {#exr-ch3-ex06}
-For the discount regression DLM in which $V_t$ is known for all $t$ and
-$R_t = C_{t-1} /\delta$, show that the updating equations can be written as
-
-$$
-m_t = C_t \, \delta^{t} \, C_{0}^{-1} m_0 + C_t
-\sum_{j=0}^{t-1} \delta^{j} F_{t-j} \, V_{t-j}^{-1} \, Y_{t-j}
-$$
-
-and
-
-$$
-C_{t}^{-1} = \delta^{t} C_{0}^{-1} +
-\sum_{j=0}^{t-1} \delta^{j} F_{t-j}^{2} \, V_{t-j}^{-1}.
-$$
-
-Deduce that as $t \to \infty$, $C_{t}^{-1} \to 0$ and
-
-$$
-m_t \to
-\frac{\sum_{j=0}^{t-1} \delta^{j} F_{t-j} \, V_{t-j}^{-1} \, Y_{t-j}}
-{\sum_{j=0}^{t-1} \delta^{j} F_{t-j}^{2} \, V_{t-j}^{-1}}.
-$$
-:::
-
-::: {#exr-ch3-ex07}
-Consider discount weighted regression applied to the estimation of
-a parameter $\theta_t$ by the value $m_t$. In DWR, the estimate $m_t$ is chosen
-to minimise the discounted sum of squares
-
-$$
-S(\theta) = \sum_{j=0}^{t-1} \delta^{j} \left(Y_{t-j} - F_{t-j}\,\theta\right)^{2},
-$$
-
-where all quantities other than $\theta$ are known.
-
-(a) Show that
-
-$$
-m_t = \frac{\sum_{j=0}^{t-1} \delta^{j} F_{t-j} Y_{t-j}}{\sum_{j=0}^{t-1} \delta^{j} F_{t-j}^{2}}.
-$$
-
-(b) Generalising (a), suppose that
-
-$$
-Y_t = F_t \theta + \nu_t, \qquad \nu_t \sim \mathcal{N}[0, V_t],
-$$
-
-and that $m_t$ is more appropriately chosen to minimise
-
-$$
-S(\theta) = \sum_{j=0}^{t-1} \delta^{j} V_{t-j}^{-1} \left(Y_{t-j} - F_{t-j}\,\theta\right)^{2}.
-$$
-
-Show that
-
-$$
-m_t = \frac{\sum_{j=0}^{t-1} \delta^{j} F_{t-j} V_{t-j}^{-1} Y_{t-j}}{\sum_{j=0}^{t-1} \delta^{j} F_{t-j}^{2} V_{t-j}^{-1}}.
-$$
-
-(c) Compare these results with those of the previous question to see that the estimates correspond to those from the discount DLM with the uninformative prior $C_0^{-1} = 0$.
-:::
-
-::: {#exr-ch3-ex08}
-Suppose that $V_t = V\,k_t$, where $V = 1/\phi$ is unknown and $k_t$ is a
-known variance multiplier. Show how the analysis summarized in
-the table in [Section 3.4.1] is modified.
-:::
-
-::: {#exr-ch3-ex09}
-Consider the simple regression DLM $\{(-1)^t k, 1, V, W\}$, in which
-$k > 0$ is a known constant.
-
-(a) By reference to the first-order polynomial constant DLM convergence 
-results or otherwise, prove that $\lim_{t \to \infty} C_t = C$ exists.
-Obtain $C$ and the limiting values of $Q_t$ and $|A_t|$.
-
-(b) Treating the limiting value $C$ as a function of $k$, verify that it
-is equal to $W$ when $k = V/(2W)$.
-:::
-
-::: {#exr-ch3-ex10} 
-Consider the company sales/total market series in the example of
-Section 3.4.2. Perform similar analyses of this data using the same
-DLM but varying the discount factor over the range 0.6, 0.65, . . . , 1.
-Explore the sensitivity to inferences about the time trajectory of $\theta_t$
-as the discount factor varies in the following ways:
-
-(a) Plot $m_t$ versus $t$, with intervals based on $C_t^{1/2}$
-to represent
-uncertainty, for each value of $\delta$ and comment on differences
-with respect to $\delta$.
-
-(b) Compare the final estimates of observational variance $S_{42}$ as $\delta$
-varies. Do the same for prediction variances $Q_{42}$. Discuss the
-patterns of behaviour.
-
-(c) Use MSE, MAD and LLR measures to assess the predictive
-performance of the models relative to the static model defined
-by $\delta = 1$.
-:::
-
-
-::: {#exr-ch3-ex11}
-Consider a retrospective analysis in which inferences are made about
-historical parametric values based on the current data. 
-In particular, this question concerns inferences about $\theta_{t-1}$ given $\mathcal{D}_t$ for the
-DLM $\{F_t, 1, V_t, W_t\}$ with known variances.
-
-(a) Use the system equation directly to show that
-
-$$
-C[\theta_t, \theta_{t-1}\mid \mathcal{D}_{t-1}] = B_{t-1}\,V[\theta_t \mid \mathcal{D}_{t-1}],
-$$
-
-for some $B_{t-1}$ lying between $0$ and $1$, and identify $B_{t-1}$.
-
-(b) Deduce that
-
-$$
-C[\theta_{t-1}, Y_t \mid \mathcal{D}_{t-1}] = B_{t-1}\,C[\theta_t, Y_t \mid \mathcal{D}_{t-1}].
-$$
-
-(c) Hence identify the moments of the joint normal distribution
-of $(\theta_{t-1}, \theta_t, Y_t \mid \mathcal{D}_{t-1})$, and from this, those of the conditional
-distribution of $(\theta_{t-1} \mid \mathcal{D}_t)$ (by conditioning on $Y_t$ in addition to
-$\mathcal{D}_{t-1}$). Verify that the regression coefficient of $\theta_{t-1}$ on $Y_t$ is
-$B_{t-1} A_t$, where $A_t$ is the usual regression coefficient (adaptive
-coefficient) of $\theta_t$ on $Y_t$ given $\mathcal{D}_{t-1}$.
-
-(d) Deduce that $(\theta_{t-1} \mid \mathcal{D}_t)$ is normal with moments that can be
-written as
-
-$$
-E[\theta_{t-1} \mid \mathcal{D}_t] = m_{t-1} + B_{t-1}\big(E[\theta_t \mid \mathcal{D}_t] - E[\theta_t \mid \mathcal{D}_{t-1}]\big)
-$$
-
-and
-
-$$
-V[\theta_{t-1} \mid \mathcal{D}_t] = C_{t-1} - B_{t-1}^{2}\,\big(V[\theta_t \mid \mathcal{D}_{t-1}] - V[\theta_t \mid \mathcal{D}_t]\big).
-$$
-:::
-
-::: {#exr-ch3-ex12}
-Generalize the results of the previous exercise to allow retrospection
-back over time for more than one step, calculating the distribution
-of $(\theta_{t-k} \mid \mathcal{D}_t)$ for any $k$, $(0 \le k \le t)$. Do this as follows:
-
-(a) Using the observation and evolution equations directly, show
-that for any $r \ge 1$,
-$$
-C[\theta_{t-k}, Y_{t-k+r} \mid \mathcal{D}_{t-k}] \;=\; B_{t-k}\, C[\theta_{t-k+1}, Y_{t-k+r} \mid \mathcal{D}_{t-k}],
-$$
-where for any $s$, $B_s = C_s / R_{s+1}$ lies between $0$ and $1$.
-
-(b) Writing $X_t(k) = (Y_{t-k+1}, \ldots, Y_t)$, deduce from (a) that
-$$
-C[\theta_{t-k}, X_t(k) \mid \mathcal{D}_{t-k}] \;=\; B_{t-k}\, C[\theta_{t-k+1}, X_t(k) \mid \mathcal{D}_{t-k}].
-$$
-
-(c) Hence identify the moments of the joint normal distribution of
-$(\theta_{t-k}, \theta_{t-k+1}, X_t(k) \mid \mathcal{D}_{t-k})$,
-and from this those of the conditional distributions of $(\theta_{t-k} \mid \mathcal{D}_t)$
-and $(\theta_{t-k+1} \mid \mathcal{D}_t)$ (by conditioning on $X_t(k)$ in addition to $\mathcal{D}_{t-k}$ and noting that $\mathcal{D}_t = \{X_t(k), \mathcal{D}_{t-k}\}$). 
-Using (b), verify that
-the regression coefficient vector of $\theta_{t-k}$ on $X_t(k)$ is $B_{t-k}$ times
-that of $\theta_{t-k+1}$ on $X_t(k)$.
-
-(d) Deduce that $(\theta_{t-k} \mid \mathcal{D}_t)$ is normal with moments that can be
-written as
-$$
-E[\theta_{t-k} \mid \mathcal{D}_t] \;=\; m_{t-k} + B_{t-k}\big(E[\theta_{t-k+1} \mid \mathcal{D}_t] - E[\theta_{t-k+1} \mid \mathcal{D}_{t-k}]\big)
-$$
-and
-$$
-V[\theta_{t-k} \mid \mathcal{D}_t] \;=\; C_{t-k} - B_{t-k}^{2}\,\big(V[\theta_{t-k+1} \mid \mathcal{D}_{t-k}] - V[\theta_{t-k+1} \mid \mathcal{D}_t]\big).
-$$
-
-(e) Let the above moments be denoted by $a_t(-k)$ and $R_t(-k)$,
-so that $(\theta_{t-k} \mid \mathcal{D}_t) \sim \mathcal{N}[a_t(-k), R_t(-k)]$. Verify that the above,
-retrospective updating equations provide these moments back-
-wards over time for $k = t - 1, t - 2, \ldots, 0$ via
-$$
-a_t(-k) = m_{t-k} + B_{t-k}\,[a_t(-k + 1) - a_{t-k+1}]
-$$
-and
-$$
-R_t(-k) = C_{t-k} - B_{t-k}^{2}\,[R_t(-k + 1) - R_{t-k+1}]
-$$
-with $a_s = m_{s-1}$ and $R_s = C_{s-1} + W_s$ for all $s$, and initial values
-$a_t(0) = m_t$ and $R_t(0) = C_t$.
-:::
-
-
-:::: {#exr-ch3-ex13}
-In the last two questions, employing the discount regression model
-$\{F_t , 1, V, W_t\}$, where $W_t = C_{t-1} (\delta^{-1} - 1)$, show that for $k \ge 0$,
-$B_{t-1} = \delta$, $a_t (-k) = a_{t-1} (-k + 1) + \delta^{k} A_t e_t$
-and
-$R_t (-k) = R_{t-1} (-k + 1) - \delta^{2k} A_t^{2} Q_t$.
-This provides for neat and simple updating of the retrospective means and variances.
-::::
-
-:::: {#exr-ch3-ex14}
-Suppose the yield $Y_t$ of the $t$th batch of a manufacturing plant is truly represented by
-
-$$
-\begin{aligned}
-Y_t &= 70 - (X_t - 3)^{2} + \eta_t, && \eta_t &\sim \mathcal{N}[0, V], \\
-X_t &\sim \{F_t , 1, V, W\}, && (\theta_0 \mid \mathcal{D}_0) & \sim \mathcal{N}[1, V].
-\end{aligned}
-$$
-
-Initially, the setting $F_1 = 3$ is optimal in the sense of maximising the expected yield.
-
-(a) If $F_t$ is kept constant at 3, or if from any other speciﬁed time it
-is kept constant at its then perceived optimal value, what are
-the consequences?
-
-(b) Plant managers have production targets to meet and dislike
-changing operating conditions, fearing a drop in yield. If you
-were the production director would you approve this attitude
-or would you introduce a policy encouraging plant managers
-to make regular small experimental variations about the then
-perceived optimal value of $F_t$?
-::::
-
-:::: {#exr-ch3-ex15}
-The following data set refers to an internationally famous canned
-product. The objective is to establish a relationship between market
-share and price in order to make short-term pricing decisions. The
-observation series $Y_t$ is the percentage market share for quarter $t$
-minus $42\%$, and $F_t$ is a linear function of the real price.
-
-|Qtr. t|  1  |  2   |  3  | 4|5|6|7|8|9|10|11|12|
-|---   |---  |---   |---  |---  |---  |---  |---  |---  |---  |---  |---  |---  |
-|$Y_t$ | 0.45| 0.83 | 1.45| 0.88|-1.43|-1.50|-2.33|-0.78| 0.58| 1.10| ?| ?
-|$F_T$ |-0.50|-1.30 |-1.50|-0.84|-0.65|-1.19|2.12|0.46|-0.63|-1.22|-2.00|2.00|
-
-Adopt the simple discount regression DLM $\{F_t , 1, V, W_t \}$ with
-$\delta = 0.975$.
-
-(a) Carry out sequential forecasting with known variance $V = 0.2$ and $\theta_0 \sim \mathcal{N}[0, 1]$. Either by hand or computer prepare a calculation table that produces $R_t , A_t , f_t , Q_t , e_t , m_t$ and $C_t$ for each $t$. What are your final inferences about the price elasticity $\theta_{10}$ ?
-What is your forecast for the market share in the next two quarters?
-
-(b) Repeat the analysis and inference when $V$ is an unknown constant variance starting with $n_0 = 1$ and $S_0 = 0.2$.
-::::
-
-
-:::: {.solution}
-
-```{python}
-
-# Compute tables for Exercise ch3-ex15 parts (a) and (b) and save as CSVs
-import pandas as pd
-import numpy as np
-import math
-
-delta = 0.975
-V_known = 0.2
-m0 = 0.0
-C0 = 1.0
-
-Y = [0.45, 0.83, 1.45, 0.88, -1.43, -1.50, -2.33, -0.78, 0.58, 1.10]  # t=1..10
-F = [-0.50, -1.30, -1.50, -0.84, -0.65, -1.19, 2.12, 0.46, -0.63, -1.22, -2.00, 2.00]  # t=1..12
-
-def run_known_variance(Y, F, m0, C0, delta, V):
-    rows = []
-    m_prev = m0
-    C_prev = C0
-    for t in range(1, 11):  # t=1..10
-        Ft = F[t-1]
-        yt = Y[t-1]
-        a_t = m_prev
-        R_t = C_prev / delta
-        f_t = Ft * a_t
-        Q_t = Ft*Ft * R_t + V
-        e_t = yt - f_t
-        A_t = R_t * Ft / Q_t
-        m_t = a_t + A_t * e_t
-        C_t = (1 - A_t * Ft) * R_t
-        rows.append({
-            "t": t, "Ft": Ft, "Yt": yt, "R_t": R_t, "A_t": A_t, "f_t": f_t, "Q_t": Q_t, "e_t": e_t, "m_t": m_t, "C_t": C_t
-        })
-        m_prev, C_prev = m_t, C_t
-    # forecasts for t=11 and t=12 without new data
-    forecasts = []
-    C_t = C_prev
-    m_t = m_prev
-    for h in [1,2]:
-        Ft = F[10 + h - 1]  # F_11, F_12
-        R_h = C_t / (delta**h)
-        f_h = Ft * m_t
-        Q_h = Ft*Ft * R_h + V
-        forecasts.append({"h": h, "Ft": Ft, "f": f_h, "Q": Q_h, "sd": math.sqrt(Q_h),
-                          "Share_mean_%": 42.0 + f_h})
-    return pd.DataFrame(rows), {"m10": m_prev, "C10": C_prev}, pd.DataFrame(forecasts)
-
-def run_unknown_variance(Y, F, m0, C0_star, delta, n0, S0):
-    rows = []
-    m_prev = m0
-    C_prev = C0_star
-    n = n0
-    S = S0
-    for t in range(1, 11):
-        Ft = F[t-1]; yt = Y[t-1]
-        a_t = m_prev
-        R_t = C_prev / delta  # starred
-        f_t = Ft * a_t
-        q_t = Ft*Ft * R_t + 1.0  # starred
-        e_t = yt - f_t
-        A_t = R_t * Ft / q_t
-        m_t = a_t + A_t * e_t
-        C_t = (1 - A_t * Ft) * R_t
-        n_new = n + 1
-        S_new = (n * S + (e_t**2) / q_t) / n_new
-        rows.append({
-            "t": t, "Ft": Ft, "Yt": yt, "R_t*": R_t, "A_t": A_t, "f_t": f_t, "q_t*": q_t, "e_t": e_t, 
-            "m_t": m_t, "C_t*": C_t, "n_t": n_new, "S_t": S_new
-        })
-        m_prev, C_prev, n, S = m_t, C_t, n_new, S_new
-    forecasts = []
-    for h in [1,2]:
-        Ft = F[10 + h - 1]
-        R_h = C_prev / (delta**h)
-        q_h = Ft*Ft * R_h + 1.0
-        var = S * q_h
-        mean = Ft * m_prev
-        forecasts.append({"h": h, "Ft": Ft, "f": mean, "q*": q_h, "S": S, "Q": var, "sd": math.sqrt(var),
-                          "Share_mean_%": 42.0 + mean})
-    return pd.DataFrame(rows), {"m10": m_prev, "C10*": C_prev, "n10": n, "S10": S}, pd.DataFrame(forecasts)
-
-# Run both parts
-df_known, state10_known, fc_known = run_known_variance(Y, F, m0, C0, delta, V_known)
-df_u, state10_u, fc_u = run_unknown_variance(Y, F, m0, 1.0, delta, 1, 0.2)
-
-# Save CSVs
-df_known.to_csv('exr-ch3-ex15_partA_knownV_filter.csv', index=False)
-fc_known.to_csv('exr-ch3-ex15_partA_knownV_forecasts.csv', index=False)
-df_u.to_csv('exr-ch3-ex15_partB_unknownV_filter.csv', index=False)
-fc_u.to_csv('exr-ch3-ex15_partB_unknownV_forecasts.csv', index=False)
-
-# Show compact summaries
-state10_known, state10_u, fc_known.round(4), fc_u.round(4)
-```
-
-
-Here’s the full sequential fit and the forecasts.
-
-### (a) Known $V=0.2$, $\delta=0.975$, $\theta_0\sim\mathcal N(0,1)$
-
-* Final posterior for price elasticity at $t=10$:
-  $\hat\theta_{10}= -0.6356,\quad \mathrm{Var}(\theta_{10})=0.01650$ $\Rightarrow$ s.e. $=0.1285$.
-  95% CI: $[-0.8874,\,-0.3838]$.
-* One- and two-step forecasts (market share = $42\%+Y$):
-
-  * Q11: $\mathbb E[\text{share}]=43.27\%$, 95% PI $[42.26,\,44.29]\%$.
-  * Q12: $\mathbb E[\text{share}]=40.73\%$, 95% PI $[39.71,\,41.75]\%$.
-
-Calc table (per $t=1{:}10$) with $R_t,A_t,f_t,Q_t,e_t,m_t,C_t$:
-[part A filter (CSV)](exr-ch3-ex15_partA_knownV_filter.csv) · [part A forecasts (CSV)](exr-ch3-ex15_partA_knownV_forecasts.csv)
-
----
-
-### (b) Unknown $V$ with $n_0=1,\,S_0=0.2$ (standard NIG DLM; starred form, $\delta=0.975$)
-
-* Final posterior for price elasticity at $t=10$:
-  $\hat\theta_{10}= -0.6046,\quad \mathrm{Var}(\theta_{10}\mid V)=S_{10}C_{10}^*=0.9760\times0.07849=0.0766$ $\Rightarrow$ s.e. $=0.2768$, $n_{10}=11$.
-  95% $t_{11}$ CI: $[-1.2138,\,0.0046]$.
-* Forecasts (wider, since $V$ unknown):
-
-  * Q11: $\mathbb E[\text{share}]=43.21\%$, 95% PI $[40.71,\,45.71]\%$.
-  * Q12: $\mathbb E[\text{share}]=40.79\%$, 95% PI $[38.28,\,43.30]\%$.
-
-Calc table (per $t=1{:}10$) with $R_t^*,A_t,f_t,q_t^*,e_t,m_t,C_t^*,n_t,S_t$:
-[part B filter (CSV)](exr-ch3-ex15_partB_unknownV_filter.csv) · [part B forecasts (CSV)](sandbox:/exr-ch3-ex15_partB_unknownV_forecasts.csv)
-
----
-
-Notes: Discount-regression recursions as in *Prado, Ferreira & West (2023),* ch. 3. For (b), starred forms use $q_t^*=F_t^2 R_t^*+1$, $A_t=R_t^*F_t/q_t^*$, $C_t^*=(1-A_tF_t)R_t^*$, and $S_t=(n_{t-1}S_{t-1}+e_t^2/q_t^*)/n_t$; predictive variances are $S_t q_{t+h}^*$.
-:::
-
-
-### Section 4.
-
-
-::: {#exr-ch4-ex1}
-Unless otherwise stated, the questions below concern a standard, univariate
-DLM with known variances, i.e., $\{F_t , G_t , V_t , W_t \}$ defined by
-
-$$
-Y_t = F_t \theta_t + \nu_t, \qquad \nu_t \sim \mathcal{N}[0, V_t],
-$$
-
-$$
-\theta_t = G_t \theta_{t-1} + \omega_t, \qquad \omega_t \sim \mathcal{N}[0, W_t],
-$$
-
-$$
-(\theta_{t-1} \mid \mathcal{D}_{t-1}) \sim \mathcal{N}[m_{t-1}, C_{t-1}].
-$$
-
-(1) Consider the DLM $\{F_t , G, V_t , W_t \}$.
-
-(a) If $G$ is of full rank, prove that the DLM can be reparametrised
-to the DLM
-
-$$
-\left\{
-\begin{pmatrix} F_t & 0 \end{pmatrix},
-\begin{pmatrix} G & 0 \\ 1 & 0 \end{pmatrix},
-V_t,
-\begin{pmatrix} W_t & 0 \\ 0 & 0 \end{pmatrix}
-\right\}.
-$$
-
-(b) Now show how to accommodate the observation variance in the
-system equation when $G$ is singular.
-::::
-
-::: {#exr-ch4-ex2}
-Consider the constant DLM $\{F, G, V, W\}$, generalised so that
-
-$$
-\nu_t \sim \mathcal{N}[\bar{v}, V]
-$$
-
-$$
-\omega_t \sim \mathcal{N}[\bar{w}, W].
-$$
-
-and
-
-Show that $(\theta_t \mid \mathcal{D}_t) \sim \mathcal{N}[m_t, C_t]$ and derive recurrence relationships
-for $m_t$ and $C_t$
-
-(a) by using Bayes’ theorem for updating, and
-
-(b) by deriving the joint distribution of $(\theta_t , Y_t \mid \mathcal{D}_{t-1})$ and using
-normal theory to obtain the conditional probability distribution.
-
-(c) What is the forecast function $f_t (k)$?
-
-(d) How do the results generalise to the DLM $\{F, G, V, W\}_t$ with
-
-$$
-\nu_t \sim \mathcal{N}[\bar{v}_t , V_t]
-$$
-
-and
-
-$$
-\omega_t \sim \mathcal{N}[\bar{w}_t , W_t]?
-$$
-
-::::
-
-
-::: {#exr-ch4-ex3}
-(3) For the constant DLM $\{F, G, V, W\}$, given $(\theta_t \mid \mathcal{D}_t) \sim \mathcal{N}[m_t, C_t]$,
-obtain
-
-(a) the $k$-step ahead forecast distribution $p(Y_{t+k} \mid \mathcal{D}_t)$;
-
-(b) the $k$-step lead-time forecast distribution $p(X_{t,k} \mid \mathcal{D}_t)$ where
-
-$$
-X_{t,k} = \sum_{r=1}^{k} Y_{t+r}.
-$$
-:::
-
-::: {#exr-ch4-ex4}
-For the univariate DLM define $b_t = V_t / Q_t$.
-
-(a) Show that given $\mathcal{D}_t$, the posterior distribution for the mean
-response $\mu_t = F_t' \theta_t$ is
-$(\mu_t \mid \mathcal{D}_t) \sim \mathcal{N}[f_t (0), Q_t (0)]$,
-where
-$E[\mu_t \mid \mathcal{D}_t] = f_t (0) = F_t' m_t$
-and
-$V[\mu_t \mid \mathcal{D}_t] = Q_t (0) = F_t' C_t F_t$.
-Use the recurrence equations for $m_t$ and $C_t$ to show that for
-some appropriate scalar $A_t$ that you should define,
-
-(b) $E[\mu_t \mid \mathcal{D}_t]$ can be updated using either the equation
-$E[\mu_t \mid \mathcal{D}_t] = E[\mu_t \mid \mathcal{D}_{t-1}] + A_t e_t$
-or
-$f_t (0) = A_t Y_t + (1 - A_t) f_t$,
-interpreting $f_t (0)$ as a weighted average of two estimates of $\mu_t$;
-
-(c) $V[\mu_t \mid \mathcal{D}_t]$ can be updated using either the equation
-$V[\mu_t \mid \mathcal{D}_t] = (1 - A_t) V[\mu_t \mid \mathcal{D}_{t-1}]$
-or
-$V[\mu_t \mid \mathcal{D}_t] = Q_t (0) = A_t V_t$.
-:::
-
-::: {#exr-ch4-ex5}
-Write $H_t = W_t - W_t F_t F_t' W_t / Q_t$, $L_t = (1 - A_t) W_t F_t$, and $A_t =
-1 - V_t / Q_t$. Prove that the posterior distribution of the observation
-and evolution errors is
-
-$$
-\begin{pmatrix}
-\nu_t \\
-\omega_t
-\end{pmatrix}
-\Bigm| \mathcal{D}_t \sim \mathcal{N}
-\!\left[
-\begin{pmatrix}
-(1 - A_t)\,e_t \\
--\,L_t\,e_t
-\end{pmatrix},
-\begin{pmatrix}
-(1 - A_t)\,V_t & -\,L_t' \\
--\,L_t & H_t
-\end{pmatrix}
-\right].
-$$
-:::
-
-::: {#exr-ch4-ex6}
-Consider the DLM $\{F_t , G_t , V_t , V_t W_t^\ast\}$ with unknown variances $V_t$,
-but in which the observational errors are heteroscedastic, so that
-
-$$
-\nu_t \sim \mathcal{N}[0, k_t V],
-$$
-
-where $V = \phi^{-1}$ and $k_t$ is a known, positive variance multiplier.
-Also,
-
-$$
-(\phi \mid \mathcal{D}_{t-1}) \sim \mathcal{G}\big[n_{t-1}/2, \; n_{t-1} S_{t-1}/2\big].
-$$
-
-(a) What is the posterior $(\phi \mid \mathcal{D}_t)$?
-
-(b) How are the summary results of Section 4.6 affected?
-::::
-
-::: {#exr-ch4-ex7}
-Consider the closed, constant DLM $\{1, \lambda, V, W\}$ with $\lambda, V$ and $W$
-known, and $|\lambda| < 1$.
-
-(a) Obtain the $k$-step forecast distribution $(Y_{t+k} \mid \mathcal{D}_t)$ as a function
-of $m_t , C_t$ and $\lambda$.
-
-(b) Show that as $k \to \infty$, $(Y_{t+k} \mid \mathcal{D}_t)$ converges in distribution to
-$\mathcal{N}\!\big[0, V + W/(1 - \lambda^{2})\big]$.
-
-(c) Obtain the joint forecast distribution for $(Y_{t+1} , Y_{t+2} , Y_{t+3})$.
-
-(d) Obtain the $k$-step lead-time forecast distribution $p(X_{t,k} \mid \mathcal{D}_t)$ where
-
-$$
-X_{t,k} = \sum_{r=1}^{k} Y_{t+r}.
-$$
-:::
-
-::: {#exr-ch4-ex8}
-(8) Generalise Theorem 4.1 to a DLM whose observation and evolu-
-tion noise are instantaneously correlated. Speciﬁcally, suppose that
-$C[\omega_t , \nu_t ] = c_t$, a known $n$-vector of covariance terms, but that all
-other assumptions remain valid. Show now that Theorem 4.1 applies with the modiﬁcations
-
-$$
-Q_t = (F_t' R_t F_t + V_t) + 2 F_t' c_t
-$$
-
-and
-
-$$
-A_t = (R_t F_t + c_t)/Q_t .
-$$
-
-If $G$ is of full rank, show how to reformulate the DLM in the standard form so the observation and evolution noise are uncorrelated.
-:::
-
-:::: {#exr-ch4-ex9}
-Given $\mathcal{D}_t$, your posterior distribution is such that
-
-$$
-(\theta_t \mid \mathcal{D}_t) \sim \mathcal{N}[m_t, C_t]
-$$
-
-and
-
-$$
-(\theta_{t-k} \mid \mathcal{D}_t) \sim \mathcal{N}[a_t(-k), R_t(-k)].
-$$
-
-The regression matrix of $\theta_{t-k}$ on $\theta_t$ is $A_{t-k,t}$. You are now about to
-receive additional information $Z$, that might be an external forecast,
-expert opinion, or more observations. If
-
-$$
-\perp Z \mid \theta_t,
-$$
-
-$$
-(\theta_1 , \ldots , \theta_{t-1}) \perp
-$$
-
-and given the information $Z$, your revised distribution is
-
-$$
-(\theta_t \mid \mathcal{D}_t , Z) \sim \mathcal{N}[m_t + \Delta , C_t - \Sigma],
-$$
-
-what is your revised distribution for $(\theta_{t-k} \mid \mathcal{D}_t , Z)$?
-::::
-
-:::: {#exr-ch4-ex10}
-Prove the retrospective results, sets (i) and (ii) of Theorem 4.5,
-using the conditional independence structure of the DLM and the
-conditional independence results of the Appendix, Section 4.11.
-::::
-
-
-:::: {#exr-ch4-ex11}
-With discount factor $\delta$, the discount regression DLM $\{F_t , I, V, W_t \}$
-is such that $I$ is the identity matrix and $W_t = C_{t-1} (1-\delta)/\delta$. Given
-$\mathcal{D}_t$, and with integer $k > 0$, show that
-
-(a) $R_t = C_{t-1} / \delta$;
-
-(b) the regression matrix of $\theta_{t-k}$ on $\theta_{t-k+1}$ is $B_{t-k} = \delta I$;
-
-(c) the regression matrix of $\theta_{t-k}$ on $\theta_t$ is $A_{t-k,t} = \delta^{k} I$;
-
-(d) the filtering recurrences of Theorem 4.5 simplify to
-
-(i) $a_t (-k) = a_{t-1} (-k + 1) + \delta^{k} A_t e_t$,
-$R_t (-k) = R_{t-1} (-k + 1) - \delta^{2k} A_t Q_t A_t'$,
-
-(ii) $a_t (-k) = m_{t-k} + \delta[a_t (-k + 1) - a_{t-k+1}]$,
-$R_t (-k) = C_{t-k} + \delta^{2} [R_t (-k + 1) - R_{t-k+1}]$.
-::::
-
-
-::: {#exr-ch4-ex12}
-Generalise Theorem 4.1 to the multivariate DLM $\{F_t , G_t , V_t , W_t \}$.
-:::
-
-::: {#exr-ch4-ex13}
-Verify the filtering and smoothing results in Corollaries 4.3 and 4.4
-relating to the DLM with an unknown constant observational variance $V$ .
-:::
-
-::: {#exr-ch4-ex14}
-Prove the reference prior results stated in part (1) of Theorem 4.12,
-that relate to the case of a known observational variance V .
-:::
-
-::: {#exr-ch4-ex15}
-### Reference analysis updating for the first-order polynomial model
-
-Prove the reference prior results stated in part (2) of Theorem 4.13,
-relating to the case of an unknown observational variance V.
-:::
-
-::: {#exr-ch4-ex16}
-### Reference analysis updating for the first-order polynomial model
-
-Prove the results stated in Corollary 4.8, providing the conversion
-from reference analysis updating to the usual recurrence equations
-when posteriors become proper.
-:::
-
-::: {#exr-ch4-ex17}
-### Reference analysis updating for the first-order polynomial model
-
-Consider the first-order, polynomial model $\{1, 1, V, W\}$, with $n = 1$
-and $\theta_t = \mu_t$, in the reference analysis updating of Section 4.10.
-
-(a) Assume that $V$ is known. Using the known variance results of
-Theorem 4.12 and Corollary 4.8, show that $(\mu_1 \mid \mathcal{D}_1) \sim \mathcal{N}[Y_1, V]$.
-
-(b) Assume that $V = 1/\phi$ is unknown, so that the results of Theorem 4.13 and Corollary 4.8 apply. Show that the posterior for
-$\mu_t$ and $V$ becomes proper and of standard form at $t = 2$, and
-identify the defining quantities $m_2$, $C_2$, $n_2$ and $S_2$.
-
-(c) In (b), show directly how the results simplify in the case $W = 0$.
-:::
-
-
-::: {#exr-ch4-ex18}
-### Reference analysis updating for the 2-dimensional model
-
-Consider the 2-dimensional model
-
-$$
-\left\{ \begin{pmatrix} 1 & 0 \end{pmatrix}, \begin{pmatrix} 1 & 1 \\[4pt] 0 & 1 \end{pmatrix}, V, 0 \right\}
-$$
-
-assuming $V$ to be known. Apply Theorem 4.13 and Corollary 4.8
-to deduce the posterior for $(\theta_2 \mid \mathcal{D}_2)$.
-:::
-
-::: {#exr-ch4-ex19}
-### Discount regression DLM with unknown variance
-
-Consider the discount DLM $\{F_t , I, V, V W_t^*\}$ with unknown but
-constant variance $V$. 
-The discount factor is $0 < \delta \le 1$, so that
-$W_t^* = C_{t-1}^* (1 - \delta)/\delta$, and $R_t^{*-1} = \delta C_{t-1}^{*-1}$. 
-Initially, ignorance is formulated so the prior precision of $\theta_0$ is $C_0^{-1} = 0$, the prior degrees of freedom for $\phi = 1/V$ are $n_0 = 0$, $m_0 = 0$ and $S_0 = 0$. 
-Use the notation of Theorem 4.3 so that starred variances are conditioned on $V = 1$.
-
-(a) Prove that $C_1^{*-1} = F_1 F_1'$.
-
-(b) Prove that
-
-$$
-C_t^{*-1} = \sum_{v=0}^{t-1} \delta^{v}\, F_{t-v} F_{t-v}'.
-$$
-
-(c) Suppose that $\operatorname{rank}\, C_t^{*-1} = \operatorname{rank}\, C_{t-1}^{*-1} = r_{t-1}$. Show that the relationship between $Y_t$ and the information $\mathcal{D}_{t-1}$ can be modelled by a DLM $\{\tilde{F}_t , I, V, V \tilde{W}_t \}$ with a parameter of dimension
-$r_{t-1}$ that, conditional upon $V$, has a proper distribution. Con-
-sequently, show that a conditional forecast exists such that
-$(Y_t \mid \mathcal{D}_{t-1}, V) \sim \mathcal{N}[f_t , V Q_t^*]$,
-and that given $Y_t$, the variance can be updated according to
-$n_t = n_{t-1} + 1$,
-$S_t = S_{t-1} + (e_t^{2}/Q_t^* - S_{t-1})/n_t$,
-with $n_1 = 1$ and $S_1 = e_1^{2}$. Show further that if $n_{t-1} > 0$, the
-unconditional forecast
-$(Y_t \mid \mathcal{D}_{t-1}) \sim \mathcal{T}_{n_{t-1}}[f_t , Q_t]$
-exists. Suggest a method of obtaining $m_t$ for this reduced DLM.
-
-(d) Now suppose $\operatorname{rank}\, C_t^{*-1} = 1 + \operatorname{rank}\, C_{t-1}^{*-1}$. Show that no forecast of $(Y_t \mid \mathcal{D}_{t-1}, V)$ is possible. However, given $Y_t$, show that
-although $\{n_t , S_t \} = \{n_{t-1} , S_{t-1} \}$, the dimension of the design
-space for which forecasts can now be derived is increased by $1$.
-
-(e) Collinearity can be a real problem. For example, in the simplest regression discount DLM, a price variable used as a regressor may be held constant for quite a long period before being changed. Obviously, information is being gathered, so
-that useful conditional forecasts can be made based upon this
-price. However, forecasts conditional on other prices cannot
-be made until after a price change has been experienced. In
-general, at time $t - 1$, the forecast design space is spanned by
-$F_1 , \ldots , F_{t-1}$. Construct an algorithm to provide a reference
-analysis accommodating collinearity that at time $t - 1$, enables
-forecasts and monitoring for time $t$, whenever $F_t$ is contained
-in the current forecast design space and $n_{t-1} \ge 1$.
-
-(f) Generalise this approach beyond discount regression DLMs.
-Some relevant work is presented in Vasconcellos (1992).
-:::
-
-
-
-
 
