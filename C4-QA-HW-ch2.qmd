@@ -195,6 +195,110 @@ Obtain the recurrence relations for $\{m_t , C_t\}$
 (b) deriving the joint distribution $(\mu_t , Y_t \mid \mathcal{D}_{t-1})$ and using normal theory to obtain the appropriate conditional distribution.
 :::
 
+
+::: {.solution  .column-screen-inset-right  .column-screen-inset-right }
+
+Here the shocks just shift means; 
+the Kalman‐style recursions are unchanged except the prediction/forecast means include $\bar{w}_t,\bar{v}_t$.
+
+We start by postulating the following constant NDLM model
+
+$$
+\begin{aligned}
+\mu_t&=\mu_{t-1}+\omega_t, & \omega_t\sim\mathcal N(\bar w_t,W_t),\\
+Y_t&=\mu_t+\nu_t, & \nu_t\sim\mathcal N(\bar v_t,V_t),\\
+\mu_{t-1}\mid\mathcal D_{t-1}&\sim\mathcal N(m_{t-1},C_{t-1}).
+\end{aligned}
+$$
+
+Let 
+
+$$
+\begin{aligned}
+a_t &= m_{t-1} + \bar w_t & \text{state prior mean (evolution drift)}\\
+R_t &= C_{t-1} + W_t     & \text{state prior var (evolution noise)}\\
+f_t &= a_t + \bar v_t    & \text{1-step forecast mean (obs bias)}\\
+Q_t &= R_t + V_t         & \text{1-step forecast var (obs noise)}\\
+A_t &= \dfrac{R_t}{Q_t}  & \text{Kalman gain = prior/forecast var}\\
+e_t &= y_t - f_t         & \text{innovation (forecast error)} \\
+m_t &= a_t + A_t e_t          & \text{posterior mean update}\\
+C_t &= R_t - A_t R_t=R_t-\frac{R_t^2}{Q_t} & \text{posterior var update}
+\end{aligned}
+$$
+
+
+---
+
+### (a) Via Bayes’ theorem (completing the square)
+
+$$
+\begin{aligned}
+p(\mu_t\mid\mathcal D_{t-1})&=\mathcal N(a_t,R_t) & \text{state evolution mean/var} \\
+p(y_t\mid \mu_t)&=\mathcal N(\mu_t+\bar v_t,V_t) & \text{likelihood} \\
+\Rightarrow\ \ \log p(\mu_t\mid y_t,\mathcal D_{t-1})
+&= -\tfrac12\!\left[\frac{(\mu_t-a_t)^2}{R_t}+\frac{(y_t-\bar v_t-\mu_t)^2}{V_t}\right]+c & \text{Bayes, drop const} \\
+&= -\tfrac12\!\left[(\tfrac1{R_t}+\tfrac1{V_t})\mu_t^2
+-2\mu_t\!\left(\tfrac{a_t}{R_t}+\tfrac{y_t-\bar v_t}{V_t}\right)\right]+c' & \text{expand} \\
+&= -\tfrac12\!\left[\frac{(\mu_t-m_t)^2}{C_t}\right]+c'' & \text{complete the square}
+\end{aligned}
+$$
+
+with
+
+$$
+\boxed{
+\begin{aligned}
+m_t&=\frac{\frac{a_t}{R_t}+\frac{y_t-\bar v_t}{V_t}}{\frac1{R_t}+\frac1{V_t}}
+= a_t + \frac{R_t}{R_t+V_t}\,\big(y_t-\bar v_t-a_t\big)
+= a_t + A_t e_t,\\[3pt]
+C_t&=\left(\frac1{R_t}+\frac1{V_t}\right)^{-1}
+= \frac{R_t V_t}{R_t+V_t}
+= R_t - \frac{R_t^2}{R_t+V_t}.
+\end{aligned}}
+$$
+
+---
+
+### (b) Via the joint normal and conditioning
+
+$$
+\begin{aligned}
+\begin{bmatrix}\mu_t\\Y_t\end{bmatrix}\Bigm|\mathcal D_{t-1}
+&\sim \mathcal N\!\left(
+\begin{bmatrix}a_t\\ a_t+\bar v_t\end{bmatrix},
+\begin{bmatrix}
+R_t & R_t\\
+R_t & R_t+V_t
+\end{bmatrix}\right) & \text{sum of independent normals} \\
+\Rightarrow\ \ \mu_t\mid Y_t=y_t,\mathcal D_{t-1}
+&\sim \mathcal N\!\left(
+a_t+\frac{R_t}{R_t+V_t}(y_t-a_t-\bar v_t),\ \ R_t-\frac{R_t^2}{R_t+V_t}
+\right) & \text{BVN conditioning}
+\end{aligned}
+$$
+
+which is the same $(m_t,C_t)$ as in (a).
+
+---
+
+### Summary (recurrences)
+
+$$
+\boxed{
+\begin{aligned}
+\text{Prior (evolution):}\quad & a_t=m_{t-1}+\bar w_t,\quad R_t=C_{t-1}+W_t.\\
+\text{Forecast:}\quad & f_t=a_t+\bar v_t,\quad Q_t=R_t+V_t.\\
+\text{Update:}\quad & A_t=\frac{R_t}{Q_t},\ \ e_t=y_t-f_t,\\
+& m_t=a_t+A_t e_t,\quad C_t=R_t-A_t R_t=R_t-\frac{R_t^2}{Q_t}.
+\end{aligned}}
+$$
+
+Only the means shift: $\bar w_t$ enters the prior mean, $\bar v_t$ enters the forecast mean; gains/variances are unchanged from the zero-mean case.
+
+*Refs*: West & Harrison (1997, §4.3); Prado, Ferreira & West (2023, Ch. 1–2).
+
+:::
+
 ::: {#exr-ch2-ex4-static-dlm}
 ### Static DLM
 
@@ -352,12 +456,11 @@ To investigate this, repeat the exercise of Example 2.1 using in turn the follow
 (c) $(\mu_0 \mid \mathcal{D}_0) \sim \mathcal{N}[11, 1]$
 
 In particular, examine the time graphs of $\{A_t\}$, $\{f_t, f_t \pm Q_t, Y_t\}$,
-and of $\{m_t, Y_t\}$. What conclusions do you draw? We once designed
-a more general forecasting system which the customer tried to break
-by setting priors with silly prior means $m_0$ and large variances $C_0$.
-He drew the conclusion that the system was so robust it could not
-be broken. How would you show that it could be broken if it were
-not protected by a monitoring system?
+and of $\{m_t, Y_t\}$. 
+What conclusions do you draw? 
+We once designed a more general forecasting system which the customer tried to break by setting priors with silly prior means $m_0$ and large variances $C_0$.
+He drew the conclusion that the system was so robust it could not be broken. 
+How would you show that it could be broken if it were not protected by a monitoring system?
 :::
 
 ::: {#exr-ch2-ex12}
@@ -367,7 +470,11 @@ Another maxim is,
 
 > "In a complete forecast system higher rather than lower values of the discount factor are to be preferred." 
 
-Investigate this by redoing Example 2.1 using the prior $(\mu_0 \mid \mathcal{D}_0) \sim \mathcal{N}[130, 400]$ but employing the discount DLM so that $R_t = C_{t-1} / \delta$. Use in turn the discount factors $\delta = 0.8, 1.0$ and $0.01$. In particular, examine time graphs of the $\{f_t , C_t \}$ in each case. What conclusions do you draw? Do you see any mimicry? Too many systems fall between two stools in trying to select adaptive/discount factors that will not overly respond to random fluctuations yet will quickly adapt to major changes; the result is an unsatisfactory compromise.
+Investigate this by redoing Example 2.1 using the prior $(\mu_0 \mid \mathcal{D}_0) \sim \mathcal{N}[130, 400]$ but employing the discount DLM so that $R_t = C_{t-1} / \delta$. Use in turn the discount factors $\delta = 0.8, 1.0$ and $0.01$. In particular, examine time graphs of the $\{f_t , C_t \}$ in each case. 
+
+- What conclusions do you draw? 
+- Do you see any mimicry? 
+- Too many systems fall between two stools in trying to select adaptive/discount factors that will not overly respond to random fluctuations yet will quickly adapt to major changes; the result is an unsatisfactory compromise.
 
 A complete forecasting system generally chooses high discount factors, usually $0.8 \leq \delta < 0.99$, to capture the routine system movements but relies on a monitoring system to signal major changes that need to be brought to the notice of decision makers and that require expert intervention.
 :::
