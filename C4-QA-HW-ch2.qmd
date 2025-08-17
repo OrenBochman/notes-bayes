@@ -1,16 +1,19 @@
 ---
 title: "Q&A from Bayesian Forecasting and Dynamic Models Chapter 2"
+format:
+  pdf:
+    header-includes: \usepackage[dvipsnames]{xcolor}
 ---
 
 ## Section 2.8 - Introduction to the DLM
 
 ::: {.callout-tip}
-Unless stated otherwise, the exercises relate to the first-order polynomial DLM ${1, 1, V_t , W_t }$ with known variances ${V_t , W_t }$ and/or discount factor $δ$ and with $D_t = {Y_t , D_{t−1} }$:
+Unless stated otherwise, the exercises relate to the first-order polynomial DLM ${1, 1, V_t , W_t }$ with known variances ${V_t , W_t }$ and/or discount factor $\delta$ and with $D_t = {Y_t , D_{t−1} }$:
 
 $$
 \begin{aligned}
-Y_t &= \mu_t + \nu_t     && \nu_t \sim \mathcal{N}[0, V_t ], \\
-\mu_t &= \mu_{t−1} + \omega_t && \epsilon_t \sim \mathcal{N}[0, W_t ],                        && (\mu_{t−1} \mid \mathcal{D}_{t−1} ) \sim \mathcal{N}[m_{t−1} , C_{t−1} ].
+Y_t &= \mu_t + \nu_t          && \nu_t \sim \mathcal{N}(0, V_t ), \\
+\mu_t &= \mu_{t−1} + \omega_t && \epsilon_t \sim \mathcal{N}(0, W_t ),                        && (\mu_{t−1} \mid \mathcal{D}_{t−1} ) \sim \mathcal{N}(m_{t−1} , C_{t−1}).
 \end{aligned}
 $$
 :::
@@ -195,41 +198,99 @@ Obtain the recurrence relations for $\{m_t , C_t\}$
 (b) deriving the joint distribution $(\mu_t , Y_t \mid \mathcal{D}_{t-1})$ and using normal theory to obtain the appropriate conditional distribution.
 :::
 
+::: {.solution  .column-screen-inset-right  }
 
-::: {.solution  .column-screen-inset-right  .column-screen-inset-right }
+### Introduction and assumption {.unnumbered}
 
-Here the shocks just shift means; 
-the Kalman‐style recursions are unchanged except the prediction/forecast means include $\bar{w}_t,\bar{v}_t$.
+As best as I cam tell this question extends [@west2013bayesian sec. 2.2] 
 
-We start by postulating the following constant NDLM model
 
-$$
-\begin{aligned}
-\mu_t&=\mu_{t-1}+\omega_t, & \omega_t\sim\mathcal N(\bar w_t,W_t),\\
-Y_t&=\mu_t+\nu_t, & \nu_t\sim\mathcal N(\bar v_t,V_t),\\
-\mu_{t-1}\mid\mathcal D_{t-1}&\sim\mathcal N(m_{t-1},C_{t-1}).
-\end{aligned}
-$$
 
-Let 
+We start by postulating the following model:
 
 $$
 \begin{aligned}
-a_t &= m_{t-1} + \bar w_t & \text{state prior mean (evolution drift)}\\
-R_t &= C_{t-1} + W_t     & \text{state prior var (evolution noise)}\\
-f_t &= a_t + \bar v_t    & \text{1-step forecast mean (obs bias)}\\
-Q_t &= R_t + V_t         & \text{1-step forecast var (obs noise)}\\
-A_t &= \dfrac{R_t}{Q_t}  & \text{Kalman gain = prior/forecast var}\\
-e_t &= y_t - f_t         & \text{innovation (forecast error)} \\
-m_t &= a_t + A_t e_t          & \text{posterior mean update}\\
-C_t &= R_t - A_t R_t=R_t-\frac{R_t^2}{Q_t} & \text{posterior var update}
+\mu_t&=\mu_{t-1}+\omega_t, & \cancel{\omega_t\sim\mathcal{N}(0,W_t)}\;  & \omega_t\sim\mathcal N(\bar w_t,W_t), && \text{(sys.)}\\
+Y_t&=\mu_t+\nu_t, & \cancel{ \nu_t\sim\mathcal{N}(0,V_t)}\; & \nu_t\sim\mathcal N(\bar v_t,V_t), && \text{(obs.)}\\
+\mu_{t-1}\mid\mathcal D_{t-1} &\sim \mathcal{N}(m_{t-1},C_{t-1})
 \end{aligned}
 $$
 
+### Recurrences {.unnumbered}
+
+$$
+\begin{aligned}
+\textcolor{ForestGreen}{a_t} &= m_{t-1} + \textcolor{OliveGreen}{\bar w_t} 
+& \text{state prior mean (sys. drift)}\\
+\textcolor{RoyalBlue}{R_t} &= C_{t-1} + \textcolor{CornflowerBlue}{W_t} 
+& \text{state prior var (sys. noise)}\\
+\textcolor{Magenta}{f_t} &= \textcolor{ForestGreen}{a_t} + \textcolor{Fuchsia}{\bar v_t} 
+& \text{1-step forecast mean (obs. bias)}\\
+\textcolor{Turquoise}{Q_t} &= \textcolor{RoyalBlue}{R_t} + \textcolor{Cyan}{V_t} 
+& \text{1-step forecast var (obs. noise)}\\
+\textcolor{BrickRed}{A_t} &= \dfrac{\textcolor{RoyalBlue}{R_t}}{\textcolor{Turquoise}{Q_t}} 
+& \text{prior/forecast var (Kalman gain)}\\
+\textcolor{Orange}{e_t} &= y_t - \textcolor{Magenta}{f_t} 
+& \text{forecast error (innovation)}\\[4pt]
+\textcolor{Violet}{m_t} &= \textcolor{ForestGreen}{a_t} + \textcolor{BrickRed}{A_t}\,\textcolor{Orange}{e_t} 
+& \text{update (post. mean)}\\
+\textcolor{Gray}{C_t} &= \textcolor{RoyalBlue}{R_t} - \textcolor{BrickRed}{A_t}\,\textcolor{RoyalBlue}{R_t}
+= \textcolor{RoyalBlue}{R_t} - \dfrac{\textcolor{RoyalBlue}{R_t}^2}{\textcolor{Turquoise}{Q_t}} 
+& \text{update (post. var)}
+\end{aligned}
+$$
+
+### Bayes step {.unnumbered}
+
+$$
+\begin{aligned}
+\underbrace{p(\mu_t \mid \mathcal D_{t-1})}_{\text{prior}}
+&= \mathcal N\!\big(\mu_t;\ \textcolor{ForestGreen}{a_t},\ \textcolor{RoyalBlue}{R_t}\big)\\
+\underbrace{p(y_t \mid \mu_t,\mathcal D_{t-1})}_{\text{likelihood}}
+&= \mathcal N\!\big(y_t;\ \mu_t+\textcolor{Fuchsia}{\bar v_t},\ \textcolor{Cyan}{V_t}\big)\\[6pt]
+\log p(\mu_t\mid y_t,\mathcal D_{t-1})
+&= -\tfrac12\!\left[
+\underbrace{\dfrac{\big(\mu_t-\textcolor{ForestGreen}{a_t}\big)^2}{\textcolor{RoyalBlue}{R_t}}}_{\text{prior quadratic}}
++
+\underbrace{\dfrac{\big(y_t-\textcolor{Fuchsia}{\bar v_t}-\mu_t\big)^2}{\textcolor{Cyan}{V_t}}}_{\text{likelihood quadratic}}
+\right]+c
+& \text{plug in Normal forms}\\[8pt]
+&= -\tfrac12\!\left[
+\Big(\tfrac1{\textcolor{RoyalBlue}{R_t}}+\tfrac1{\textcolor{Cyan}{V_t}}\Big)\mu_t^2
+-2\mu_t\!\Big(\tfrac{\textcolor{ForestGreen}{a_t}}{\textcolor{RoyalBlue}{R_t}}
++\tfrac{y_t-\textcolor{Fuchsia}{\bar v_t}}{\textcolor{Cyan}{V_t}}\Big)
+\right]+c'
+& \text{collect terms}\\[8pt]
+&= -\tfrac12\,\dfrac{\big(\mu_t-\textcolor{Violet}{m_t}\big)^2}{\textcolor{Gray}{C_t}}+c''
+& \text{complete the square}
+\end{aligned}
+$$
+
+with moments
+
+$$
+\boxed{
+\begin{aligned}
+\textcolor{Gray}{C_t}
+&=\Big(\tfrac1{\textcolor{RoyalBlue}{R_t}}+\tfrac1{\textcolor{Cyan}{V_t}}\Big)^{-1}
+=\textcolor{RoyalBlue}{R_t}-\dfrac{\textcolor{RoyalBlue}{R_t}^2}{\textcolor{Turquoise}{Q_t}},
+& \text{posterior variance}\\[6pt] 
+\textcolor{Violet}{m_t}
+&=\dfrac{\dfrac{\textcolor{ForestGreen}{a_t}}{\textcolor{RoyalBlue}{R_t}}
++\dfrac{y_t-\textcolor{Fuchsia}{\bar v_t}}{\textcolor{Cyan}{V_t}}}
+{\dfrac1{\textcolor{RoyalBlue}{R_t}}+\dfrac1{\textcolor{Cyan}{V_t}}}
+=\textcolor{ForestGreen}{a_t}
++\underbrace{\dfrac{\textcolor{RoyalBlue}{R_t}}{\textcolor{Turquoise}{Q_t}}}_{\textcolor{BrickRed}{A_t}\ \text{(Kalman gain)}}
+\big(y_t-\textcolor{Fuchsia}{\bar v_t}-\textcolor{ForestGreen}{a_t}\big)
+=\textcolor{ForestGreen}{a_t}+\textcolor{BrickRed}{A_t}\,\textcolor{Orange}{e_t},
+& \text{posterior mean}
+\end{aligned}
+}
+$$
 
 ---
 
-### (a) Via Bayes’ theorem (completing the square)
+### (a) derivation via Bayes theorem  
 
 $$
 \begin{aligned}
@@ -242,6 +303,43 @@ p(y_t\mid \mu_t)&=\mathcal N(\mu_t+\bar v_t,V_t) & \text{likelihood} \\
 &= -\tfrac12\!\left[\frac{(\mu_t-m_t)^2}{C_t}\right]+c'' & \text{complete the square}
 \end{aligned}
 $$
+
+
+$$
+\begin{aligned}
+&\underbrace{p(\mu_t \mid \mathcal D_{t-1})}_{\text{prior}}
+=\mathcal N(\mu_t;\ a_t,R_t),
+&& a_t=m_{t-1}+\bar w_t,\;\ R_t=C_{t-1}+W_t \\[4pt]
+&\underbrace{p(y_t\mid \mu_t,\mathcal D_{t-1})}_{\text{likelihood}}
+=\mathcal N(y_t;\ \mu_t+\bar v_t,V_t) \\[8pt]
+p(\mu_t\mid y_t,\mathcal D_{t-1})
+&\propto
+\underbrace{p(y_t\mid \mu_t,\mathcal D_{t-1})}_{\text{likelihood}}\;
+\underbrace{p(\mu_t \mid \mathcal D_{t-1})}_{\text{prior}}
+& \text{Bayes}\\[4pt]
+&\propto
+\underbrace{\exp\!\Big[-\tfrac{(y_t-\bar v_t-\mu_t)^2}{2V_t}\Big]}_{\text{likelihood}}
+\underbrace{\exp\!\Big[-\tfrac{(\mu_t-a_t)^2}{2R_t}\Big]}_{\text{prior}} \\[6pt]
+&\propto
+\exp\!\left\{-\tfrac12\!\left[
+\underbrace{\tfrac{(\mu_t-a_t)^2}{R_t}}_{\text{prior quad.}}
++
+\underbrace{\tfrac{(y_t-\bar v_t-\mu_t)^2}{V_t}}_{\text{likelihood quad.}}
+\right]\right\}
+& \text{collect terms}\\[6pt]
+&=
+\exp\!\left[-\tfrac12\,\tfrac{(\mu_t-m_t)^2}{C_t}\right],
+\quad
+\begin{cases}
+\displaystyle C_t=\Big(\tfrac1{R_t}+\tfrac1{V_t}\Big)^{-1},\\[6pt]
+\displaystyle m_t=\dfrac{\frac{a_t}{R_t}+\frac{y_t-\bar v_t}{V_t}}
+{\frac1{R_t}+\frac1{V_t}}
+= a_t+\dfrac{R_t}{R_t+V_t}\big(y_t-\bar v_t-a_t\big).
+\end{cases}
+& \text{complete square}
+\end{aligned}
+$$
+
 
 with
 
@@ -257,9 +355,10 @@ C_t&=\left(\frac1{R_t}+\frac1{V_t}\right)^{-1}
 \end{aligned}}
 $$
 
+
 ---
 
-### (b) Via the joint normal and conditioning
+### (b) Via the joint normal and conditioning {.unnumbered}
 
 $$
 \begin{aligned}
@@ -281,7 +380,8 @@ which is the same $(m_t,C_t)$ as in (a).
 
 ---
 
-### Summary (recurrences)
+### Summary (recurrences) {.unnumbered}
+
 
 $$
 \boxed{
@@ -292,6 +392,9 @@ $$
 & m_t=a_t+A_t e_t,\quad C_t=R_t-A_t R_t=R_t-\frac{R_t^2}{Q_t}.
 \end{aligned}}
 $$
+
+- The shocks just shift means; 
+- The Kalman‐style recursions are unchanged except the prediction/forecast means include $\bar{w}_t,\bar{v}_t$.
 
 Only the means shift: $\bar w_t$ enters the prior mean, $\bar v_t$ enters the forecast mean; gains/variances are unchanged from the zero-mean case.
 

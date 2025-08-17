@@ -41,7 +41,161 @@ The Normal Dynamic Linear Model (DLM) is covered  [@prado2023time pp. 117-144]
 
 :::
 
-# The Normal Dynamic Linear Model: Definition, Model classes &  The Superposition Principle
+
+
+## NDLM FAQ
+
+- This section is a labour of love. 
+- Its should read like "Everything you wanted to know about NDLMs but were afraid to ask" meets "Everything I should have known about NDLM twenty years ago, when I was getting started." 
+- It arose out of skimming thought the books which were too long and hard to read initially. The book seem to have all the answers but you really must know the questions and then read very very carefully. The books have different issues. 
+- It tries to **connect the dots** that were not connected in class. 
+- It also **adds dots** that were omitted in class.
+- It does this using a Q&A format.
+- I will try and have it reviewed by someone who teaches this material however I will be using a LLM pending this review so this is my best effort.
+- I developed a number of misconception during the last two courses in the Bayesian specialization and it took a while to find and correct them. Hopefully this can save you some grief and get you productive much sooner.
+
+---
+
+### Q1: What Books are there on NDLMs? {#sec-faq-books}
+
+- [@west2013bayesian] which lays down the theory but is long winded. Often meanders rather than giving a clear and concise expiation. Perhaps the authors assume the readers will read it serval times during the PHD and a few more for their post doc. There  are many gaps in this book
+
+- [@prado2023time] is much longer, more recent, far more advanced, covers many more models, tends to reference many research papers, poorly motivated and suffers from an even greater tendency to meander rather than provide the deep insights its maven of authors clearly possess. The book has many appendices that feel more like handouts on unrelated topics with one or two result that we might have used.
+
+
+- [@petris2009dynamic] Is the most accessible of the trio. Part of the excellent Use R! series which I've skimmed though years and years ago.
+The book takes a hands on approach to using the DLM library in R. 
+It is a text that fills in some of the gaps in the two text above. However 
+It isn't so easy to pick up NDLMs without background in Bayesian statistics and time series.
+
+The first two books are hard to read but they also contain a slew of exercises. Like most mathematical textbooks you won't get more than 25% of the material  unless you do enough of these exercises. I doubt you'll even memorize the recursion equations and their interpretations unless you do enough of these. P.S. unless you are in the middle of your Phs doing the exercises is very very taxing.  **There are no solutions and even reading the derivation in my own solution was taxing**. With enough details I could be fairly sure I had a decent answer. But it could take a couple of hours or a couple of days to get there. I feel that to a large extent I would learn more making models than derivations. It is clear that to handle missing data, handle structural change points or intervention requires great facility with the with the kalman filtering as well as setting up the data and model so that the DLM package can do its magic. This is well beyond the level of the course.
+
+That said lots of the material seems rather theoretical and I want to use NDLM in some sophisticated models. In hindsight I do believe this stuff isn't as complicated to the student. Other books on the subject seem to be from Econometrics or Ecology and other applied areas exist and are likely far more accessible. There is also more software in the wild that can facilitate things like finding structural changepoint.
+
+
+### What is the difference between DLMs and NDLMS? {#sec-faq-dlm-vs-ndlm}
+
+DLMs are the subject of [@west2013bayesian]. NDLM are a special case of DLMs in which the priors and the variance terms come from a Normal distribution. This normality assumption simplifies the analysis and allows for the use of conjugate priors, making the Bayesian updating process more straightforward.
+
+### What is the difference between NDLMs and AR(p)/ARIMA model? {#sec-faq-ndlm-arp}
+
+NDLMs are built of component and one of the components can be an AR(p) models. 
+AR(p) models need to be stationary but NDLM have no such requirement. 
+Note that what I said above regarding AR($p$) applies to an ARIMA component which is a more general model than AR($p$).
+
+- Intuitively though the NDLM can have seasonal and trend components and if they do account for the non stationary part of the series then the Ar(p) might account for the stationary residual. 
+
+TODO: It is unclear that this does happen nor that there are guarantees that the algorithms will do this.
+
+### What are moments for NDLM? {#sec-faq-moments-ndlm}
+
+The instructor and the book references parts of the NDLM model as moments what is that about? We just said in [Q1]{#sec-dlm-vs-ndlm} that NDLM posit a normal structure on the priors and errors. When they talk about the moments they mean the mean and variance in these distributions. These are quantities of interest.
+The priors obviously are known. The errors are not generally unknowns 
+
+To make things a bit clearer, the Kalman filter optimal in some sense at assigning the state of the system at time $t$ given the data up to time $t$.
+The state is what we call $\theta_t$ what the kalman filter can't eliminate are the impact of the variance in the system and the observation level. There is always an error. However there are theoretical guarantees that the Kalman filter will provide the best linear unbiased estimate (BLUE) of the state so long as sufficient data has been seen.
+
+The moments are the inputs and outputs of the model. We get a MLE for the means which we don't need to worry about. But we will get a posterior for the variance of the system and the observation level. This is the other moment of the model and it is here that we actually need to make strategic decisions.
+We can set a complex prior and get many measurements to get a good posterior for the variance or more likely we don't really know much about the errors and we prefer to postulate something as simple as possible and then use the data to get a posterior for the variance. (Simple here means a model that only requires to compute and interpret the noise at the observation level i.e. a difference between the model's forecast and the actual observation we see next)
+
+### What is this thing called delta can I ignore it?
+
+In the NDLM with known variance $delta_t$ we get to do what I intimated in the previous questions.
+
+
+
+### What is the kalman gain
+
+The Kalman gain is a key component of the Kalman filter, which is used in NDLMs to update the state estimates based on new observations. It determines how much weight to give to the new observation relative to the current state estimate.
+
+### The Books and the professor talk about the polynomial model what is that?
+
+I was confused about this and there are three good reasons to be!
+
+1. The AR($p$) has a characteristic polynomial we learned about
+2. The polynomial model is a sub-model that covers the trend which could be an AR($p$) if the data is stationary
+3. The book talks about Taylor series approximation in a multiple regression model. This is a polynomial in which we can pick the number of order
+
+
+### In class the teacher often says some part of the model like the  parameters or the matrices or the moments of the of the Model are known, unknown but assumed to be constant. 
+
+We can use Bayesian methods to infer the parameters of an NDLM ?
+
+Here be dragons.... NDLM are bayesian but they have both a strong normality assumption, a conjugate structure and primarily make use of Kalman Filtering. 
+This means that aspects of the model are assumed, others are inferred via filtering and smoothing and others yet are 
+
+
+
+### How does the kalman filter features in DLMs
+
+The Kalman filter is an iterative algorithm driving the NDLMs. It is used for estimating the hidden states of the model and updating these estimates as new observations become available. But Kalman Filters require four matrices to do their magic and the NDLM puts all our assumptions into F and G and the variances into a Jordan from  which is compatible with the Kalman filter.
+
+Unfortunately, the Kalman filter has a tendency to amplify noise, which can be problematic in practice. This means that if the model is not well-specified or if the noise characteristics change over time, the Kalman filter may produce unreliable estimates. It is my guesstimate that we do smoothing to mitigate this issue.
+
+### What is a structural change point.
+
+This is a point in the time series where we need new parameters or even a more parameters. The basic structure of the model is not good moving forward.
+
+There is a lot of criticism of the Facebook prophet algorithm breaking at some point. Digging deeper this is due to a distributional drift or more likely even a structural change point. FB prophet is
+
+- much simpler than NDLM and 
+- uses MCMC rather than KF for its inference and
+- its regular users lack the ability to modify its  internal components.
+
+So it is a huge problem to fix FB prophet blows up in production and is used in a recommendation system. Retaining FB prophet may not work.
+
+In contrast DLM theory emphasizes that DLMs are open to at any time point to changes at all levels. (Without worrying the student how in practice they are supposed to do this or how robust the model is to such changes) After all the Kalman filter is fantastic at using feedback to give an optimal updates. 
+But it probably just as hard to handle a structural change, intervention or NA. I think that the extra code we got in class which takes or creates list of matrices indexed in time is exactly an NDLM in short notation that handle this.
+It then becomes a matter of practice in inserting NAs, interventions and adding or changing components from a certain point. 
+
+While the course and the book seems to have provided the math to do this the course lacks and explanations of how to use that part of the theory to handle these three modeling need s nor does it have exercises on the subject. 
+
+I imagine if you can do this it would be a bit like Einstein teaching the first course on general relativity and then being surprised how one of Karl Schwarzschild then got back to him within weeks with with a black hole solution for the case of a static spherically symmetric black hole. 
+
+So when you want to use this in work or research it will always be harder!
+You will almost always need to adjust the data or the model etc for this to work for your uses case. So you should try to do a do a few of each (NAs,different levels of interventions and structural changes) so when the day comes you can say at least I have done this before and I know how to do it and how to validate it!
+
+
+Getting back on topic there are state space models that incorporate identifing and switching between different models. These are called **hidden Markov models** (HMMs) and they are a generalization of NDLMs. HMMs can be used to model time series with structural change points, but they are more complex and require more data to estimate the parameters.
+
+
+
+
+
+
+As I am working though these questions many questions have come up which I believe are instrumental to people unfamiliar with DLMs. Despite having learned about DLM and done some work on time series it is still a challenge not just to understand but to even ask smart question about this topic.
+
+Some reasons why this is complicated and how to make it simpler. 
+
+One reason I find DLM tricky is that unlike AR(p) or even ARIMA(q,q) we are not dealing with a model for which we set up a bayesian model with some $\theta$ some priors for the thetas and pour in the data and get a posterior for the parameters, and a posterior predictive distribution for doing predictions.
+
+NDLMS are multifaced like diamonds:
+  - one facet is that they are like a multiple regression
+  - another facet is that they are like a state space model
+  - another facet is the use of kalman filters in filtering and smoothing
+  - another facet is that like neural networks they have an arcature and hyperparameters
+  - another attractive feature is that unlike neural models they can be interpreted and can be fit with a relatively less data.
+  - another facet is that the number of degrees of freedom and the number of parameters are not the same.
+  - architecture:
+    - they can contain a polynomial trend that is smooth
+    - they can contain AR(p) components which can be jagged
+    - they can contain MA(q) components - but these are not as straight forward as the AR($p$)
+    - they can encode seasonality using dummies (jumping patterns)
+    - they can encode seasonality using sinusoids (complex smooth patterns)
+    - they can also incorporate regressors
+    - they can incorporate geographical 
+
+We can literally add the components into one big DLM. 
+However here things get more interesting. 
+We are adding parts into the system or evolution equation. But we don't necessarily want to have a separate variance for each component. (We can if we really want to). However we can pick and choose a version with one overall system variance component.  We also have a separate observation variance component. Did I say separate - it can be  but it can also be related via an RV times a diagonal matrix. 
+
+### Q. What does polynomial mean in a polynomial DLM ?
+
+
+
+
+
+## The Normal Dynamic Linear Model: Definition, Model classes &  The Superposition Principle
 
 Dynamic Linear Models (DLMs) extend classical linear regression to time-indexed data, introducing dependencies between observations through latent evolving parameters. A Normal DLM (NDLM) assumes Gaussian noise at both observation and system levels, enabling tractable Bayesian inference through the Kalman filter.
 
