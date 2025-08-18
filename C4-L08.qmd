@@ -49,7 +49,7 @@ Where for example, the time unit is day, but user wants to add long term seasona
 
 These components allow us to model processes that have structure at multi-scale in time behavior without requiring very many parameters. This is a power modeling capability that you should cultivate before you try to use NDLMs in production.
 
-## Fourier representation  :movie_camera: 
+## Fourier representation  :movie_camera: {#sec-fourier-representation}
 
 ![fourier representation for single component](images/m4_0001.png){.column-margin  group="slides" width="53mm"}
 
@@ -57,11 +57,12 @@ In this lesson we describe [how to incorporate seasonal components in a normal d
 
 There are other seasonal representations [clarification needed]{.cn}.  [@petris2009dynamic sec. 3.2.2] discusses **seasonal factor** models which Prado mentions at the very end of the video as being based on a permutation matrix together with a factor vector. This factor based representation requires one parameter per season, while the fourier representation can be more parsimonious. However I can say from my own experience that this representation can be useful if you know the daily mean for a week and which to use that as a day of the week seasonality.
 
-For the rest of this lesion we will focus on the  Fourier representation as is is flexible without needing as many parameters. E.g. if we just want to model the fundamental frequency we can omit all the harmonics of that frequency. 
+For the rest of this lesson we will focus on the Fourier representation as it is both flexible and more parsimonious with regard to the parameters. 
+E.g. If we wish to model just the fundamental frequency we can omit all the harmonics of that frequency. 
 
 We will discuss two cases :
 
-### Single  frequency  with $\omega \in (0,\pi)$
+### Single frequency Fourier NDLM with $\omega \in (0,\pi)$ {#sec-single-frequency-fourier-ndlm}
 
 This gives us the following matrix representation NDLM:
 
@@ -91,7 +92,9 @@ b_t \end{pmatrix} && \text{multiplying out} \\
 \end{aligned}
 $$ {#eq-seasonal-forecast-function-derivation}
 
-### Single frequency with $\omega = \pi$
+Bear in mind that this derivation is important because it will feature in the constructions used to form the **multiple frequency component Fourier NDLMs**.
+
+### Single frequency Fourier NDLM with $\omega = \pi$ {#sec-single-frequency-fourier-ndlm-nyquist}
 
 
 This gives a one dimensional state vector and the following forecast function
@@ -101,7 +104,7 @@ f_t(h) &= -1^h a_t
 \end{aligned}
 $$ {#eq-nyquist-seasonal-forecast-function}
 
-### Fundamental period  odd $p$ and harmonics 
+### Multiple frequency component Fourier NDLM for odd $p$
 
 ![fourier representation for for multiple frequency components](images/m4_0002.png){.column-margin group="slides"  group="slides" width="53mm"}
 
@@ -109,7 +112,7 @@ $$ {#eq-nyquist-seasonal-forecast-function}
 
 Next we look at multiple frequencies, again we have two cases and we start with the case where the period $p$ is odd. Since $p$ is odd we can write it a  $p=2m-1$ for some integer $m$.
 
-- How many frequencies will we be able to incorporate in this model? 
+- **How many frequencies will we be able to incorporate in this model**? 
 
 Since 
 
@@ -119,9 +122,11 @@ $$ {#eq-frequencies-for-odd-p}
 
 Now we can use the superposition principle thinking we have a component DLM representation for each of these frequencies. They are all going to be between 0 and $\pi$. 
 
-For each of them I'm going to have that two-dimensional DLM representation in terms of the state vector. And we can use the superposition principle to concatenate them all and get a model that has all these frequencies.
+For each frequency we get a two-dimensional DLM representation in terms of the state vector. We use the superposition principle to concatenate them all and get a model that incorporates all these frequencies.
 
-So there is one frequency associated with the fundamental period and all its harmonics.
+- **How are the frequencies related**?
+
+There is one frequency associated with the fundamental period and all its harmonics.
 
 Now to the model our $F$ and my $G$ are both going to be constant over time so we can drop the $t$ subscript. Giving us:
 
@@ -145,62 +150,102 @@ $$ {#eq-seasonal-ndlms-multiple-componets-odd-p-system}
 
 which is compatible with the $\theta_t$ we use.
 
-- What is the structure of the forecast function?
+- **What is the form of the forecast function in this case** ?
 
 Again, using the superposition principle, the forecast function is going to be just the sum of m minus 1 components, where each of those components is going to have an individual forecast function that has that cosine wave representation that we discussed before. This gives us the h step forecast function at time t as follows:
 $$
-f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j})
+f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + B_{t,j})
 $$ {#eq-seasonal-ndlms-multiple-componets-odd-p-forecast}
 
 - where: 
    - $j$ is the index for 
    - $\omega_j$ the frequency
    - $A_{t,j}$ the amplitude and 
-   - $\gamma_{t,j}$ the phase 
+   - $B_{t,j}$ the phase 
+
+So once again we have an amplitude and phase for each of the components and so it depends on time $t$ but does not depend on $h$. 
+
+The $h$ appears in a product with the frequency. 
 
 
-### Fundamental period even $p$ and harmonics 
+### Multiple frequency component Fourier NDLM for even $p$
 
-For even $p$ we write $p=2m$
+In the case of even $p$ the situation is slightly different. 
+
+But again, it's the same in terms of using the superposition principle. In this case, we can write down P as 2 times m because it's an even number. 
+
+For even $p$ we write $p=2m$ for some integer $m$. 
+
+We write these frequencies $\omega_j$ as a function of the fundamental period. This time the index runs from 1 up to m-1. 
 $$
 \omega_j = \frac{2\pi j}{p}, \qquad j = 1, \ldots, m-1
 $$ {#eq-frequencies-for-even-p}
 
+
+For the last frequency, when $j=m$, this simplifies to be the **Nyquist frequency**. 
+In this case, we get 
+
 $$
 \omega_m= \pi
-$$ 
+$$  {#eq-nyquist-frequency}
+
+
 
 the model is
 
 $$
 \{ F,G, \cdot, \cdot \}
-$$
+$$ {#eq-seasonal-ndlms-even-p}
 
-with 
+In this particular case, when I concatenate everything, we get $F$ and a $G$ that look like this:
+
 $$
 F = (E_2^\top, E_2^\top, \ldots, E_2^\top,1)^\top
-$$
+$$ {#eq-seasonal-ndlms-multiple-componets-even-p-observation}
+
+where the last component is just a 1, which corresponds to the Nyquist frequency.
+
+
+Then $G$ is going to be the block diagonal.
 
 
 $$
 G = \text{blockdiag}[J_2(1, \omega_1), \ldots, J_2(1, \omega_{m-1})]
-$$
+$$ {#eq-seasonal-ndlms-multiple-componets-even-p-observation}
 
-with the forecast function
+For the last frequency I have that minus 1. This determines the dimension of the state vector, in this case I'm going to have 2 times m minus 1 plus 1.
+
+The forecast function
+
+For the  My f function, my forecast function, is again a function of the number of steps ahead. We get the same structure we had before for the $m- 1$ components. Then we have to add one more component that corresponds to the frequency $\pi$.
 
 $$
 f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j}) + (-1)^h A_{t,m}
-$$
+$$ {#eq-seasonal-ndlms-multiple-componets-even-p-forecast}
 
->
-> This should be a B. $B_{t,j}$. Again here, I have an amplitude for each of the components and a phase for each of the components so it depends on time but does not depend on h. The h enters here, and this is my forecast function. In the case of P even the situation is slightly different. But again, it's the same in terms of using the superposition principle. In this case, we can write down P as 2 times m because it's an even number. Now I can write down these Omega j's as a function of the fundamental period. Again, this goes from 1 up to m minus 1. But there is a last frequency here. When j is equal to m, this simplifies to be the **Nyquist frequency**. In this case, I have my Omega is equal to Pi. In this particular case, when I concatenate everything, I'm going to have again an F and a G that look like this. Once again, I concatenate all of these up to the component m minus 1. Then I have this 1 for the last frequency. Then my G is going to be the block diagonal.
->
-> For the last frequency I have that minus 1. This determines the dimension of the state vector, in this case I'm going to have 2 times m minus 1 plus 1.
->
-> My f function, my forecast function, is again a function of the number of steps ahead. I'm going to have the same structure I had before for the m minus 1 components.
-> Then I have to add one more component that corresponds to the frequency Pi.
-> This one appears with the power of h. As you can see, I'm using once again the superposition principle to go from component representation to the full Fourier representation. In practice, once we set the period, we can use a model that has the fundamental period and all the harmonics related to that fundamental period. We could also use, discard some of those harmonics and use a subset of them. This is one of the things that the Fourier representation allows. It allows you to be flexible in terms of how many components you want to add in this model. There are other representations that are also used in practice. One of them is the seasonal factors representation. In that case, you're going to have a model in which the state vector has dimension p for a given period. It uses a G matrix that is a permutation matrix. There is a correspondence between this parameterization using the Fourier representation and that other parameterization. If you want to use that parameterization, the way to interpret the components of this state vector, since you have P of those, is going to be a representation in terms of factors. For example, if you think about monthly data, you will have the say January factor, February factor, March factor, and so on. You could think about those effects and do a correspondence with this particular model. We will always work in this class with these representations because it's more flexible. But again, you can go back and forth between one and the other.
+where $A_{t,m}$ is the amplitude for the Nyquist frequency and it takes the sign based on the power of h. 
 
+Once again we employ the superposition principle to go from component representation to the full Fourier representation. 
+
+In practice, once we set the period, we can use a model that has the fundamental period and all the harmonics related to that fundamental period. 
+
+However, we may also choose to discard some of those harmonics and use a subset of them. This is the flexibility that the Fourier representation allows. 
+
+### Seasonal Factor representation
+
+There are other representations that are also used in practice. 
+One of them is the seasonal factors representation. 
+In that case, you're going to have a model in which the state vector has dimension p for a given period. 
+It uses a G matrix that is a permutation matrix. 
+[There is a correspondence between this parameterization using the Fourier representation and the Factor representation]{.mark}
+
+If you want to use that parameterization, the way to interpret the components of this state vector, since you have P of those, is going to be a representation in terms of factors. 
+
+For example, if you think about monthly data, you will have the say January factor, February factor, March factor, and so on. 
+
+You could think about those effects and do a correspondence with this particular model. We will always work in this class with the fourier representations because it's more flexible. 
+
+But again, we can go back and forth between one and the other.
 
 
 ::: {.callout-note collapse="true"}
@@ -213,28 +258,27 @@ $$
 
 ## Fourier Representation: Example 1  :spiral_notepad: 
 
+The following example is from a handout
+
 ### Seasonal Models
 
 Example: Full Fourier Model with $p=5$
 
 In this case the Fourier frequencies are
 
-- $\omega_1 = 2\pi/5$ and 
-- $\omega_2 = 4\pi/5$ and so
-- $p = 2 × 3 − 1$. Then, 
-- $m = 3$ and 
-- $\theta_t = (\theta_{t,1}, \ldots , \theta_{t,4})′$, 
-- $F = (1, 0, 1, 0)$, 
+- $\omega_1 = 2\pi/5$ and $\omega_2 = 4\pi/5$ and so on
+- $p = 2 × 3 − 1$. Then, $m = 3$ and 
+- $\theta_t = (\theta_{t,1}, \ldots , \theta_{t,4})\top$, 
+- $F = (1, 0, 1, 0)^\top$, 
 - $G$ is given by:
 
 $$
-G = \begin{bmatrix}
+G = \begin{pmatrix}
 \cos(2\pi/5) & \sin(2\pi/5) & 0 & 0 \\
-\cos(4\pi/5) & \sin(4\pi/5) & 0 & 0 \\
-0 & 0 & \cos(2\pi/5) & \sin(2\pi/5) \\
+\cos(2\pi/5) & \sin(2\pi/5) & 0 & 0 \\
 0 & 0 & \cos(4\pi/5) & \sin(4\pi/5) \\
-0 & 0 & 0 & 0
-\end{bmatrix}
+0 & 0 & \cos(4\pi/5) & \sin(4\pi/5) \\
+\end{pmatrix}
 $$
 
 and the forecast function is:
@@ -248,16 +292,29 @@ $$ {#eq-forecast-function}
 ![two component model](images/m4_0011.png){.column-margin  group="slides" width="53mm"}
 
 
-> [In this second example, we are going to have two components; a linear trend plus a seasonal component where the fundamental period is four.
-The way to build this model, again, is using the superposition principle.]{.mark} 
->
-> First we need to think "what *structure* do we need, to get a *linear trend* in the **forecast function**?" 
->
->The linear trend is a linear function on the number of steps ahead. 
->
-> Whenever you have that structure, you will get a DLM that is the so-called **polynomial model of order 2**. So let's discuss first the linear. Let's say the linear trend part, and in this case, we have an $F$ and a $G$, I'm going to call them 1, $F_1$ and $G_1$ to denote that this is the first component in the model.
->
->
+In this example, we are going to have two components:
+
+- a linear trend plus 
+- a seasonal component where the fundamental period is four.
+
+[The way we construct such a model, is via the superposition principle]{.mark} 
+
+- **"what *structure* do we need, to get a *linear trend* in the *forecast function* ?**" 
+
+
+The linear trend is a linear function on the number of steps ahead. 
+
+Whenever we want that structure, we will use a DLM that we call a **polynomial model of order 2**. 
+
+Prado isn't clear enough here so let me try to clarify:
+
+We have options here for the linear trend. Polynomial models are a class of models that allow us to incorporate linear trends. They are smooth, and linear and we typically only polynomials of order 1 and 2. Order 1 correspond to having a mean and order 2 corresponds to having a mean and a gradient in the trend.
+
+So let's discuss first the linear component
+
+Let's say the linear trend part, and in this case, we have an $F$ and a $G$, I'm going to call them 1, $F_1$ and $G_1$ to denote that this is the first component in the model.
+
+
 $F_1$ is just going to be 1, 0 transpose, and the $G_1$ is that upper triangular matrix, it's a 2 by 2 matrix that has 1, 1 in the first row, 0, 1 in the second row, so this gives me a linear trend. 
 >
 > My forecast function, let's call it $f_{1,t}$ in terms of the number of steps ahead is just a linear function on h, is a linear polynomial order 1. Let's say it's a constant of $K$ but depends on t0 plus $K_{t_1}^h$. This is the structure of the first component. Then I have to think about the seasonal component with period of four. If we are going to incorporate all the harmonics, we have to think again, is this an even period or a not period? In this example, this is an even period. I can write p, which is 4, as 2 times 2, so this gives me that m. I'm going to have one frequency, the first one, Omega 1, is related to the fundamental period of 4, so is 2 Pi over 4, which I can simplify and write down this as Pi over 2. This is the first frequency. The last one is going to correspond to the Nyquist.
@@ -298,7 +355,7 @@ J_2(1, \omega) =
 \end{pmatrix},
 $$
 
-has a forecast function
+has a forecast function:
 
 $$
 \begin{aligned}
