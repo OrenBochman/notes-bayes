@@ -1363,9 +1363,10 @@ window.Quarto = {
   <li><a href="#seasonal-ndlms" id="toc-seasonal-ndlms" class="nav-link" data-scroll-target="#seasonal-ndlms"><span class="header-section-number">99.1</span> Seasonal NDLMs</a></li>
   <li><a href="#fourier-representation" id="toc-fourier-representation" class="nav-link" data-scroll-target="#fourier-representation"><span class="header-section-number">99.2</span> Fourier representation <span class="emoji" data-emoji="movie_camera">🎥</span></a>
   <ul class="collapse">
-  <li><a href="#single-frequency-with-omega-in-0pi" id="toc-single-frequency-with-omega-in-0pi" class="nav-link" data-scroll-target="#single-frequency-with-omega-in-0pi"><span class="header-section-number">99.2.1</span> .single frequency with <span class="math inline">\omega \in (0,\pi)</span></a></li>
-  <li><a href="#omega-pi" id="toc-omega-pi" class="nav-link" data-scroll-target="#omega-pi"><span class="header-section-number">99.2.2</span> <span class="math inline">\omega = \pi</span></a></li>
-  <li><a href="#fundamental-period-p-and-harmonics" id="toc-fundamental-period-p-and-harmonics" class="nav-link" data-scroll-target="#fundamental-period-p-and-harmonics"><span class="header-section-number">99.2.3</span> Fundamental period <span class="math inline">p</span> and harmonics</a></li>
+  <li><a href="#single-frequency-with-omega-in-0pi" id="toc-single-frequency-with-omega-in-0pi" class="nav-link" data-scroll-target="#single-frequency-with-omega-in-0pi"><span class="header-section-number">99.2.1</span> Single frequency with <span class="math inline">\omega \in (0,\pi)</span></a></li>
+  <li><a href="#single-frequency-with-omega-pi" id="toc-single-frequency-with-omega-pi" class="nav-link" data-scroll-target="#single-frequency-with-omega-pi"><span class="header-section-number">99.2.2</span> Single frequency with <span class="math inline">\omega = \pi</span></a></li>
+  <li><a href="#fundamental-period-odd-p-and-harmonics" id="toc-fundamental-period-odd-p-and-harmonics" class="nav-link" data-scroll-target="#fundamental-period-odd-p-and-harmonics"><span class="header-section-number">99.2.3</span> Fundamental period odd <span class="math inline">p</span> and harmonics</a></li>
+  <li><a href="#fundamental-period-even-p-and-harmonics" id="toc-fundamental-period-even-p-and-harmonics" class="nav-link" data-scroll-target="#fundamental-period-even-p-and-harmonics"><span class="header-section-number">99.2.4</span> Fundamental period even <span class="math inline">p</span> and harmonics</a></li>
   </ul></li>
   <li><a href="#fourier-representation-example-1" id="toc-fourier-representation-example-1" class="nav-link" data-scroll-target="#fourier-representation-example-1"><span class="header-section-number">99.3</span> Fourier Representation: Example 1 <span class="emoji" data-emoji="spiral_notepad">🗒️</span></a>
   <ul class="collapse">
@@ -1433,78 +1434,114 @@ Note
 <ol start="2" type="1">
 <li>One that uses superposition of sinusoids. These are better smooth long range seasonal patterns and can fit them with very few parameters.</li>
 <li>Both come with constraint (a sum to one) so that we need to specify one less parameter than we actually require.</li>
-<li>The Python implementation <code>pyDLM</code> has an interesting idea for allowing us to specify both short term and long term seasonality. This idea is illustrade in the following snippet:</li>
+<li>The Python implementation <code>pyDLM</code> has an interesting idea for allowing us to specify both short term and long term seasonality. This idea is illustrated in the following snippet:</li>
 </ol>
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>monthly <span class="op">=</span> longSeason(period<span class="op">=</span><span class="dv">12</span>, stay<span class="op">=</span><span class="dv">30</span>, data<span class="op">=</span>data, name<span class="op">=</span><span class="st">'monthly'</span>, w<span class="op">=</span><span class="fl">1e7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Where for example, the time unit is day, but user wants to add a monthly seasonality</p>
+<p>Where for example, the time unit is day, but user wants to add long term seasonality for a the 12 month resolution.</p>
 <p>These components allow us to model processes that have structure at multi-scale in time behavior without requiring very many parameters. This is a power modeling capability that you should cultivate before you try to use NDLMs in production.</p>
 </section>
 <section id="fourier-representation" class="level2 page-columns page-full" data-number="99.2">
 <h2 data-number="99.2" class="anchored" data-anchor-id="fourier-representation"><span class="header-section-number">99.2</span> Fourier representation <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
-<div class="page-columns page-full"><p>In this video we describe <mark>how to incorporate seasonal components in a normal dynamic linear model</mark>. First we will consider a single Fourier component representation . This corresponds to the case where we have a single frequency, and how to incorporate that single frequency in your model for the seasonality. Then we will use the <strong>superposition principle</strong>, to incorporate multiple frequencies or a single frequency and the some of its corresponding harmonics in our NDLM.</p><div class="no-row-height column-margin column-container"><span class=""><strong>single Fourier component representation</strong></span></div></div>
+
+<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/m4_0001.png" class="lightbox" data-gallery="slides" title="fourier representation for single component"><img src="images/m4_0001.png" class="img-fluid figure-img" style="width:53mm" alt="fourier representation for single component"></a></p>
+<figcaption>fourier representation for single component</figcaption>
+</figure>
+</div></div><div class="page-columns page-full"><p>In this lesson we describe <mark>how to incorporate seasonal components in a normal dynamic linear model</mark>. We start with a single Fourier component representation . This corresponds to the case where we have a single frequency, and how to incorporate that single frequency in your model for the seasonality. Then we will use the <strong>superposition principle</strong>, to incorporate multiple frequencies more specifically these take the form of a fundamental frequency and its corresponding harmonics in our NDLM.</p><div class="no-row-height column-margin column-container"><span class=""><strong>single Fourier component representation</strong></span></div></div>
 <p>There are other seasonal representations <span class="cn">clarification needed</span>. <span class="citation" data-cites="petris2009dynamic">(<a href="references.html#ref-petris2009dynamic" role="doc-biblioref">Petris, Petrone, and Campagnoli 2009, sec. 3.2.2</a>)</span> discusses <strong>seasonal factor</strong> models which Prado mentions at the very end of the video as being based on a permutation matrix together with a factor vector. This factor based representation requires one parameter per season, while the fourier representation can be more parsimonious. However I can say from my own experience that this representation can be useful if you know the daily mean for a week and which to use that as a day of the week seasonality.</p>
 <p>For the rest of this lesion we will focus on the Fourier representation as is is flexible without needing as many parameters. E.g. if we just want to model the fundamental frequency we can omit all the harmonics of that frequency.</p>
 <p>We will discuss two cases :</p>
 <section id="single-frequency-with-omega-in-0pi" class="level3" data-number="99.2.1">
-<h3 data-number="99.2.1" class="anchored" data-anchor-id="single-frequency-with-omega-in-0pi"><span class="header-section-number">99.2.1</span> .single frequency with <span class="math inline">\omega \in (0,\pi)</span></h3>
-<p>this gives us the following matrix representation NDLM:</p>
-<p><span id="eq-fourier-1"><span class="math display">\{ \underbrace {E_2}_{F},  \underbrace {J_2(1,\omega)}_{G}, \underbrace{\cdot}_{v_t}, \underbrace{\cdot}_{W_t}\}
+<h3 data-number="99.2.1" class="anchored" data-anchor-id="single-frequency-with-omega-in-0pi"><span class="header-section-number">99.2.1</span> Single frequency with <span class="math inline">\omega \in (0,\pi)</span></h3>
+<p>This gives us the following matrix representation NDLM:</p>
+<p><span id="eq-fourier-1"><span class="math display">\{ \underbrace {E_2}_{F},  \underbrace {J_2(1,\omega)}_{G}, \underbrace{\cdot \vphantom{E_2}}_{V_t}, \underbrace{\cdot \vphantom{E_2}}_{W_t}\}
 \tag{99.1}</span></span></p>
 <ul>
 <li>where:
 <ul>
 <li><span class="math inline">E_2=(1,0)^\top</span></li>
-<li><span class="math inline">J_2(1, \omega) = \begin{pmatrix} \cos(\omega) &amp; \sin(\omega) \\-\sin(\omega) &amp; \cos(\omega) \end{pmatrix}</span></li>
+<li><span class="math inline">J_2(1, \omega) = \begin{pmatrix} \cos(\omega) &amp; \sin(\omega) \\ -\sin(\omega) &amp; \cos(\omega) \end{pmatrix}</span></li>
 </ul></li>
 </ul>
-<p>This is a <span class="math inline">2\times 2</span> matrix the our state parameter vector will also be a vector of dimension 2.</p>
-<p>If we think about the forecast function, <span class="math inline">f_t(h)</span> h-steps ahead, (you are at time <span class="math inline">t</span> and you want to look for <span class="math inline">h</span> steps ahead).</p>
-<p>Let’s recall: the way we work with this is <span class="math inline">F* G^h * a_t</span></p>
+<p>Since the system matrix is a <span class="math inline">2\times 2</span> matrix the our state parameter vector must be a vector of dimension 2.</p>
+<p>If we think about the forecast function, <span class="math inline">f_t(h)</span> h-steps ahead, (you are at time <span class="math inline">t</span> and you want to look for <span class="math inline">h</span> steps ahead). Let’s recall: the way we work with this is <span class="math inline">F G^h a_t</span></p>
 <p><span id="eq-seasonal-forecast-function-derivation"><span class="math display">
 \begin{aligned}
-f_t(h) &amp;= E_2' [J_2(1, \omega)]^h \underbrace{\begin{pmatrix} a_t \\  b_t \end{pmatrix}}_{\mathbb{E}[\theta\mid \mathcal{D}_t]}  &amp;&amp; \text{trig identities}
+f_t(h)&amp;\stackrel{\triangle}{=}\mathbb{E}[y_{t+h} \mid \mathcal{D}_{T}] &amp;&amp; \text{defn. of forecast fn.} \\
+&amp;= F'G^h \mathbb{E}[\theta_{t} \mid \mathcal{D}_{T}] &amp;&amp; \text{case of const F and G} \\
+&amp;= E_2' [J_2(1, \omega)]^h \underbrace{\begin{pmatrix} a_t \\  b_t \end{pmatrix}}_{\mathbb{E}[\theta\mid \mathcal{D}_t]}  &amp;&amp; \text{subst. F and G}
 \\
 &amp;= (1,0) \begin{pmatrix} \cos(\omega h) &amp; \sin(\omega h) \\
 -\sin(\omega h) &amp; \cos(\omega h) \end{pmatrix} \begin{pmatrix} a_t \\
-b_t \end{pmatrix} \\
-&amp;= a_t \cos(\omega h) + b_t \sin(\omega h) \\
-&amp;= \underbrace{A_t}_{\text{amplitude}} \cos(\omega h + \underbrace{B_t}_{\text{phase}}).
+b_t \end{pmatrix} &amp;&amp; \text{multiplying out} \\
+&amp;= a_t \cos(\omega h) + b_t \sin(\omega h) &amp;&amp; \text{trig identities} \\
+&amp;= \underbrace{A_t}_{\text{amplitude}} \cos(\omega h + \underbrace{B_t}_{\text{phase}}) &amp;&amp; \blacksquare
 \end{aligned}
 \tag{99.2}</span></span></p>
-<!-- TODO: the forecast function derivation could be clearer with an extra step at the start with its definition  and our earlier results that give this form for h steps -->
 </section>
-<section id="omega-pi" class="level3" data-number="99.2.2">
-<h3 data-number="99.2.2" class="anchored" data-anchor-id="omega-pi"><span class="header-section-number">99.2.2</span> <span class="math inline">\omega = \pi</span></h3>
-<p>this gives a one dimensional state vector and the following forecast function <span id="eq-nyquist-seasonal-forecast-function"><span class="math display">
+<section id="single-frequency-with-omega-pi" class="level3" data-number="99.2.2">
+<h3 data-number="99.2.2" class="anchored" data-anchor-id="single-frequency-with-omega-pi"><span class="header-section-number">99.2.2</span> Single frequency with <span class="math inline">\omega = \pi</span></h3>
+<p>This gives a one dimensional state vector and the following forecast function <span id="eq-nyquist-seasonal-forecast-function"><span class="math display">
 \begin{aligned}
 f_t(h) &amp;= -1^h a_t
 \end{aligned}
 \tag{99.3}</span></span></p>
 </section>
-<section id="fundamental-period-p-and-harmonics" class="level3 page-columns page-full" data-number="99.2.3">
-<h3 data-number="99.2.3" class="anchored" data-anchor-id="fundamental-period-p-and-harmonics"><span class="header-section-number">99.2.3</span> Fundamental period <span class="math inline">p</span> and harmonics</h3>
-<p>Here again we have two case for odd and even p</p>
-<p>If p is odd <span class="math inline">p=2m-1</span></p>
-<p><span class="math display">
-\omega_j = 2\pi j / p, \quad j = 1, \ldots, m-1
-</span></p>
-<p>the model is</p>
-<p><span class="math display">
+<section id="fundamental-period-odd-p-and-harmonics" class="level3 page-columns page-full" data-number="99.2.3">
+<h3 data-number="99.2.3" class="anchored" data-anchor-id="fundamental-period-odd-p-and-harmonics"><span class="header-section-number">99.2.3</span> Fundamental period odd <span class="math inline">p</span> and harmonics</h3>
+
+<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/m4_0002.png" class="lightbox" data-gallery="slides" title="fourier representation for for multiple frequency components"><img src="images/m4_0002.png" class="img-fluid figure-img" style="width:53mm" data-group="slides" alt="fourier representation for for multiple frequency components"></a></p>
+<figcaption>fourier representation for for multiple frequency components</figcaption>
+</figure>
+</div></div><p>Next we look at multiple frequencies, again we have two cases and we start with the case where the period <span class="math inline">p</span> is odd. Since <span class="math inline">p</span> is odd we can write it a <span class="math inline">p=2m-1</span> for some integer <span class="math inline">m</span>.</p>
+<ul>
+<li>How many frequencies will we be able to incorporate in this model?</li>
+</ul>
+<p>Since</p>
+<p><span id="eq-frequencies-for-odd-p"><span class="math display">
+\omega_j = \frac{2\pi j}{p}, \qquad j = 1, \ldots, m-1
+\tag{99.4}</span></span></p>
+<p>Now we can use the superposition principle thinking we have a component DLM representation for each of these frequencies. They are all going to be between 0 and <span class="math inline">\pi</span>.</p>
+<p>For each of them I’m going to have that two-dimensional DLM representation in terms of the state vector. And we can use the superposition principle to concatenate them all and get a model that has all these frequencies.</p>
+<p>So there is one frequency associated with the fundamental period and all its harmonics.</p>
+<p>Now to the model our <span class="math inline">F</span> and my <span class="math inline">G</span> are both going to be constant over time so we can drop the <span class="math inline">t</span> subscript. Giving us:</p>
+<p><span id="eq-seasonal-ndlms-odd-p"><span class="math display">
 \{ F,G, \cdot, \cdot \}
-</span></p>
-<p><span class="math display">
-F= (E_2^\top,E_2^\top,...,E_2^\top,\}^\top)
-</span></p>
-<p><span class="math display">
-G= \text{blockdiag}[J_2(1, \omega_1), \ldots, J_2(1, \omega_{m-1})]
-</span></p>
-<p><span class="math display">
-f_t(h)=\sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j})
-</span></p>
-<p>where <span class="math inline">A_{t,j}</span> is the amplitude and <span class="math inline">\gamma_{t,j}</span> is the phase for each frequency <span class="math inline">j</span>.</p>
-<p>for p is even <span class="math inline">p=2m</span> <span class="math display">
-\omega_j = 2\pi j / p, \quad j = 1, \ldots, m-1
-</span></p>
+\tag{99.5}</span></span></p>
+<p>For the <span class="math inline">F</span> we need to concatenate as many <span class="math inline">E_2^\top</span> as we have frequencies <span class="math inline">\omega</span> I’m going to have <span class="math inline">E_2</span> transpose and we have <span class="math inline">m-1</span> such components.</p>
+<p><span id="eq-seasonal-ndlms-multiple-componets-odd-p-observation"><span class="math display">
+F = (E_2^\top,E_2^\top,...,E_2^\top,)^\top
+\tag{99.6}</span></span></p>
+<p>Since each <span class="math inline">E_2^\top</span> has dimension 2 we get a parameter vector <span class="math inline">\theta_t</span> with dimension of 2 times <span class="math inline">m-1</span>.</p>
+<p>Next we consider the System Evolution matrix <span class="math inline">G</span>. We construct it by concatenating the <span class="math inline">J_2(1, \omega_j)</span> matrices for each frequency <span class="math inline">j</span> in a block diagonal form which gives us</p>
+<p><span id="eq-seasonal-ndlms-multiple-componets-odd-p-system"><span class="math display">
+G = \text{blockdiag}[J_2(1, \omega_1), \ldots, J_2(1, \omega_{m-1})]
+\tag{99.7}</span></span></p>
+<p>which is compatible with the <span class="math inline">\theta_t</span> we use.</p>
+<ul>
+<li>What is the structure of the forecast function?</li>
+</ul>
+<p>Again, using the superposition principle, the forecast function is going to be just the sum of m minus 1 components, where each of those components is going to have an individual forecast function that has that cosine wave representation that we discussed before. This gives us the h step forecast function at time t as follows: <span id="eq-seasonal-ndlms-multiple-componets-odd-p-forecast"><span class="math display">
+f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j})
+\tag{99.8}</span></span></p>
+<ul>
+<li>where:
+<ul>
+<li><span class="math inline">j</span> is the index for</li>
+<li><span class="math inline">\omega_j</span> the frequency</li>
+<li><span class="math inline">A_{t,j}</span> the amplitude and</li>
+<li><span class="math inline">\gamma_{t,j}</span> the phase</li>
+</ul></li>
+</ul>
+</section>
+<section id="fundamental-period-even-p-and-harmonics" class="level3" data-number="99.2.4">
+<h3 data-number="99.2.4" class="anchored" data-anchor-id="fundamental-period-even-p-and-harmonics"><span class="header-section-number">99.2.4</span> Fundamental period even <span class="math inline">p</span> and harmonics</h3>
+<p>For even <span class="math inline">p</span> we write <span class="math inline">p=2m</span> <span id="eq-frequencies-for-even-p"><span class="math display">
+\omega_j = \frac{2\pi j}{p}, \qquad j = 1, \ldots, m-1
+\tag{99.9}</span></span></p>
 <p><span class="math display">
 \omega_m= \pi
 </span></p>
@@ -1512,7 +1549,7 @@ f_t(h)=\sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j})
 <p><span class="math display">
 \{ F,G, \cdot, \cdot \}
 </span></p>
-<p><span class="math display">
+<p>with <span class="math display">
 F = (E_2^\top, E_2^\top, \ldots, E_2^\top,1)^\top
 </span></p>
 <p><span class="math display">
@@ -1522,26 +1559,12 @@ G = \text{blockdiag}[J_2(1, \omega_1), \ldots, J_2(1, \omega_{m-1})]
 <p><span class="math display">
 f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j}) + (-1)^h A_{t,m}
 </span></p>
-
-<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="images/m4_0001.png" class="lightbox" data-gallery="slides" title="fourier representation 1"><img src="images/m4_0001.png" class="img-fluid figure-img" style="width:53mm" alt="fourier representation 1"></a></p>
-<figcaption>fourier representation 1</figcaption>
-</figure>
-</div></div><blockquote class="blockquote">
-<p>Here <span class="math inline">p</span>, is the period and in this case, we are going to discuss essentially two different situations. One is when p is an odd number, the other one is when p is an even number. Let’s begin with the case of p is odd and in this particular scenario, we can write down p as 2 times m minus 1 for some value of m. This gives me a period that is odd. How many frequencies I’m going to incorporate in this model? I’m going to be able to write down <span class="math inline">\omega_j = 2 \pi \times j / p</span>, which is the fundamental period. j here goes from one all the way to m minus 1. Now we can use the superposition principle thinking we have a component DLM representation for each of these frequencies. They are all going to be between 0 and Pi. For each of them I’m going to have that two-dimensional DLM representation in terms of the state vector and then I can use the superposition principle to concatenate them all and get a model that has all these frequencies, the one related to the fundamental period and all the harmonics for that. Again, if I think about what is my <span class="math inline">F</span> and my <span class="math inline">G</span> here, I’m not writing down the t because both F and G are going to be constant over time. So my <span class="math inline">F</span> is going to be again, I concatenate as many <span class="math inline">E_2</span> as I have frequencies in here. I’m going to have <span class="math inline">E_2</span> transpose and so on and I’m going to have m minus one of those. Times 2 gives me the dimension of <span class="math inline">\theta_t</span>. The vector here is 2 times m minus 1 dimensional vector.</p>
-<p>My G is going to have that block diagonal structure where we are going to just have all those <span class="math inline">J_{2,1} \omega_1</span>, all the way down to the last harmonic. Each of these blocks is a two-by-two matrix and I’m going to put them together in a block diagonal form. This gives me the representation when the period is odd, what is the structure of the forecast function? Again, using the superposition principle, the forecast function is going to be just the sum of m minus 1 components, where each of those components is going to have an individual forecast function that has that cosine wave representation that we discussed before. Again, if I think about the forecast function at time t h steps ahead, I will be able to write it down like this.</p>
+<blockquote class="blockquote">
 <p>This should be a B. <span class="math inline">B_{t,j}</span>. Again here, I have an amplitude for each of the components and a phase for each of the components so it depends on time but does not depend on h. The h enters here, and this is my forecast function. In the case of P even the situation is slightly different. But again, it’s the same in terms of using the superposition principle. In this case, we can write down P as 2 times m because it’s an even number. Now I can write down these Omega j’s as a function of the fundamental period. Again, this goes from 1 up to m minus 1. But there is a last frequency here. When j is equal to m, this simplifies to be the <strong>Nyquist frequency</strong>. In this case, I have my Omega is equal to Pi. In this particular case, when I concatenate everything, I’m going to have again an F and a G that look like this. Once again, I concatenate all of these up to the component m minus 1. Then I have this 1 for the last frequency. Then my G is going to be the block diagonal.</p>
 <p>For the last frequency I have that minus 1. This determines the dimension of the state vector, in this case I’m going to have 2 times m minus 1 plus 1.</p>
 <p>My f function, my forecast function, is again a function of the number of steps ahead. I’m going to have the same structure I had before for the m minus 1 components. Then I have to add one more component that corresponds to the frequency Pi. This one appears with the power of h. As you can see, I’m using once again the superposition principle to go from component representation to the full Fourier representation. In practice, once we set the period, we can use a model that has the fundamental period and all the harmonics related to that fundamental period. We could also use, discard some of those harmonics and use a subset of them. This is one of the things that the Fourier representation allows. It allows you to be flexible in terms of how many components you want to add in this model. There are other representations that are also used in practice. One of them is the seasonal factors representation. In that case, you’re going to have a model in which the state vector has dimension p for a given period. It uses a G matrix that is a permutation matrix. There is a correspondence between this parameterization using the Fourier representation and that other parameterization. If you want to use that parameterization, the way to interpret the components of this state vector, since you have P of those, is going to be a representation in terms of factors. For example, if you think about monthly data, you will have the say January factor, February factor, March factor, and so on. You could think about those effects and do a correspondence with this particular model. We will always work in this class with these representations because it’s more flexible. But again, you can go back and forth between one and the other.</p>
 </blockquote>
-
-<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="images/m4_0002.png" class="lightbox" data-gallery="slides" title="slide 2"><img src="images/m4_0002.png" class="img-fluid figure-img" style="width:53mm" data-group="slides" alt="slide 2"></a></p>
-<figcaption>slide 2</figcaption>
-</figure>
-</div></div><div class="callout callout-style-default callout-note callout-titled">
+<div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1586,7 +1609,7 @@ G = \begin{bmatrix}
 <p>and the forecast function is:</p>
 <p><span id="eq-forecast-function"><span class="math display">
 f_t(h) = A_{t,1} \cos(2\pi h/5 + \gamma_t) + A_{t,2} \cos(4\pi h /5 + \gamma_{t,2}) \qquad
-\tag{99.4}</span></span></p>
+\tag{99.10}</span></span></p>
 </section>
 </section>
 <section id="sec-building-ndlms-with-multiple-components-examples" class="level2 page-columns page-full" data-number="99.4">
@@ -2339,379 +2362,394 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>TODO: example for learning the weekly pattern.</span>
 <span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>One that uses superposition of sinusoids. These are better smooth long range seasonal patterns and can fit them with very few parameters.</span>
 <span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Both come with constraint (a sum to one) so that we need to specify one less parameter than we actually require.</span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>The Python implementation <span class="in">`pyDLM`</span> has an interesting idea for allowing us to specify both short term and long term seasonality. This idea is illustrade in the following snippet:  </span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>The Python implementation <span class="in">`pyDLM`</span> has an interesting idea for allowing us to specify both short term and long term seasonality. This idea is illustrated in the following snippet:  </span>
 <span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="in">```python</span></span>
 <span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>monthly <span class="op">=</span> longSeason(period<span class="op">=</span><span class="dv">12</span>, stay<span class="op">=</span><span class="dv">30</span>, data<span class="op">=</span>data, name<span class="op">=</span><span class="st">'monthly'</span>, w<span class="op">=</span><span class="fl">1e7</span>)</span>
 <span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>Where for example, the time unit is day, but user wants to add a monthly seasonality</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>Where for example, the time unit is day, but user wants to add long term seasonality for a the 12 month resolution.</span>
 <span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>These components allow us to model processes that have structure at multi-scale in time behavior without requiring very many parameters. This is a power modeling capability that you should cultivate before you try to use NDLMs in production.</span>
 <span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="fu">## Fourier representation  :movie_camera: </span></span>
 <span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>In this video we  describe <span class="co">[</span><span class="ot">how to incorporate seasonal components in a normal dynamic linear model</span><span class="co">]</span>{.mark}. First we will consider a single Fourier component representation <span class="co">[</span><span class="ot">**single Fourier component representation**</span><span class="co">]</span>{.column-margin}. This corresponds to the case where we have a single frequency, and how to incorporate that single frequency in your model for the seasonality. Then we will use the **superposition principle**, to   incorporate multiple frequencies or a single frequency and the some of its corresponding harmonics in our NDLM. </span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>There are other seasonal representations <span class="co">[</span><span class="ot">clarification needed</span><span class="co">]</span>{.cn}.  <span class="co">[</span><span class="ot">@petris2009dynamic sec. 3.2.2</span><span class="co">]</span> discusses **seasonal factor** models which Prado mentions at the very end of the video as being based on a permutation matrix together with a factor vector. This factor based representation requires one parameter per season, while the fourier representation can be more parsimonious. However I can say from my own experience that this representation can be useful if you know the daily mean for a week and which to use that as a day of the week seasonality.</span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>For the rest of this lesion we will focus on the  Fourier representation as is is flexible without needing as many parameters. E.g. if we just want to model the fundamental frequency we can omit all the harmonics of that frequency. </span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>We will discuss two cases :</span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="fu">### .single  frequency  with $\omega \in (0,\pi)$</span></span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>this gives us the following matrix representation NDLM:</span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>$$<span class="sc">\{</span> \underbrace {E_2}_{F},  \underbrace {J_2(1,\omega)}_{G}, \underbrace{\cdot}_{v_t}, \underbrace{\cdot}_{W_t}<span class="sc">\}</span></span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>$$ {#eq-fourier-1}</span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>where:</span>
-<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$E_2=(1,0)^\top$ </span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$J_2(1, \omega) = \begin{pmatrix} \cos(\omega) &amp; \sin(\omega) <span class="sc">\\</span>-\sin(\omega) &amp; \cos(\omega) \end{pmatrix}$ </span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>This is a $2\times 2$ matrix the our state parameter vector will also be a vector of dimension 2. </span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>If we think about the forecast function, $f_t(h)$  h-steps ahead, (you are at time $t$ and you want to look for $h$ steps ahead). </span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>Let's recall: the way we work with this is  $F* G^h * a_t$</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="al">![fourier representation for single component](images/m4_0001.png)</span>{.column-margin  group="slides" width="53mm"}</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>In this lesson we describe <span class="co">[</span><span class="ot">how to incorporate seasonal components in a normal dynamic linear model</span><span class="co">]</span>{.mark}. We start with a single Fourier component representation <span class="co">[</span><span class="ot">**single Fourier component representation**</span><span class="co">]</span>{.column-margin}. This corresponds to the case where we have a single frequency, and how to incorporate that single frequency in your model for the seasonality. Then we will use the **superposition principle**, to incorporate multiple frequencies more specifically these take the form of a fundamental  frequency and its corresponding harmonics in our NDLM. </span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>There are other seasonal representations <span class="co">[</span><span class="ot">clarification needed</span><span class="co">]</span>{.cn}.  <span class="co">[</span><span class="ot">@petris2009dynamic sec. 3.2.2</span><span class="co">]</span> discusses **seasonal factor** models which Prado mentions at the very end of the video as being based on a permutation matrix together with a factor vector. This factor based representation requires one parameter per season, while the fourier representation can be more parsimonious. However I can say from my own experience that this representation can be useful if you know the daily mean for a week and which to use that as a day of the week seasonality.</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>For the rest of this lesion we will focus on the  Fourier representation as is is flexible without needing as many parameters. E.g. if we just want to model the fundamental frequency we can omit all the harmonics of that frequency. </span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>We will discuss two cases :</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="fu">### Single  frequency  with $\omega \in (0,\pi)$</span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>This gives us the following matrix representation NDLM:</span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>$$<span class="sc">\{</span> \underbrace {E_2}_{F},  \underbrace {J_2(1,\omega)}_{G}, \underbrace{\cdot \vphantom{E_2}}_{V_t}, \underbrace{\cdot \vphantom{E_2}}_{W_t}<span class="sc">\}</span></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>$$ {#eq-fourier-1}</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>where:</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$E_2=(1,0)^\top$ </span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>$J_2(1, \omega) = \begin{pmatrix} \cos(\omega) &amp; \sin(\omega) <span class="sc">\\</span> -\sin(\omega) &amp; \cos(\omega) \end{pmatrix}$ </span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>Since the system matrix is a $2\times 2$ matrix the our state parameter vector must be  a vector of dimension 2. </span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>If we think about the forecast function, $f_t(h)$  h-steps ahead, (you are at time $t$ and you want to look for $h$ steps ahead). Let's recall: the way we work with this is  $F G^h a_t$</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>f_t(h) &amp;= E_2' <span class="co">[</span><span class="ot">J_2(1, \omega)</span><span class="co">]</span>^h \underbrace{\begin{pmatrix} a_t <span class="sc">\\</span>  b_t \end{pmatrix}}_{\mathbb{E}<span class="co">[</span><span class="ot">\theta\mid \mathcal{D}_t</span><span class="co">]</span>}  &amp;&amp; \text{trig identities}</span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a> <span class="sc">\\</span> </span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>&amp;= (1,0) \begin{pmatrix} \cos(\omega h) &amp; \sin(\omega h) <span class="sc">\\</span> </span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>-\sin(\omega h) &amp; \cos(\omega h) \end{pmatrix} \begin{pmatrix} a_t <span class="sc">\\</span> </span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>b_t \end{pmatrix} <span class="sc">\\</span></span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>&amp;= a_t \cos(\omega h) + b_t \sin(\omega h) <span class="sc">\\</span></span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>&amp;= \underbrace{A_t}_{\text{amplitude}} \cos(\omega h + \underbrace{B_t}_{\text{phase}}).</span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>$$ {#eq-seasonal-forecast-function-derivation}</span>
-<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>f_t(h)&amp;\stackrel{\triangle}{=}\mathbb{E}<span class="co">[</span><span class="ot">y_{t+h} \mid \mathcal{D}_{T}</span><span class="co">]</span> &amp;&amp; \text{defn. of forecast fn.} <span class="sc">\\</span> </span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>&amp;= F'G^h \mathbb{E}<span class="co">[</span><span class="ot">\theta_{t} \mid \mathcal{D}_{T}</span><span class="co">]</span> &amp;&amp; \text{case of const F and G} <span class="sc">\\</span></span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>&amp;= E_2' <span class="co">[</span><span class="ot">J_2(1, \omega)</span><span class="co">]</span>^h \underbrace{\begin{pmatrix} a_t <span class="sc">\\</span>  b_t \end{pmatrix}}_{\mathbb{E}<span class="co">[</span><span class="ot">\theta\mid \mathcal{D}_t</span><span class="co">]</span>}  &amp;&amp; \text{subst. F and G}</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a> <span class="sc">\\</span> </span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>&amp;= (1,0) \begin{pmatrix} \cos(\omega h) &amp; \sin(\omega h) <span class="sc">\\</span> </span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>-\sin(\omega h) &amp; \cos(\omega h) \end{pmatrix} \begin{pmatrix} a_t <span class="sc">\\</span> </span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>b_t \end{pmatrix} &amp;&amp; \text{multiplying out} <span class="sc">\\</span></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>&amp;= a_t \cos(\omega h) + b_t \sin(\omega h) &amp;&amp; \text{trig identities} <span class="sc">\\</span></span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>&amp;= \underbrace{A_t}_{\text{amplitude}} \cos(\omega h + \underbrace{B_t}_{\text{phase}}) &amp;&amp; \blacksquare</span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>$$ {#eq-seasonal-forecast-function-derivation}</span>
 <span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- </span><span class="al">TODO</span><span class="co">: the forecast function derivation could be clearer with an extra step at the start with its definition  and our earlier results that give this form for h steps --&gt;</span></span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a><span class="fu">### Single frequency with $\omega = \pi$</span></span>
 <span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a><span class="fu">### $\omega = \pi$</span></span>
-<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>this gives a one dimensional state vector and the following forecast function</span>
-<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>f_t(h) &amp;= -1^h a_t</span>
-<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>$$ {#eq-nyquist-seasonal-forecast-function}</span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>This gives a one dimensional state vector and the following forecast function</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>f_t(h) &amp;= -1^h a_t</span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>$$ {#eq-nyquist-seasonal-forecast-function}</span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a><span class="fu">### Fundamental period  odd $p$ and harmonics </span></span>
 <span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a><span class="fu">### Fundamental period $p$ and harmonics </span></span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a><span class="al">![fourier representation for for multiple frequency components](images/m4_0002.png)</span>{.column-margin group="slides"  group="slides" width="53mm"}</span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>Here again we have two case for odd and even p</span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>Next we look at multiple frequencies, again we have two cases and we start with the case where the period $p$ is odd. Since $p$ is odd we can write it a  $p=2m-1$ for some integer $m$.</span>
 <span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>If p is odd $p=2m-1$</span>
-<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>\omega_j = 2\pi j / p, \quad j = 1, \ldots, m-1</span>
-<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a>the model is </span>
-<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a><span class="sc">\{</span> F,G, \cdot, \cdot <span class="sc">\}</span></span>
-<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a>F= (E_2^\top,E_2^\top,...,E_2^\top,<span class="sc">\}</span>^\top)</span>
-<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a>G= \text{blockdiag}<span class="co">[</span><span class="ot">J_2(1, \omega_1), \ldots, J_2(1, \omega_{m-1})</span><span class="co">]</span></span>
-<span id="cb2-131"><a href="#cb2-131" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-132"><a href="#cb2-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-133"><a href="#cb2-133" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a>f_t(h)=\sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j})</span>
-<span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a>where $A_{t,j}$ is the amplitude and $\gamma_{t,j}$ is the phase for each frequency $j$.</span>
-<span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a>for p is even $p=2m$</span>
-<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a>\omega_j = 2\pi j / p, \quad j = 1, \ldots, m-1</span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>How many frequencies will we be able to incorporate in this model? </span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>Since </span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>\omega_j = \frac{2\pi j}{p}, \qquad j = 1, \ldots, m-1</span>
+<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a>$$ {#eq-frequencies-for-odd-p}</span>
+<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a>Now we can use the superposition principle thinking we have a component DLM representation for each of these frequencies. They are all going to be between 0 and $\pi$. </span>
+<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a>For each of them I'm going to have that two-dimensional DLM representation in terms of the state vector. And we can use the superposition principle to concatenate them all and get a model that has all these frequencies.</span>
+<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a>So there is one frequency associated with the fundamental period and all its harmonics.</span>
+<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a>Now to the model our $F$ and my $G$ are both going to be constant over time so we can drop the $t$ subscript. Giving us:</span>
+<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a><span class="sc">\{</span> F,G, \cdot, \cdot <span class="sc">\}</span></span>
+<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a>$$ {#eq-seasonal-ndlms-odd-p}</span>
+<span id="cb2-131"><a href="#cb2-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-132"><a href="#cb2-132" aria-hidden="true" tabindex="-1"></a>For the $F$ we need to concatenate as many $E_2^\top$ as we have frequencies $\omega$  I'm going to have $E_2$ transpose and we have $m-1$ such components. </span>
+<span id="cb2-133"><a href="#cb2-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a>F = (E_2^\top,E_2^\top,...,E_2^\top,)^\top</span>
+<span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a>$$ {#eq-seasonal-ndlms-multiple-componets-odd-p-observation}</span>
+<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a>Since each $E_2^\top$ has dimension 2 we get a parameter vector $\theta_t$  with dimension of 2 times $m-1$. </span>
+<span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a>Next we consider the System Evolution matrix $G$. We construct it by concatenating the $J_2(1, \omega_j)$ matrices for each frequency $j$ in a block diagonal form which gives us</span>
+<span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a>\omega_m= \pi</span>
-<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a>G = \text{blockdiag}<span class="co">[</span><span class="ot">J_2(1, \omega_1), \ldots, J_2(1, \omega_{m-1})</span><span class="co">]</span></span>
+<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a>$$ {#eq-seasonal-ndlms-multiple-componets-odd-p-system}</span>
+<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a>which is compatible with the $\theta_t$ we use.</span>
 <span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a>the model is</span>
+<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>What is the structure of the forecast function?</span>
 <span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a><span class="sc">\{</span> F,G, \cdot, \cdot <span class="sc">\}</span></span>
-<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a>F = (E_2^\top, E_2^\top, \ldots, E_2^\top,1)^\top</span>
-<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a>G = \text{blockdiag}<span class="co">[</span><span class="ot">J_2(1, \omega_1), \ldots, J_2(1, \omega_{m-1})</span><span class="co">]</span></span>
-<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a>with the forecast function</span>
-<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a>Again, using the superposition principle, the forecast function is going to be just the sum of m minus 1 components, where each of those components is going to have an individual forecast function that has that cosine wave representation that we discussed before. This gives us the h step forecast function at time t as follows:</span>
+<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a>f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j})</span>
+<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a>$$ {#eq-seasonal-ndlms-multiple-componets-odd-p-forecast}</span>
+<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>where: </span>
+<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$j$ is the index for </span>
+<span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$\omega_j$ the frequency</span>
+<span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$A_{t,j}$ the amplitude and </span>
+<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$\gamma_{t,j}$ the phase </span>
+<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a><span class="fu">### Fundamental period even $p$ and harmonics </span></span>
+<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a>For even $p$ we write $p=2m$</span>
 <span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a>f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j}) + (-1)^h A_{t,m}</span>
-<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a>\omega_j = \frac{2\pi j}{p}, \qquad j = 1, \ldots, m-1</span>
+<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>$$ {#eq-frequencies-for-even-p}</span>
 <span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a><span class="al">![fourier representation 1](images/m4_0001.png)</span>{.column-margin  group="slides" width="53mm"}</span>
-<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a>\omega_m= \pi</span>
+<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a>the model is</span>
 <span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Here $p$, is the period and in this case, we are going to discuss essentially two different situations. One is when p is an odd number, the other one is when p is an even number. Let's begin with the case of p is odd and in this particular scenario, we can write down p as 2 times m minus 1 for some value of m. This gives me a period that is odd. How many frequencies I'm going to incorporate in this model? I'm going to be able to write down $\omega_j = 2 \pi \times j / p$, which is the fundamental period. j here goes from one all the way to m minus 1. Now we can use the superposition principle thinking we have a component DLM representation for each of these frequencies. They are all going to be between 0 and Pi. For each of them I'm going to have that two-dimensional DLM representation in terms of the state vector and then I can use the superposition principle to concatenate them all and get a model that has all these frequencies, the one related to the fundamental period and all the harmonics for that. Again, if I think about what is my $F$ and my $G$ here, I'm not writing down the t because both F and G are going to be constant over time. So my $F$ is going to be again, I concatenate as many $E_2$ as I have frequencies in here. I'm going to have $E_2$ transpose and so on and I'm going to have m minus one of those. Times 2 gives me the dimension of $\theta_t$. The vector here is 2 times m minus 1 dimensional vector.</span></span>
-<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-178"><a href="#cb2-178" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; My G is going to have that block diagonal structure where we are going to just have all those $J_{2,1} \omega_1$, all the way down to the last harmonic. Each of these blocks is a two-by-two matrix and I'm going to put them together in a block diagonal form. This gives me the representation when the period is odd, what is the structure of the forecast function? Again, using the superposition principle, the forecast function is going to be just the sum of m minus 1 components, where each of those components is going to have an individual forecast function that has that cosine wave representation that we discussed before. Again, if I think about the forecast function at time t h steps ahead, I will be able to write it down like this.</span></span>
-<span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; This should be a B. $B_{t,j}$. Again here, I have an amplitude for each of the components and a phase for each of the components so it depends on time but does not depend on h. The h enters here, and this is my forecast function. In the case of P even the situation is slightly different. But again, it's the same in terms of using the superposition principle. In this case, we can write down P as 2 times m because it's an even number. Now I can write down these Omega j's as a function of the fundamental period. Again, this goes from 1 up to m minus 1. But there is a last frequency here. When j is equal to m, this simplifies to be the **Nyquist frequency**. In this case, I have my Omega is equal to Pi. In this particular case, when I concatenate everything, I'm going to have again an F and a G that look like this. Once again, I concatenate all of these up to the component m minus 1. Then I have this 1 for the last frequency. Then my G is going to be the block diagonal.</span></span>
-<span id="cb2-181"><a href="#cb2-181" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; For the last frequency I have that minus 1. This determines the dimension of the state vector, in this case I'm going to have 2 times m minus 1 plus 1.</span></span>
-<span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; My f function, my forecast function, is again a function of the number of steps ahead. I'm going to have the same structure I had before for the m minus 1 components.</span></span>
-<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Then I have to add one more component that corresponds to the frequency Pi.</span></span>
-<span id="cb2-186"><a href="#cb2-186" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; This one appears with the power of h. As you can see, I'm using once again the superposition principle to go from component representation to the full Fourier representation. In practice, once we set the period, we can use a model that has the fundamental period and all the harmonics related to that fundamental period. We could also use, discard some of those harmonics and use a subset of them. This is one of the things that the Fourier representation allows. It allows you to be flexible in terms of how many components you want to add in this model. There are other representations that are also used in practice. One of them is the seasonal factors representation. In that case, you're going to have a model in which the state vector has dimension p for a given period. It uses a G matrix that is a permutation matrix. There is a correspondence between this parameterization using the Fourier representation and that other parameterization. If you want to use that parameterization, the way to interpret the components of this state vector, since you have P of those, is going to be a representation in terms of factors. For example, if you think about monthly data, you will have the say January factor, February factor, March factor, and so on. You could think about those effects and do a correspondence with this particular model. We will always work in this class with these representations because it's more flexible. But again, you can go back and forth between one and the other.</span></span>
-<span id="cb2-187"><a href="#cb2-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-188"><a href="#cb2-188" aria-hidden="true" tabindex="-1"></a><span class="al">![slide 2](images/m4_0002.png)</span>{.column-margin group="slides"  group="slides" width="53mm"}</span>
-<span id="cb2-189"><a href="#cb2-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a><span class="sc">\{</span> F,G, \cdot, \cdot <span class="sc">\}</span></span>
+<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-178"><a href="#cb2-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a>with </span>
+<span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-181"><a href="#cb2-181" aria-hidden="true" tabindex="-1"></a>F = (E_2^\top, E_2^\top, \ldots, E_2^\top,1)^\top</span>
+<span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-186"><a href="#cb2-186" aria-hidden="true" tabindex="-1"></a>G = \text{blockdiag}<span class="co">[</span><span class="ot">J_2(1, \omega_1), \ldots, J_2(1, \omega_{m-1})</span><span class="co">]</span></span>
+<span id="cb2-187"><a href="#cb2-187" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-188"><a href="#cb2-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-189"><a href="#cb2-189" aria-hidden="true" tabindex="-1"></a>with the forecast function</span>
 <span id="cb2-190"><a href="#cb2-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-191"><a href="#cb2-191" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb2-192"><a href="#cb2-192" aria-hidden="true" tabindex="-1"></a><span class="fu">## Video Transcript {.unnumbered}</span></span>
-<span id="cb2-193"><a href="#cb2-193" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-194"><a href="#cb2-194" aria-hidden="true" tabindex="-1"></a>{{&lt; include transcripts/c4/04_week-4-normal-dynamic-linear-models-part-ii/01_seasonal-ndlms/01_fourier-representation.en.txt &gt;}}</span>
-<span id="cb2-195"><a href="#cb2-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-196"><a href="#cb2-196" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb2-197"><a href="#cb2-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-198"><a href="#cb2-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-199"><a href="#cb2-199" aria-hidden="true" tabindex="-1"></a><span class="fu">## Fourier Representation: Example 1  :spiral_notepad: </span></span>
-<span id="cb2-200"><a href="#cb2-200" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-201"><a href="#cb2-201" aria-hidden="true" tabindex="-1"></a><span class="fu">### Seasonal Models</span></span>
-<span id="cb2-202"><a href="#cb2-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-203"><a href="#cb2-203" aria-hidden="true" tabindex="-1"></a>Example: Full Fourier Model with $p=5$</span>
+<span id="cb2-191"><a href="#cb2-191" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-192"><a href="#cb2-192" aria-hidden="true" tabindex="-1"></a>f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j}) + (-1)^h A_{t,m}</span>
+<span id="cb2-193"><a href="#cb2-193" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-194"><a href="#cb2-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-195"><a href="#cb2-195" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-196"><a href="#cb2-196" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; This should be a B. $B_{t,j}$. Again here, I have an amplitude for each of the components and a phase for each of the components so it depends on time but does not depend on h. The h enters here, and this is my forecast function. In the case of P even the situation is slightly different. But again, it's the same in terms of using the superposition principle. In this case, we can write down P as 2 times m because it's an even number. Now I can write down these Omega j's as a function of the fundamental period. Again, this goes from 1 up to m minus 1. But there is a last frequency here. When j is equal to m, this simplifies to be the **Nyquist frequency**. In this case, I have my Omega is equal to Pi. In this particular case, when I concatenate everything, I'm going to have again an F and a G that look like this. Once again, I concatenate all of these up to the component m minus 1. Then I have this 1 for the last frequency. Then my G is going to be the block diagonal.</span></span>
+<span id="cb2-197"><a href="#cb2-197" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-198"><a href="#cb2-198" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; For the last frequency I have that minus 1. This determines the dimension of the state vector, in this case I'm going to have 2 times m minus 1 plus 1.</span></span>
+<span id="cb2-199"><a href="#cb2-199" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-200"><a href="#cb2-200" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; My f function, my forecast function, is again a function of the number of steps ahead. I'm going to have the same structure I had before for the m minus 1 components.</span></span>
+<span id="cb2-201"><a href="#cb2-201" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Then I have to add one more component that corresponds to the frequency Pi.</span></span>
+<span id="cb2-202"><a href="#cb2-202" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; This one appears with the power of h. As you can see, I'm using once again the superposition principle to go from component representation to the full Fourier representation. In practice, once we set the period, we can use a model that has the fundamental period and all the harmonics related to that fundamental period. We could also use, discard some of those harmonics and use a subset of them. This is one of the things that the Fourier representation allows. It allows you to be flexible in terms of how many components you want to add in this model. There are other representations that are also used in practice. One of them is the seasonal factors representation. In that case, you're going to have a model in which the state vector has dimension p for a given period. It uses a G matrix that is a permutation matrix. There is a correspondence between this parameterization using the Fourier representation and that other parameterization. If you want to use that parameterization, the way to interpret the components of this state vector, since you have P of those, is going to be a representation in terms of factors. For example, if you think about monthly data, you will have the say January factor, February factor, March factor, and so on. You could think about those effects and do a correspondence with this particular model. We will always work in this class with these representations because it's more flexible. But again, you can go back and forth between one and the other.</span></span>
+<span id="cb2-203"><a href="#cb2-203" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-204"><a href="#cb2-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-205"><a href="#cb2-205" aria-hidden="true" tabindex="-1"></a>In this case the Fourier frequencies are</span>
-<span id="cb2-206"><a href="#cb2-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-207"><a href="#cb2-207" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\omega_1 = 2\pi/5$ and </span>
-<span id="cb2-208"><a href="#cb2-208" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\omega_2 = 4\pi/5$ and so</span>
-<span id="cb2-209"><a href="#cb2-209" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$p = 2 × 3 − 1$. Then, </span>
-<span id="cb2-210"><a href="#cb2-210" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$m = 3$ and </span>
-<span id="cb2-211"><a href="#cb2-211" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\theta_t = (\theta_{t,1}, \ldots , \theta_{t,4})′$, </span>
-<span id="cb2-212"><a href="#cb2-212" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$F = (1, 0, 1, 0)$, </span>
-<span id="cb2-213"><a href="#cb2-213" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$G$ is given by:</span>
-<span id="cb2-214"><a href="#cb2-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-215"><a href="#cb2-215" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-216"><a href="#cb2-216" aria-hidden="true" tabindex="-1"></a>G = \begin{bmatrix}</span>
-<span id="cb2-217"><a href="#cb2-217" aria-hidden="true" tabindex="-1"></a>\cos(2\pi/5) &amp; \sin(2\pi/5) &amp; 0 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-218"><a href="#cb2-218" aria-hidden="true" tabindex="-1"></a>\cos(4\pi/5) &amp; \sin(4\pi/5) &amp; 0 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-219"><a href="#cb2-219" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; \cos(2\pi/5) &amp; \sin(2\pi/5) <span class="sc">\\</span></span>
-<span id="cb2-220"><a href="#cb2-220" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; \cos(4\pi/5) &amp; \sin(4\pi/5) <span class="sc">\\</span></span>
-<span id="cb2-221"><a href="#cb2-221" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; 0 &amp; 0</span>
-<span id="cb2-222"><a href="#cb2-222" aria-hidden="true" tabindex="-1"></a>\end{bmatrix}</span>
-<span id="cb2-223"><a href="#cb2-223" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-224"><a href="#cb2-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-225"><a href="#cb2-225" aria-hidden="true" tabindex="-1"></a>and the forecast function is:</span>
-<span id="cb2-226"><a href="#cb2-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-227"><a href="#cb2-227" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-228"><a href="#cb2-228" aria-hidden="true" tabindex="-1"></a>f_t(h) = A_{t,1} \cos(2\pi h/5 + \gamma_t) + A_{t,2} \cos(4\pi h /5 + \gamma_{t,2}) \qquad</span>
-<span id="cb2-229"><a href="#cb2-229" aria-hidden="true" tabindex="-1"></a>$$ {#eq-forecast-function}</span>
-<span id="cb2-230"><a href="#cb2-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-231"><a href="#cb2-231" aria-hidden="true" tabindex="-1"></a><span class="fu">## Building NDLMs with Multiple Components: Examples :movie_camera:  {#sec-building-ndlms-with-multiple-components-examples}</span></span>
-<span id="cb2-232"><a href="#cb2-232" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-233"><a href="#cb2-233" aria-hidden="true" tabindex="-1"></a><span class="al">![two component model](images/m4_0011.png)</span>{.column-margin  group="slides" width="53mm"}</span>
-<span id="cb2-234"><a href="#cb2-234" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-235"><a href="#cb2-235" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-236"><a href="#cb2-236" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; [In this second example, we are going to have two components; a linear trend plus a seasonal component where the fundamental period is four.</span></span>
-<span id="cb2-237"><a href="#cb2-237" aria-hidden="true" tabindex="-1"></a><span class="at">The way to build this model, again, is using the superposition principle.]{.mark} </span></span>
-<span id="cb2-238"><a href="#cb2-238" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-239"><a href="#cb2-239" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; First we need to think "what *structure* do we need, to get a *linear trend* in the **forecast function**?" </span></span>
-<span id="cb2-240"><a href="#cb2-240" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-241"><a href="#cb2-241" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;The linear trend is a linear function on the number of steps ahead. </span></span>
-<span id="cb2-242"><a href="#cb2-242" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-243"><a href="#cb2-243" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Whenever you have that structure, you will get a DLM that is the so-called **polynomial model of order 2**. So let's discuss first the linear. Let's say the linear trend part, and in this case, we have an $F$ and a $G$, I'm going to call them 1, $F_1$ and $G_1$ to denote that this is the first component in the model.</span></span>
-<span id="cb2-244"><a href="#cb2-244" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-245"><a href="#cb2-245" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-246"><a href="#cb2-246" aria-hidden="true" tabindex="-1"></a><span class="at">$F_1$ is just going to be 1, 0 transpose, and the $G_1$ is that upper triangular matrix, it's a 2 by 2 matrix that has 1, 1 in the first row, 0, 1 in the second row, so this gives me a linear trend. </span></span>
-<span id="cb2-247"><a href="#cb2-247" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-248"><a href="#cb2-248" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; My forecast function, let's call it $f_{1,t}$ in terms of the number of steps ahead is just a linear function on h, is a linear polynomial order 1. Let's say it's a constant of $K$ but depends on t0 plus $K_{t_1}^h$. This is the structure of the first component. Then I have to think about the seasonal component with period of four. If we are going to incorporate all the harmonics, we have to think again, is this an even period or a not period? In this example, this is an even period. I can write p, which is 4, as 2 times 2, so this gives me that m. I'm going to have one frequency, the first one, Omega 1, is related to the fundamental period of 4, so is 2 Pi over 4, which I can simplify and write down this as Pi over 2. This is the first frequency. The last one is going to correspond to the Nyquist.</span></span>
-<span id="cb2-249"><a href="#cb2-249" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-250"><a href="#cb2-250" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; We could obtain that doing 4Pi over 4, which is just Pi. As you remember, this component is going to require a two-dimensional DLM component model, this one is going to require a one-dimensional DLM component model in terms of the dimension here is the dimension of the state vectors. When we build this concatenating these components, we are going to have, again, let's call it F_2 and G_2 for this particular component. I had called this here a, let's call this b. My F_2 has that E_2 transpose and a 1, which gives me just 1, 0, 1. My G matrix is going to be a 3 by 3 matrix. The first component is</span></span>
-<span id="cb2-251"><a href="#cb2-251" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-252"><a href="#cb2-252" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;the component associated to that fundamental period. It's a block diagonal again, and I'm going to have that J_2, 1 Omega 1, and then I have my minus 1 here. What this means is if I write this down as a matrix, let me write it here, G_2 is going to be cosine of that Pi halves,</span></span>
+<span id="cb2-205"><a href="#cb2-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-206"><a href="#cb2-206" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb2-207"><a href="#cb2-207" aria-hidden="true" tabindex="-1"></a><span class="fu">## Video Transcript {.unnumbered}</span></span>
+<span id="cb2-208"><a href="#cb2-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-209"><a href="#cb2-209" aria-hidden="true" tabindex="-1"></a>{{&lt; include transcripts/c4/04_week-4-normal-dynamic-linear-models-part-ii/01_seasonal-ndlms/01_fourier-representation.en.txt &gt;}}</span>
+<span id="cb2-210"><a href="#cb2-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-211"><a href="#cb2-211" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-212"><a href="#cb2-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-213"><a href="#cb2-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-214"><a href="#cb2-214" aria-hidden="true" tabindex="-1"></a><span class="fu">## Fourier Representation: Example 1  :spiral_notepad: </span></span>
+<span id="cb2-215"><a href="#cb2-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-216"><a href="#cb2-216" aria-hidden="true" tabindex="-1"></a><span class="fu">### Seasonal Models</span></span>
+<span id="cb2-217"><a href="#cb2-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-218"><a href="#cb2-218" aria-hidden="true" tabindex="-1"></a>Example: Full Fourier Model with $p=5$</span>
+<span id="cb2-219"><a href="#cb2-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-220"><a href="#cb2-220" aria-hidden="true" tabindex="-1"></a>In this case the Fourier frequencies are</span>
+<span id="cb2-221"><a href="#cb2-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-222"><a href="#cb2-222" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\omega_1 = 2\pi/5$ and </span>
+<span id="cb2-223"><a href="#cb2-223" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\omega_2 = 4\pi/5$ and so</span>
+<span id="cb2-224"><a href="#cb2-224" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$p = 2 × 3 − 1$. Then, </span>
+<span id="cb2-225"><a href="#cb2-225" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$m = 3$ and </span>
+<span id="cb2-226"><a href="#cb2-226" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\theta_t = (\theta_{t,1}, \ldots , \theta_{t,4})′$, </span>
+<span id="cb2-227"><a href="#cb2-227" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$F = (1, 0, 1, 0)$, </span>
+<span id="cb2-228"><a href="#cb2-228" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$G$ is given by:</span>
+<span id="cb2-229"><a href="#cb2-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-230"><a href="#cb2-230" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-231"><a href="#cb2-231" aria-hidden="true" tabindex="-1"></a>G = \begin{bmatrix}</span>
+<span id="cb2-232"><a href="#cb2-232" aria-hidden="true" tabindex="-1"></a>\cos(2\pi/5) &amp; \sin(2\pi/5) &amp; 0 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-233"><a href="#cb2-233" aria-hidden="true" tabindex="-1"></a>\cos(4\pi/5) &amp; \sin(4\pi/5) &amp; 0 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-234"><a href="#cb2-234" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; \cos(2\pi/5) &amp; \sin(2\pi/5) <span class="sc">\\</span></span>
+<span id="cb2-235"><a href="#cb2-235" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; \cos(4\pi/5) &amp; \sin(4\pi/5) <span class="sc">\\</span></span>
+<span id="cb2-236"><a href="#cb2-236" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; 0 &amp; 0</span>
+<span id="cb2-237"><a href="#cb2-237" aria-hidden="true" tabindex="-1"></a>\end{bmatrix}</span>
+<span id="cb2-238"><a href="#cb2-238" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-239"><a href="#cb2-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-240"><a href="#cb2-240" aria-hidden="true" tabindex="-1"></a>and the forecast function is:</span>
+<span id="cb2-241"><a href="#cb2-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-242"><a href="#cb2-242" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-243"><a href="#cb2-243" aria-hidden="true" tabindex="-1"></a>f_t(h) = A_{t,1} \cos(2\pi h/5 + \gamma_t) + A_{t,2} \cos(4\pi h /5 + \gamma_{t,2}) \qquad</span>
+<span id="cb2-244"><a href="#cb2-244" aria-hidden="true" tabindex="-1"></a>$$ {#eq-forecast-function}</span>
+<span id="cb2-245"><a href="#cb2-245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-246"><a href="#cb2-246" aria-hidden="true" tabindex="-1"></a><span class="fu">## Building NDLMs with Multiple Components: Examples :movie_camera:  {#sec-building-ndlms-with-multiple-components-examples}</span></span>
+<span id="cb2-247"><a href="#cb2-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-248"><a href="#cb2-248" aria-hidden="true" tabindex="-1"></a><span class="al">![two component model](images/m4_0011.png)</span>{.column-margin  group="slides" width="53mm"}</span>
+<span id="cb2-249"><a href="#cb2-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-250"><a href="#cb2-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-251"><a href="#cb2-251" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; [In this second example, we are going to have two components; a linear trend plus a seasonal component where the fundamental period is four.</span></span>
+<span id="cb2-252"><a href="#cb2-252" aria-hidden="true" tabindex="-1"></a><span class="at">The way to build this model, again, is using the superposition principle.]{.mark} </span></span>
 <span id="cb2-253"><a href="#cb2-253" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-254"><a href="#cb2-254" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;and then I have zeros here, I have my minus 1 here, 0, and 0. I can further simplify these to have this structure. The cosine of Pi halves is 0, the sine is 1, so I can write this down as 0, 1, 0, minus 1, 0, 0, and 0, 0 minus 1. Now if I want to go back to just having a model that has both components, I use the superposition principle again and combine this component with this component. The linear plus seasonal</span></span>
+<span id="cb2-254"><a href="#cb2-254" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; First we need to think "what *structure* do we need, to get a *linear trend* in the **forecast function**?" </span></span>
 <span id="cb2-255"><a href="#cb2-255" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-256"><a href="#cb2-256" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-257"><a href="#cb2-257" aria-hidden="true" tabindex="-1"></a><span class="at">is a model that is going to have the representation $F$, $G$, with $F$ is going to be just concatenate $F_1$ and $F_2$. $G$ now has that block diagonal form again.</span></span>
-<span id="cb2-258"><a href="#cb2-258" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-259"><a href="#cb2-259" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;If I look at what I have, I have this block that is a 2 by 2, this block that is a 3 by 3. Therefore my model is going to be a five-dimensional model in terms of the state parameter vector, so this G is a 5 by 5, and this one is also a five-dimensional vector. Finally, if I think about the forecast function in this case, if I call here the forecast function $f_{2,t}$ for the component that is seasonal, I'm going to have my A_t1 cosine of Pi halves h plus $B_{t,1}$, and then I have my $A_{t,2}$ minus 1^h. My forecast function for the final model is going to be just the sum of these two components.</span></span>
+<span id="cb2-256"><a href="#cb2-256" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;The linear trend is a linear function on the number of steps ahead. </span></span>
+<span id="cb2-257"><a href="#cb2-257" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-258"><a href="#cb2-258" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Whenever you have that structure, you will get a DLM that is the so-called **polynomial model of order 2**. So let's discuss first the linear. Let's say the linear trend part, and in this case, we have an $F$ and a $G$, I'm going to call them 1, $F_1$ and $G_1$ to denote that this is the first component in the model.</span></span>
+<span id="cb2-259"><a href="#cb2-259" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
 <span id="cb2-260"><a href="#cb2-260" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb2-261"><a href="#cb2-261" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;You can see how I can now put together all these blocks, so I have a block that is seasonal and a block that is a linear polynomial model, and I can put them together in a single model just to create a more flexible structure. You could add regression components, you could add autoregressive components and put together as many components as you need for the forecast function to have the form that you expect it to have. All of these models are using, again, the superposition principle and the fact that we're working with a linear and Gaussian structure in terms of doing the posterior inference later.</span></span>
-<span id="cb2-262"><a href="#cb2-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-263"><a href="#cb2-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-264"><a href="#cb2-264" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb2-265"><a href="#cb2-265" aria-hidden="true" tabindex="-1"></a><span class="fu">## Video Transcript {.unnumbered}</span></span>
-<span id="cb2-266"><a href="#cb2-266" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-267"><a href="#cb2-267" aria-hidden="true" tabindex="-1"></a>{{&lt; include transcripts/c4/04_week-4-normal-dynamic-linear-models-part-ii/01_seasonal-ndlms/03_building-ndlms-with-multiple-components-examples.en.txt &gt;}}</span>
-<span id="cb2-268"><a href="#cb2-268" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-269"><a href="#cb2-269" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb2-270"><a href="#cb2-270" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-271"><a href="#cb2-271" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-272"><a href="#cb2-272" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary: DLM Fourier representation  :spiral_notepad: {#sec-summary-dlm-fourier-representation}</span></span>
-<span id="cb2-273"><a href="#cb2-273" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-274"><a href="#cb2-274" aria-hidden="true" tabindex="-1"></a><span class="fu">### Seasonal Models: Fourier Representation</span></span>
-<span id="cb2-275"><a href="#cb2-275" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-276"><a href="#cb2-276" aria-hidden="true" tabindex="-1"></a>For any frequency $\omega \in (0, \pi)$, a model of the form $<span class="sc">\{</span>E_2, J_2(1, \omega), \cdot, \cdot<span class="sc">\}</span>$ with a 2-dimensional state vector $\theta_t = (\theta_{t,1}, \theta_{t,2})'$ and</span>
+<span id="cb2-261"><a href="#cb2-261" aria-hidden="true" tabindex="-1"></a><span class="at">$F_1$ is just going to be 1, 0 transpose, and the $G_1$ is that upper triangular matrix, it's a 2 by 2 matrix that has 1, 1 in the first row, 0, 1 in the second row, so this gives me a linear trend. </span></span>
+<span id="cb2-262"><a href="#cb2-262" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-263"><a href="#cb2-263" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; My forecast function, let's call it $f_{1,t}$ in terms of the number of steps ahead is just a linear function on h, is a linear polynomial order 1. Let's say it's a constant of $K$ but depends on t0 plus $K_{t_1}^h$. This is the structure of the first component. Then I have to think about the seasonal component with period of four. If we are going to incorporate all the harmonics, we have to think again, is this an even period or a not period? In this example, this is an even period. I can write p, which is 4, as 2 times 2, so this gives me that m. I'm going to have one frequency, the first one, Omega 1, is related to the fundamental period of 4, so is 2 Pi over 4, which I can simplify and write down this as Pi over 2. This is the first frequency. The last one is going to correspond to the Nyquist.</span></span>
+<span id="cb2-264"><a href="#cb2-264" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-265"><a href="#cb2-265" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; We could obtain that doing 4Pi over 4, which is just Pi. As you remember, this component is going to require a two-dimensional DLM component model, this one is going to require a one-dimensional DLM component model in terms of the dimension here is the dimension of the state vectors. When we build this concatenating these components, we are going to have, again, let's call it F_2 and G_2 for this particular component. I had called this here a, let's call this b. My F_2 has that E_2 transpose and a 1, which gives me just 1, 0, 1. My G matrix is going to be a 3 by 3 matrix. The first component is</span></span>
+<span id="cb2-266"><a href="#cb2-266" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-267"><a href="#cb2-267" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;the component associated to that fundamental period. It's a block diagonal again, and I'm going to have that J_2, 1 Omega 1, and then I have my minus 1 here. What this means is if I write this down as a matrix, let me write it here, G_2 is going to be cosine of that Pi halves,</span></span>
+<span id="cb2-268"><a href="#cb2-268" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-269"><a href="#cb2-269" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;and then I have zeros here, I have my minus 1 here, 0, and 0. I can further simplify these to have this structure. The cosine of Pi halves is 0, the sine is 1, so I can write this down as 0, 1, 0, minus 1, 0, 0, and 0, 0 minus 1. Now if I want to go back to just having a model that has both components, I use the superposition principle again and combine this component with this component. The linear plus seasonal</span></span>
+<span id="cb2-270"><a href="#cb2-270" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-271"><a href="#cb2-271" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-272"><a href="#cb2-272" aria-hidden="true" tabindex="-1"></a><span class="at">is a model that is going to have the representation $F$, $G$, with $F$ is going to be just concatenate $F_1$ and $F_2$. $G$ now has that block diagonal form again.</span></span>
+<span id="cb2-273"><a href="#cb2-273" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-274"><a href="#cb2-274" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;If I look at what I have, I have this block that is a 2 by 2, this block that is a 3 by 3. Therefore my model is going to be a five-dimensional model in terms of the state parameter vector, so this G is a 5 by 5, and this one is also a five-dimensional vector. Finally, if I think about the forecast function in this case, if I call here the forecast function $f_{2,t}$ for the component that is seasonal, I'm going to have my A_t1 cosine of Pi halves h plus $B_{t,1}$, and then I have my $A_{t,2}$ minus 1^h. My forecast function for the final model is going to be just the sum of these two components.</span></span>
+<span id="cb2-275"><a href="#cb2-275" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb2-276"><a href="#cb2-276" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;You can see how I can now put together all these blocks, so I have a block that is seasonal and a block that is a linear polynomial model, and I can put them together in a single model just to create a more flexible structure. You could add regression components, you could add autoregressive components and put together as many components as you need for the forecast function to have the form that you expect it to have. All of these models are using, again, the superposition principle and the fact that we're working with a linear and Gaussian structure in terms of doing the posterior inference later.</span></span>
 <span id="cb2-277"><a href="#cb2-277" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-278"><a href="#cb2-278" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-279"><a href="#cb2-279" aria-hidden="true" tabindex="-1"></a>J_2(1, \omega) = </span>
-<span id="cb2-280"><a href="#cb2-280" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
-<span id="cb2-281"><a href="#cb2-281" aria-hidden="true" tabindex="-1"></a>\cos(\omega) &amp; \sin(\omega) <span class="sc">\\</span></span>
-<span id="cb2-282"><a href="#cb2-282" aria-hidden="true" tabindex="-1"></a>-\sin(\omega) &amp; \cos(\omega)</span>
-<span id="cb2-283"><a href="#cb2-283" aria-hidden="true" tabindex="-1"></a>\end{pmatrix},</span>
-<span id="cb2-284"><a href="#cb2-284" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-278"><a href="#cb2-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-279"><a href="#cb2-279" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb2-280"><a href="#cb2-280" aria-hidden="true" tabindex="-1"></a><span class="fu">## Video Transcript {.unnumbered}</span></span>
+<span id="cb2-281"><a href="#cb2-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-282"><a href="#cb2-282" aria-hidden="true" tabindex="-1"></a>{{&lt; include transcripts/c4/04_week-4-normal-dynamic-linear-models-part-ii/01_seasonal-ndlms/03_building-ndlms-with-multiple-components-examples.en.txt &gt;}}</span>
+<span id="cb2-283"><a href="#cb2-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-284"><a href="#cb2-284" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb2-285"><a href="#cb2-285" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-286"><a href="#cb2-286" aria-hidden="true" tabindex="-1"></a>has a forecast function</span>
-<span id="cb2-287"><a href="#cb2-287" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-288"><a href="#cb2-288" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-289"><a href="#cb2-289" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb2-290"><a href="#cb2-290" aria-hidden="true" tabindex="-1"></a>f_t(h) &amp;= (1, 0) J_2^h(1, \omega) (a_t, b_t) <span class="sc">\\</span></span>
-<span id="cb2-291"><a href="#cb2-291" aria-hidden="true" tabindex="-1"></a>       &amp;= a_t \cos(\omega h) + b_t \sin(\omega h) <span class="sc">\\</span></span>
-<span id="cb2-292"><a href="#cb2-292" aria-hidden="true" tabindex="-1"></a>       &amp;= A_t \cos(\omega h + B_t).</span>
-<span id="cb2-293"><a href="#cb2-293" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb2-294"><a href="#cb2-294" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-295"><a href="#cb2-295" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-296"><a href="#cb2-296" aria-hidden="true" tabindex="-1"></a>For $\omega = \pi$, the NDLM is $<span class="sc">\{</span>1, -1, \cdot, \cdot<span class="sc">\}</span>$ and has a forecast function of the form</span>
-<span id="cb2-297"><a href="#cb2-297" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-298"><a href="#cb2-298" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-299"><a href="#cb2-299" aria-hidden="true" tabindex="-1"></a>f_t(h) = (-1)^h m_t</span>
-<span id="cb2-300"><a href="#cb2-300" aria-hidden="true" tabindex="-1"></a>$$ </span>
-<span id="cb2-301"><a href="#cb2-301" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-302"><a href="#cb2-302" aria-hidden="true" tabindex="-1"></a>These are component Fourier models. Now, for a given period $p$, we can build a model that contains components for the fundamental period and all the harmonics of such a period using the superposition principle as follows:</span>
-<span id="cb2-303"><a href="#cb2-303" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-304"><a href="#cb2-304" aria-hidden="true" tabindex="-1"></a><span class="fu">### Case: $p = 2m - 1$ (odd)</span></span>
-<span id="cb2-305"><a href="#cb2-305" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-306"><a href="#cb2-306" aria-hidden="true" tabindex="-1"></a>Let $\omega_j = 2\pi j / p$ for $j = 1 : (m - 1)$, $F$ a $(p - 1)$-dimensional vector, or equivalently, a $2(m - 1)$-dimensional vector, and $G$ a $(p - 1) \times (p - 1)$ matrix with $F = (E_2', E_2', \dots, E_2')'$, </span>
-<span id="cb2-307"><a href="#cb2-307" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-308"><a href="#cb2-308" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-309"><a href="#cb2-309" aria-hidden="true" tabindex="-1"></a>G = \text{blockdiag}<span class="co">[</span><span class="ot">J_2(1, \omega_1), \dots, J_2(1, \omega_{m-1})</span><span class="co">]</span>.</span>
-<span id="cb2-310"><a href="#cb2-310" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-311"><a href="#cb2-311" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-312"><a href="#cb2-312" aria-hidden="true" tabindex="-1"></a><span class="fu">### Case: $p = 2m$ (even)</span></span>
-<span id="cb2-313"><a href="#cb2-313" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-314"><a href="#cb2-314" aria-hidden="true" tabindex="-1"></a>In this case, $F$ is again a $(p - 1)$-dimensional vector (or equivalently a $(2m - 1)$-dimensional vector), and $G$ is a $(p - 1) \times (p - 1)$ matrix such that $F = (E_2', \dots, E_2', 1)'$ and </span>
-<span id="cb2-315"><a href="#cb2-315" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-316"><a href="#cb2-316" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-317"><a href="#cb2-317" aria-hidden="true" tabindex="-1"></a>G = \text{blockdiag}<span class="co">[</span><span class="ot">J_2(1, \omega_1), \dots, J_2(1, \omega_{m-1}), -1</span><span class="co">]</span>.</span>
-<span id="cb2-318"><a href="#cb2-318" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-319"><a href="#cb2-319" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-320"><a href="#cb2-320" aria-hidden="true" tabindex="-1"></a>In both cases, the forecast function has the general form:</span>
-<span id="cb2-321"><a href="#cb2-321" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-322"><a href="#cb2-322" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-323"><a href="#cb2-323" aria-hidden="true" tabindex="-1"></a>f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j}) + (-1)^h A_{t,m},</span>
-<span id="cb2-324"><a href="#cb2-324" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-325"><a href="#cb2-325" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-326"><a href="#cb2-326" aria-hidden="true" tabindex="-1"></a>with $A_{t,m} = 0$ if $p$ is odd.</span>
-<span id="cb2-327"><a href="#cb2-327" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-328"><a href="#cb2-328" aria-hidden="true" tabindex="-1"></a><span class="fu">## Examples {#sec-ndlm-examples}</span></span>
-<span id="cb2-329"><a href="#cb2-329" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-330"><a href="#cb2-330" aria-hidden="true" tabindex="-1"></a><span class="fu">### Fourier Representation, $p = 12$:</span></span>
-<span id="cb2-331"><a href="#cb2-331" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-332"><a href="#cb2-332" aria-hidden="true" tabindex="-1"></a>In this case, $p = 2 \times 6$ so $\theta_t$ is an 11-dimensional state vector</span>
-<span id="cb2-333"><a href="#cb2-333" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-334"><a href="#cb2-334" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-335"><a href="#cb2-335" aria-hidden="true" tabindex="-1"></a>F = (1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1)',</span>
-<span id="cb2-336"><a href="#cb2-336" aria-hidden="true" tabindex="-1"></a>$$ </span>
-<span id="cb2-337"><a href="#cb2-337" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-338"><a href="#cb2-338" aria-hidden="true" tabindex="-1"></a>the Fourier frequencies are $\omega_1 = 2\pi/12$, $\omega_2 = 4\pi/12 = 2\pi/6$, $\omega_3 = 6\pi/12 = 2\pi/4$, $\omega_4 = 8\pi/12 = 2\pi/3$, $\omega_5 = 10\pi/12 = 5\pi/6$, and $\omega_6 = 12\pi/12 = \pi$ (the Nyquist frequency). </span>
-<span id="cb2-339"><a href="#cb2-339" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-340"><a href="#cb2-340" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-341"><a href="#cb2-341" aria-hidden="true" tabindex="-1"></a>G = \text{blockdiag}(J_2(1, \omega_1), \dots, J_2(1, \omega_5), 1)</span>
-<span id="cb2-342"><a href="#cb2-342" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-343"><a href="#cb2-343" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-344"><a href="#cb2-344" aria-hidden="true" tabindex="-1"></a>and the forecast function is given by:</span>
-<span id="cb2-345"><a href="#cb2-345" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-346"><a href="#cb2-346" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-347"><a href="#cb2-347" aria-hidden="true" tabindex="-1"></a>f_t(h) = \sum_{j=1}^{5} A_{t,j} \cos(2\pi j / 12 + \gamma_{t,j}) + (-1)^h A_{t,6}.</span>
-<span id="cb2-348"><a href="#cb2-348" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-349"><a href="#cb2-349" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-350"><a href="#cb2-350" aria-hidden="true" tabindex="-1"></a><span class="fu">### Linear Trend + Seasonal Component with $p = 4$</span></span>
-<span id="cb2-351"><a href="#cb2-351" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-352"><a href="#cb2-352" aria-hidden="true" tabindex="-1"></a>We can use the superposition principle to build more sophisticated models. For instance, assume that we want a model with the following 2 components:</span>
-<span id="cb2-353"><a href="#cb2-353" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-354"><a href="#cb2-354" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Linear trend**: $<span class="sc">\{</span>F_1, G_1, \cdot, \cdot<span class="sc">\}</span>$ with $F_1 = (1, 0)'$,</span>
-<span id="cb2-355"><a href="#cb2-355" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-356"><a href="#cb2-356" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-357"><a href="#cb2-357" aria-hidden="true" tabindex="-1"></a>G_1 = J_2(1) = </span>
-<span id="cb2-358"><a href="#cb2-358" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
-<span id="cb2-359"><a href="#cb2-359" aria-hidden="true" tabindex="-1"></a>1 &amp; 1 <span class="sc">\\</span></span>
-<span id="cb2-360"><a href="#cb2-360" aria-hidden="true" tabindex="-1"></a>0 &amp; 1</span>
-<span id="cb2-361"><a href="#cb2-361" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}.</span>
-<span id="cb2-362"><a href="#cb2-362" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-363"><a href="#cb2-363" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-364"><a href="#cb2-364" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Full seasonal model with $p = 4$**: $<span class="sc">\{</span>F_2, G_2, \cdot, \cdot<span class="sc">\}</span>$, $p = 2 \times 2$ so $m = 2$ and $\omega = 2\pi / 4 = \pi / 2$, </span>
-<span id="cb2-365"><a href="#cb2-365" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-366"><a href="#cb2-366" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-367"><a href="#cb2-367" aria-hidden="true" tabindex="-1"></a>F_2 = (1, 0, 1)',</span>
-<span id="cb2-368"><a href="#cb2-368" aria-hidden="true" tabindex="-1"></a>$$ </span>
-<span id="cb2-369"><a href="#cb2-369" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-370"><a href="#cb2-370" aria-hidden="true" tabindex="-1"></a>and </span>
-<span id="cb2-371"><a href="#cb2-371" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-372"><a href="#cb2-372" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-373"><a href="#cb2-373" aria-hidden="true" tabindex="-1"></a>G_2 = </span>
-<span id="cb2-374"><a href="#cb2-374" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
-<span id="cb2-375"><a href="#cb2-375" aria-hidden="true" tabindex="-1"></a>\cos(\pi / 2) &amp; \sin(\pi / 2) &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-376"><a href="#cb2-376" aria-hidden="true" tabindex="-1"></a>-\sin(\pi / 2) &amp; \cos(\pi / 2) &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-377"><a href="#cb2-377" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; -1</span>
-<span id="cb2-378"><a href="#cb2-378" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}</span>
-<span id="cb2-379"><a href="#cb2-379" aria-hidden="true" tabindex="-1"></a>= </span>
-<span id="cb2-380"><a href="#cb2-380" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
-<span id="cb2-381"><a href="#cb2-381" aria-hidden="true" tabindex="-1"></a>0 &amp; 1 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-382"><a href="#cb2-382" aria-hidden="true" tabindex="-1"></a>-1 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-383"><a href="#cb2-383" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; -1</span>
-<span id="cb2-384"><a href="#cb2-384" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}.</span>
-<span id="cb2-385"><a href="#cb2-385" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-286"><a href="#cb2-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-287"><a href="#cb2-287" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary: DLM Fourier representation  :spiral_notepad: {#sec-summary-dlm-fourier-representation}</span></span>
+<span id="cb2-288"><a href="#cb2-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-289"><a href="#cb2-289" aria-hidden="true" tabindex="-1"></a><span class="fu">### Seasonal Models: Fourier Representation</span></span>
+<span id="cb2-290"><a href="#cb2-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-291"><a href="#cb2-291" aria-hidden="true" tabindex="-1"></a>For any frequency $\omega \in (0, \pi)$, a model of the form $<span class="sc">\{</span>E_2, J_2(1, \omega), \cdot, \cdot<span class="sc">\}</span>$ with a 2-dimensional state vector $\theta_t = (\theta_{t,1}, \theta_{t,2})'$ and</span>
+<span id="cb2-292"><a href="#cb2-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-293"><a href="#cb2-293" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-294"><a href="#cb2-294" aria-hidden="true" tabindex="-1"></a>J_2(1, \omega) = </span>
+<span id="cb2-295"><a href="#cb2-295" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
+<span id="cb2-296"><a href="#cb2-296" aria-hidden="true" tabindex="-1"></a>\cos(\omega) &amp; \sin(\omega) <span class="sc">\\</span></span>
+<span id="cb2-297"><a href="#cb2-297" aria-hidden="true" tabindex="-1"></a>-\sin(\omega) &amp; \cos(\omega)</span>
+<span id="cb2-298"><a href="#cb2-298" aria-hidden="true" tabindex="-1"></a>\end{pmatrix},</span>
+<span id="cb2-299"><a href="#cb2-299" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-300"><a href="#cb2-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-301"><a href="#cb2-301" aria-hidden="true" tabindex="-1"></a>has a forecast function</span>
+<span id="cb2-302"><a href="#cb2-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-303"><a href="#cb2-303" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-304"><a href="#cb2-304" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb2-305"><a href="#cb2-305" aria-hidden="true" tabindex="-1"></a>f_t(h) &amp;= (1, 0) J_2^h(1, \omega) (a_t, b_t) <span class="sc">\\</span></span>
+<span id="cb2-306"><a href="#cb2-306" aria-hidden="true" tabindex="-1"></a>       &amp;= a_t \cos(\omega h) + b_t \sin(\omega h) <span class="sc">\\</span></span>
+<span id="cb2-307"><a href="#cb2-307" aria-hidden="true" tabindex="-1"></a>       &amp;= A_t \cos(\omega h + B_t).</span>
+<span id="cb2-308"><a href="#cb2-308" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb2-309"><a href="#cb2-309" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-310"><a href="#cb2-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-311"><a href="#cb2-311" aria-hidden="true" tabindex="-1"></a>For $\omega = \pi$, the NDLM is $<span class="sc">\{</span>1, -1, \cdot, \cdot<span class="sc">\}</span>$ and has a forecast function of the form</span>
+<span id="cb2-312"><a href="#cb2-312" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-313"><a href="#cb2-313" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-314"><a href="#cb2-314" aria-hidden="true" tabindex="-1"></a>f_t(h) = (-1)^h m_t</span>
+<span id="cb2-315"><a href="#cb2-315" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb2-316"><a href="#cb2-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-317"><a href="#cb2-317" aria-hidden="true" tabindex="-1"></a>These are component Fourier models. Now, for a given period $p$, we can build a model that contains components for the fundamental period and all the harmonics of such a period using the superposition principle as follows:</span>
+<span id="cb2-318"><a href="#cb2-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-319"><a href="#cb2-319" aria-hidden="true" tabindex="-1"></a><span class="fu">### Case: $p = 2m - 1$ (odd)</span></span>
+<span id="cb2-320"><a href="#cb2-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-321"><a href="#cb2-321" aria-hidden="true" tabindex="-1"></a>Let $\omega_j = 2\pi j / p$ for $j = 1 : (m - 1)$, $F$ a $(p - 1)$-dimensional vector, or equivalently, a $2(m - 1)$-dimensional vector, and $G$ a $(p - 1) \times (p - 1)$ matrix with $F = (E_2', E_2', \dots, E_2')'$, </span>
+<span id="cb2-322"><a href="#cb2-322" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-323"><a href="#cb2-323" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-324"><a href="#cb2-324" aria-hidden="true" tabindex="-1"></a>G = \text{blockdiag}<span class="co">[</span><span class="ot">J_2(1, \omega_1), \dots, J_2(1, \omega_{m-1})</span><span class="co">]</span>.</span>
+<span id="cb2-325"><a href="#cb2-325" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-326"><a href="#cb2-326" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-327"><a href="#cb2-327" aria-hidden="true" tabindex="-1"></a><span class="fu">### Case: $p = 2m$ (even)</span></span>
+<span id="cb2-328"><a href="#cb2-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-329"><a href="#cb2-329" aria-hidden="true" tabindex="-1"></a>In this case, $F$ is again a $(p - 1)$-dimensional vector (or equivalently a $(2m - 1)$-dimensional vector), and $G$ is a $(p - 1) \times (p - 1)$ matrix such that $F = (E_2', \dots, E_2', 1)'$ and </span>
+<span id="cb2-330"><a href="#cb2-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-331"><a href="#cb2-331" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-332"><a href="#cb2-332" aria-hidden="true" tabindex="-1"></a>G = \text{blockdiag}<span class="co">[</span><span class="ot">J_2(1, \omega_1), \dots, J_2(1, \omega_{m-1}), -1</span><span class="co">]</span>.</span>
+<span id="cb2-333"><a href="#cb2-333" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-334"><a href="#cb2-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-335"><a href="#cb2-335" aria-hidden="true" tabindex="-1"></a>In both cases, the forecast function has the general form:</span>
+<span id="cb2-336"><a href="#cb2-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-337"><a href="#cb2-337" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-338"><a href="#cb2-338" aria-hidden="true" tabindex="-1"></a>f_t(h) = \sum_{j=1}^{m-1} A_{t,j} \cos(\omega_j h + \gamma_{t,j}) + (-1)^h A_{t,m},</span>
+<span id="cb2-339"><a href="#cb2-339" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-340"><a href="#cb2-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-341"><a href="#cb2-341" aria-hidden="true" tabindex="-1"></a>with $A_{t,m} = 0$ if $p$ is odd.</span>
+<span id="cb2-342"><a href="#cb2-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-343"><a href="#cb2-343" aria-hidden="true" tabindex="-1"></a><span class="fu">## Examples {#sec-ndlm-examples}</span></span>
+<span id="cb2-344"><a href="#cb2-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-345"><a href="#cb2-345" aria-hidden="true" tabindex="-1"></a><span class="fu">### Fourier Representation, $p = 12$:</span></span>
+<span id="cb2-346"><a href="#cb2-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-347"><a href="#cb2-347" aria-hidden="true" tabindex="-1"></a>In this case, $p = 2 \times 6$ so $\theta_t$ is an 11-dimensional state vector</span>
+<span id="cb2-348"><a href="#cb2-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-349"><a href="#cb2-349" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-350"><a href="#cb2-350" aria-hidden="true" tabindex="-1"></a>F = (1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1)',</span>
+<span id="cb2-351"><a href="#cb2-351" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb2-352"><a href="#cb2-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-353"><a href="#cb2-353" aria-hidden="true" tabindex="-1"></a>the Fourier frequencies are $\omega_1 = 2\pi/12$, $\omega_2 = 4\pi/12 = 2\pi/6$, $\omega_3 = 6\pi/12 = 2\pi/4$, $\omega_4 = 8\pi/12 = 2\pi/3$, $\omega_5 = 10\pi/12 = 5\pi/6$, and $\omega_6 = 12\pi/12 = \pi$ (the Nyquist frequency). </span>
+<span id="cb2-354"><a href="#cb2-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-355"><a href="#cb2-355" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-356"><a href="#cb2-356" aria-hidden="true" tabindex="-1"></a>G = \text{blockdiag}(J_2(1, \omega_1), \dots, J_2(1, \omega_5), 1)</span>
+<span id="cb2-357"><a href="#cb2-357" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-358"><a href="#cb2-358" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-359"><a href="#cb2-359" aria-hidden="true" tabindex="-1"></a>and the forecast function is given by:</span>
+<span id="cb2-360"><a href="#cb2-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-361"><a href="#cb2-361" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-362"><a href="#cb2-362" aria-hidden="true" tabindex="-1"></a>f_t(h) = \sum_{j=1}^{5} A_{t,j} \cos(2\pi j / 12 + \gamma_{t,j}) + (-1)^h A_{t,6}.</span>
+<span id="cb2-363"><a href="#cb2-363" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-364"><a href="#cb2-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-365"><a href="#cb2-365" aria-hidden="true" tabindex="-1"></a><span class="fu">### Linear Trend + Seasonal Component with $p = 4$</span></span>
+<span id="cb2-366"><a href="#cb2-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-367"><a href="#cb2-367" aria-hidden="true" tabindex="-1"></a>We can use the superposition principle to build more sophisticated models. For instance, assume that we want a model with the following 2 components:</span>
+<span id="cb2-368"><a href="#cb2-368" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-369"><a href="#cb2-369" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Linear trend**: $<span class="sc">\{</span>F_1, G_1, \cdot, \cdot<span class="sc">\}</span>$ with $F_1 = (1, 0)'$,</span>
+<span id="cb2-370"><a href="#cb2-370" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-371"><a href="#cb2-371" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-372"><a href="#cb2-372" aria-hidden="true" tabindex="-1"></a>G_1 = J_2(1) = </span>
+<span id="cb2-373"><a href="#cb2-373" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
+<span id="cb2-374"><a href="#cb2-374" aria-hidden="true" tabindex="-1"></a>1 &amp; 1 <span class="sc">\\</span></span>
+<span id="cb2-375"><a href="#cb2-375" aria-hidden="true" tabindex="-1"></a>0 &amp; 1</span>
+<span id="cb2-376"><a href="#cb2-376" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}.</span>
+<span id="cb2-377"><a href="#cb2-377" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-378"><a href="#cb2-378" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-379"><a href="#cb2-379" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Full seasonal model with $p = 4$**: $<span class="sc">\{</span>F_2, G_2, \cdot, \cdot<span class="sc">\}</span>$, $p = 2 \times 2$ so $m = 2$ and $\omega = 2\pi / 4 = \pi / 2$, </span>
+<span id="cb2-380"><a href="#cb2-380" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-381"><a href="#cb2-381" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-382"><a href="#cb2-382" aria-hidden="true" tabindex="-1"></a>F_2 = (1, 0, 1)',</span>
+<span id="cb2-383"><a href="#cb2-383" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb2-384"><a href="#cb2-384" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-385"><a href="#cb2-385" aria-hidden="true" tabindex="-1"></a>and </span>
 <span id="cb2-386"><a href="#cb2-386" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-387"><a href="#cb2-387" aria-hidden="true" tabindex="-1"></a>The resulting DLM is a 5-dimensional model $<span class="sc">\{</span>F, G, \cdot, \cdot<span class="sc">\}</span>$ with</span>
-<span id="cb2-388"><a href="#cb2-388" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-389"><a href="#cb2-389" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-390"><a href="#cb2-390" aria-hidden="true" tabindex="-1"></a>F = (1, 0, 1, 0, 1)',</span>
-<span id="cb2-391"><a href="#cb2-391" aria-hidden="true" tabindex="-1"></a>$$ </span>
-<span id="cb2-392"><a href="#cb2-392" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-393"><a href="#cb2-393" aria-hidden="true" tabindex="-1"></a>and </span>
-<span id="cb2-394"><a href="#cb2-394" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-395"><a href="#cb2-395" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-396"><a href="#cb2-396" aria-hidden="true" tabindex="-1"></a>G = </span>
-<span id="cb2-397"><a href="#cb2-397" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
-<span id="cb2-398"><a href="#cb2-398" aria-hidden="true" tabindex="-1"></a>1 &amp; 1 &amp; 0 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-399"><a href="#cb2-399" aria-hidden="true" tabindex="-1"></a>0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-400"><a href="#cb2-400" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-401"><a href="#cb2-401" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; -1 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
-<span id="cb2-402"><a href="#cb2-402" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; 0 &amp; 0 &amp; -1</span>
-<span id="cb2-403"><a href="#cb2-403" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}.</span>
+<span id="cb2-387"><a href="#cb2-387" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-388"><a href="#cb2-388" aria-hidden="true" tabindex="-1"></a>G_2 = </span>
+<span id="cb2-389"><a href="#cb2-389" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
+<span id="cb2-390"><a href="#cb2-390" aria-hidden="true" tabindex="-1"></a>\cos(\pi / 2) &amp; \sin(\pi / 2) &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-391"><a href="#cb2-391" aria-hidden="true" tabindex="-1"></a>-\sin(\pi / 2) &amp; \cos(\pi / 2) &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-392"><a href="#cb2-392" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; -1</span>
+<span id="cb2-393"><a href="#cb2-393" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}</span>
+<span id="cb2-394"><a href="#cb2-394" aria-hidden="true" tabindex="-1"></a>= </span>
+<span id="cb2-395"><a href="#cb2-395" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
+<span id="cb2-396"><a href="#cb2-396" aria-hidden="true" tabindex="-1"></a>0 &amp; 1 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-397"><a href="#cb2-397" aria-hidden="true" tabindex="-1"></a>-1 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-398"><a href="#cb2-398" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; -1</span>
+<span id="cb2-399"><a href="#cb2-399" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}.</span>
+<span id="cb2-400"><a href="#cb2-400" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-401"><a href="#cb2-401" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-402"><a href="#cb2-402" aria-hidden="true" tabindex="-1"></a>The resulting DLM is a 5-dimensional model $<span class="sc">\{</span>F, G, \cdot, \cdot<span class="sc">\}</span>$ with</span>
+<span id="cb2-403"><a href="#cb2-403" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-404"><a href="#cb2-404" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-405"><a href="#cb2-405" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-406"><a href="#cb2-406" aria-hidden="true" tabindex="-1"></a>The forecast function is:</span>
+<span id="cb2-405"><a href="#cb2-405" aria-hidden="true" tabindex="-1"></a>F = (1, 0, 1, 0, 1)',</span>
+<span id="cb2-406"><a href="#cb2-406" aria-hidden="true" tabindex="-1"></a>$$ </span>
 <span id="cb2-407"><a href="#cb2-407" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-408"><a href="#cb2-408" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-409"><a href="#cb2-409" aria-hidden="true" tabindex="-1"></a>f_t(h) = (k_{t,1} + k_{t,2} h) + k_{t,3} \cos(\pi h / 2) + k_{t,4} \sin(\pi h / 2) + k_{t,5} (-1)^h.</span>
+<span id="cb2-408"><a href="#cb2-408" aria-hidden="true" tabindex="-1"></a>and </span>
+<span id="cb2-409"><a href="#cb2-409" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-410"><a href="#cb2-410" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb2-411"><a href="#cb2-411" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-412"><a href="#cb2-412" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-413"><a href="#cb2-413" aria-hidden="true" tabindex="-1"></a><span class="fu">## Quiz: Seasonal Models and Superposition</span></span>
-<span id="cb2-414"><a href="#cb2-414" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-415"><a href="#cb2-415" aria-hidden="true" tabindex="-1"></a>This is omitted due to the Coursera honor code.</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<span id="cb2-411"><a href="#cb2-411" aria-hidden="true" tabindex="-1"></a>G = </span>
+<span id="cb2-412"><a href="#cb2-412" aria-hidden="true" tabindex="-1"></a>\begin{pmatrix}</span>
+<span id="cb2-413"><a href="#cb2-413" aria-hidden="true" tabindex="-1"></a>1 &amp; 1 &amp; 0 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-414"><a href="#cb2-414" aria-hidden="true" tabindex="-1"></a>0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-415"><a href="#cb2-415" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-416"><a href="#cb2-416" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; -1 &amp; 0 &amp; 0 <span class="sc">\\</span></span>
+<span id="cb2-417"><a href="#cb2-417" aria-hidden="true" tabindex="-1"></a>0 &amp; 0 &amp; 0 &amp; 0 &amp; -1</span>
+<span id="cb2-418"><a href="#cb2-418" aria-hidden="true" tabindex="-1"></a>\end{pmatrix}.</span>
+<span id="cb2-419"><a href="#cb2-419" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-420"><a href="#cb2-420" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-421"><a href="#cb2-421" aria-hidden="true" tabindex="-1"></a>The forecast function is:</span>
+<span id="cb2-422"><a href="#cb2-422" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-423"><a href="#cb2-423" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-424"><a href="#cb2-424" aria-hidden="true" tabindex="-1"></a>f_t(h) = (k_{t,1} + k_{t,2} h) + k_{t,3} \cos(\pi h / 2) + k_{t,4} \sin(\pi h / 2) + k_{t,5} (-1)^h.</span>
+<span id="cb2-425"><a href="#cb2-425" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-426"><a href="#cb2-426" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-427"><a href="#cb2-427" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-428"><a href="#cb2-428" aria-hidden="true" tabindex="-1"></a><span class="fu">## Quiz: Seasonal Models and Superposition</span></span>
+<span id="cb2-429"><a href="#cb2-429" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-430"><a href="#cb2-430" aria-hidden="true" tabindex="-1"></a>This is omitted due to the Coursera honor code.</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">
