@@ -29,14 +29,46 @@ Sean Law - STUMPY: Modern Time Series Analysis with Matrix Profiles
 :::
 ::::
 
-We will now delve into Bayesian inference in the case of the normal dynamic linear model where both the observational variance and the system variance are known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach
+We will now delve into Bayesian inference for the case where we have an NDLM with both  observational variance and system variance known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach.
 
 
-::: {.callout-note collapse='true'}
+::: {.callout-note collapse='false'}
 
 ### Reality check {.unnumbered}
 
-A large portion of the next video is dedicated to laying the ground for use bayesian inference in the NDLM. I was thinking we will infer $F, G,V, W$ from the data, once we supply a normal prior $\mathcal{N}(M,C)$. But this is not the case. In fact we don't seem to be particularly Bayesian when going about constructing the NDLM model. 
+1. This lesson is one of several dedicated to  Bayesian inference on the NDLM. Professor Prado doesn't outline this study of apparently eclectic collection of NDLM or explain the NDLM framework upfront. It doesn't mean there isn't a method to the madness, however it is up to the student to sort things out.
+
+2. I can say that based on the three prior courses we would follow a similar methodology:
+
+   (a) Pick an **[inductive bias](https://en.wikipedia.org/wiki/Inductive_bias** and use it write down some models, 
+   (b) Set a prior 
+   (c) Use Bayes + the data to infer the form of the posterior 
+   (d) Use an algorithm, possibly a Gibbs sampler to approximate the posterior
+   (e) Recover the parameters by marginalizing the posterior.
+   (f) ~~Validate convergence of the Algorithm.~~
+   (g) Validate via prior predictive and posterior predictive checks
+   (h) Optimize hyperparameters using AIC\BIC
+   (i) Select the best model via DIC.
+
+Working with AR($p$) loosely followed this process so I expected NDLM would be the same. In the NDLM framework the algorithm is the Kalman Filter. Kalman Filter had originally a Bayesian formulation. The Kalman filter lets us do filtering and smoothing to infer the system parameters we call $\theta_t$. The Kalman filter uses a set of recursive equations to update the state and returns these with an uncertainty estimate! The NDLM framework is mostly a scaffolding to handle the requirements of the Kalman filter (~~discretization of continuous time equations~~, assembling the different part into a single system evolution matrix, converting them into the representation a KF needs, and assembling the different sources of uncertainty i.e. $v$ and $w$ into just one of each per overall model, linearity, ~~controllability~~, setting the boundary conditions from the priors
+
+But I did not know all this. Initially I expected that once we choose a (normal) prior $\mathcal{N}(M_0,\mathbf{C}_0)$ we would infer $F,G,V,W$ from the data. I supposed that no one has been able to write a prior for $F$ and $G$ and even Kalman in his paper [@kalman1960new] does not describe how to work out the linear system $G$.
+
+While it is never stated explicitly our choice of $F$ and $G$ are very much modeling decisions.  $F$ maps the output of $\theta\; G$ and so must be compatible in two sense 
+
+1. $F$ must have the same number of rows as $\theta$ has columns
+2. $F$ must have the same number of non-zero rows as the output $y_t$
+
+$G$ is the hidden state's evolution matrix. In the NDLM, we don't know very much about the data generating process. Unlike the usual setting for  Kalman Filter we don't have access to a dynamical system. All we have is a time series and as modelers we need to construct a surrogate state space model based on very vague prior assumption likely based on some exploration of the time series. (Another problem which could be mitigated via model selection but can also introduce a new issue of too many comparisons if we can choose from too many models)
+
+But this is not the case. In fact we don't seem to be particularly Bayesian when going about constructing the NDLM model.
+Similar to constructing a neural network we pick an architecture $\sum \{\mathbf{F}_{i,t},\mathbf{G}_{i,t},\cdot,\cdot\}$ 
+with a hyperparameter like a polynomial degree $q$, an AR($p$) or the number of fourier components $r$ and we give it to the Kalman Filter, which returns an estimate for the $\boldsymbol{\theta}_t$ for us. But that still leaves $\nu_t$ and $\omega_t$. 
+
+Now as far as Kalman Filters go $\nu_t$ and $\omega_t$ are errors inherent in the system that cannot be eliminated. One consequence is that our estimates of $theta$ will never converge to the actual state, though they can reach optimality. So as far as the KF is concerned $\nu_t$ and $\omega_t$ are 
+
+
+
 
  (i.e. filtering smoothing, of the parameters $\theta_t$ given the data and forecasting $y_t$ based on that)
 
@@ -51,6 +83,8 @@ I suppose they expect that you will use some other non-bayesian tools to do this
 
 Splitting a TS into trend periods and a stationary residual isn't too tricky in R. Getting the inverse periods is then possible. Doing regression on the residuals is also possible. So if we have done all that we should be able to write down an NDLM based on all that we learned. And this will allow us to do filtering, smoothing and forecasting with error estimates.
 
+
+p.s. this is a long rant once it's done I think it can be moved to the course intro as an overview of the NDLM part.
 :::
 
 ## Filtering  :movie_camera: 
@@ -72,16 +106,15 @@ $$
 \begin{aligned}
   y_t &= F_t' \theta_t + \nu_t & \nu_t &\sim \mathcal{N}(0, v_t) & \text{(observation)} \\
   \theta_t &= G_t \theta_{t-1} + \omega_t & \omega_t &\sim  \mathcal{N}(0, W_t) & \text{(evolution)} \\
-  & &(\theta_0 \mid \mathcal{D}_0) & \sim  \mathcal{N}(m_0, C_0) & \text{(prior)}
+  & &(\theta_0 \mid \mathcal{D}_0) & \sim  \mathcal{N}(m_0, \mathbf{C}_0) & \text{(prior)}
 \end{aligned}
 $$ {#eq-generic-NDLM}
 
-- In the prior  $\mathcal{D}_0$ stands for the information that we have before collecting any data and 
-- We are assuming $\theta_0$ follows a normal distribution with 
-- $m_0$ mean
-- $C_0$ variance covariance matrix.
+- We are assuming:  
+  - $\theta_0 \sim \mathcal{N}(m_0, \mathbf{C}_0)$ variance covariance **matrix**.
+  - In the prior  $\mathcal{D}_0$ denotes the *information set* that we have before collecting any data and 
 
-Since we are doing filtering which is a retrospective analysis, of past states we assume that we know $m_0, C_0, \nu_t, \omega_t, F_t, G_t \qquad \forall t$.
+Since we are doing filtering which is a retrospective analysis, of past states we assume that we know $\mathbf{F}_t, \mathbf{G}_t, m_0, \mathbf{C}_0, \nu_t, \omega_t \quad \forall t$.
 
 However, there is often great interest in looking back in time in order to get a clearer picture of what happened.
 
@@ -129,23 +162,26 @@ Then, we can obtain the following distributions:
 
 2. One-Step Forecast
 
-  $$
-  (y_t \mid \mathcal{D}_{t-1}) \sim  \mathcal{N}(f_t, q_t) \qquad \text{(one step forecast fn)} \qquad
-  $$ {#eq-one-step-forecast-fn}
+$$
+  (y_t \mid \mathcal{D}_{t-1}) \sim \mathcal{N}(f_t, q_t) \quad \text{(one step forecast fn)} \qquad
+$$ {#eq-one-step-forecast-fn}
 
-  with
+  with:
 
-  $$\begin{aligned}
-  f_t 
-     & \doteq \mathbb{E}[ y_t \mid \mathcal{D}_{t-1} ]
-     & = F_t' \mathbb{E}[ y_t \mid \mathcal{D}_{t-1} ]
-     & = F_t' a_t \\
-  q_t 
-     & \doteq \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}] 
-     & = F_t' \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}]  
-     & = F_t' R_t F_t + v_t
+$$
+\begin{aligned}
+f_t  &\doteq \mathbb{E}[ y_t \mid \mathcal{D}_{t-1} ] \\
+     &= F_t' \; \mathbb{E}[ y_t \mid \mathcal{D}_{t-1} ] \\
+     &= F_t' \; a_t \\
   \end{aligned}
-  $$ {#eq-derivation-for-f-t-and-q-t}
+$$ {#eq-derivation-for-f-t}
+$$
+\begin{aligned}
+q_t & \doteq    \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}] \\
+    &= F_t' \; \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}] \\ 
+    &= F_t' R_t F_t + v_t
+\end{aligned}
+$$ {#eq-derivation-for-q-t}
 
   Where we took the first moments on the observation equation conditioned on the information set $\mathcal{D}_t$ and substituted @eq-one-step-forecast-fn 
 
@@ -617,18 +653,18 @@ $$
 :::
 
 
-## Summary of the smoothing and forecasting distributions  :spiral_notepad: 
+## Summary of the smoothing and forecasting distributions  :spiral_notepad: {#sec-summary-smoothing-forecasting}
 
 <!-- start -->
 
-### Bayesian Inference in NDLM: Known Variances {#sec-inference-NDLM}
+### Bayesian Inference in NDLM: Known Variances {#sec-Bayesian-inference-NDLM-known-variances}
 
 Consider the NDLM given by:
 
 $$ \begin{aligned}
 y_t &= \mathbf{F}_t' \mathbf{\theta}_t + \nu_t, &\nu_t &\sim \mathcal{N} (0, v_t), \\
 \mathbf{\theta}_t &= \mathbf{G}_t \mathbf{\theta}_{t-1} + \mathbf{\omega}_t, &\mathbf{\omega}_t &\sim \mathcal{N} (0, \mathbf{W}_t), \\
-&\{ \mathbf{F}_t, \mathbf{G}_t, v_t, \mathbf{W}_t \}  &(\mathbf{\omega}_0 \mid \mathcal{D}_0) &\sim  \mathcal{N}(\mathbf{m}_0, \mathbf{C}_0)
+&\{\textcolor{green}{\mathbf{F}_t, \mathbf{G}_t, v_t, \mathbf{W}_t} \}  &(\mathbf{\omega}_0 \mid \mathcal{D}_0) &\sim  \mathcal{N}(\textcolor{green}{\mathbf{m}_0, \mathbf{C}_0})
 \end{aligned}
 $$ {#eq-inference-NDLM}
 
@@ -636,6 +672,10 @@ with $F_t$, $G_t$, $v_t$, and $W_t$ known.
 
 We also assume a prior distribution of the form 
 $(\theta_0 \mid D_0) \sim  \mathcal{N}(m_0, C_0)$, with $m_0$ and $C_0$ known.
+
+Let's reflect for a moment on the assumption about known quantities (in green):
+$F_t$, $G_t$, are modeling choices as are the parameters of the prior $m_0$, and $C_0$.
+
 
 #### Smoothing
 

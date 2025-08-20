@@ -1,0 +1,516 @@
+---
+title: Sine function
+#format: html
+#filters:
+#  - shinylive
+---
+
+
+Modeling demand is usually based on elasticity and cross elasticities. We usually have a time series with for price  quantity for products, (we might have income, advertising, and competitor prices time series as well), and we want to estimate the elasticities.
+
+- So some really basic questions are given this data:
+  1. Can we fit a demand function and 
+  1. Can we infer self and cross elasticities. 
+  1. If we have an elasticity what is the error and for what prices range is it valid 
+  1. Is there a different a long term elasticity.
+  1. If demand is periodic does that mean I should also have a periodic elasticity?
+
+We end up pondering these questions for a number of reasons.
+We collect data but it often lacks support in terms of different price changes. Few or no price changes create  numerical as well as deeper identification issues. 
+
+
+Scenarios:
+
+1. The next retailer over has closed for a week.
+  - no we are not a monopoly and we cant set prices regardles  off competition. 
+2. Another online shop reduced prices 20% bellow the minimum.
+  - Do they have any product in stock ? (no)
+  - Do they have one good rating ? (no)
+3. We run out of stock after soon after announcing a promotion. 
+  - Does not mean reducing price reduces demand.
+4. End of day promotion didn't clear out our inventory.
+  - Does not mean reducing price reduces demand.
+  - Could be we had too few customers
+  - Could be the product wasn't appealing enough
+  - Would a lower price lead to clearance ? 
+  - Do enough people know about it or was the store empty?
+5. We have promotions at odd hours but aggragete daily.
+  - Does this mean our customers are irrational?
+  - No but the way you aggregate their data is.
+6. We track promotions by name or id  but not by price which can be tricky.
+  - 5% off on product X for loyalty card holders limited to 3 units. (as if there is a loss on selling at this price)?
+  - We don't aggregate or tag sales quantities with the promotion.
+7. We sample by the day, or hour.
+  - We now have lots more zeros because small IT outage effects
+  - We could estimate IT outage elasticity of demand.
+8. We have records for people returning product.
+  - Some days demand is negative right ? 
+  - Run filtering every week to reduce positive demand of the original sales date.
+9. We often see a price decrease together with a reduced demand. Or price increase followed by an increase demand. 
+   - did we drop price of a complement
+   - is there an exogenous increase in demand for a complement
+   - is there a price increase of a substitute
+   - is there an exogenous decrease in demand for a substitute.
+   - is this due to random chance (we should actually expect such event in our sampling distribution) or are these significant
+   - Can we aggregate these with the next or previous time periods ?
+
+So there are many causes for nonsensical demand curves and likely to overload our elasticity regression with high leverage points that mess up our estimates. 
+At one level better IT (aggregation, annotations, tagging sales with promotion, collating returns to the original transaction, etc) can help us avoid these issues.
+A Models which has contrasts like homogeneity, symmetry, and negativity will issue errors.
+
+So we have lots of little headaches. We can fix them one at a time. (Sounds like a plan)
+Will robust regression fix them ?? (No there are deeper issues)
+
+If we have price/quantity time series for related products, say complements
+Would it make more sense to infer the mean and covariance matrix to model the demands using a Cholesky decomposition for the covariance to minimize parameters, and then estimate the elasticities from the mean + covariance data?
+
+1. Suppose we assume that supply is more or less fixed (i.e., supply side responds much more slowly than demand, prices >> cost so that P determines Q in our market. 
+
+
+
+## Identification of elasticities from mean/covariance
+
+There is an identification problem and here is an explanation
+
+ From $(\mu,\Sigma)$ of quantities alone we can't identify elasticities when prices barely move.
+
+Let us try to understand why we would fail:
+
+- Let 
+  - $y_t=\log Q_t\in\mathbb{R}^n$
+  - $x_t=\log P_t\in\mathbb{R}^n$ with exogenous prices^[prices are set outside the model] and
+
+$$
+y_t=\alpha + Bx_t+\varepsilon_t,\quad \varepsilon_t\sim\mathcal N(0,\Omega).
+$$
+
+- Since this is a $log(P)$ $log(Q)$ model, $B$ is the elasticity matrix, i.e., $B_{ij}$ is the elasticity of product $i$ with respect to product $j$. With self price elasticity $B_{ii}$ and cross price elasticity $B_{ij}$ for $i\neq j$.
+
+In reduced form,
+
+$$
+\underbrace{\mathrm{Var}(y_t)}_{\Sigma_y}=B\,\underbrace{\mathrm{Var}(x_t)}_{\Sigma_x}B^\top+\underbrace{\Omega}_{\text{demand shocks}}.
+$$
+
+
+::: {.callout-note}
+## reducaed form
+
+Here “reduced form” = **moment relations implied by the structural regression**
+
+$$
+y_t=\alpha + Bx_t+\varepsilon_t,\quad \mathbb E[\varepsilon_t]=0,\ \mathrm{Cov}(\varepsilon_t,x_t)=0.
+$$
+
+You *eliminate* unobservables by taking expectations/covariances, getting equations in observable moments $(\mu_x,\Sigma_x,\mu_y,\Sigma_y,\Sigma_{yx})$ plus parameters $(\alpha,B,\Omega)$.
+
+$$
+\begin{aligned}
+\mu_y 
+&= \mathbb E[y_t] & \text{def}\\
+&= \alpha + B\,\mathbb E[x_t] & \mathbb E[\varepsilon_t]=0\\
+&= \alpha + B\,\mu_x & \text{notation}
+\\[6pt]
+\Sigma_{yx}
+&= \mathrm{Cov}(y_t,x_t) & \text{def}\\
+&= \mathrm{Cov}(\alpha+Bx_t+\varepsilon_t,\ x_t) & \text{substitute}\\
+&= B\,\mathrm{Cov}(x_t,x_t) + \cancel{\mathrm{Cov}(\varepsilon_t,x_t)} & \mathrm{Cov}(\varepsilon_t,x_t)=0\\
+&= B\,\Sigma_x & \text{notation}
+\\[6pt]
+\Sigma_y
+&= \mathrm{Var}(y_t) & \text{def}\\
+&= \mathrm{Var}(Bx_t+\varepsilon_t) & \alpha\ \text{is constant}\\
+&= B\,\Sigma_x\,B^\top + \underbrace{\mathrm{Var}(\varepsilon_t)}_{\Omega} & \text{independence}
+\end{aligned}
+$$
+
+Two key consequences:
+
+* If $\Sigma_x$ is nonsingular, the cross-moment pins down $B$:
+
+$$
+B=\Sigma_{yx}\,\Sigma_x^{-1}.
+$$
+
+* If prices barely move, $\Sigma_x\approx 0\Rightarrow \Sigma_{yx}\approx 0$ and $\Sigma_y\approx\Omega$. Then $B$ **drops out** of the reduced form—i.e., elasticities aren’t identified from $(\mu_y,\Sigma_y)$. Numerical fixes (e.g., Cholesky on $\Omega$) don’t change this information content.
+
+This is the sense in which I wrote the “reduced form” $\Sigma_y=B\Sigma_xB^\top+\Omega$: it’s just the variance decomposition implied by the structural equation, used to see what the data can (and cannot) identify.
+:::
+
+
+If prices change rarely, $\Sigma_x\approx 0\Rightarrow \Sigma_y\approx \Omega$, so $\Sigma_y$ carries (almost) **no information** about $B$. Even with a nice Cholesky on $\Omega$, $B$ and $\Omega$ are not separately identified from $(\mu_y,\Sigma_y)$. You need exogenous price variation or instruments. (Consensus view; e.g., Slutsky/identification in demand systems; DLM texts.) \[Prado–Ferreira–West 2023; Deaton–Muellbauer 1980]
+
+What to do instead (most effective, given infrequent price moves):
+
+1. **TVP multivariate regression (NDLM) with event weighting**
+
+$$
+\begin{aligned}
+y_t&=\alpha_t + B_t x_t+\varepsilon_t,\ \ \varepsilon_t\sim\mathcal N(0,\Omega),\\
+\mathrm{vec}(B_t)&=\mathrm{vec}(B_{t-1})+\eta_t,\ \ \eta_t\sim\mathcal N(0,W),
+\end{aligned}
+$$
+
+* Put a Cholesky parameterization on $\Omega=L L^\top$ for stability.
+* Use **discounting** or shrinkage priors so $B_t$ only updates meaningfully on price-change dates (downweight other $t$).
+* Encode micro constraints on **compensated** elasticities: let $K_t$ be the Slutsky/compensated matrix; impose symmetry & negativity via $K_t=-R_tR_t^\top$. Map to Marshallian $B_t$ using shares/income elasticity when needed. (See Deaton–Muellbauer; West & Harrison/Prado–Ferreira–West.)
+
+2. **(S)VAR / local projections with identified price shocks**
+
+* Stack $(\Delta x_t,\Delta y_t)$ and identify *price shocks* (VAT changes, cost shifters, policy) or use an external instrument.
+* Compute **impulse responses** of $y$ to price shocks; translate contemporaneous/long-run responses to elasticities. This leverages the few price moves without requiring persistent variation.
+
+3. **Exploit cross-section or panels**
+
+* If you can add stores/regions/time-of-day, pool in a hierarchical model to create effective price variation while keeping strong priors on complements (off-diagonals $<0$).
+
+Practical spec (compact):
+
+* Observation: $y_t=\alpha_t+B_t x_t+\varepsilon_t,\ \varepsilon_t\sim\mathcal N(0,LL^\top)$.
+* State: $\mathrm{vec}(B_t)=\mathrm{vec}(B_{t-1})+\eta_t,\ \eta_t\sim\mathcal N(0,W)$.
+* Priors: horseshoe/ridge on $\Delta B_t$; for complements, prior mass on $B_{ij}<0\ (i\neq j)$.
+* Constraints (optional): parameterize compensated $K_t=-R_tR_t^\top$; map to $B_t$ using expenditure shares to satisfy Slutsky symmetry/negativity.
+
+Bottom line:
+
+* **Cholesky on $\Omega$** is good numerically, but **covariance of $Q$** does not recover $B$ when $\Sigma_x$ is near-singular.
+* Use a **time-varying multivariate regression (NDLM) + event weighting** or **SVAR with identified price shocks**; optionally impose **demand-theory constraints** to stabilize estimates.
+* If you can add even weak **instruments** or a small **panel**, identification improves dramatically.
+
+**Refs (consensus sources):** Deaton & Muellbauer (1980) *Economics and Consumer Behavior*; Prado, Ferreira & West (2023) *Time Series* (TVP/DLM treatment); West & Harrison (1997/2e) *Bayesian Forecasting and Dynamic Models* (state-space discounting); Kilian & Lütkepohl (2017) *Structural VARs* (for identification).
+
+----
+
+
+
+
+
+```shinylive-python
+#| components: [editor, viewer]
+# ShinyLive app: estimate self/cross elasticities from within-day price cells (Full, Discount, Loyalty, BOGO)
+from __future__ import annotations
+import numpy as np
+import pandas as pd
+import altair as alt
+from shiny import App, Inputs, Outputs, Session, reactive, render, ui
+
+# ---------------- helpers ----------------
+
+def make_B(n: int, own: float = -1.2, cross: float = -0.3, structure: str = "complements") -> np.ndarray:
+    """Build n×n elasticity matrix B."""
+    B = np.zeros((n, n), float)
+    for i in range(n):
+        for j in range(n):
+            if i == j:
+                B[i, j] = own
+            else:
+                if structure == "complements":
+                    B[i, j] = -abs(cross)
+                elif structure == "subs":
+                    B[i, j] = abs(cross)
+                else:
+                    B[i, j] = 0.0
+    return B
+
+def simulate(
+    n: int = 3, T: int = 90, seed: int = 0,
+    own: float = -1.2, cross: float = -0.3, structure: str = "complements",
+    base_price: float = 10.0,
+    disc_pct: float = 0.30, disc_prob: float = 0.35,        # “30% off today” cell
+    loyal_pct: float = 0.20, loyal_prob: float = 0.30,      # “20% loyalty” cell
+    bogo_prob: float = 0.10,                                # “buy 2 get 1” → 2/3 price cell
+    sigma_eps: float = 0.15, sigma_u: float = 0.02,
+) -> tuple[pd.DataFrame, dict]:
+    """
+    Generate per-day, per-product multiple price cells:
+      - Full (always)
+      - Discount (on Bernoulli)
+      - Loyalty (on Bernoulli)
+      - BOGO (on Bernoulli, eff. unit price 2/3 of Full)
+    Demand model (log form): y = alpha_it + B x + eps, with common alpha_it for all cells that day.
+    """
+    rng = np.random.default_rng(seed)
+    B = make_B(n, own, cross, structure)
+
+    alpha_it = rng.normal(0.0, 0.25, size=(T, n))           # day×product demand shock
+    u_tj = rng.normal(0.0, sigma_u, size=(T, n))            # small price noise for Full
+    eps = rng.normal(0.0, sigma_eps, size=(T, n, 4))        # idiosyncratic noise per cell
+
+    disc_on  = rng.binomial(1, disc_prob,  size=(T, n)).astype(bool)
+    loyal_on = rng.binomial(1, loyal_prob, size=(T, n)).astype(bool)
+    bogo_on  = rng.binomial(1, bogo_prob,  size=(T, n)).astype(bool)
+
+    rows = []
+    for t in range(T):
+        pF = base_price * np.exp(u_tj[t, :])
+        xF = np.log(pF)
+
+        # Prepare other cells
+        pD = pF * (1.0 - disc_pct)
+        pL = pF * (1.0 - loyal_pct)
+        pB = pF * (2.0 / 3.0)
+
+        xD, xL, xB = np.log(pD), np.log(pL), np.log(pB)
+        yF = alpha_it[t, :] + (B @ xF) + eps[t, :, 0]
+        yD = alpha_it[t, :] + (B @ xD) + eps[t, :, 1]
+        yL = alpha_it[t, :] + (B @ xL) + eps[t, :, 2]
+        yB = alpha_it[t, :] + (B @ xB) + eps[t, :, 3]
+
+        for j in range(n):
+            # Full (always)
+            rows.append({"t": t, "product": f"P{j+1}", "cell": "Full", "price": pF[j], "log_p": xF[j], "log_q": yF[j], "q": float(np.exp(yF[j]))})
+            # Discount (if on)
+            if disc_on[t, j]:
+                rows.append({"t": t, "product": f"P{j+1}", "cell": "Disc", "price": pD[j], "log_p": xD[j], "log_q": yD[j], "q": float(np.exp(yD[j]))})
+            # Loyalty (if on)
+            if loyal_on[t, j]:
+                rows.append({"t": t, "product": f"P{j+1}", "cell": "Loyalty", "price": pL[j], "log_p": xL[j], "log_q": yL[j], "q": float(np.exp(yL[j]))})
+            # BOGO (if on)
+            if bogo_on[t, j]:
+                rows.append({"t": t, "product": f"P{j+1}", "cell": "BOGO", "price": pB[j], "log_p": xB[j], "log_q": yB[j], "q": float(np.exp(yB[j]))})
+
+    df = pd.DataFrame(rows)
+    meta = {"B_true": B, "n": n, "T": T}
+    return df, meta
+
+def within_day_diff(df: pd.DataFrame, n: int, baseline: str = "max") -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    General within-day differencing for K cells.
+    For each day t and product i:
+      - Pick baseline cell = product i's highest price (baseline="max") or lowest price ("min").
+      - Pick treated cell  = product i's lowest price if baseline="max" (and vice versa).
+      - Build one row with Δlog q_i and Δlog p_j for all products j that day.
+      - If product j lacks ≥2 distinct price cells, set Δlog p_j=0 for that j.
+    Returns (dmat, X) to match callers (X is same as the Δlog p columns; harmless duplicative).
+    """
+    if df.empty:
+        empty = pd.DataFrame()
+        return empty, empty
+    dfx = df.copy()
+    dfx["price"] = pd.to_numeric(dfx["price"], errors="coerce")
+    dfx["log_p"] = pd.to_numeric(dfx["log_p"], errors="coerce")
+    dfx["log_q"] = pd.to_numeric(dfx["log_q"], errors="coerce")
+
+    rows = []
+    for t, gday in dfx.groupby("t"):
+        # keep distinct price levels per product
+        gp = {prod: gi.dropna(subset=["price","log_p","log_q"]).drop_duplicates(subset=["price"]).sort_values("price")
+              for prod, gi in gday.groupby("product")}
+        # products with ≥ 2 distinct price cells
+        valid = {prod: gi for prod, gi in gp.items() if len(gi) >= 2}
+        if not valid:
+            continue
+
+        # precompute Δlog p_j for all j using extreme cells that day (baseline vs treated)
+        dlogp_map = {}
+        for prod_j, gj in gp.items():
+            if len(gj) >= 2:
+                if baseline == "min":
+                    base_row, trt_row = gj.iloc[0], gj.iloc[-1]
+                else:
+                    base_row, trt_row = gj.iloc[-1], gj.iloc[0]
+                dlogp_map[prod_j] = float(trt_row["log_p"] - base_row["log_p"])
+            else:
+                dlogp_map[prod_j] = 0.0
+
+        # now build a row for each outcome i that has ≥ 2 cells
+        for prod_i, gi in valid.items():
+            if baseline == "min":
+                base_row_i, trt_row_i = gi.iloc[0], gi.iloc[-1]
+            else:
+                base_row_i, trt_row_i = gi.iloc[-1], gi.iloc[0]
+            dlogq_i = float(trt_row_i["log_q"] - base_row_i["log_q"])
+
+            row = {"t": t, "i": prod_i, "dlogq": dlogq_i}
+            for j in range(n):
+                pj = f"P{j+1}"
+                row[f"dlogp_{pj}"] = dlogp_map.get(pj, 0.0)
+            rows.append(row)
+
+    dmat = pd.DataFrame(rows)
+    X = dmat.filter(regex=r"^dlogp_")
+    return dmat, X
+
+def estimate_B(dmat: pd.DataFrame, n: int, ridge: float = 1e-8) -> pd.DataFrame:
+    """OLS (tiny ridge) per row i: Δlog q_i = Σ_j B_ij Δlog p_j + u."""
+    if dmat.empty:
+        return pd.DataFrame(columns=["row", "col", "B_hat"])
+    cols = [c for c in dmat.columns if c.startswith("dlogp_")]
+    prods = [c.replace("dlogp_", "") for c in cols]
+    out = []
+    for i, gi in dmat.groupby("i"):
+        y = gi["dlogq"].to_numpy(float)
+        X = gi[cols].to_numpy(float)
+        XtX = X.T @ X + ridge * np.eye(X.shape[1])
+        Xty = X.T @ y
+        beta = np.linalg.solve(XtX, Xty)
+        for j, b in zip(prods, beta):
+            out.append({"row": i, "col": j, "B_hat": float(b)})
+    return pd.DataFrame(out)
+
+def to_matrix(df_est: pd.DataFrame, n: int) -> pd.DataFrame:
+    prods = [f"P{k+1}" for k in range(n)]
+    mat = pd.DataFrame(0.0, index=prods, columns=prods)
+    for _, r in df_est.iterrows():
+        mat.loc[r["row"], r["col"]] = r["B_hat"]
+    return mat.reset_index().rename(columns={"index": "row"})
+
+# ---------------- UI ----------------
+
+app_ui = ui.page_sidebar(
+    ui.sidebar(
+        ui.input_numeric("n", "Products", 3, min=1, max=8),
+        ui.input_numeric("T", "Days", 90, min=15, max=730),
+        ui.input_numeric("own", "Own elasticity (diag)", -1.2, step=0.1),
+        ui.input_numeric("cross", "Cross elasticity (off-diag magnitude)", -0.3, step=0.05),
+        ui.input_select("structure", "Cross structure",
+                        {"complements": "complements", "subs": "substitutes", "indep": "independent"}),
+        ui.input_numeric("base_price", "Baseline price", 10.0, step=0.5),
+        ui.input_slider("disc_pct", "Discount % (Disc cell)", 0.05, 0.7, 0.30, step=0.05),
+        ui.input_slider("disc_prob", "Disc probability", 0.0, 1.0, 0.35, step=0.05),
+        ui.input_slider("loyal_pct", "Loyalty % (Loyalty cell)", 0.05, 0.7, 0.20, step=0.05),
+        ui.input_slider("loyal_prob", "Loyalty probability", 0.0, 1.0, 0.30, step=0.05),
+        ui.input_slider("bogo_prob", "BOGO probability", 0.0, 1.0, 0.10, step=0.05),
+        ui.input_select("baseline", "Δ baseline", {"max": "max price baseline", "min": "min price baseline"}),
+        ui.input_numeric("sigma_eps", "σ_eps (log q noise)", 0.15, step=0.05),
+        ui.input_numeric("sigma_u", "σ_u (log p noise)", 0.02, step=0.01),
+        ui.input_numeric("seed", "Random seed", 0, step=1),
+        ui.input_action_button("resim", "Resimulate"),
+        ui.hr(),
+        ui.download_button("dl_csv", "Download simulated CSV"),
+        width=320
+    ),
+    ui.div(
+        ui.h3("True vs Estimated Elasticities"),
+        ui.output_data_frame("B_true_tbl"),
+        ui.output_data_frame("B_hat_tbl"),
+        ui.output_text_verbatim("status"),
+        ui.hr(),
+        ui.h4("Scatter: Δ log price vs Δ log quantity"),
+        ui.input_select("row_i", "Outcome (row i)", {"P1": "P1"}),
+        ui.input_select("col_j", "Regressor (col j)", {"P1": "P1"}),
+        ui.output_plot("scatter", height="350px"),
+        ui.hr(),
+        ui.h4("Sample product: price & quantity over time"),
+        ui.input_select("plot_prod", "Product", {"P1": "P1"}),
+        ui.output_ui("chart")
+    )
+)
+
+# ---------------- Server ----------------
+
+def server(input: Inputs, output: Outputs, session: Session):
+    @reactive.calc
+    def sim():
+        return simulate(
+            n=int(input.n()), T=int(input.T()), seed=int(input.seed()),
+            own=float(input.own()), cross=float(input.cross()),
+            structure=input.structure(), base_price=float(input.base_price()),
+            disc_pct=float(input.disc_pct()), disc_prob=float(input.disc_prob()),
+            loyal_pct=float(input.loyal_pct()), loyal_prob=float(input.loyal_prob()),
+            bogo_prob=float(input.bogo_prob()),
+            sigma_eps=float(input.sigma_eps()), sigma_u=float(input.sigma_u()),
+        )
+
+    @reactive.calc
+    def df():
+        df, _ = sim()
+        return df
+
+    @reactive.calc
+    def meta():
+        _, meta = sim()
+        return meta
+
+    @reactive.effect
+    @reactive.event(input.resim)
+    def _resim():
+        _ = sim()
+
+    @reactive.calc
+    def dmat():
+        dmat, _ = within_day_diff(df(), int(input.n()), baseline=input.baseline())
+        return dmat
+
+    @reactive.calc
+    def est():
+        return estimate_B(dmat(), int(input.n()))
+
+    @output
+    @render.data_frame
+    def B_true_tbl():
+        B = meta()["B_true"]
+        prods = [f"P{k+1}" for k in range(B.shape[0])]
+        return pd.DataFrame(B, index=prods, columns=prods).reset_index().rename(columns={"index": "row"})
+
+    @output
+    @render.data_frame
+    def B_hat_tbl():
+        est_df = est()
+        if est_df.empty:
+            return pd.DataFrame(columns=["row", "P1"])
+        return to_matrix(est_df, int(input.n()))
+
+    @output
+    @render.text
+    def status():
+        est_df = est()
+        if est_df.empty:
+            return "Estimation pending: need days/products with ≥2 distinct price cells."
+        k_min = est_df.groupby("row").size().min()
+        return f"Rows estimated: {len(est_df.row.unique())} | examples per row (min): {k_min}"
+
+    @output
+    @render.plot
+    def scatter():
+        import matplotlib.pyplot as plt
+        dm = dmat()
+        if dm.empty:
+            fig = plt.figure(); plt.text(0.5, 0.5, "No Δ yet", ha="center"); return fig
+        i = input.row_i(); j = input.col_j()
+        col = f"dlogp_{j}"
+        if col not in dm.columns:
+            fig = plt.figure(); plt.text(0.5, 0.5, "Select another j", ha="center"); return fig
+        dmi = dm[dm["i"] == i]
+        x = dmi[col].to_numpy(float); y = dmi["dlogq"].to_numpy(float)
+        fig = plt.figure()
+        plt.scatter(x, y, alpha=0.6)
+        if len(x) >= 2 and np.any(x != 0):
+            beta = np.polyfit(x, y, 1)[0]
+            xs = np.linspace(x.min(), x.max(), 100); ys = beta * xs
+            plt.plot(xs, ys); plt.title(f"{i} vs {j}: slope≈{beta:.3f}")
+        plt.xlabel(f"Δ log p ({j})"); plt.ylabel(f"Δ log q ({i})")
+        return fig
+
+    @output
+    @render.ui
+    def chart():
+        df_long = df()
+        prods = [f"P{k+1}" for k in range(int(input.n()))]
+        session.send_input_message("row_i", {"choices": {p: p for p in prods}})
+        session.send_input_message("col_j", {"choices": {p: p for p in prods}})
+        session.send_input_message("plot_prod", {"choices": {p: p for p in prods}})
+
+        prod = input.plot_prod()
+        sub = df_long[df_long["product"] == prod].copy()
+        sub["cell_disp"] = sub["cell"].astype(str)
+        base = alt.Chart(sub).properties(width=650, height=280)
+        p1 = base.mark_line().encode(x="t:Q", y=alt.Y("price:Q", title="Price"), color="cell_disp:N")
+        p2 = base.mark_line().encode(x="t:Q", y=alt.Y("q:Q",     title="Quantity"), color="cell_disp:N")
+        return ui.div(ui.HTML(p1.to_html()), ui.HTML(p2.to_html()))
+
+    @output
+    @render.download(filename="simulated_cells.csv")
+    def dl_csv():
+        return df().to_csv(index=False)
+
+app = App(app_ui, server)
+
+```
+
+
+
+So this little app show me a few things.
+
+1. the number if price changes as well as thier sizes are important. 
+2. Being able to identify price changes for cells of clients can fix most of our headaches by giving us a way to associate price changes with demand changes.

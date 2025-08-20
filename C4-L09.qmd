@@ -21,24 +21,15 @@ title-block-banner: images/banner_deep.jpg
 
 ## Filtering, Smoothing and Forecasting: Unknown observational variance  :movie_camera: {#section-NDLM-unknown-variance}
 
-::: {.callout-caution collapse="true"}
-## Bumpy ride ahead! {.unnumbered}
+::: {.callout-tip collapse="false"}
+## Recap: 
+In [@sec-Bayesian-inference-NDLM-known-variances] we performed Bayesian inference on  [@eq-inference-NDLM], an NDLM  with known observational variance $\nu_t$ and system variance $\boldsymbol{\omega}_t$ c.f.and determined that under the assumption of a normal prior $(\theta_0 \mid \mathcal{D}_0) \sim \mathcal{N}(\mathbf{m}_{0}, \mathbf{C}_{0})$, with 
+filtering leads to a posterior $p(\boldsymbol{\theta}_t|\mathcal{D}_t) \sim N (\mathbf{m}_t, \mathbf{C}_t)$
+and smoothing leads to normal posterior distributions 
 
-- This material seems unnecessarily complicated:
-
-1. This section seems like a lots of mathematical gobbledygook without any context of motivation for application for each of the equations being presented.
-  - After writing everything out and reviewing it multiple times, I began to develop a purely mathematical intuition i.e. I can relate them to the the general Bayesian inference framework,
-  - I can't however say I am much closer to using them in engineering solution based on this mathematics.
-  - I doubt that doing a single capstone project will make much of a difference.
-
-2. While we will see three application in this module, (Nile river data, google trends, and EEG data). However, what I need to understand for each of these filtering, smoothing and forecasting distributions why are they useful rather than the original ones. I mean when we use to solve a specific challenge, for a dataset. 
-
-3. Perhaps the root cause here is that this course fails to acknowledge the connection of NDLM to the Kalman Filters and the much wider literature on Kalman Filters than NDLM. It appears to me that in the first course of the Kalman filtering specialization (KF bootcamp) there are a number of application that are presented each with a different requirements and that if we map the different challenges to the NDLM framework we should be able to navigate the math more easily.
-
-4. Anyhow a lookup indicates that this model is called in the state-space modeling terminology as **local level model** for local level or trend filtering, such as in structural time series models, and in the  Kalman filtering  terminology as a KF with variance learning.
+In this lesson we will explore the case of the NDLM, where we **assume** That the observational variance $\nu_t=v$ i.e. is constant over time.
 :::
 
-In the case of the NDLM, where we **assume** That the observational variance $\nu_t=v$ i.e. is constant over time.
 
 ### Inference in the NDLM with unknown constant observational variance:
 
@@ -196,13 +187,13 @@ a_T (t - T) = m_T - B_T [a_{T+1} - a_T (t - T + 1)]
 $$
 
 $$
-R_T (t - T) = C_T - B_T [R_{T+1} - R_T (t - T + 1)] B'_T
+R_T (t - T) = C_T - B_T [R_{T+1} - R_T (t - T + 1)] B^\top_T
 $$
 
 with 
 
 $$
-B_T = C_T G'_{T+1} R^{-1}_{T+1}, \quad a_T (0) = m_T , \quad R_T (0) = C_T.
+B_T = C_T G^\top_{T+1} R^{-1}_{T+1}, \quad a_T (0) = m_T , \quad R_T (0) = C_T.
 $$
 
 ::: {.callout-note collapse="true"}
@@ -217,7 +208,43 @@ $$
 
 ## Specifying the system covariance matrix via discount factors  :movie_camera: 
 
-![sys covariance via discount factors](images/m5_0001.png){#fig-specifying-the-system-covariance-matrix-via-discount-factors .column-margin  group="slides" width="53mm"}
+![sys covariance via discount factors 1](images/c4/m5_0001.png){#fig-specifying-the-system-covariance-matrix-via-discount-factors .column-margin  group="slides" width="53mm"}
+
+![estimating the discount factors](images/c4/m5_0002.png){#fig-specifying-the-system-covariance-matrix-via-discount-factors .column-margin  group="slides" width="53mm"}
+
+### Recap and overview
+
+- So far we discussed $\{F_t,G_t,v_t,w_T\}$ with:
+   - $\underbrace{v_t}_{known}, \underbrace{w_t}_{known}$ 
+   - $v_t=\underbrace{v}_{unknown},\qquad \underbrace{w_t}_{known} \forall t$
+- We move on to the case where:
+   - $v_t=\underbrace{v}_{known}, \forall t$ i.e. known observational variance
+
+### Known observational variance with a discount factor \delta
+
+$$
+var(\theta_t\mid\mathcal{D}_t)=R_t=\underbrace{G_t C_{t-1}}_{P_t} G^\top_t + W_t
+$$
+
+- where $P_t = G_t C_{t-1}$ corresponds to the prior variance in the model with zero system variance i.e. $\{F_t,G_t,v_t,0\}$ with constant parameters that do not evolve over time! 
+- $R_t=\frac{P_t}{\delta} \qquad \de;ta \in (0,1]$
+- $R_t P_t + W_t = \frac{P_t}{\delta} \implies W_t = \frac{1-\delta}{\delta}P_t$
+
+we estimate 
+$$
+P_1=G_1C_0G_1^T
+$$
+
+### Unknown constant observational variance with a discount factor \delta
+
+$$
+W_t^* = \frac{1-\delta}{\delta}P_t^*$
+$$
+
+where 
+
+$P_T^*=G_1C_0^*G_1^T$
+
 
 
 
