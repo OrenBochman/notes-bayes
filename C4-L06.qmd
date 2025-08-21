@@ -41,41 +41,210 @@ The Normal Dynamic Linear Model (DLM) is covered  [@prado2023time pp. 117-144]
 
 :::
 
+## NDLM FAQ {#sec-ndlm-faq}
 
+**Everything you wanted to know about NDLMs but were afraid to ask** meets **Everything I would tell my younger self if ....**
 
-## NDLM FAQ
+I collected many of the questions raised by the course and book and by the time my notes were almost complete I was able to come up with these answers. I'm not sure I got everything right but perhaps this will be a useful resource to other students. If you find any errors please let me know.
 
-- This section is a labour of love. 
-- Its should read like "Everything you wanted to know about NDLMs but were afraid to ask" meets "Everything I should have known about NDLM twenty years ago, when I was getting started." 
-- It arose out of skimming thought the books which were too long and hard to read initially. The book seem to have all the answers but you really must know the questions and then read very very carefully. The books have different issues. 
-- It tries to **connect the dots** that were not connected in class. 
-- It also **adds dots** that were omitted in class.
-- It does this using a Q&A format.
-- I will try and have it reviewed by someone who teaches this material however I will be using a LLM pending this review so this is my best effort.
-- I developed a number of misconception during the last two courses in the Bayesian specialization and it took a while to find and correct them. Hopefully this can save you some grief and get you productive much sooner.
 
 ---
 
-### Q1: What Books are there on NDLMs? {#sec-faq-books}
+As I am working though these questions many questions have come up which I believe are instrumental to people unfamiliar with DLMs. Despite having learned about DLM and done some work on time series it is still a challenge not just to understand but to even ask smart question about this topic.
+
+Some reasons why this is complicated and how to make it simpler. 
+
+One reason I find DLM tricky is that unlike AR(p) or even ARIMA(q,q) we are not dealing with a model for which we set up a bayesian model with some $\theta$ some priors for the thetas and pour in the data and get a posterior for the parameters, and a posterior predictive distribution for doing predictions.
+
+- NDLMs are multifaced like diamonds:
+  - one facet is that they are like a multiple regression
+  - another facet is that they are like a state space model
+  - another facet is the use of kalman filters in filtering and smoothing
+  - another facet is that like neural networks they have an arcature and hyperparameters
+  - another attractive feature is that unlike neural models they can be interpreted and can be fit with a relatively less data.
+  - another facet is that the number of degrees of freedom and the number of parameters are not the same.
+  - architecture:
+    - they can contain a polynomial trend that is smooth
+    - they can contain AR(p) components which can be jagged
+    - they can contain MA(q) components - but these are not as straight forward as the AR($p$)
+    - they can encode seasonality using dummies (jumping patterns)
+    - they can encode seasonality using sinusoids (complex smooth patterns)
+    - they can also incorporate time indexed regressors
+    - they can incorporate geo-spatial data but this is not covered in this course or the R package and is more of an extension of the DLM framework to [DLSTM](https://spacetimewithr.org/)
+
+We can literally add the components into one big DLM. 
+However here things get more interesting. 
+We are adding parts into the system or evolution equation. But we don't necessarily want to have a separate variance for each component. (We can if we really want to). However we can pick and choose a version with one overall system variance component.  We also have a separate observation variance component. Did I say separate - it can be  but it can also be related via an RV times a diagonal matrix. 
+
+
+---
+
+
+### What Books are there on NDLMs? {#sec-faq-books}
 
 - [@west2013bayesian] which lays down the theory but is long winded. Often meanders rather than giving a clear and concise expiation. Perhaps the authors assume the readers will read it serval times during the PHD and a few more for their post doc. There  are many gaps in this book
 
 - [@prado2023time] is much longer, more recent, far more advanced, covers many more models, tends to reference many research papers, poorly motivated and suffers from an even greater tendency to meander rather than provide the deep insights its maven of authors clearly possess. The book has many appendices that feel more like handouts on unrelated topics with one or two result that we might have used.
-
 
 - [@petris2009dynamic] Is the most accessible of the trio. Part of the excellent Use R! series which I've skimmed though years and years ago.
 The book takes a hands on approach to using the DLM library in R. 
 It is a text that fills in some of the gaps in the two text above. However 
 It isn't so easy to pick up NDLMs without background in Bayesian statistics and time series.
 
-The first two books are hard to read but they also contain a slew of exercises. Like most mathematical textbooks you won't get more than 25% of the material  unless you do enough of these exercises. I doubt you'll even memorize the recursion equations and their interpretations unless you do enough of these. P.S. unless you are in the middle of your Phs doing the exercises is very very taxing.  **There are no solutions and even reading the derivation in my own solution was taxing**. With enough details I could be fairly sure I had a decent answer. But it could take a couple of hours or a couple of days to get there. I feel that to a large extent I would learn more making models than derivations. It is clear that to handle missing data, handle structural change points or intervention requires great facility with the with the kalman filtering as well as setting up the data and model so that the DLM package can do its magic. This is well beyond the level of the course.
+The first two books are hard to read but they also contain a slew of exercises. Like most mathematical textbooks you won't get more than 25% of the material  unless you do enough of these exercises. I doubt you'll even memorize the recursion equations and their interpretations unless you do enough of these. P.S. unless you are in the middle of your PhD doing the exercises is very very taxing.  **There are no solutions and even reading the derivation in my own solution was taxing**. With enough details I could be fairly sure I had a decent answer. But it could take a couple of hours or a couple of days to get there. I feel that to a large extent I would learn more making models than derivations. It is clear that to handle missing data, handle structural change points or intervention requires great facility with the with the kalman filtering as well as setting up the data and model so that the DLM package can do its magic. This is well beyond the level of the course.
 
 That said lots of the material seems rather theoretical and I want to use NDLM in some sophisticated models. In hindsight I do believe this stuff isn't as complicated to the student. Other books on the subject seem to be from Econometrics or Ecology and other applied areas exist and are likely far more accessible. There is also more software in the wild that can facilitate things like finding structural changepoint.
 
 
-### What is the difference between DLMs and NDLMS? {#sec-faq-dlm-vs-ndlm}
+---
+
+
+### What is a Normal Dynamic Linear Model (NDLM)? {#sec-faq-ndlm}
+
+A Normal Dynamic Linear Model (NDLM), often simply called a Dynamic Linear Model (DLM) when normality is understood, is a class of dynamic models commonly assumed to have normal (Gaussian) distributions. It is characterized for each time `t` by a set of **quadruples $\{\mathbf{F}_t, \mathbf{G}_t, V_t, \mathbf{W}_t\}$**.
+
+The core of an NDLM is defined by two sequential equations:
+*   **Observation Equation**: `Yt = Ft'θt + νt`, where `Yt` is the observation vector, `θt` is the parameter (or state) vector, `Ft` is a known design matrix, and `νt` is an observational noise term assumed to be **normally distributed with zero mean and known variance matrix Vt** (`νt ~ N[0, Vt]`).
+*   **System Equation**: `θt = Gtθt-1 + ωt`, where `Gt` is a known system matrix (or transition matrix), and `ωt` is a system noise term assumed to be **normally distributed with zero mean and known variance matrix Wt** (`ωt ~ N[0, Wt]`).
+
+The error sequences (`νt` and `ωt`) are assumed to be internally independent, mutually independent, and independent of the initial information. NDLMs are widely used for modeling time series, capturing how processes change over time. Their flexibility and generality allow them to handle complex problems and directly quantify uncertainty, enabling the fitting of models with many parameters and intricate probability specifications.
+
+
+---
+
+
+### Isn't the NDLM overspecified? {#sec-faq-overspecified}
+
+If $\{\mathbf{F}_t, \mathbf{G}_t, V_t, \mathbf{W}_t\}$ changes every time point t i.e. is some or all of the components of the model change we are likely to have overfitting or underfitting problems (too many/few parameters compared to the data). The Kalman Filter performs filtering and smoothing and while these operations have optimality guarantees these stabilize only if they are permitted to converge to some limit (i.e. enough steps where enough might depend on $V_t, \mathbf{W}_t$)
+
+NDLM framework is very flexible, generalizing many known time series models in a single framework. In practice changes in the model at some index $t$ should be due to:
+
+- handle NA's,
+- handle intervention or
+- handle structural change point (These are covered in [@sec-faq-structural-change-point]).
+
+
+---
+
+
+### How much data do I need to fit an NDLM with k dimensions ?{#sec-faq-data-requirements}
+
+The amount of data required to fit an NDLM with `k` dimensions depends on several factors, including the complexity of the model, the number of parameters to be estimated, and the desired level of precision in the estimates. In general, more data is needed for:
+
+1. **Higher Dimensionality**: As the number of dimensions (`k`) increases, the parameter space becomes larger, requiring more data to obtain reliable estimates.
+
+2. **Model Complexity**: More complex models with intricate structures (e.g., multiple state variables, non-linear relationships) typically require more data to accurately capture the underlying dynamics.
+
+3. **Desired Precision**: If high precision is needed in the parameter estimates or predictions, more data will be necessary to reduce uncertainty.
+
+A common rule of thumb is to have at least 10-20 observations per parameter to be estimated. However, this is a rough guideline, and the actual data requirements may vary based on the specific context and goals of the analysis.
+
+---
+
+
+### How are filtering, smoothing, and forecasting performed in NDLMs? {#sec-faq-filtering-smoothing-forecasting}
+
+NDLMs provide a coherent framework for these key time series analyses:
+*   **Filtering**: This process estimates the current state of the system (`θt`) based on all available observations up to the current time `t`. In NDLMs, this is typically achieved using **Kalman filter recurrences**. The posterior mean of the state is a weighted average of the prior mean and the current observation, with weights proportional to their precisions.
+*   **Smoothing (Retrospective Analysis)**: This involves estimating past states (`θs` for `s < t`) by incorporating all available data, including future observations up to a fixed interval `T`. It provides a retrospective view of the parameter values based on the entire dataset. Conditional independence results are crucial for developing efficient smoothing algorithms.
+*   **Forecasting**: This involves predicting the future behavior of the system state and observations (`Yt+k`, `θt+k`) for `k` steps ahead, given data up to the current time `t`. Forecast functions define the qualitative form and expected numerical development of the time series.
+
+These processes provide linear posterior means and variances, which is a justification for their use even outside strict normality assumptions.
+
+
+---
+
+
+### What are the computational challenges and methods used for NDLMs with unknown parameters? {#sec-faq-computational}
+
+When NDLM parameters, especially variances, are unknown and time-varying, obtaining exact analytical solutions for the full posterior distributions becomes complex. This necessitates the use of various computational techniques:
+*   **Approximation Techniques**:
+    *   **Normal Approximation**: Often applied to posterior distributions, especially for parameters that are difficult to model directly.
+    *   **Linearization**: For models with non-linear components, linear approximations can be used to transform them into (approximate) DLMs, allowing for standard DLM analysis.
+*   **Simulation-Based Methods (Markov Chain Monte Carlo - MCMC)**:
+    *   **General MCMC**: These methods are widely used for posterior inference in complex dynamic models.
+    *   **Gibbs Sampling**: A common MCMC approach, it is often easily implemented for sampling posterior distributions of model parameters and state vectors within a fixed time interval, especially for conditionally linear/normal models.
+    *   **Forward Filtering, Backward Sampling (FFBS)**: A specific and efficient MCMC algorithm introduced for sampling the full set of state vectors from the posterior distribution in conditionally Gaussian DLMs. It exploits the Markovian structure of the model.
+    *   **Particle Filters (Sequential Monte Carlo - SMC)**: These are crucial for "on-line" or recursive inference, where new observations frequently arrive and re-running an entire MCMC every time is computationally inefficient. Particle filters are particularly well-suited for non-linear and non-Gaussian state-space models. Rao-Blackwellized particle filters can improve efficiency in conditionally Gaussian contexts.
+
+
+---
+
+
+### How are NDLMs specified, designed? {#sec-faq-specification}
+
+*   **Model Specification and Design**: DLMs are often constructed by **superposition** (combining) two or more **component DLMs**, each capturing a specific feature like trend, seasonality, or regression. The starting point for model design is typically the desired **forecast function**, which determines the qualitative and quantitative form of the time series development.
+*   **Hierarchical Models**: These are powerful extensions for problems involving multiple, related parameters. Data are modeled conditionally on parameters, which themselves are given a probabilistic specification in terms of hyperparameters. This structure allows "borrowing strength" across related groups or units, enhancing inference.
+
+
+---
+
+
+### How are NDLMs checked for adequacy? {#sec-faq-checking}
+
+*   **Model Checking (Diagnostics)**: Essential for assessing how well the model fits the data and substantive knowledge:
+    *   **Posterior Predictive Checks**: Involve simulating replicated datasets from the model's posterior predictive distribution and comparing them to the observed data. For NDLMs, this often includes examining **standardized forecast errors** (`et/sqrt(Qt)`), which should resemble Gaussian white noise if the model is adequate. Graphical tools like QQ-plots and empirical autocorrelation functions are used to assess normality and uncorrelatedness.
+    *   **Sensitivity Analysis**: Involves recomputing posterior inferences under plausible alternative models to evaluate the robustness of conclusions to modeling assumptions.
+    *   **Model Comparison**: Competing models can be evaluated based on measures like **predictive accuracy** (e.g., log score), **information criteria** (e.g., AIC, DIC, WAIC), or **Bayes factors**.
+
+
+---
+
+
+### What is the difference between DLM and NDLM? {#sec-faq-dlm-vs-ndlm}
 
 DLMs are the subject of [@west2013bayesian]. NDLM are a special case of DLMs in which the priors and the variance terms come from a Normal distribution. This normality assumption simplifies the analysis and allows for the use of conjugate priors, making the Bayesian updating process more straightforward.
+
+
+---
+
+
+### Why are $F_t$ and $G_t$ a vector and a matrix respectively? {#sec-faq-Ft-Gt}
+
+It may helps to think about $F$ and $G$ as follows:
+
+$F_t'$ acts as a linear transformation that maps the latent state $\vec{\theta}_t$ into the observation space, of $y$.  While $\nu_t$ injects some observation noise. In practice $F$ almost always takes the form $(1,0, \ldots)^\top$ Which means it grabs the first term from the output of $\theta_t$ suggesting that the first term in $\theta$ corresponds to the visible state.
+
+$G_t$ is a linear transformation that describes the dynamics of state vector evolves over time. I like to think about it as a Hidden Markov state transition matrix.
+In the state evolution equations we multiply out $\theta_t G_t$ to deterministically update the state and we then add $\omega_t$ to account for process noise.
+
+In other words, $F_t$ takes the current hidden state $\theta_t$ and produces an observation $y_t$, while $G_t$ takes the current state and produces the next state.
+
+
+---
+
+### Why is a DLM this called a linear model? {#sec-faq-linear-model}
+
+This is because both the observation equation is a linear equation that relates the observations to the parameters in the model and the system equation is a linear equation that tells us how the time-varying parameter is going to be changing over time. This is why we call this a linear model.
+
+
+---
+
+### Why are the noise terms $\nu_t$ and $\omega_t$ assumed to be normally distributed? {#sec-faq-noise-normal}
+
+This is a common assumption in time series analysis. 
+It is a convenient assumption that allows us to perform Bayesian inference and forecasting in a very simple way. And this is why we call this a **normal** dynamic linear model.
+
+### Isn't this just a hierarchical model? {#sec-faq-hierarchical}
+
+It is a hierarchical model but **not just**. 
+First the observation and system evolution equations are also auto-recursive giving them a temporal structure.
+We have a model for the observations and a model for the system level. 
+The system level is changing over time and the observations are related to the system level through the observation equation. 
+As explained above $G$ is a matrix i.e. a set of simultaneous equations and these may capture a hierarchial, multilevel or other structures.
+
+We saw in the development of the p order polynomial trend model that we can add p levels to the evolution equation. 
+And so it is possible to extend this model to more complex structures if we wish to do so by adding another level, etc... 
+
+However as we add more level they must be written in a representation that the KF algorithm can process. 
+
+This means we will take all these levels and fold them into $G$ and keep the temporal structure of the two level overall framework!
+
+One more thought on structure is that we can combine different dlm into bigger one using stacking.
+This isn't something we considered before for hierarchical models so again **not just**.
+
+
+---
 
 ### What is the difference between NDLMs and AR(p)/ARIMA model? {#sec-faq-ndlm-arp}
 
@@ -86,6 +255,8 @@ Note that what I said above regarding AR($p$) applies to an ARIMA component whic
 - Intuitively though the NDLM can have seasonal and trend components and if they do account for the non stationary part of the series then the Ar(p) might account for the stationary residual. 
 
 TODO: It is unclear that this does happen nor that there are guarantees that the algorithms will do this.
+
+---
 
 ### What are moments for NDLM? {#sec-faq-moments-ndlm}
 
@@ -98,41 +269,52 @@ The state is what we call $\theta_t$ what the kalman filter can't eliminate are 
 The moments are the inputs and outputs of the model. We get a MLE for the means which we don't need to worry about. But we will get a posterior for the variance of the system and the observation level. This is the other moment of the model and it is here that we actually need to make strategic decisions.
 We can set a complex prior and get many measurements to get a good posterior for the variance or more likely we don't really know much about the errors and we prefer to postulate something as simple as possible and then use the data to get a posterior for the variance. (Simple here means a model that only requires to compute and interpret the noise at the observation level i.e. a difference between the model's forecast and the actual observation we see next)
 
-### What is this thing called delta can I ignore it?
 
-In the NDLM with known variance $delta_t$ we get to do what I intimated in the previous questions.
+---
 
+### What is this thing called $\delta$ can I ignore it?
 
+In the NDLM where we don't know the system variance we can replace it under a simplifying assumption by decomposing $R_t$. In the filtering equations. I think of this as providing us with a "surrogate" model. I.e. a simpler model that approximate out original model. 
 
-### What is the kalman gain
+What we do is we decompose the system model into a deterministic part and a stochastic part. We update the covariance using a `reduced form` which means we have a raw estimate of covariance based on how the previous times system error term evolves according to $G$ i.e. $G C_t G^\top$ and we use $\delta$ as a weight to set how much of that term we want to pass through.
+
+So to sum up: we can use the discount factor hyper-parameter denoted as  $\delta$ which we learned to estimate using MSE on a loss associated with $\delta$. This question is an informal outline of [@specifying-the-system-covariance-matrix-via-discount-factors])
+
+---
+
+### What is the Kalman gain
 
 The Kalman gain is a key component of the Kalman filter, which is used in NDLMs to update the state estimates based on new observations. It determines how much weight to give to the new observation relative to the current state estimate.
 
-### The Books and the professor talk about the polynomial model what is that?
+---
 
-I was confused about this and there are three good reasons to be!
+### What are these **moments** we keep hearing about ? {#sec-faq-moments}
 
-1. The AR($p$) has a characteristic polynomial we learned about
-2. The polynomial model is a sub-model that covers the trend which could be an AR($p$) if the data is stationary
-3. The book talks about Taylor series approximation in a multiple regression model. This is a polynomial in which we can pick the number of order
+Let's take a ~~moment~~ *time out* to unpack the moments reference.
+
+When we talk about filtering we have two or three equations called the filtering equations. These have a recursive form and are often either conditionaly or directly Normal or Student-t. And the first and second moments of these distributions are fed into the next update equations. They have names and interpretation which I might cover in another question. So that is the main usage of moments but we also have priors and other distribution and they also have moments and the professor might be talking about these ones as well. But the priors are the starting point of the recursive formulas so what I explained initially is a good place for an intuition. 
+
+ but to sum up we have
 
 
-### In class the teacher often says some part of the model like the  parameters or the matrices or the moments of the of the Model are known, unknown but assumed to be constant. 
+In class the teacher often says some part of the model like the  parameters or the matrices or the moments of the of the Model are known, unknown but assumed to be constant.
 
 We can use Bayesian methods to infer the parameters of an NDLM ?
 
 Here be dragons.... NDLM are bayesian but they have both a strong normality assumption, a conjugate structure and primarily make use of Kalman Filtering. 
 This means that aspects of the model are assumed, others are inferred via filtering and smoothing and others yet are 
 
+---
 
+### How does the kalman filter features in DLMs {#sec-faq-kalman-filter}
 
-### How does the kalman filter features in DLMs
+The Kalman filter is an iterative algorithm driving the NDLMs. It is used for estimating the hidden states of the model and updating these estimates as new observations become available. But Kalman Filters require four matrices to do their magic and the NDLM puts all our assumptions into $F$ and $G$ and the variances into a Jordan form which is compatible with the Kalman filter.
 
-The Kalman filter is an iterative algorithm driving the NDLMs. It is used for estimating the hidden states of the model and updating these estimates as new observations become available. But Kalman Filters require four matrices to do their magic and the NDLM puts all our assumptions into F and G and the variances into a Jordan from  which is compatible with the Kalman filter.
+Unfortunately, [the Kalman filter has a tendency to amplify noise]{.mark}, which can be problematic in practice. This means that if the model is not well-specified or if the noise characteristics change over time, the Kalman filter may produce unreliable estimates. It is my guesstimate that we do smoothing to mitigate this issue.
 
-Unfortunately, the Kalman filter has a tendency to amplify noise, which can be problematic in practice. This means that if the model is not well-specified or if the noise characteristics change over time, the Kalman filter may produce unreliable estimates. It is my guesstimate that we do smoothing to mitigate this issue.
+---
 
-### What is a structural change point.
+### What is a structural change point. {#sec-faq-structural-change-point}
 
 This is a point in the time series where we need new parameters or even a more parameters. The basic structure of the model is not good moving forward.
 
@@ -156,46 +338,59 @@ So when you want to use this in work or research it will always be harder!
 You will almost always need to adjust the data or the model etc for this to work for your uses case. So you should try to do a do a few of each (NAs,different levels of interventions and structural changes) so when the day comes you can say at least I have done this before and I know how to do it and how to validate it!
 
 
-Getting back on topic there are state space models that incorporate identifing and switching between different models. These are called **hidden Markov models** (HMMs) and they are a generalization of NDLMs. HMMs can be used to model time series with structural change points, but they are more complex and require more data to estimate the parameters.
+Getting back on topic there are state space models that incorporate identifying and switching between different models. These are called **hidden Markov models** (HMMs) and they are a generalization of NDLMs. HMMs can be used to model time series with structural change points, but they are more complex and require more data to estimate the parameters.
+
+---
+
+### Q. What does Polynomial mean in a Polynomial trend DLM ? {#faw-faq-polynomial}
+
+I was confused about this and there are three good reasons to be!
+
+1. The AR($p$) has a **characteristic polynomial which is unrelated** to do with the Polynomial in these trend models. They are AR($p$) component of DLMs which create jagged forms in the forecast function, while polynomial models are popular as they add a smooth trend. The polynomial model is a sub-model that covers the trend. This allows us to model the residual as an AR($p$) even if the data is non-stationary
+2. In [@west2013bayesian] the authors talks about Taylor series approximation before delving into the first polynomial trend model. This is an intuitive way to think about about multiple regression model. This is a polynomial in which we can pick the order one or two to get better approximations lingo common in physics and numerical methods. However it is **completely unrelated** to the Polynomial that gives the model its name.
+
+For a polynomial model of order $p$, when we multiply out the terms of the forecast function we get a polynomial of order $p-1$. 
 
 
+---
 
 
+### Can NDLMs handle unknown and non-constant observational (Vt) and system (Wt) variances? {sec-faq-unknown-variances}
 
+**Yes, NDLMs can be extended to handle cases where both observational variance (Vt) and system variance (Wt) are unknown and vary over time**. This moves beyond the simplest Kalman filter assumptions of known variances.
 
-As I am working though these questions many questions have come up which I believe are instrumental to people unfamiliar with DLMs. Despite having learned about DLM and done some work on time series it is still a challenge not just to understand but to even ask smart question about this topic.
+Here's how this is typically managed:
+*   **Unknown but Constant Variances**:
+    *   If the observational variance `V` is unknown but constant, it can be estimated using a conjugate **Normal-Gamma prior** for the state vector and observational precision (inverse variance). This results in the state and predictive distributions following **Student-t distributions** rather than normal distributions.
+    *   If the system variance `W` is unknown but constant, it can be estimated using methods like the **EM algorithm**.
+*   **Time-Varying System Variance (Wt)**:
+    *   The most common and practical approach is through **discount factors (δ)**. A discount factor defines `Wt` as a proportion of the previous time step's prior covariance, effectively `Wt = GtCt-1G't(δ-1 - 1)`. This allows `Wt` to be automatically time-varying and adaptive, simplifying the specification of complex covariance elements to a single scalar. Different discount factors can be applied to different components of the state vector.
+*   **Time-Varying Observational Variance (Vt)**:
+    *   This is handled through **variance discounting** or **discounted variance learning**. This technique models a decay of information about the observational precision (`φt = 1/Vt`) over time, maintaining the conjugate Gamma distribution form for precision. The prior for `φt` at time `t` is derived by discounting the degrees of freedom and scale parameter from the previous posterior (e.g., `G[δnt-1/2, δdt-1/2]`). This makes the variance estimate more adaptive to recent data. The concept of "power-discounting" is also mentioned in relation to modifying the prior distribution, suggesting a general method for flattening distributions, which can be applied to precision parameters.
+*   **Multivariate Extensions**: These discounting approaches extend to multivariate DLMs. For instance, **matrix normal/Inverse Wishart distributions** can be used to handle time-varying observational covariance matrices (`Σt`), often with dynamics defined by a **matrix beta evolution model**.
 
-Some reasons why this is complicated and how to make it simpler. 
+---
 
-One reason I find DLM tricky is that unlike AR(p) or even ARIMA(q,q) we are not dealing with a model for which we set up a bayesian model with some $\theta$ some priors for the thetas and pour in the data and get a posterior for the parameters, and a posterior predictive distribution for doing predictions.
+---
 
-NDLMS are multifaced like diamonds:
-  - one facet is that they are like a multiple regression
-  - another facet is that they are like a state space model
-  - another facet is the use of kalman filters in filtering and smoothing
-  - another facet is that like neural networks they have an arcature and hyperparameters
-  - another attractive feature is that unlike neural models they can be interpreted and can be fit with a relatively less data.
-  - another facet is that the number of degrees of freedom and the number of parameters are not the same.
-  - architecture:
-    - they can contain a polynomial trend that is smooth
-    - they can contain AR(p) components which can be jagged
-    - they can contain MA(q) components - but these are not as straight forward as the AR($p$)
-    - they can encode seasonality using dummies (jumping patterns)
-    - they can encode seasonality using sinusoids (complex smooth patterns)
-    - they can also incorporate regressors
-    - they can incorporate geographical 
+### What are some common extensions and generalizations of NDLMs? {#sec-faq-extensions}
 
-We can literally add the components into one big DLM. 
-However here things get more interesting. 
-We are adding parts into the system or evolution equation. But we don't necessarily want to have a separate variance for each component. (We can if we really want to). However we can pick and choose a version with one overall system variance component.  We also have a separate observation variance component. Did I say separate - it can be  but it can also be related via an RV times a diagonal matrix. 
+The DLM framework is highly flexible and can be extended in various ways:
+*   **Non-Normal and Non-Linear Dynamic Models**:
+    *   **Dynamic Generalized Linear Models (DGLMs)**: Extend DLMs by using exponential family distributions (e.g., Poisson for count data, Binomial for proportions) for the observational model, often involving non-linear link functions.
+    *   **General Non-Linear Dynamic Models**: Arise when parameters (e.g., `λ` in a transfer response function or a discount factor itself) introduce non-linearities into the system or observation equations.
+    *   **Stochastic Volatility (SV) Models**: Often formulated as non-linear/non-Gaussian state-space models where volatility parameters evolve dynamically, requiring specialized computational methods.
+    *   **Mixture Models**: Can be incorporated to handle non-normal error distributions or to model phenomena like occasional outliers.
+*   **Multivariate and Matrix Normal DLMs**:
+    *   **Multivariate DLMs**: Generalize to handle vector-valued observations, allowing for joint modeling of multiple time series.
+    *   **Matrix Normal DLMs**: Provide a framework for multivariate time series analysis where the covariance structure across series is unknown, leveraging matrix-variate normal distributions for fully conjugate analyses.
+*   **Dynamic Graphical Models**: Combine matrix-variate DLMs with Gaussian graphical models, allowing for structured and often sparse precision matrices, which is useful for scalability in high-dimensional time series.
+*   **Dynamic Dependence Network Models (DDNMs)**: These models define multivariate dynamic models by coupling customized univariate DLMs, extending time-varying vector autoregressive (TV-VAR) models and allowing for flexible modeling of time-varying parameters and volatilities.
+*   **Spatio-Temporal Models**: NDLMs form the foundation for **dynamic spatio-temporal models (DSTMs)**, which model processes that vary across both space and time. These models can also incorporate non-linearity and non-Gaussian elements. Hidden Resolution Models (HRMs) are a type of multiscale time series model that can be formulated as DLMs.
 
-### Q. What does polynomial mean in a polynomial DLM ?
+---
 
-
-
-
-
-## The Normal Dynamic Linear Model: Definition, Model classes &  The Superposition Principle
+## The Normal Dynamic Linear Model: Definition, Model classes & The Superposition Principle
 
 Dynamic Linear Models (DLMs) extend classical linear regression to time-indexed data, introducing dependencies between observations through latent evolving parameters. A Normal DLM (NDLM) assumes Gaussian noise at both observation and system levels, enabling tractable Bayesian inference through the Kalman filter.
 
@@ -215,6 +410,9 @@ Additionally we have a number of Bayesian quantities that can be derived from th
 However the DLM framework is quite flexible and once you understand it it can ve adapted to support features like seasonality using the superposition principle. NDLMs don't need to be non-stationary time series.
 
 As far as I cen tell NDLMs are just DLM with their errors distributed normally at the different levels.
+
+
+
 
 ## NDLM Definition  :movie_camera: 
 
@@ -364,32 +562,6 @@ We also have the prior distribution for the state vector at time 0:
   - $m_0$ the mean in the prior is a k-dimensional vector of means. (known)
   - $c_0$ is the covariance matrix k by k. (known)
 
-::: {.callout-note collapse="true"}
-## Some Thoughts on NDLM the definition {.unnumbered}
-
-Q. Why are $F_t$ and $G_t$ a vector and a matrix respectively? 
-
-> It may helps to think about $F$ and $G$ as follows:
->
-> $F_t'$ acts as a linear transformation that maps the latent state $\vec{\theta}_t$ into the observation space, of $y$. 
->
-> $G_t$ is a linear transformation that describes how the state vector evolves over time. I like to think about it as a Hidden Markov state transition matrix.
->
-> In other words, $F_t$ takes the current hidden state $\theta_t$ and produces an observation $y_t$, while $G_t$ takes the current state and produces the next state.
-
-Q. Why is this called a linear model?
-
-> This is because both the observation equation is a linear equation that relates the observations to the parameters in the model and the system equation is a linear equation that tells us how the time-varying parameter is going to be changing over time. This is why we call this a linear model.
-
-Q. Why are the noise terms $\nu_t$ and $\omega_t$ assumed to be normally distributed?
-
-> This is a common assumption in time series analysis. It is a convenient assumption that allows us to perform Bayesian inference and forecasting in a very simple way. And this is why we call this a **normal** dynamic linear model.
-
-Q. Isn't this just a hierarchical model?
-
-> Indeed, this is a hierarchical model. We have a model for the observations and a model for the system level. The system level is changing over time and the observations are related to the system level through the observation equation. And so it is possible to extend this model to more complex structures if we wish to do so by adding another level, etc... However adding more levels leads to extra dynamics that are captured in $G$ without changing the overall framework!
-
-:::
 
 ### Inference in the NDLM
 
