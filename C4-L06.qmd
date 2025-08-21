@@ -47,14 +47,13 @@ The Normal Dynamic Linear Model (DLM) is covered  [@prado2023time pp. 117-144]
 
 I collected many of the questions raised by the course and book and by the time my notes were almost complete I was able to come up with these answers. I'm not sure I got everything right but perhaps this will be a useful resource to other students. If you find any errors please let me know.
 
-
 ---
 
 As I am working though these questions many questions have come up which I believe are instrumental to people unfamiliar with DLMs. Despite having learned about DLM and done some work on time series it is still a challenge not just to understand but to even ask smart question about this topic.
 
 Some reasons why this is complicated and how to make it simpler. 
 
-One reason I find DLM tricky is that unlike AR(p) or even ARIMA(q,q) we are not dealing with a model for which we set up a bayesian model with some $\theta$ some priors for the thetas and pour in the data and get a posterior for the parameters, and a posterior predictive distribution for doing predictions.
+One reason I find DLM tricky is that unlike AR($p$) or even ARMA($p,q$) we are not dealing with a model for which we set up a Bayesian model with some $\theta$ some priors for the thetas and pour in the data and get a posterior for the parameters, and a posterior predictive distribution for doing predictions.
 
 - NDLMs are multifaced like diamonds:
   - one facet is that they are like a multiple regression
@@ -76,11 +75,14 @@ We can literally add the components into one big DLM.
 However here things get more interesting. 
 We are adding parts into the system or evolution equation. But we don't necessarily want to have a separate variance for each component. (We can if we really want to). However we can pick and choose a version with one overall system variance component.  We also have a separate observation variance component. Did I say separate - it can be  but it can also be related via an RV times a diagonal matrix. 
 
-
 ---
 
 
 ### What Books are there on NDLMs? {#sec-faq-books}
+
+The first two books are hard to read but they also contain a slew of exercises. Like most mathematical textbooks you won't get more than 25% of the material  unless you do enough of these exercises. I doubt you'll even memorize the recursion equations and their interpretations unless you do enough of these. P.S. unless you are in the middle of your PhD doing the exercises is very very taxing.  **There are no solutions and even reading the derivation in my own solution was taxing**. With enough details I could be fairly sure I had a decent answer. But it could take a couple of hours or a couple of days to get there. I feel that to a large extent I would learn more making models than derivations. It is clear that to handle missing data, handle structural change points or intervention requires great facility with the with the kalman filtering as well as setting up the data and model so that the DLM package can do its magic. This is well beyond the level of the course.
+
+That said lots of the material seems rather theoretical and I want to use NDLM in some sophisticated models. In hindsight I do believe this stuff isn't as complicated to the student. Other books on the subject seem to be from Econometrics or Ecology and other applied areas exist and are likely far more accessible. There is also more software in the wild that can facilitate things like finding structural changepoint.
 
 - [@west2013bayesian] which lays down the theory but is long winded. Often meanders rather than giving a clear and concise expiation. Perhaps the authors assume the readers will read it serval times during the PHD and a few more for their post doc. There  are many gaps in this book
 
@@ -91,10 +93,12 @@ The book takes a hands on approach to using the DLM library in R.
 It is a text that fills in some of the gaps in the two text above. However 
 It isn't so easy to pick up NDLMs without background in Bayesian statistics and time series.
 
-The first two books are hard to read but they also contain a slew of exercises. Like most mathematical textbooks you won't get more than 25% of the material  unless you do enough of these exercises. I doubt you'll even memorize the recursion equations and their interpretations unless you do enough of these. P.S. unless you are in the middle of your PhD doing the exercises is very very taxing.  **There are no solutions and even reading the derivation in my own solution was taxing**. With enough details I could be fairly sure I had a decent answer. But it could take a couple of hours or a couple of days to get there. I feel that to a large extent I would learn more making models than derivations. It is clear that to handle missing data, handle structural change points or intervention requires great facility with the with the kalman filtering as well as setting up the data and model so that the DLM package can do its magic. This is well beyond the level of the course.
+The following titles are books I have not read but which I noticed during my research.
 
-That said lots of the material seems rather theoretical and I want to use NDLM in some sophisticated models. In hindsight I do believe this stuff isn't as complicated to the student. Other books on the subject seem to be from Econometrics or Ecology and other applied areas exist and are likely far more accessible. There is also more software in the wild that can facilitate things like finding structural changepoint.
 
+- [@DurbinKoopman2012TSABSS] which is a classic. It is a very mathematical book that is hard to read but it does have a lot of exercises. It is a great book for those who want to understand the mathematical foundations of the Kalman filter and its applications in time series analysis.
+
+- Harvey, A.C. (1990). Forecasting, Structural Time Series Models and the Kalman Filter.
 
 ---
 
@@ -193,11 +197,7 @@ When NDLM parameters, especially variances, are unknown and time-varying, obtain
 
 ### What is the difference between DLM and NDLM? {#sec-faq-dlm-vs-ndlm}
 
-DLMs are the subject of [@west2013bayesian]. NDLM are a special case of DLMs in which the priors and the variance terms come from a Normal distribution. This normality assumption simplifies the analysis and allows for the use of conjugate priors, making the Bayesian updating process more straightforward.
-
-
----
-
+DLMs are the subject of [@west2013bayesian]. Though most of the time they are actually discussing NDLMs, which are a special case of DLMs in which the priors and the variance terms come from a Normal distribution. This normality assumption simplifies the analysis letting us replace Bayes rule in derivation with powerful results from *normal theory* and allows for the use of conjugate priors, making the Bayesian updating process more straightforward. DLM work well with any member of the exponential family but these models are not as well explored as the Normal ones.
 
 ### Why are $F_t$ and $G_t$ a vector and a matrix respectively? {#sec-faq-Ft-Gt}
 
@@ -212,6 +212,7 @@ In other words, $F_t$ takes the current hidden state $\theta_t$ and produces an 
 
 
 ---
+
 
 ### Why is a DLM this called a linear model? {#sec-faq-linear-model}
 
@@ -304,13 +305,28 @@ We can use Bayesian methods to infer the parameters of an NDLM ?
 Here be dragons.... NDLM are bayesian but they have both a strong normality assumption, a conjugate structure and primarily make use of Kalman Filtering. 
 This means that aspects of the model are assumed, others are inferred via filtering and smoothing and others yet are 
 
+Here is a `moments cheat-sheet`
+
+$$
+\begin{aligned}
+\color{RoyalBlue}{a_t}   &= G_t m_{t-1} & \text{state prior mean}\\
+\color{RoyalBlue}{R_t}   &= G_t C_{t-1} G_t' + W_t & \text{state prior var}\\[2pt]
+\color{Magenta}{f_t}     &= F_t' a_t & \text{1-step forecast mean}\\
+\color{Magenta}{Q_t}     &= F_t' R_t F_t + V_t & \text{1-step forecast var}\\[2pt]
+\color{BrickRed}{A_t}    &= R_t F_t / Q_t & \text{Kalman gain}\\
+\color{ForestGreen}{m_t} &= a_t + A_t (y_t - f_t) & \text{state post mean}\\
+\color{ForestGreen}{C_t} &= R_t - A_t A_t' Q_t & \text{state post var}
+\end{aligned}
+$$ {#eq-moments-cheatsheet}
+
+
 ---
 
-### How does the kalman filter features in DLMs {#sec-faq-kalman-filter}
+### How does the Kalman Filter features in DLMs {#sec-faq-kalman-filter}
 
 The Kalman filter is an iterative algorithm driving the NDLMs. It is used for estimating the hidden states of the model and updating these estimates as new observations become available. But Kalman Filters require four matrices to do their magic and the NDLM puts all our assumptions into $F$ and $G$ and the variances into a Jordan form which is compatible with the Kalman filter.
 
-Unfortunately, [the Kalman filter has a tendency to amplify noise]{.mark}, which can be problematic in practice. This means that if the model is not well-specified or if the noise characteristics change over time, the Kalman filter may produce unreliable estimates. It is my guesstimate that we do smoothing to mitigate this issue.
+Unfortunately, [the Kalman filter has a tendency to amplify noise]{.mark}, if the V_t is underestimated. Which can be problematic in practice. This means that if the model is not well-specified or if the noise characteristics change over time, the Kalman filter may produce unreliable estimates. It is my guesstimate that we do smoothing to mitigate this issue.
 
 ---
 
@@ -361,15 +377,14 @@ For a polynomial model of order $p$, when we multiply out the terms of the forec
 
 Here's how this is typically managed:
 *   **Unknown but Constant Variances**:
-    *   If the observational variance `V` is unknown but constant, it can be estimated using a conjugate **Normal-Gamma prior** for the state vector and observational precision (inverse variance). This results in the state and predictive distributions following **Student-t distributions** rather than normal distributions.
-    *   If the system variance `W` is unknown but constant, it can be estimated using methods like the **EM algorithm**.
+    *   If the observational variance $V$ is unknown but constant, it can be estimated using a conjugate **Normal-Gamma prior** for the state vector and observational precision (inverse variance). This results in the state and predictive distributions following **Student-t distributions** rather than normal distributions.
+    *   If the system variance $\mathbf{W}_t$ is unknown but constant, it can be estimated using methods like the **EM algorithm**.
 *   **Time-Varying System Variance (Wt)**:
-    *   The most common and practical approach is through **discount factors (δ)**. A discount factor defines `Wt` as a proportion of the previous time step's prior covariance, effectively `Wt = GtCt-1G't(δ-1 - 1)`. This allows `Wt` to be automatically time-varying and adaptive, simplifying the specification of complex covariance elements to a single scalar. Different discount factors can be applied to different components of the state vector.
+    *   The most common and practical approach is through **discount factors (δ)**. A discount factor defines $\mathbf{W}_t$  as a proportion of the previous time step's prior covariance, effectively $\mathbf{W}_t = G_tC_{t-1}G^\top_t(\delta-1 - 1)$. This allows $\mathbf{W}_t$ to be automatically time-varying and adaptive, simplifying the specification of complex covariance elements to a single scalar. Different discount factors can be applied to different components of the state vector.
 *   **Time-Varying Observational Variance (Vt)**:
-    *   This is handled through **variance discounting** or **discounted variance learning**. This technique models a decay of information about the observational precision (`φt = 1/Vt`) over time, maintaining the conjugate Gamma distribution form for precision. The prior for `φt` at time `t` is derived by discounting the degrees of freedom and scale parameter from the previous posterior (e.g., `G[δnt-1/2, δdt-1/2]`). This makes the variance estimate more adaptive to recent data. The concept of "power-discounting" is also mentioned in relation to modifying the prior distribution, suggesting a general method for flattening distributions, which can be applied to precision parameters.
+    *   This is handled through **variance discounting** or **discounted variance learning**. This technique models a decay of information about the observational precision ($φ_t = \frac{1}{V_t}$) over time, maintaining the conjugate Gamma distribution form for precision. The prior for $φ_t$ at time $t$ is derived by discounting the degrees of freedom and scale parameter from the previous posterior (e.g., $G[δnt-1/2, δdt-1/2]$ ). This makes the variance estimate more adaptive to recent data. The concept of "power-discounting" is also mentioned in relation to modifying the prior distribution, suggesting a general method for flattening distributions, which can be applied to precision parameters.
 *   **Multivariate Extensions**: These discounting approaches extend to multivariate DLMs. For instance, **matrix normal/Inverse Wishart distributions** can be used to handle time-varying observational covariance matrices (`Σt`), often with dynamics defined by a **matrix beta evolution model**.
 
----
 
 ---
 
