@@ -1658,7 +1658,7 @@ window.Quarto = {
 <h3 data-number="97.1.19" class="anchored" data-anchor-id="sec-faq-moments-ndlm"><span class="header-section-number">97.1.19</span> What are moments for NDLM?</h3>
 <p>The instructor and the book references parts of the NDLM model as moments what is that about? We just said in <span id="sec-dlm-vs-ndlm">Q1</span> that NDLM posit a normal structure on the priors and errors. When they talk about the moments they mean the mean and variance in these distributions. These are quantities of interest. The priors obviously are known. The errors are not generally unknowns</p>
 <p>To make things a bit clearer, the Kalman filter is optimal in some sense at assigning the state of the system at time <span class="math inline">t</span> given the data up to time <span class="math inline">t</span>. The state is what we call <span class="math inline">\theta_t</span> what the Kalman filter can’t eliminate are the impact of the variance in the system and the observation level. There is always an error. However there are theoretical guarantees that the Kalman filter will provide the best linear unbiased estimate (BLUE) of the state so long as sufficient data has been seen.</p>
-<p>The moments are the inputs and outputs of the model. We get a MLE for the means which we don’t need to worry about. But we will get a posterior for the variance of the system and the observation level. This is the other moment of the model and it is here that we actually need to make strategic decisions. We can set a complex prior and get many measurements to get a good posterior for the variance or more likely we don’t really know much about the errors and we prefer to postulate something as simple as possible and then use the data to get a posterior for the variance. (Simple here means a model that only requires to compute and interpret the noise at the observation level i.e.&nbsp;a difference between the model’s forecast and the actual observation we see next)</p>
+<p>The moments are the inputs and outputs of the model. We get we propagate posterior means/variances; <span class="math inline">𝑚_t</span> is the posterior mean, not an MLE. But we will get a posterior for the variance of the system and the observation level. This is the other moment of the model and it is here that we actually need to make strategic decisions. We can set a complex prior and get many measurements to get a good posterior for the variance or more likely we don’t really know much about the errors and we prefer to postulate something as simple as possible and then use the data to get a posterior for the variance. (Simple here means a model that only requires to compute and interpret the noise at the observation level i.e.&nbsp;a difference between the model’s forecast and the actual observation we see next)</p>
 <hr>
 </section>
 <section id="what-is-this-thing-called-delta-can-i-ignore-it" class="level3" data-number="97.1.20">
@@ -2689,172 +2689,171 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb1-354"><a href="#cb1-354" aria-hidden="true" tabindex="-1"></a>To make things a bit clearer, the Kalman filter is optimal in some sense at assigning the state of the system at time $t$ given the data up to time $t$.</span>
 <span id="cb1-355"><a href="#cb1-355" aria-hidden="true" tabindex="-1"></a>The state is what we call $\theta_t$ what the Kalman filter can't eliminate are the impact of the variance in the system and the observation level. There is always an error. However there are theoretical guarantees that the Kalman filter will provide the best linear unbiased estimate (BLUE) of the state so long as sufficient data has been seen.</span>
 <span id="cb1-356"><a href="#cb1-356" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-357"><a href="#cb1-357" aria-hidden="true" tabindex="-1"></a>The moments are the inputs and outputs of the model. We get a MLE for the means which we don't need to worry about. But we will get a posterior for the variance of the system and the observation level. This is the other moment of the model and it is here that we actually need to make strategic decisions.</span>
+<span id="cb1-357"><a href="#cb1-357" aria-hidden="true" tabindex="-1"></a>The moments are the inputs and outputs of the model. We get we propagate posterior means/variances; $𝑚_t$ is the posterior mean, not an MLE. But we will get a posterior for the variance of the system and the observation level. This is the other moment of the model and it is here that we actually need to make strategic decisions.</span>
 <span id="cb1-358"><a href="#cb1-358" aria-hidden="true" tabindex="-1"></a>We can set a complex prior and get many measurements to get a good posterior for the variance or more likely we don't really know much about the errors and we prefer to postulate something as simple as possible and then use the data to get a posterior for the variance. (Simple here means a model that only requires to compute and interpret the noise at the observation level i.e. a difference between the model's forecast and the actual observation we see next)</span>
 <span id="cb1-359"><a href="#cb1-359" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-360"><a href="#cb1-360" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-361"><a href="#cb1-361" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-360"><a href="#cb1-360" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-361"><a href="#cb1-361" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-362"><a href="#cb1-362" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-363"><a href="#cb1-363" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-364"><a href="#cb1-364" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is this thing called $\delta$ can I ignore it?</span></span>
-<span id="cb1-365"><a href="#cb1-365" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-366"><a href="#cb1-366" aria-hidden="true" tabindex="-1"></a>In the NDLM where we don't know the system variance we can replace it under a simplifying assumption by decomposing $R_t$. In the filtering equations. I think of this as providing us with a "surrogate" model. I.e. a simpler model that approximate out original model. </span>
-<span id="cb1-367"><a href="#cb1-367" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-368"><a href="#cb1-368" aria-hidden="true" tabindex="-1"></a>What we do is we decompose the system model into a deterministic part and a stochastic part. We update the covariance using a <span class="in">`reduced form`</span> which means we have a raw estimate of covariance based on how the previous times system error term evolves according to $G$ i.e. $G C_t G^\top$ and we use $\delta$ as a weight to set how much of that term we want to pass through.</span>
-<span id="cb1-369"><a href="#cb1-369" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-370"><a href="#cb1-370" aria-hidden="true" tabindex="-1"></a>So to sum up: we can use the discount factor hyper-parameter denoted as  $\delta$ which we learned to estimate using MSE on a loss associated with $\delta$. This question is an informal outline of <span class="co">[</span><span class="ot">@specifying-the-system-covariance-matrix-via-discount-factors</span><span class="co">]</span></span>
+<span id="cb1-363"><a href="#cb1-363" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is this thing called $\delta$ can I ignore it?</span></span>
+<span id="cb1-364"><a href="#cb1-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-365"><a href="#cb1-365" aria-hidden="true" tabindex="-1"></a>In the NDLM where we don't know the system variance we can replace it under a simplifying assumption by decomposing $R_t$. In the filtering equations. I think of this as providing us with a "surrogate" model. I.e. a simpler model that approximate out original model. </span>
+<span id="cb1-366"><a href="#cb1-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-367"><a href="#cb1-367" aria-hidden="true" tabindex="-1"></a>What we do is we decompose the system model into a deterministic part and a stochastic part. We update the covariance using a <span class="in">`reduced form`</span> which means we have a raw estimate of covariance based on how the previous times system error term evolves according to $G$ i.e. $G C_t G^\top$ and we use $\delta$ as a weight to set how much of that term we want to pass through.</span>
+<span id="cb1-368"><a href="#cb1-368" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-369"><a href="#cb1-369" aria-hidden="true" tabindex="-1"></a>So to sum up: we can use the discount factor hyper-parameter denoted as  $\delta$ which we learned to estimate using MSE on a loss associated with $\delta$. This question is an informal outline of <span class="co">[</span><span class="ot">@specifying-the-system-covariance-matrix-via-discount-factors</span><span class="co">]</span></span>
+<span id="cb1-370"><a href="#cb1-370" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-371"><a href="#cb1-371" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-372"><a href="#cb1-372" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-373"><a href="#cb1-373" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-374"><a href="#cb1-374" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-375"><a href="#cb1-375" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is the Kalman gain</span></span>
-<span id="cb1-376"><a href="#cb1-376" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-377"><a href="#cb1-377" aria-hidden="true" tabindex="-1"></a>The Kalman gain is a key component of the Kalman filter, which is used in NDLMs to update the state estimates based on new observations. It determines how much weight to give to the new observation relative to the current state estimate.</span>
-<span id="cb1-378"><a href="#cb1-378" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-379"><a href="#cb1-379" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-380"><a href="#cb1-380" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-381"><a href="#cb1-381" aria-hidden="true" tabindex="-1"></a><span class="fu">### How does the Kalman Filter features in DLMs {#sec-faq-Kalman-filter}</span></span>
-<span id="cb1-382"><a href="#cb1-382" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-383"><a href="#cb1-383" aria-hidden="true" tabindex="-1"></a>The Kalman filter is an iterative algorithm driving the NDLMs. It is used for estimating the hidden states of the model and updating these estimates as new observations become available. But Kalman Filters require four matrices to do their magic and the NDLM code handles putting everything into a form which is compatible with the Kalman filter.</span>
-<span id="cb1-384"><a href="#cb1-384" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-385"><a href="#cb1-385" aria-hidden="true" tabindex="-1"></a>Unfortunately, <span class="co">[</span><span class="ot">the Kalman filter has a tendency to amplify noise</span><span class="co">]</span>{.mark}, if the $V_t$ is underestimated. Which can be problematic in practice. This means that if the model is not well-specified or if the noise characteristics change over time, the Kalman filter may produce unreliable estimates. </span>
+<span id="cb1-372"><a href="#cb1-372" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-373"><a href="#cb1-373" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-374"><a href="#cb1-374" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is the Kalman gain</span></span>
+<span id="cb1-375"><a href="#cb1-375" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-376"><a href="#cb1-376" aria-hidden="true" tabindex="-1"></a>The Kalman gain is a key component of the Kalman filter, which is used in NDLMs to update the state estimates based on new observations. It determines how much weight to give to the new observation relative to the current state estimate.</span>
+<span id="cb1-377"><a href="#cb1-377" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-378"><a href="#cb1-378" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-379"><a href="#cb1-379" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-380"><a href="#cb1-380" aria-hidden="true" tabindex="-1"></a><span class="fu">### How does the Kalman Filter features in DLMs {#sec-faq-Kalman-filter}</span></span>
+<span id="cb1-381"><a href="#cb1-381" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-382"><a href="#cb1-382" aria-hidden="true" tabindex="-1"></a>The Kalman filter is an iterative algorithm driving the NDLMs. It is used for estimating the hidden states of the model and updating these estimates as new observations become available. But Kalman Filters require four matrices to do their magic and the NDLM code handles putting everything into a form which is compatible with the Kalman filter.</span>
+<span id="cb1-383"><a href="#cb1-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-384"><a href="#cb1-384" aria-hidden="true" tabindex="-1"></a>Unfortunately, <span class="co">[</span><span class="ot">the Kalman filter has a tendency to amplify noise</span><span class="co">]</span>{.mark}, if the $V_t$ is underestimated. Which can be problematic in practice. This means that if the model is not well-specified or if the noise characteristics change over time, the Kalman filter may produce unreliable estimates. </span>
+<span id="cb1-385"><a href="#cb1-385" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-386"><a href="#cb1-386" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-387"><a href="#cb1-387" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-388"><a href="#cb1-388" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-387"><a href="#cb1-387" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-388"><a href="#cb1-388" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-389"><a href="#cb1-389" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-390"><a href="#cb1-390" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-391"><a href="#cb1-391" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is a structural change point. {#sec-faq-structural-change-point}</span></span>
-<span id="cb1-392"><a href="#cb1-392" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-393"><a href="#cb1-393" aria-hidden="true" tabindex="-1"></a>This is a point in the time series where we need new parameters or even a more parameters. The basic structure of the model is not good moving forward.</span>
-<span id="cb1-394"><a href="#cb1-394" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-395"><a href="#cb1-395" aria-hidden="true" tabindex="-1"></a>There is a lot of criticism of the Facebook prophet algorithm breaking at some point. Digging deeper this is due to a distributional drift or more likely even a structural change point. FB prophet is</span>
-<span id="cb1-396"><a href="#cb1-396" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-397"><a href="#cb1-397" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>much simpler than NDLM and </span>
-<span id="cb1-398"><a href="#cb1-398" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>uses Stan for MCMC and doesn't use KF for its inference and</span>
-<span id="cb1-399"><a href="#cb1-399" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>its regular users lack the ability to modify its internal components.</span>
-<span id="cb1-400"><a href="#cb1-400" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-401"><a href="#cb1-401" aria-hidden="true" tabindex="-1"></a>So it is a huge problem to fix FB prophet if it blows up in production and is used in a recommendation system. Retaining FB prophet may not work.</span>
-<span id="cb1-402"><a href="#cb1-402" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-403"><a href="#cb1-403" aria-hidden="true" tabindex="-1"></a>In contrast DLM theory emphasizes that DLMs are open to at any time point to changes at all levels. (Without worrying the student how in practice they are supposed to do this or how robust the model is to such changes) After all the Kalman filter is fantastic at using feedback to give an optimal updates. </span>
-<span id="cb1-404"><a href="#cb1-404" aria-hidden="true" tabindex="-1"></a>But it probably just as hard to handle a structural change, intervention or NA. I think that the extra code we got in class which takes or creates list of matrices indexed in time is exactly an NDLM in short notation that handle this.</span>
-<span id="cb1-405"><a href="#cb1-405" aria-hidden="true" tabindex="-1"></a>It then becomes a matter of practice in inserting NAs, interventions and adding or changing components from a certain point. </span>
-<span id="cb1-406"><a href="#cb1-406" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-407"><a href="#cb1-407" aria-hidden="true" tabindex="-1"></a>While the course and the book seems to have provided the math to do this the course lacks and explanations of how to use that part of the theory to handle these three modeling need s nor does it have exercises on the subject. </span>
-<span id="cb1-408"><a href="#cb1-408" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-409"><a href="#cb1-409" aria-hidden="true" tabindex="-1"></a>I imagine if you can do this it would be a bit like Einstein teaching the first course on general relativity and then being surprised how one of Karl Schwarzschild then got back to him within weeks with with a black hole solution for the case of a static spherically symmetric black hole. </span>
-<span id="cb1-410"><a href="#cb1-410" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-411"><a href="#cb1-411" aria-hidden="true" tabindex="-1"></a>So when you want to use this in work or research it will always be harder!</span>
-<span id="cb1-412"><a href="#cb1-412" aria-hidden="true" tabindex="-1"></a>You will almost always need to adjust the data or the model etc for this to work for your use case. So you should try to do a do a few of each (NAs,different levels of interventions and structural changes) so when the day comes you can say at least I have done this before and I know how to do it and how to validate it!</span>
+<span id="cb1-390"><a href="#cb1-390" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is a structural change point. {#sec-faq-structural-change-point}</span></span>
+<span id="cb1-391"><a href="#cb1-391" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-392"><a href="#cb1-392" aria-hidden="true" tabindex="-1"></a>This is a point in the time series where we need new parameters or even a more parameters. The basic structure of the model is not good moving forward.</span>
+<span id="cb1-393"><a href="#cb1-393" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-394"><a href="#cb1-394" aria-hidden="true" tabindex="-1"></a>There is a lot of criticism of the Facebook prophet algorithm breaking at some point. Digging deeper this is due to a distributional drift or more likely even a structural change point. FB prophet is</span>
+<span id="cb1-395"><a href="#cb1-395" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-396"><a href="#cb1-396" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>much simpler than NDLM and </span>
+<span id="cb1-397"><a href="#cb1-397" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>uses Stan for MCMC and doesn't use KF for its inference and</span>
+<span id="cb1-398"><a href="#cb1-398" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>its regular users lack the ability to modify its internal components.</span>
+<span id="cb1-399"><a href="#cb1-399" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-400"><a href="#cb1-400" aria-hidden="true" tabindex="-1"></a>So it is a huge problem to fix FB prophet if it blows up in production and is used in a recommendation system. Retaining FB prophet may not work.</span>
+<span id="cb1-401"><a href="#cb1-401" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-402"><a href="#cb1-402" aria-hidden="true" tabindex="-1"></a>In contrast DLM theory emphasizes that DLMs are open to at any time point to changes at all levels. (Without worrying the student how in practice they are supposed to do this or how robust the model is to such changes) After all the Kalman filter is fantastic at using feedback to give an optimal updates. </span>
+<span id="cb1-403"><a href="#cb1-403" aria-hidden="true" tabindex="-1"></a>But it probably just as hard to handle a structural change, intervention or NA. I think that the extra code we got in class which takes or creates list of matrices indexed in time is exactly an NDLM in short notation that handle this.</span>
+<span id="cb1-404"><a href="#cb1-404" aria-hidden="true" tabindex="-1"></a>It then becomes a matter of practice in inserting NAs, interventions and adding or changing components from a certain point. </span>
+<span id="cb1-405"><a href="#cb1-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-406"><a href="#cb1-406" aria-hidden="true" tabindex="-1"></a>While the course and the book seems to have provided the math to do this the course lacks and explanations of how to use that part of the theory to handle these three modeling need s nor does it have exercises on the subject. </span>
+<span id="cb1-407"><a href="#cb1-407" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-408"><a href="#cb1-408" aria-hidden="true" tabindex="-1"></a>I imagine if you can do this it would be a bit like Einstein teaching the first course on general relativity and then being surprised how one of Karl Schwarzschild then got back to him within weeks with with a black hole solution for the case of a static spherically symmetric black hole. </span>
+<span id="cb1-409"><a href="#cb1-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-410"><a href="#cb1-410" aria-hidden="true" tabindex="-1"></a>So when you want to use this in work or research it will always be harder!</span>
+<span id="cb1-411"><a href="#cb1-411" aria-hidden="true" tabindex="-1"></a>You will almost always need to adjust the data or the model etc for this to work for your use case. So you should try to do a do a few of each (NAs,different levels of interventions and structural changes) so when the day comes you can say at least I have done this before and I know how to do it and how to validate it!</span>
+<span id="cb1-412"><a href="#cb1-412" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-413"><a href="#cb1-413" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-414"><a href="#cb1-414" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-415"><a href="#cb1-415" aria-hidden="true" tabindex="-1"></a>Getting back on topic there are state space models that incorporate identifying and switching between different models. These are called **hidden Markov models** (HMMs) and they are a generalization of NDLMs. HMMs can be used to model time series with structural change points, but they are more complex and require more data to estimate the parameters.</span>
-<span id="cb1-416"><a href="#cb1-416" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-417"><a href="#cb1-417" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-418"><a href="#cb1-418" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-419"><a href="#cb1-419" aria-hidden="true" tabindex="-1"></a><span class="fu">### What does Polynomial mean in a Polynomial trend DLM ? {#faw-faq-polynomial}</span></span>
-<span id="cb1-420"><a href="#cb1-420" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-421"><a href="#cb1-421" aria-hidden="true" tabindex="-1"></a>I was confused about this and there are three good reasons to be!</span>
-<span id="cb1-422"><a href="#cb1-422" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-423"><a href="#cb1-423" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>The AR($p$) has a **characteristic polynomial which is unrelated** to do with the Polynomial in these trend models. They are AR($p$) component of DLMs which create jagged forms in the forecast function, while polynomial models are popular as they add a smooth trend. The polynomial model is a sub-model that covers the trend. This allows us to model the residual as an AR($p$) even if the data is non-stationary</span>
-<span id="cb1-424"><a href="#cb1-424" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>In <span class="co">[</span><span class="ot">@west2013bayesian</span><span class="co">]</span> the authors talks about Taylor series approximation before delving into the first polynomial trend model. This is an intuitive way to think about about multiple regression model. This is a polynomial in which we can pick the order one or two to get better approximations lingo common in physics and numerical methods. However it is **completely unrelated** to the Polynomial that gives the model its name.</span>
-<span id="cb1-425"><a href="#cb1-425" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-426"><a href="#cb1-426" aria-hidden="true" tabindex="-1"></a>For a polynomial model of order $p$, when we multiply out the terms of the forecast function we get a polynomial of order $p-1$. </span>
+<span id="cb1-414"><a href="#cb1-414" aria-hidden="true" tabindex="-1"></a>Getting back on topic there are state space models that incorporate identifying and switching between different models. These are called **hidden Markov models** (HMMs) and they are a generalization of NDLMs. HMMs can be used to model time series with structural change points, but they are more complex and require more data to estimate the parameters.</span>
+<span id="cb1-415"><a href="#cb1-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-416"><a href="#cb1-416" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-417"><a href="#cb1-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-418"><a href="#cb1-418" aria-hidden="true" tabindex="-1"></a><span class="fu">### What does Polynomial mean in a Polynomial trend DLM ? {#faw-faq-polynomial}</span></span>
+<span id="cb1-419"><a href="#cb1-419" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-420"><a href="#cb1-420" aria-hidden="true" tabindex="-1"></a>I was confused about this and there are three good reasons to be!</span>
+<span id="cb1-421"><a href="#cb1-421" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-422"><a href="#cb1-422" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>The AR($p$) has a **characteristic polynomial which is unrelated** to do with the Polynomial in these trend models. They are AR($p$) component of DLMs which create jagged forms in the forecast function, while polynomial models are popular as they add a smooth trend. The polynomial model is a sub-model that covers the trend. This allows us to model the residual as an AR($p$) even if the data is non-stationary</span>
+<span id="cb1-423"><a href="#cb1-423" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>In <span class="co">[</span><span class="ot">@west2013bayesian</span><span class="co">]</span> the authors talks about Taylor series approximation before delving into the first polynomial trend model. This is an intuitive way to think about about multiple regression model. This is a polynomial in which we can pick the order one or two to get better approximations lingo common in physics and numerical methods. However it is **completely unrelated** to the Polynomial that gives the model its name.</span>
+<span id="cb1-424"><a href="#cb1-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-425"><a href="#cb1-425" aria-hidden="true" tabindex="-1"></a>For a polynomial model of order $p$, when we multiply out the terms of the forecast function we get a polynomial of order $p-1$. </span>
+<span id="cb1-426"><a href="#cb1-426" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-427"><a href="#cb1-427" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-428"><a href="#cb1-428" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-429"><a href="#cb1-429" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-428"><a href="#cb1-428" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-429"><a href="#cb1-429" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-430"><a href="#cb1-430" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-431"><a href="#cb1-431" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-432"><a href="#cb1-432" aria-hidden="true" tabindex="-1"></a><span class="fu">### Can NDLMs handle unknown and non-constant observational (Vt) and system (Wt) variances? {sec-faq-unknown-variances}</span></span>
-<span id="cb1-433"><a href="#cb1-433" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-434"><a href="#cb1-434" aria-hidden="true" tabindex="-1"></a>**Yes, NDLMs can be extended to handle cases where both observational variance (Vt) and system variance (Wt) are unknown and vary over time**. This moves beyond the simplest Kalman filter assumptions of known variances.</span>
-<span id="cb1-435"><a href="#cb1-435" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-436"><a href="#cb1-436" aria-hidden="true" tabindex="-1"></a>Here's how this is typically managed:</span>
-<span id="cb1-437"><a href="#cb1-437" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Unknown but Constant Variances**:</span>
-<span id="cb1-438"><a href="#cb1-438" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>If the observational variance $V$ is unknown but constant, it can be estimated using a conjugate **Normal-Gamma prior** for the state vector and observational precision (inverse variance). This results in the state and predictive distributions following **Student-t distributions** rather than normal distributions.</span>
-<span id="cb1-439"><a href="#cb1-439" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>If the system variance $\mathbf{W}_t$ is unknown but constant, it can be estimated using methods like the **EM algorithm**.</span>
-<span id="cb1-440"><a href="#cb1-440" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Time-Varying System Variance (Wt)**:</span>
-<span id="cb1-441"><a href="#cb1-441" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>The most common and practical approach is through **discount factors (δ)**. A discount factor defines $\mathbf{W}_t$  as a proportion of the previous time step's prior covariance, effectively $R_t=\delta^{-1}G_tC_{t-1}G_t',\qquad W_t=\frac{1-\delta}{\delta}\,G_tC_{t-1}G_t$. This allows $\mathbf{W}_t$ to be automatically time-varying and adaptive, simplifying the specification of complex covariance elements to a single scalar. Different discount factors can be applied to different components of the state vector.</span>
-<span id="cb1-442"><a href="#cb1-442" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Time-Varying Observational Variance (Vt)**:</span>
-<span id="cb1-443"><a href="#cb1-443" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>This is handled through **variance discounting** or **discounted variance learning**. This technique models a decay of information about the observational precision ($φ_t = \frac{1}{V_t}$) over time, maintaining the conjugate Gamma distribution form for precision. The prior for $φ_t$ at time $t$ is derived by discounting the degrees of freedom and scale parameter from the previous posterior (e.g., $G<span class="co">[</span><span class="ot">δnt-1/2, δdt-1/2</span><span class="co">]</span>$ ). This makes the variance estimate more adaptive to recent data. The concept of "power-discounting" is also mentioned in relation to modifying the prior distribution, suggesting a general method for flattening distributions, which can be applied to precision parameters.</span>
-<span id="cb1-444"><a href="#cb1-444" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Multivariate Extensions**: These discounting approaches extend to multivariate DLMs. For instance, **matrix normal/Inverse Wishart distributions** can be used to handle time-varying observational covariance matrices (`Σt`), often with dynamics defined by a **matrix beta evolution model**.</span>
+<span id="cb1-431"><a href="#cb1-431" aria-hidden="true" tabindex="-1"></a><span class="fu">### Can NDLMs handle unknown and non-constant observational (Vt) and system (Wt) variances? {sec-faq-unknown-variances}</span></span>
+<span id="cb1-432"><a href="#cb1-432" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-433"><a href="#cb1-433" aria-hidden="true" tabindex="-1"></a>**Yes, NDLMs can be extended to handle cases where both observational variance (Vt) and system variance (Wt) are unknown and vary over time**. This moves beyond the simplest Kalman filter assumptions of known variances.</span>
+<span id="cb1-434"><a href="#cb1-434" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-435"><a href="#cb1-435" aria-hidden="true" tabindex="-1"></a>Here's how this is typically managed:</span>
+<span id="cb1-436"><a href="#cb1-436" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Unknown but Constant Variances**:</span>
+<span id="cb1-437"><a href="#cb1-437" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>If the observational variance $V$ is unknown but constant, it can be estimated using a conjugate **Normal-Gamma prior** for the state vector and observational precision (inverse variance). This results in the state and predictive distributions following **Student-t distributions** rather than normal distributions.</span>
+<span id="cb1-438"><a href="#cb1-438" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>If the system variance $\mathbf{W}_t$ is unknown but constant, it can be estimated using methods like the **EM algorithm**.</span>
+<span id="cb1-439"><a href="#cb1-439" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Time-Varying System Variance (Wt)**:</span>
+<span id="cb1-440"><a href="#cb1-440" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>The most common and practical approach is through **discount factors (δ)**. A discount factor defines $\mathbf{W}_t$  as a proportion of the previous time step's prior covariance, effectively $R_t=\delta^{-1}G_tC_{t-1}G_t',\qquad W_t=\frac{1-\delta}{\delta}\,G_tC_{t-1}G_t$. This allows $\mathbf{W}_t$ to be automatically time-varying and adaptive, simplifying the specification of complex covariance elements to a single scalar. Different discount factors can be applied to different components of the state vector.</span>
+<span id="cb1-441"><a href="#cb1-441" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Time-Varying Observational Variance (Vt)**:</span>
+<span id="cb1-442"><a href="#cb1-442" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>This is handled through **variance discounting** or **discounted variance learning**. This technique models a decay of information about the observational precision ($φ_t = \frac{1}{V_t}$) over time, maintaining the conjugate Gamma distribution form for precision. The prior for $φ_t$ at time $t$ is derived by discounting the degrees of freedom and scale parameter from the previous posterior (e.g., $G<span class="co">[</span><span class="ot">δnt-1/2, δdt-1/2</span><span class="co">]</span>$ ). This makes the variance estimate more adaptive to recent data. The concept of "power-discounting" is also mentioned in relation to modifying the prior distribution, suggesting a general method for flattening distributions, which can be applied to precision parameters.</span>
+<span id="cb1-443"><a href="#cb1-443" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Multivariate Extensions**: These discounting approaches extend to multivariate DLMs. For instance, **matrix normal/Inverse Wishart distributions** can be used to handle time-varying observational covariance matrices (`Σt`), often with dynamics defined by a **matrix beta evolution model**.</span>
+<span id="cb1-444"><a href="#cb1-444" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-445"><a href="#cb1-445" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-446"><a href="#cb1-446" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-447"><a href="#cb1-447" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-448"><a href="#cb1-448" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip title="State discounting ($\delta$) for $W_t$" #box-state-discount}</span>
-<span id="cb1-449"><a href="#cb1-449" aria-hidden="true" tabindex="-1"></a>For scalar $\delta\in(0,1]$ applied to the **state evolution**:</span>
-<span id="cb1-450"><a href="#cb1-450" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-451"><a href="#cb1-451" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb1-452"><a href="#cb1-452" aria-hidden="true" tabindex="-1"></a>R_t &amp;= \delta^{-1}\,G_t C_{t-1} G_t' <span class="sc">\\</span></span>
-<span id="cb1-453"><a href="#cb1-453" aria-hidden="true" tabindex="-1"></a>W_t &amp;= R_t - G_t C_{t-1} G_t' </span>
-<span id="cb1-454"><a href="#cb1-454" aria-hidden="true" tabindex="-1"></a>    \;=\; \tfrac{1-\delta}{\delta}\,G_t C_{t-1} G_t'.</span>
-<span id="cb1-455"><a href="#cb1-455" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb1-456"><a href="#cb1-456" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-457"><a href="#cb1-457" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-458"><a href="#cb1-458" aria-hidden="true" tabindex="-1"></a>**Usage.**</span>
-<span id="cb1-459"><a href="#cb1-459" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-460"><a href="#cb1-460" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Smaller $\delta$ ⇒ larger $W_t$ ⇒ faster adaptation.</span>
-<span id="cb1-461"><a href="#cb1-461" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Use **block discounts** (different $\delta$) per component of $\theta_t$.</span>
-<span id="cb1-462"><a href="#cb1-462" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>For breaks/interventions: temporarily set $\delta<span class="sc">\!</span>\ll<span class="sc">\!</span>1$ on affected blocks.  </span>
-<span id="cb1-463"><a href="#cb1-463" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-464"><a href="#cb1-464" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">@west2013bayesian Ch.6</span><span class="co">] [@prado2023time §4]</span> <span class="co">[</span><span class="ot">@DurbinKoopman2012TSABSS §2</span><span class="co">]</span></span>
-<span id="cb1-465"><a href="#cb1-465" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-466"><a href="#cb1-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-467"><a href="#cb1-467" aria-hidden="true" tabindex="-1"></a>::: {.callout-note title="Variance discounting ($\beta$) for observation variance $V_t$" #box-var-discount}</span>
-<span id="cb1-468"><a href="#cb1-468" aria-hidden="true" tabindex="-1"></a>Discount the **precision** $\phi_t=V_t^{-1}$ prior to keep $\mathbb E<span class="co">[</span><span class="ot">\phi_t</span><span class="co">]</span>$ fixed while inflating uncertainty.</span>
-<span id="cb1-469"><a href="#cb1-469" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-470"><a href="#cb1-470" aria-hidden="true" tabindex="-1"></a>If $\phi_{t-1}\sim\mathrm{Gamma}(a_{t-1}, b_{t-1})$ (shape–rate), set</span>
-<span id="cb1-471"><a href="#cb1-471" aria-hidden="true" tabindex="-1"></a><span class="sc">\[</span></span>
-<span id="cb1-472"><a href="#cb1-472" aria-hidden="true" tabindex="-1"></a>\phi_t\mid\mathcal D_{t-1}\sim\mathrm{Gamma}(\beta a_{t-1},\; \beta b_{t-1}),</span>
-<span id="cb1-473"><a href="#cb1-473" aria-hidden="true" tabindex="-1"></a>\quad \beta\in(0,1].</span>
-<span id="cb1-474"><a href="#cb1-474" aria-hidden="true" tabindex="-1"></a><span class="sc">\]</span></span>
-<span id="cb1-475"><a href="#cb1-475" aria-hidden="true" tabindex="-1"></a>Then $\mathbb E<span class="co">[</span><span class="ot">\phi_t</span><span class="co">]</span>=a_{t-1}/b_{t-1}$ (unchanged) and  </span>
-<span id="cb1-476"><a href="#cb1-476" aria-hidden="true" tabindex="-1"></a>$\mathrm{Var}(\phi_t) = (1/\beta)\,a_{t-1}/b_{t-1}^2$ (inflated).</span>
-<span id="cb1-477"><a href="#cb1-477" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-478"><a href="#cb1-478" aria-hidden="true" tabindex="-1"></a>**Effect.** Forecasts remain Student-<span class="sc">\(</span>t<span class="sc">\)</span>; recent data get more weight.  </span>
-<span id="cb1-479"><a href="#cb1-479" aria-hidden="true" tabindex="-1"></a>*(Refs: @west2013bayesian §10.8; @prado2023time §4)*</span>
-<span id="cb1-480"><a href="#cb1-480" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-447"><a href="#cb1-447" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip title="State discounting ($\delta$) for $W_t$" #box-state-discount}</span>
+<span id="cb1-448"><a href="#cb1-448" aria-hidden="true" tabindex="-1"></a>For scalar $\delta\in(0,1]$ applied to the **state evolution**:</span>
+<span id="cb1-449"><a href="#cb1-449" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-450"><a href="#cb1-450" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb1-451"><a href="#cb1-451" aria-hidden="true" tabindex="-1"></a>R_t &amp;= \delta^{-1}\,G_t C_{t-1} G_t' <span class="sc">\\</span></span>
+<span id="cb1-452"><a href="#cb1-452" aria-hidden="true" tabindex="-1"></a>W_t &amp;= R_t - G_t C_{t-1} G_t' </span>
+<span id="cb1-453"><a href="#cb1-453" aria-hidden="true" tabindex="-1"></a>    \;=\; \tfrac{1-\delta}{\delta}\,G_t C_{t-1} G_t'.</span>
+<span id="cb1-454"><a href="#cb1-454" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb1-455"><a href="#cb1-455" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-456"><a href="#cb1-456" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-457"><a href="#cb1-457" aria-hidden="true" tabindex="-1"></a>**Usage.**</span>
+<span id="cb1-458"><a href="#cb1-458" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-459"><a href="#cb1-459" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Smaller $\delta$ ⇒ larger $W_t$ ⇒ faster adaptation.</span>
+<span id="cb1-460"><a href="#cb1-460" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Use **block discounts** (different $\delta$) per component of $\theta_t$.</span>
+<span id="cb1-461"><a href="#cb1-461" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>For breaks/interventions: temporarily set $\delta<span class="sc">\!</span>\ll<span class="sc">\!</span>1$ on affected blocks.  </span>
+<span id="cb1-462"><a href="#cb1-462" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-463"><a href="#cb1-463" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">@west2013bayesian Ch.6</span><span class="co">] [@prado2023time §4]</span> <span class="co">[</span><span class="ot">@DurbinKoopman2012TSABSS §2</span><span class="co">]</span></span>
+<span id="cb1-464"><a href="#cb1-464" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-465"><a href="#cb1-465" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-466"><a href="#cb1-466" aria-hidden="true" tabindex="-1"></a>::: {.callout-note title="Variance discounting ($\beta$) for observation variance $V_t$" #box-var-discount}</span>
+<span id="cb1-467"><a href="#cb1-467" aria-hidden="true" tabindex="-1"></a>Discount the **precision** $\phi_t=V_t^{-1}$ prior to keep $\mathbb E<span class="co">[</span><span class="ot">\phi_t</span><span class="co">]</span>$ fixed while inflating uncertainty.</span>
+<span id="cb1-468"><a href="#cb1-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-469"><a href="#cb1-469" aria-hidden="true" tabindex="-1"></a>If $\phi_{t-1}\sim\mathrm{Gamma}(a_{t-1}, b_{t-1})$ (shape–rate), set</span>
+<span id="cb1-470"><a href="#cb1-470" aria-hidden="true" tabindex="-1"></a><span class="sc">\[</span></span>
+<span id="cb1-471"><a href="#cb1-471" aria-hidden="true" tabindex="-1"></a>\phi_t\mid\mathcal D_{t-1}\sim\mathrm{Gamma}(\beta a_{t-1},\; \beta b_{t-1}),</span>
+<span id="cb1-472"><a href="#cb1-472" aria-hidden="true" tabindex="-1"></a>\quad \beta\in(0,1].</span>
+<span id="cb1-473"><a href="#cb1-473" aria-hidden="true" tabindex="-1"></a><span class="sc">\]</span></span>
+<span id="cb1-474"><a href="#cb1-474" aria-hidden="true" tabindex="-1"></a>Then $\mathbb E<span class="co">[</span><span class="ot">\phi_t</span><span class="co">]</span>=a_{t-1}/b_{t-1}$ (unchanged) and  </span>
+<span id="cb1-475"><a href="#cb1-475" aria-hidden="true" tabindex="-1"></a>$\mathrm{Var}(\phi_t) = (1/\beta)\,a_{t-1}/b_{t-1}^2$ (inflated).</span>
+<span id="cb1-476"><a href="#cb1-476" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-477"><a href="#cb1-477" aria-hidden="true" tabindex="-1"></a>**Effect.** Forecasts remain Student-<span class="sc">\(</span>t<span class="sc">\)</span>; recent data get more weight.  </span>
+<span id="cb1-478"><a href="#cb1-478" aria-hidden="true" tabindex="-1"></a>*(Refs: @west2013bayesian §10.8; @prado2023time §4)*</span>
+<span id="cb1-479"><a href="#cb1-479" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-480"><a href="#cb1-480" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-481"><a href="#cb1-481" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-482"><a href="#cb1-482" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-483"><a href="#cb1-483" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-484"><a href="#cb1-484" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-485"><a href="#cb1-485" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-486"><a href="#cb1-486" aria-hidden="true" tabindex="-1"></a><span class="fu">### What are some common extensions and generalizations of NDLMs? {#sec-faq-extensions}</span></span>
-<span id="cb1-487"><a href="#cb1-487" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-488"><a href="#cb1-488" aria-hidden="true" tabindex="-1"></a>The DLM framework is highly flexible and can be extended in various ways:</span>
-<span id="cb1-489"><a href="#cb1-489" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Non-Normal and Non-Linear Dynamic Models**:</span>
-<span id="cb1-490"><a href="#cb1-490" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Dynamic Generalized Linear Models (DGLMs)**: Extend DLMs by using exponential family distributions (e.g., Poisson for count data, Binomial for proportions) for the observational model, often involving non-linear link functions.</span>
-<span id="cb1-491"><a href="#cb1-491" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**General Non-Linear Dynamic Models**: Arise when parameters (e.g., <span class="in">`λ`</span> in a transfer response function or a discount factor itself) introduce non-linearities into the system or observation equations.</span>
-<span id="cb1-492"><a href="#cb1-492" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Stochastic Volatility (SV) Models**: Often formulated as non-linear/non-Gaussian state-space models where volatility parameters evolve dynamically, requiring specialized computational methods.</span>
-<span id="cb1-493"><a href="#cb1-493" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Mixture Models**: Can be incorporated to handle non-normal error distributions or to model phenomena like occasional outliers.</span>
-<span id="cb1-494"><a href="#cb1-494" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Multivariate and Matrix Normal DLMs**:</span>
-<span id="cb1-495"><a href="#cb1-495" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Multivariate DLMs**: Generalize to handle vector-valued observations, allowing for joint modeling of multiple time series.</span>
-<span id="cb1-496"><a href="#cb1-496" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Matrix Normal DLMs**: Provide a framework for multivariate time series analysis where the covariance structure across series is unknown, leveraging matrix-variate normal distributions for fully conjugate analyses.</span>
-<span id="cb1-497"><a href="#cb1-497" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Dynamic Graphical Models**: Combine matrix-variate DLMs with Gaussian graphical models, allowing for structured and often sparse precision matrices, which is useful for scalability in high-dimensional time series.</span>
-<span id="cb1-498"><a href="#cb1-498" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Dynamic Dependence Network Models (DDNMs)**: These models define multivariate dynamic models by coupling customized univariate DLMs, extending time-varying vector autoregressive (TV-VAR) models and allowing for flexible modeling of time-varying parameters and volatilities.</span>
-<span id="cb1-499"><a href="#cb1-499" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Spatio-Temporal Models**: NDLMs form the foundation for **dynamic spatio-temporal models (DSTMs)**, which model processes that vary across both space and time. These models can also incorporate non-linearity and non-Gaussian elements. Hidden Resolution Models (HRMs) are a type of multiscale time series model that can be formulated as DLMs.</span>
-<span id="cb1-500"><a href="#cb1-500" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-501"><a href="#cb1-501" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-502"><a href="#cb1-502" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-503"><a href="#cb1-503" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Normal Dynamic Linear Model: Definition, Model classes &amp; The Superposition Principle</span></span>
-<span id="cb1-504"><a href="#cb1-504" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-505"><a href="#cb1-505" aria-hidden="true" tabindex="-1"></a>Dynamic Linear Models (DLMs) extend classical linear regression to time-indexed data, introducing dependencies between observations through latent evolving parameters. A Normal DLM (NDLM) assumes Gaussian noise at both observation and system levels, enabling tractable Bayesian inference through the Kalman filter.</span>
-<span id="cb1-506"><a href="#cb1-506" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-507"><a href="#cb1-507" aria-hidden="true" tabindex="-1"></a>While superficially complex, NDLMs are conceptually close to linear regression. Instead of I.I.D. observations indexed by $i$, we index data by time $t$ and allow parameters to evolve with time, resulting in a two-level hierarchical model. At the top level is the observation equation. Below this there is the evolution equation(s) that can be understood as a latent state transition model that can capture trends, periodicity, and regression. The evolution equations can have more than one level however we will see that with some work these are summarized into a matrix form.</span>
-<span id="cb1-508"><a href="#cb1-508" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-509"><a href="#cb1-509" aria-hidden="true" tabindex="-1"></a>To make things simpler this is demonstrated using a white noise process and then a random walk model. What makes the NDLM somewhat different is that that there are two variance elements at two levels, necessitating learning more parameters. Once we cover these to models the instructor walks us though all the bits and pieces of the notation. Later we will see that we can add trends, periodicity, regression components in a more or less systematic way. However we need to pick and choose these components to get a suitable forecast function. This approach require an intimate familiarity with the data generating process to model.</span>
-<span id="cb1-510"><a href="#cb1-510" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-511"><a href="#cb1-511" aria-hidden="true" tabindex="-1"></a>This approach is Bayesian in that we draw our parameters from a multivariate normal and use updating to improve this initial estimate by incorporating the data and we end up with a posterior i.e. we have distributional view of the time series incorporating uncertainties.</span>
-<span id="cb1-512"><a href="#cb1-512" aria-hidden="true" tabindex="-1"></a>Additionally we have a number of Bayesian quantities that can be derived from the model, such as </span>
-<span id="cb1-513"><a href="#cb1-513" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-514"><a href="#cb1-514" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the **filtering distribution** that estimates the current state $\mathbb{P}r(\theta_t \mid \mathcal{D}_t)$, </span>
-<span id="cb1-515"><a href="#cb1-515" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the **forecasting distribution** - to predict future observation: $\mathbb{P}r(y_{t+h} \mid \mathcal{D}_t)$, </span>
-<span id="cb1-516"><a href="#cb1-516" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the **smoothing distribution** - retrospective estimate of past state: $\mathbb{P}r(\theta_t \mid \mathcal{D}_{T})\quad t&lt;T$ and </span>
-<span id="cb1-517"><a href="#cb1-517" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the **forecast function** when $F_t=F$ and $\mathbf{G}_t=\mathbf{G}$ $f_t(h)=\mathbb{E}[y_{t+h} \mid \mathcal{D}_{T}] = F'G^h \mathbb{E}[\theta_{t} \mid \mathcal{D}_{T}]$ </span>
-<span id="cb1-518"><a href="#cb1-518" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the usual credible intervals for forecasts and parameter estimates.</span>
-<span id="cb1-519"><a href="#cb1-519" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-520"><a href="#cb1-520" aria-hidden="true" tabindex="-1"></a>However the DLM framework is quite flexible and once you understand it it can be adapted to support features like seasonality using the superposition principle. NDLMs don't need to be non-stationary time series.</span>
-<span id="cb1-521"><a href="#cb1-521" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-522"><a href="#cb1-522" aria-hidden="true" tabindex="-1"></a>As far as I cen tell NDLMs are just DLM with their errors distributed normally at the different levels.</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<span id="cb1-483"><a href="#cb1-483" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-484"><a href="#cb1-484" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-485"><a href="#cb1-485" aria-hidden="true" tabindex="-1"></a><span class="fu">### What are some common extensions and generalizations of NDLMs? {#sec-faq-extensions}</span></span>
+<span id="cb1-486"><a href="#cb1-486" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-487"><a href="#cb1-487" aria-hidden="true" tabindex="-1"></a>The DLM framework is highly flexible and can be extended in various ways:</span>
+<span id="cb1-488"><a href="#cb1-488" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Non-Normal and Non-Linear Dynamic Models**:</span>
+<span id="cb1-489"><a href="#cb1-489" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Dynamic Generalized Linear Models (DGLMs)**: Extend DLMs by using exponential family distributions (e.g., Poisson for count data, Binomial for proportions) for the observational model, often involving non-linear link functions.</span>
+<span id="cb1-490"><a href="#cb1-490" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**General Non-Linear Dynamic Models**: Arise when parameters (e.g., <span class="in">`λ`</span> in a transfer response function or a discount factor itself) introduce non-linearities into the system or observation equations.</span>
+<span id="cb1-491"><a href="#cb1-491" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Stochastic Volatility (SV) Models**: Often formulated as non-linear/non-Gaussian state-space models where volatility parameters evolve dynamically, requiring specialized computational methods.</span>
+<span id="cb1-492"><a href="#cb1-492" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Mixture Models**: Can be incorporated to handle non-normal error distributions or to model phenomena like occasional outliers.</span>
+<span id="cb1-493"><a href="#cb1-493" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Multivariate and Matrix Normal DLMs**:</span>
+<span id="cb1-494"><a href="#cb1-494" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Multivariate DLMs**: Generalize to handle vector-valued observations, allowing for joint modeling of multiple time series.</span>
+<span id="cb1-495"><a href="#cb1-495" aria-hidden="true" tabindex="-1"></a><span class="ss">    *   </span>**Matrix Normal DLMs**: Provide a framework for multivariate time series analysis where the covariance structure across series is unknown, leveraging matrix-variate normal distributions for fully conjugate analyses.</span>
+<span id="cb1-496"><a href="#cb1-496" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Dynamic Graphical Models**: Combine matrix-variate DLMs with Gaussian graphical models, allowing for structured and often sparse precision matrices, which is useful for scalability in high-dimensional time series.</span>
+<span id="cb1-497"><a href="#cb1-497" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Dynamic Dependence Network Models (DDNMs)**: These models define multivariate dynamic models by coupling customized univariate DLMs, extending time-varying vector autoregressive (TV-VAR) models and allowing for flexible modeling of time-varying parameters and volatilities.</span>
+<span id="cb1-498"><a href="#cb1-498" aria-hidden="true" tabindex="-1"></a><span class="ss">*   </span>**Spatio-Temporal Models**: NDLMs form the foundation for **dynamic spatio-temporal models (DSTMs)**, which model processes that vary across both space and time. These models can also incorporate non-linearity and non-Gaussian elements. Hidden Resolution Models (HRMs) are a type of multiscale time series model that can be formulated as DLMs.</span>
+<span id="cb1-499"><a href="#cb1-499" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-500"><a href="#cb1-500" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-501"><a href="#cb1-501" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-502"><a href="#cb1-502" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Normal Dynamic Linear Model: Definition, Model classes &amp; The Superposition Principle</span></span>
+<span id="cb1-503"><a href="#cb1-503" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-504"><a href="#cb1-504" aria-hidden="true" tabindex="-1"></a>Dynamic Linear Models (DLMs) extend classical linear regression to time-indexed data, introducing dependencies between observations through latent evolving parameters. A Normal DLM (NDLM) assumes Gaussian noise at both observation and system levels, enabling tractable Bayesian inference through the Kalman filter.</span>
+<span id="cb1-505"><a href="#cb1-505" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-506"><a href="#cb1-506" aria-hidden="true" tabindex="-1"></a>While superficially complex, NDLMs are conceptually close to linear regression. Instead of I.I.D. observations indexed by $i$, we index data by time $t$ and allow parameters to evolve with time, resulting in a two-level hierarchical model. At the top level is the observation equation. Below this there is the evolution equation(s) that can be understood as a latent state transition model that can capture trends, periodicity, and regression. The evolution equations can have more than one level however we will see that with some work these are summarized into a matrix form.</span>
+<span id="cb1-507"><a href="#cb1-507" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-508"><a href="#cb1-508" aria-hidden="true" tabindex="-1"></a>To make things simpler this is demonstrated using a white noise process and then a random walk model. What makes the NDLM somewhat different is that that there are two variance elements at two levels, necessitating learning more parameters. Once we cover these to models the instructor walks us though all the bits and pieces of the notation. Later we will see that we can add trends, periodicity, regression components in a more or less systematic way. However we need to pick and choose these components to get a suitable forecast function. This approach require an intimate familiarity with the data generating process to model.</span>
+<span id="cb1-509"><a href="#cb1-509" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-510"><a href="#cb1-510" aria-hidden="true" tabindex="-1"></a>This approach is Bayesian in that we draw our parameters from a multivariate normal and use updating to improve this initial estimate by incorporating the data and we end up with a posterior i.e. we have distributional view of the time series incorporating uncertainties.</span>
+<span id="cb1-511"><a href="#cb1-511" aria-hidden="true" tabindex="-1"></a>Additionally we have a number of Bayesian quantities that can be derived from the model, such as </span>
+<span id="cb1-512"><a href="#cb1-512" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-513"><a href="#cb1-513" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the **filtering distribution** that estimates the current state $\mathbb{P}r(\theta_t \mid \mathcal{D}_t)$, </span>
+<span id="cb1-514"><a href="#cb1-514" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the **forecasting distribution** - to predict future observation: $\mathbb{P}r(y_{t+h} \mid \mathcal{D}_t)$, </span>
+<span id="cb1-515"><a href="#cb1-515" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the **smoothing distribution** - retrospective estimate of past state: $\mathbb{P}r(\theta_t \mid \mathcal{D}_{T})\quad t&lt;T$ and </span>
+<span id="cb1-516"><a href="#cb1-516" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the **forecast function** when $F_t=F$ and $\mathbf{G}_t=\mathbf{G}$ $f_t(h)=\mathbb{E}[y_{t+h} \mid \mathcal{D}_{T}] = F'G^h \mathbb{E}[\theta_{t} \mid \mathcal{D}_{T}]$ </span>
+<span id="cb1-517"><a href="#cb1-517" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the usual credible intervals for forecasts and parameter estimates.</span>
+<span id="cb1-518"><a href="#cb1-518" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-519"><a href="#cb1-519" aria-hidden="true" tabindex="-1"></a>However the DLM framework is quite flexible and once you understand it it can be adapted to support features like seasonality using the superposition principle. NDLMs don't need to be non-stationary time series.</span>
+<span id="cb1-520"><a href="#cb1-520" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-521"><a href="#cb1-521" aria-hidden="true" tabindex="-1"></a>As far as I cen tell NDLMs are just DLM with their errors distributed normally at the different levels.</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">
