@@ -25,9 +25,10 @@ title-block-banner: images/banner_deep.jpg
 
 **Everything you wanted to know about NDLMs but were afraid to ask** meets **Everything I would tell my younger self if ....**
 
-I found the DLM somewhat challenging. As I progressed though the material I had some questions. And later reading the textbooks I found some answers but had even more questions. By the time my notes were almost complete I was able to come up with answers to all but the most challenging. I'm not sure I got everything right but perhaps this will be a useful resource to other students. If you find any errors please let me know.
+I found the DLM somewhat challenging. As I progressed through the material, I had some questions. And later, reading the textbooks, I found some answers but had even more questions. By the time my notes were almost complete, I was able to come up with answers to all but the most challenging. I'm not sure I got everything right, but perhaps this will be a helpful resource to other students. If you find any errors, please let me know.
 
-As I am working though exercises from text books, c.f. [@sec-faq-books] and many questions have come up which I believe are instrumental to people unfamiliar with DLMs. Despite having learned about DLM and done some work on time series it is still a challenge not just to understand but to even ask smart question about this topic. Some of these questions are not very smart but more document some misconception I had. Also some questions were very long and I prefer shorter titles for the FAQ but I kept the material more or less the same.
+As I am working through exercises from textbooks, cf. [@sec-faq-books] and many questions have come up which I believe are instrumental to people unfamiliar with DLMs. Despite having learned about DLM and done some work on time series, it is still a challenge not just to understand but to even ask thoughtful questions about this topic. Some of these questions are not very smart, but more document some misconceptions I had. Also, some questions were very long, and I prefer shorter titles for the FAQ, but I kept the material more or less the same.
+
 
 ---
 
@@ -39,28 +40,28 @@ Some reasons why this is complicated and how to make it simpler.
 One reason I find DLM tricky is that unlike AR($p$) or even ARMA($p,q$) we are not dealing with a model for which we set up a Bayesian model with some $\theta$ some priors for the thetas and pour in the data and get a posterior for the parameters, and a posterior predictive distribution for doing predictions.
 
 - NDLMs are multifaceted like diamonds:
-  - one facet is that they are like a multiple regression
-  - another facet is that they are like a state space model
-  - another facet is the use of Kalman filters in filtering and smoothing
-  - another facet is that like neural networks they have an architecture and hyperparameters
-  - another attractive feature is that unlike neural models they can be interpreted and can be fit with a relatively less data.
-  - another facet is that the number of degrees of freedom and the number of parameters are not the same.
-  - architecture:
-    - they can contain a polynomial trend that is smooth
-    - they can contain AR($p$) components which can be jagged
-    - they can contain MA($q$) components which requires an augmented-state construction.
-    - they can encode seasonality using dummies (jumping patterns)
-    - they can encode seasonality using sinusoids (complex smooth patterns)
-    - they can also incorporate time indexed regressors
-    - they can incorporate geo-spatial data but this is not covered in this course or the R package and is more of an extension of the DLM framework to [DLSTM](https://spacetimewithr.org/)
+  - One facet is that they are like a multiple regression
+  - Another facet is that they are like a state space model
+  - Another facet is the use of Kalman filters in filtering and smoothing
+  - Another facet is that like neural networks they have an architecture and hyperparameters
+  - Another attractive feature is that unlike neural models they can be interpreted and can be fit with a relatively less data.
+  - Another facet is that the number of degrees of freedom and the number of parameters are not the same.
+  - Architecture:
+    - They can contain a polynomial trend that is smooth
+    - They can contain AR($p$) components which can be jagged
+    - They can contain MA($q$) components which requires an augmented-state construction.
+    - They can encode seasonality using dummies (jumping patterns)
+    - They can encode seasonality using sinusoids (complex smooth patterns)
+    - They can also incorporate time indexed regressors
+    - They can incorporate geo-spatial data but this is not covered in this course or the `R` package and is more of an extension of the DLM framework to [DLSTM](https://spacetimewithr.org/)
 
 We can literally add the components into one big DLM. 
 However here things get more interesting. 
 
-Each component DLM has both an observational noise and a system noise. We really only want to deal with one one of each and even that will prove challenging. 
-So if we add components we need to customize the variances. 
+Each component DLM has both an observational noise and a system noise. We really only want to deal with one of each and even that will prove challenging. 
+So if we add components, we need to customize the variances. 
 
-A second bit that tricky is the model's dimensions and how many of those are free variables.
+A second bit that's tricky is the model's dimensions and how many of those are free variables.
 Filtering gives us estimates of the parameters we call put into the $\theta$ but we will also need to infer the two variances. 
 
 Also in the [@prado2023time] book the authors point out that we will also want to infer some parameters of $F$ and $G$. Giving it some thought I think they are:
@@ -147,7 +148,20 @@ $$ {#eq-moments-cheatsheet}
 
 We covered four cases in the notes, yet it is easier to miss the big picture.
 
-1. There are different 
+We saw several derivations of filtering, etc, with different settings for $v_t, \mathbf{W}_t$
+
+1. $v_t$ and $\mathbf{W}_t$ both known - (Normal conjugate structure)
+
+​2. $v_t=v$ and $\mathbf{W}_t$ - known (var and covar scaled by $V$ , $\mathcal{IG}$ prior for $v$ and Student $t$ for forecast and state)
+
+3. $v_t=v$ known and  $\mathbf{W}_t$ unknown/changing set via  $\delta$  a discount factor
+
+4. $v_t=v$ unknown and  $\mathbf{W}_t$ unknown/changing set via  $\delta$  a discount factor.
+
+As far as I can tell from the start of [@prado2023time Sec. 4.3] these are strong simplifying assumptions on the road to a more general case with $v_t=v$ unknown and $\mathbf{W}_t$ unknown. As best as I can tell, for our time series analysis, input is the same for all cases.... 
+
+Can we also do away with the assumption of having constant observational variance? Isn't it a strong assumption for us to make?
+
 
 ### Can use Bayesian methods to infer the $F$ and $G$ of an NDLM ?
 
@@ -198,15 +212,15 @@ c.f. [@harvey1990forecasting] [@DurbinKoopman2012TSABSS §11.5][@west2013bayesia
 
 ### How much data do I need to fit an NDLM with k dimensions ?{#sec-faq-data-requirements}
 
-The amount of data required to fit an NDLM with `k` dimensions depends on several factors, including the complexity of the model, the number of parameters to be estimated, and the desired level of precision in the estimates. In general, more data is needed for:
+The amount of data required to fit an NDLM with $k$ dimensions depends on several factors, including the complexity of the model, the number of parameters to be estimated, and the desired level of precision in the estimates. In general, more data is needed for:
 
-1. **Higher Dimensionality**: As the number of dimensions (`k`) increases, the parameter space becomes larger, requiring more data to obtain reliable estimates.
+1. **Higher Dimensionality**: As the number of dimensions ($k$) increases, the parameter space becomes larger, requiring more data to obtain reliable estimates.
 
 2. **Model Complexity**: More complex models with intricate structures (e.g., multiple state variables, non-linear relationships) typically require more data to accurately capture the underlying dynamics.
 
 3. **Desired Precision**: If high precision is needed in the parameter estimates or predictions, more data will be necessary to reduce uncertainty.
 
-A common rule of thumb is to have at least 10-20 observations per parameter to be estimated. However, this is a rough guideline, and the actual data requirements may vary based on the specific context and goals of the analysis.
+A common rule of thumb is to have at least 10-20 observations per parameter to be estimated. However, this is a not a good rule for DLMs. Three full seasons might be more appropriate, and the actual data requirements may vary based on the specific context and goals of the analysis. One recommendation is tuning $\delta$ by one-step predictive log score and checking standardized forecast errors. [@west2013bayesian h. 6]
 
 ---
 
