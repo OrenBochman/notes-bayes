@@ -23,28 +23,55 @@ title-block-banner: images/banner_deep.jpg
 
 ## NDLM FAQ {#sec-ndlm-faq}
 
-**Everything you wanted to know about NDLMs but were afraid to ask** meets **Everything I would tell my younger self if ....**
+**Everything you wanted to know about NDLMs but were afraid to ask** meets **Everything I would tell my younger self from 6 months ago**.
 
-I found the DLM somewhat challenging. As I progressed through the material, I had some questions. And later, reading the textbooks, I found some answers but had even more questions. By the time my notes were almost complete, I was able to come up with answers to all but the most challenging. I'm not sure I got everything right, but perhaps this will be a helpful resource to other students. If you find any errors, please let me know.
+I found learning dynamic linear models challenging yet rewarding. As I progressed through the material, I had some questions. And later, reading the textbooks, I found some answers but had even more questions. By the time my notes were almost complete, I was able to come up with answers to all but the most challenging ones.
+I think I was able to ask the kind of questions that might make learning easier
+for new students. 
 
-As I am working through exercises from textbooks, cf. [@sec-faq-books] and many questions have come up which I believe are instrumental to people unfamiliar with DLMs. Despite having learned about DLM and done some work on time series, it is still a challenge not just to understand but to even ask thoughtful questions about this topic. Some of these questions are not very smart, but more document some misconceptions I had. Also, some questions were very long, and I prefer shorter titles for the FAQ, but I kept the material more or less the same.
+I'm not sure everything in here is 100% correct, but more likely than not this should prove a helpful resource to other students. If you do find any errors, please let me know.
+
+Now I am working through exercises from textbooks, cf. [@sec-faq-books] and many questions have come up which I believe are instrumental to people unfamiliar with DLMs. Despite having learned about DLM and done some work on time series, it is still a challenge not just to understand but to even ask thoughtful questions about this topic. Some of these questions are more about dispelling misconceptions I had.
+
+Note: I am using DLM and NDLM interchangeably. NDLM is a specific case of DLMs where the state and observation equations are linear and the errors are normally distributed. The course text books state that it is possible to use other members of the exponential family but for DLMs the Normally distributed case is the the default and most commonly used.
+
+### What are some Pros and Cons of DLMs ? 
+
+The main issues of DLM is they are hard hard to understand. But lets start with the pros:
+
+So why use DLM?
+
+1. They are a unifying framework that encompass many simpler time series models. As you get more proficient with DLMs you should be able to write more and more TS  models using this framework.
+2. They don't have the stationarity requirements of AR($p$) or ARMA($P,Q$)
+3. They let you get results from much less data than neural network models
+4. They can give you uncertainties for the forecasts and parameters.
+5. They are faster to fit than typical MCMC methods so you get to make faster inferences and more iterations on models with different simplifying assumptions before dealing with the full complexity of your problem.
+6. They can be easily updated online with new data, making them suitable for online learning and real-time applications.
+7. They can handle missing data and different levels interventions.
+8. They are interpretable - you can easily view the changing parameters over time. <!-- caveat easy to extract and visualize not necessarily easy to interpret  parameters mean  -->
+
+So why are DLMs challenging?
+
+1. You don't get a nice ML style API and you don't get a nice report or even a bunch of diagnostics plots. <!-- any reason why we cant make these? -->
+1. DLM generalize and utilize many other models. To use the their full power you should 
+   1. have a good grasp not only of how these simpler models operate 
+   2. how they are represented in the DLM framework and how 
+   3. how they are integrated into one big model. 
+   While we cover the items 2. and 3 adequately, the course only goes into depth regarding AR($p$) models. For example, time varying regression component can fit multiple time series simultaneously are likely to be new. Also while ARMA is discussed we don't really cover it in depth or explain the DLM representation. 
+   - ARIMA is another model which can be represented in the DLM framework by using a polynomial trend for the integration and ARMA for the rest but this is not discussed.
+2. Unlike AR($p$) or even ARMA($p,q$) we are not dealing with a model for which we set up a Bayesian model with some $\theta$ some priors for the thetas and pour in the data and get a posterior for the parameters, and a posterior predictive distribution for doing predictions. <!-- don't we ? why not ?-->
+3. DLM are hidden state space model. While we discuss this, we don't delve into the state representation, the nature of the markov property nor the long term distribution. This state space aspect is hard to reconcile with AR(p) and Seasonal components which have parameters that act like a long term memory or reference past values. So the state space representation is subtle and its exposition may  leaves gaps. <!-- is there a reference that explains this better ? -->
+5. DLM make use of Kalman filters in the filtering and smoothing operations this is a ~~complex~~ algorithm with many variants which deserves it own specialization and thus cannot be cover in this course. However, filtering and smoothing are essential operations for doing inference they have many moving parts that are also not covered in a systematic way unfortunately the full complexity appears and reappears whenever we consider the different settings for inference.
+   - I think that a few video from the KF boot camp could be helpful.
+   - The cheat sheet below outlining the names of the bayesian constructs in the Kalman filter recursions and their applications can dispel some of the confusion once it is memorized or made handy.
+6. A number of results in the course are theoretical while others are practical but the boundary is never clear. As far as I can tell much of the inference material is not practical in nature but rather a sequence of derivations that lets us drop unrealistic assumption we must initially make about the model. <!-- is this correct, don't we have code examples on doing infernce for all cases? -->
+7. Similar to Neural Networks, working with DLMs require making informed choices regarding **architecture**, and choices of **hyperparameters**. Once these are made to get the DLM to work with requires that the dimensions of the internal matrices and that their sizes line up correctly.
+8. Setting the Systems evolutions is neither straight forward nor as well understood as it is made to appear. E.g. for EEG data how well do we understand the hidden dynamics of the brain's response to an external shock?
+9. The system equations allows us to introduce multiple hierarchical representations but these must be folded into a matrix using a very specific state space representation.
 
 
----
 
-
-### Why is this course so complicated? 
-
-Some reasons why this is complicated and how to make it simpler. 
-
-One reason I find DLM tricky is that unlike AR($p$) or even ARMA($p,q$) we are not dealing with a model for which we set up a Bayesian model with some $\theta$ some priors for the thetas and pour in the data and get a posterior for the parameters, and a posterior predictive distribution for doing predictions.
-
-- NDLMs are multifaceted like diamonds:
-  - One facet is that they are like a multiple regression
-  - Another facet is that they are like a state space model
-  - Another facet is the use of Kalman filters in filtering and smoothing
-  - Another facet is that like neural networks they have an architecture and hyperparameters
-  - Another attractive feature is that unlike neural models they can be interpreted and can be fit with a relatively less data.
+One up side to DLMs Another attractive feature is that unlike neural models they can be interpreted and can be fit with a relatively less data.
   - Another facet is that the number of degrees of freedom and the number of parameters are not the same.
   - Architecture:
     - They can contain a polynomial trend that is smooth
@@ -200,9 +227,8 @@ NDLM framework is very flexible, generalizing many known time series models in a
 - Optionally reinitialize $(m_t,C_t)$ for that block.  
 - For recurring regimes, consider **switching DLMs / Markov-switching LDS**.  
 
-c.f. [@harvey1990forecasting] [@DurbinKoopman2012TSABSS §11.5][@west2013bayesian Ch.11])
+c.f. [@DurbinKoopman2012TSABSS §11.5]  [@west2013bayesian Ch.11]
 :::
-
 
 
 ---
@@ -218,7 +244,8 @@ The amount of data required to fit an NDLM with $k$ dimensions depends on severa
 
 3. **Desired Precision**: If high precision is needed in the parameter estimates or predictions, more data will be necessary to reduce uncertainty.
 
-A common rule of thumb is to have at least 10-20 observations per parameter to be estimated. However, this is a not a good rule for DLMs. Three full seasons might be more appropriate, and the actual data requirements may vary based on the specific context and goals of the analysis. One recommendation is tuning $\delta$ by one-step predictive log score and checking standardized forecast errors. [@west2013bayesian h. 6]
+A common rule of thumb is to have at least 10-20 observations per parameter to be estimated. However, this is a not a good rule for DLMs. Three full seasons might be more appropriate, and the actual data requirements may vary based on the specific context and goals of the analysis. One recommendation is tuning $\delta$ by one-step predictive log score and checking standardized forecast errors. [@west2013bayesian ch. 6]
+
 
 ---
 
@@ -226,9 +253,10 @@ A common rule of thumb is to have at least 10-20 observations per parameter to b
 ### How are filtering, smoothing, and forecasting performed in NDLMs? {#sec-faq-filtering-smoothing-forecasting}
 
 NDLMs provide a coherent framework for these key time series analyses:
-*   **Filtering**: This process estimates the current state of the system (`θt`) based on all available observations up to the current time `t`. In NDLMs, this is typically achieved using **Kalman filter recurrences**. The posterior mean of the state is a weighted average of the prior mean and the current observation, with weights proportional to their precisions.
-*   **Smoothing (Retrospective Analysis)**: This involves estimating past states (`θs` for `s < t`) by incorporating all available data, including future observations up to a fixed interval `T`. It provides a retrospective view of the parameter values based on the entire dataset. Conditional independence results are crucial for developing efficient smoothing algorithms.
-*   **Forecasting**: This involves predicting the future behavior of the system state and observations (`Yt+k`, `θt+k`) for `k` steps ahead, given data up to the current time `t`. Forecast functions define the qualitative form and expected numerical development of the time series.
+
+*   **Filtering**: This process estimates the current state of the system ($\theta_t$) based on all available observations up to the current time $t$. In NDLMs, this is typically achieved using **Kalman filter recurrences**. The posterior mean of the state is a weighted average of the prior mean and the current observation, with weights proportional to their precisions.
+*   **Smoothing (Retrospective Analysis)**: This involves estimating past states ($\theta_s$ for $s < t$) by incorporating all available data, including future observations up to a fixed interval $T$. It provides a retrospective view of the parameter values based on the entire dataset. Conditional independence results are crucial for developing efficient smoothing algorithms.
+*   **Forecasting**: This involves predicting the future behavior of the system state and observations ($Y_{t+k}$, $\theta_{t+k}$) for $k$ steps ahead, given data up to the current time $t$. Forecast functions define the qualitative form and expected numerical development of the time series.
 
 These processes provide linear posterior means and variances, which is a justification for their use even outside strict normality assumptions.
 
@@ -284,7 +312,6 @@ Let $r_t = e_t/\sqrt{Q_t}$.
 - **Predictive score:** rolling log score or CRPS for model comparison.  
 - **Breaks:** spikes/variance jumps in $r_t$ ⇒ local $\delta\downarrow$ or add intervention regressor.  
 :::
-
 
 ---
 

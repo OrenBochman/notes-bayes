@@ -105,7 +105,77 @@ window.Quarto = {
 </ol></li>
 </ul>
 <p>We end up pondering these questions for a number of reasons. We collect data but it often lacks support in terms of different price changes. Few or no price changes create numerical as well as deeper identification issues.</p>
-<p>E.g. just because the retailer next door is closed for a week, does not mean the one two doors down the road is now a monopolist and can set prices without regard to competition. we can mange to survive a week one way or another. The same is true if there is a stock-out for one product, for a week or for half a day. Half a day of stock-out together with a price reduction (to clear the product) does not mean we have a solid data for demand at that reduced price. But it can lead to having a bunch if zeros in our data and that Q is very sensitive to how we sample it. Also the store closes so if we decide to sample by the hour we should indicate that these entries have no weight. We also have people returning product giving us possible negative demand. Another issues we are likely to see is a price decrease together with a reduced demand. That gives a nonsensical demand curves and likely to populate our elasticity refression with high leverage points that mess up our estimates. A Models which has contrainsts like homogeneity, symmetry, and negativity will issue errors.</p>
+<p>Scenarios:</p>
+<ol type="1">
+<li>The next retailer over has closed for a week.</li>
+</ol>
+<ul>
+<li>no we are not a monopoly and we cant set prices regardles off competition.</li>
+</ul>
+<ol start="2" type="1">
+<li>Another online shop reduced prices 20% bellow the minimum.</li>
+</ol>
+<ul>
+<li>Do they have any product in stock ? (no)</li>
+<li>Do they have one good rating ? (no)</li>
+</ul>
+<ol start="3" type="1">
+<li>We run out of stock after soon after announcing a promotion.</li>
+</ol>
+<ul>
+<li>Does not mean reducing price reduces demand.</li>
+</ul>
+<ol start="4" type="1">
+<li>End of day promotion didn’t clear out our inventory.</li>
+</ol>
+<ul>
+<li>Does not mean reducing price reduces demand.</li>
+<li>Could be we had too few customers</li>
+<li>Could be the product wasn’t appealing enough</li>
+<li>Would a lower price lead to clearance ?</li>
+<li>Do enough people know about it or was the store empty?</li>
+</ul>
+<ol start="5" type="1">
+<li>We have promotions at odd hours but aggragete daily.</li>
+</ol>
+<ul>
+<li>Does this mean our customers are irrational?</li>
+<li>No but the way you aggregate their data is.</li>
+</ul>
+<ol start="6" type="1">
+<li>We track promotions by name or id but not by price which can be tricky.</li>
+</ol>
+<ul>
+<li>5% off on product X for loyalty card holders limited to 3 units. (as if there is a loss on selling at this price)?</li>
+<li>We don’t aggregate or tag sales quantities with the promotion.</li>
+</ul>
+<ol start="7" type="1">
+<li>We sample by the day, or hour.</li>
+</ol>
+<ul>
+<li>We now have lots more zeros because small IT outage effects</li>
+<li>We could estimate IT outage elasticity of demand.</li>
+</ul>
+<ol start="8" type="1">
+<li>We have records for people returning product.</li>
+</ol>
+<ul>
+<li>Some days demand is negative right ?</li>
+<li>Run filtering every week to reduce positive demand of the original sales date.</li>
+</ul>
+<ol start="9" type="1">
+<li>We often see a price decrease together with a reduced demand. Or price increase followed by an increase demand.
+<ul>
+<li>did we drop price of a complement</li>
+<li>is there an exogenous increase in demand for a complement</li>
+<li>is there a price increase of a substitute</li>
+<li>is there an exogenous decrease in demand for a substitute.</li>
+<li>is this due to random chance (we should actually expect such event in our sampling distribution) or are these significant</li>
+<li>Can we aggregate these with the next or previous time periods ?</li>
+</ul></li>
+</ol>
+<p>So there are many causes for nonsensical demand curves and likely to overload our elasticity regression with high leverage points that mess up our estimates. At one level better IT (aggregation, annotations, tagging sales with promotion, collating returns to the original transaction, etc) can help us avoid these issues. A Models which has contrasts like homogeneity, symmetry, and negativity will issue errors.</p>
+<p>So we have lots of little headaches. We can fix them one at a time. (Sounds like a plan) Will robust regression fix them ?? (No there are deeper issues)</p>
 <p>If we have price/quantity time series for related products, say complements Would it make more sense to infer the mean and covariance matrix to model the demands using a Cholesky decomposition for the covariance to minimize parameters, and then estimate the elasticities from the mean + covariance data?</p>
 <ol type="1">
 <li>Suppose we assume that supply is more or less fixed (i.e., supply side responds much more slowly than demand, prices &gt;&gt; cost so that P determines Q in our market.</li>
@@ -223,7 +293,7 @@ y_t&amp;=\alpha_t + B_t x_t+\varepsilon_t,\ \ \varepsilon_t\sim\mathcal N(0,\Ome
 </ul>
 <p><strong>Refs (consensus sources):</strong> Deaton &amp; Muellbauer (1980) <em>Economics and Consumer Behavior</em>; Prado, Ferreira &amp; West (2023) <em>Time Series</em> (TVP/DLM treatment); West &amp; Harrison (1997/2e) <em>Bayesian Forecasting and Dynamic Models</em> (state-space discounting); Kilian &amp; Lütkepohl (2017) <em>Structural VARs</em> (for identification).</p>
 <hr>
-<pre class="shinylive-python"><code>#| components: [editor, viewer]
+<pre class="{shinylive-python}"><code>#| components: [editor, viewer]
 # ShinyLive app: estimate self/cross elasticities from within-day price cells (Full, Discount, Loyalty, BOGO)
 from __future__ import annotations
 import numpy as np
@@ -543,6 +613,11 @@ def server(input: Inputs, output: Outputs, session: Session):
 
 app = App(app_ui, server)
 </code></pre>
+<p>So this little app show me a few things.</p>
+<ol type="1">
+<li>the number if price changes as well as thier sizes are important.</li>
+<li>Being able to identify price changes for cells of clients can fix most of our headaches by giving us a way to associate price changes with demand changes.</li>
+</ol>
 </section>
 
 
