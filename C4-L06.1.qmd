@@ -267,6 +267,7 @@ These processes provide linear posterior means and variances, which is a justifi
 ### What are the computational challenges and methods used for NDLMs with unknown parameters? {#sec-faq-computational}
 
 When NDLM parameters, especially variances, are unknown and time-varying, obtaining exact analytical solutions for the full posterior distributions becomes complex. This necessitates the use of various computational techniques:
+
 *   **Approximation Techniques**:
     *   **Normal Approximation**: Often applied to posterior distributions, especially for parameters that are difficult to model directly.
     *   **Linearization**: For models with non-linear components, linear approximations can be used to transform them into (approximate) DLMs, allowing for standard DLM analysis.
@@ -428,7 +429,13 @@ Unfortunately, [the Kalman filter has a tendency to amplify noise]{.mark}, if th
 
 ### What is a structural change point. {#sec-faq-structural-change-point}
 
-This is a point in the time series where we need new parameters or even a more parameters. The basic structure of the model is not good moving forward.
+This is a point in the time series where the underlying data generating process changes in a way that cannot be captured by the existing model structure. This can happen due to various reasons such as:
+
+   - changes in external conditions (e.g., economic shifts, policy changes)
+   - changes in the behavior of the system being modeled (e.g., a sudden change in consumer behavior)
+   - introduction of new variables or factors that were not previously considered.
+
+As far as modeling the system, we need to revise our parameters, or if the change to the process is more radical we may need to incorporate additional parameters, by adding a component to the DLM. 
 
 There is a lot of criticism of the Facebook prophet algorithm breaking at some point. Digging deeper this is due to a distributional drift or more likely even a structural change point. FB prophet is
 
@@ -442,15 +449,27 @@ In contrast DLM theory emphasizes that DLMs are open to at any time point to cha
 But it probably just as hard to handle a structural change, intervention or NA. I think that the extra code we got in class which takes or creates list of matrices indexed in time is exactly an NDLM in short notation that handle this.
 It then becomes a matter of practice in inserting NAs, interventions and adding or changing components from a certain point. 
 
-While the course and the book seems to have provided the math to do this the course lacks and explanations of how to use that part of the theory to handle these three modeling need s nor does it have exercises on the subject. 
+<!-- While the course and the book seems to have provided the math to do this the course lacks and explanations of how to use that part of the theory to handle these three modeling need s nor does it have exercises on the subject. 
 
 I imagine if you can do this it would be a bit like Einstein teaching the first course on general relativity and then being surprised how one of Karl Schwarzschild then got back to him within weeks with with a black hole solution for the case of a static spherically symmetric black hole. 
 
 So when you want to use this in work or research it will always be harder!
 You will almost always need to adjust the data or the model etc for this to work for your use case. So you should try to do a do a few of each (NAs,different levels of interventions and structural changes) so when the day comes you can say at least I have done this before and I know how to do it and how to validate it!
 
+TODO: add a code sample in python and R that handles a structural change point at time t. Using a markov switchpoint or by using the DLM package and changing the system matrices at time t.
 
-Getting back on topic there are state space models that incorporate identifying and switching between different models. These are called **hidden Markov models** (HMMs) and they are a generalization of NDLMs. HMMs can be used to model time series with structural change points, but they are more complex and require more data to estimate the parameters.
+-->
+
+The basic structure of DLM however does allow us to handle structural change points simply by updating the system evolution matrix $G_t$ and the observation matrix $F_t$ at any time we need to handle a structural change point. The challenge is that  
+
+1. We need to detect the change point in the underlying process. (Using data drift detection algorithms)
+2. We need to know how to incorporate this change to the model. (This is a modeling challenge that requires a case by case analysis and usually can only be done in retrospect).
+
+In the past few decades there has been a lot of interest for example in econometrics for models that handle regime changes for volatility which has spawned a whole research area and a family of models starting with GARCH, EGARCH, TGARCH, CGARCH, FIGARCH, HYGARCH, etc...
+
+If we realize ahead of time that our DLM may tend to switch between different regimes we can actually incorporate this into our model.
+There are state space models that incorporate identifying and switching between different models. These are called **Markov switching models** (MSMs) and they are a generalization of NDLMs. MSMs can be used to model time series with structural change points, but they are more complex and require more data to estimate the parameters. These models are covered briefly in [@davidson2015bayesian] and in full detail in [@frühwirth2006finite]. 
+
 
 ---
 
@@ -467,19 +486,17 @@ For a polynomial model of order $p$, when we multiply out the terms of the forec
 ---
 
 
-### Can NDLMs handle unknown and non-constant observational (Vt) and system (Wt) variances? {sec-faq-unknown-variances}
+### Can NDLMs handle unknown and non-constant observational ($V_t$) and system ($W_t$) variances? {#sec-faq-unknown-variances}
 
-**Yes, NDLMs can be extended to handle cases where both observational variance (Vt) and system variance (Wt) are unknown and vary over time**. This moves beyond the simplest Kalman filter assumptions of known variances.
+[NDLMs **can** be extended to handle cases where both observational variance ($V_t$) and system variance ($W_t$) are unknown and vary over time]{.mark}. This moves beyond the simplest Kalman filter assumptions of known variances.
 
 Here's how this is typically managed:
-*   **Unknown but Constant Variances**:
-    *   If the observational variance $V$ is unknown but constant, it can be estimated using a conjugate **Normal-Gamma prior** for the state vector and observational precision (inverse variance). This results in the state and predictive distributions following **Student-t distributions** rather than normal distributions.
-    *   If the system variance $\mathbf{W}_t$ is unknown but constant, it can be estimated using methods like the **EM algorithm**.
-*   **Time-Varying System Variance (Wt)**:
-    *   The most common and practical approach is through **discount factors (δ)**. A discount factor defines $\mathbf{W}_t$  as a proportion of the previous time step's prior covariance, effectively $R_t=\delta^{-1}G_tC_{t-1}G_t',\qquad W_t=\frac{1-\delta}{\delta}\,G_tC_{t-1}G_t$. This allows $\mathbf{W}_t$ to be automatically time-varying and adaptive, simplifying the specification of complex covariance elements to a single scalar. Different discount factors can be applied to different components of the state vector.
-*   **Time-Varying Observational Variance (Vt)**:
-    *   This is handled through **variance discounting** or **discounted variance learning**. This technique models a decay of information about the observational precision ($φ_t = \frac{1}{V_t}$) over time, maintaining the conjugate Gamma distribution form for precision. The prior for $φ_t$ at time $t$ is derived by discounting the degrees of freedom and scale parameter from the previous posterior (e.g., $G[δnt-1/2, δdt-1/2]$ ). This makes the variance estimate more adaptive to recent data. The concept of "power-discounting" is also mentioned in relation to modifying the prior distribution, suggesting a general method for flattening distributions, which can be applied to precision parameters.
-*   **Multivariate Extensions**: These discounting approaches extend to multivariate DLMs. For instance, **matrix normal/Inverse Wishart distributions** can be used to handle time-varying observational covariance matrices (`Σt`), often with dynamics defined by a **matrix beta evolution model**.
+
+*   **Time-Varying System Variance ($W_t$)**:
+    *   The most common and practical approach is through **discount factors ($\delta$)**. A discount factor defines $\mathbf{W}_t$  as a proportion of the previous time step's prior covariance, effectively $R_t=\delta^{-1}G_tC_{t-1}G_t',\qquad W_t=\frac{1-\delta}{\delta}\,G_tC_{t-1}G_t$. This allows $\mathbf{W}_t$ to be automatically time-varying and adaptive, simplifying the specification of complex covariance elements to a single scalar. Different discount factors can be applied to different components of the state vector.
+*   **Time-Varying Observational Variance ($V_t$)**:
+    *   This is handled through **variance discounting** or **discounted variance learning**. This technique models a decay of information about the observational precision ($\phi_t = \frac{1}{V_t}$) over time, maintaining the conjugate Gamma distribution form for precision. The prior for $\phi_t$ at time $t$ is derived by discounting the degrees of freedom and scale parameter from the previous posterior (e.g., $G[\delta n_{t-1}/2, \delta d_{t-1}/2]$ ). This makes the variance estimate more adaptive to recent data. The concept of "power-discounting" is also mentioned in relation to modifying the prior distribution, suggesting a general method for flattening distributions, which can be applied to precision parameters.
+*   **Multivariate Extensions**: These discounting approaches extend to multivariate DLMs. For instance, **matrix normal/Inverse Wishart distributions** can be used to handle time-varying observational covariance matrices ($\Sigma_t$), often with dynamics defined by a **matrix beta evolution model**.
 
 
 
@@ -506,15 +523,17 @@ $$
 Discount the **precision** $\phi_t=V_t^{-1}$ prior to keep $\mathbb E[\phi_t]$ fixed while inflating uncertainty.
 
 If $\phi_{t-1}\sim\mathrm{Gamma}(a_{t-1}, b_{t-1})$ (shape–rate), set
-\[
+
+$$
 \phi_t\mid\mathcal D_{t-1}\sim\mathrm{Gamma}(\beta a_{t-1},\; \beta b_{t-1}),
 \quad \beta\in(0,1].
-\]
+$$
+
 Then $\mathbb E[\phi_t]=a_{t-1}/b_{t-1}$ (unchanged) and  
 $\mathrm{Var}(\phi_t) = (1/\beta)\,a_{t-1}/b_{t-1}^2$ (inflated).
 
 **Effect.** Forecasts remain Student-\(t\); recent data get more weight.  
-*(Refs: @west2013bayesian §10.8; @prado2023time §4)*
+Refs: [@west2013bayesian §10.8] [@prado2023time §4]
 :::
 
 
@@ -524,6 +543,7 @@ $\mathrm{Var}(\phi_t) = (1/\beta)\,a_{t-1}/b_{t-1}^2$ (inflated).
 ### What are some common extensions and generalizations of NDLMs? {#sec-faq-extensions}
 
 The DLM framework is highly flexible and can be extended in various ways:
+
 *   **Non-Normal and Non-Linear Dynamic Models**:
     *   **Dynamic Generalized Linear Models (DGLMs)**: Extend DLMs by using exponential family distributions (e.g., Poisson for count data, Binomial for proportions) for the observational model, often involving non-linear link functions.
     *   **General Non-Linear Dynamic Models**: Arise when parameters (e.g., `λ` in a transfer response function or a discount factor itself) introduce non-linearities into the system or observation equations.
