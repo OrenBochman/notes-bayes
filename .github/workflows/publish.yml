@@ -21,6 +21,8 @@ jobs:
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.5.1'
+          use-public-rspm: true   # enables Posit binaries
+
 
       # Install system deps needed by R packages (curl in particular)
       - name: Install system libraries
@@ -37,7 +39,30 @@ jobs:
             gfortran \
             cmake \
             libmpfr-dev \
-            libgmp-dev
+            libgmp-dev \
+            libgdal-dev \
+            libgeos-dev \
+            libproj-dev \
+            libsqlite3-dev \
+            libtbb-dev \
+            libglpk-dev         # <-- needed by igraph
+
+      - name: Cache R packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/R/renv
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: ${{ runner.os }}-renv-
+
+      # Relax warnings only if fallback source builds occur
+      - name: Relax C++ warnings
+        run: |
+          mkdir -p ~/.R
+          {
+            echo 'CXX17FLAGS=-g -O2 -Wno-error=format-security'
+            echo 'CXX14FLAGS=-g -O2 -Wno-error=format-security'
+            echo 'CXX11FLAGS=-g -O2 -Wno-error=format-security'
+          } > ~/.R/Makevars
 
 
       # # Install LaTeX for PDF output
@@ -52,12 +77,17 @@ jobs:
         uses: r-lib/actions/setup-renv@v2
         with:
           cache-version: 1
+        env:
+          RENV_CONFIG_RSPM: https://packagemanager.posit.co/cran/__linux__/jammy/latest
+          RENV_CONFIG_BUILD_BINARY: "TRUE"
+          
 
       - name: Install Python and Dependencies
         uses: actions/setup-python@v4
         with:
           python-version: '3.10.12'
           cache: 'pip'
+          
       - run: pip install jupyter
       - run: pip install -r requirements.txt
 
