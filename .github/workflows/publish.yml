@@ -51,7 +51,7 @@ jobs:
             libsqlite3-dev \
             libtbb-dev \
             libglpk-dev \
-            jags libjags-dev
+            jags
       
     #     sudo ldconfig
 
@@ -98,12 +98,12 @@ jobs:
           cache: 'pip'
 
       - name: Install pybind11 numpy, wheel, and jupyter for build
-        run: pip install "pybind11<2.13" numpy jupyter wheel
+        run: pip install "pybind11<2.13" "numpy<3" jupyter wheel
 
       - name: Build pyjags (no isolation)
         env:
-          CFLAGS: "-I$(python -c 'import pybind11,sys; print(pybind11.get_include())')"
-          CXXFLAGS: "-I$(python -c 'import pybind11,sys; print(pybind11.get_include())')"
+          CFLAGS:   "-I$(python -c 'import pybind11; print(pybind11.get_include())') -I$(python -c 'import numpy; print(numpy.get_include())')"
+          CXXFLAGS: "-I$(python -c 'import pybind11; print(pybind11.get_include())') -I$(python -c 'import numpy; print(numpy.get_include())')"
         run: pip install --no-build-isolation pyjags
 
       - name: Install remaining dependencies
