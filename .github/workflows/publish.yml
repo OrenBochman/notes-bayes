@@ -100,10 +100,18 @@ jobs:
       - name: Install pybind11 numpy, wheel, and jupyter for build
         run: pip install "pybind11<2.13" "numpy<3" jupyter wheel
 
+        # Export expanded include paths for the next step
+      - name: Set include flags
+        run: |
+          PYBIND11_INCLUDE=$(python -c 'import pybind11; print(pybind11.get_include())')
+          NUMPY_INCLUDE=$(python -c 'import numpy; print(numpy.get_include())')
+          echo "CFLAGS=-I${PYBIND11_INCLUDE} -I${NUMPY_INCLUDE}" >> $GITHUB_ENV
+          echo "CXXFLAGS=-I${PYBIND11_INCLUDE} -I${NUMPY_INCLUDE}" >> $GITHUB_ENV
+          # (optional) also force the include search path for C++
+          echo "CPLUS_INCLUDE_PATH=${PYBIND11_INCLUDE}:${NUMPY_INCLUDE}" >> $GITHUB_ENV
+
+      # Now build pyjags without isolation, using the pre-set flags
       - name: Build pyjags (no isolation)
-        env:
-          CFLAGS:   "-I$(python -c 'import pybind11; print(pybind11.get_include())') -I$(python -c 'import numpy; print(numpy.get_include())')"
-          CXXFLAGS: "-I$(python -c 'import pybind11; print(pybind11.get_include())') -I$(python -c 'import numpy; print(numpy.get_include())')"
         run: pip install --no-build-isolation pyjags
 
       - name: Install remaining dependencies
