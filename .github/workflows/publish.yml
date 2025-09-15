@@ -89,7 +89,8 @@ jobs:
           
 
       - name: Install Python and Dependencies
-        uses: actions/setup-python@v4
+        id: py
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10.12'
           cache: 'pip'
@@ -97,9 +98,14 @@ jobs:
       #- name: Install pybind11 numpy, wheel, and jupyter for build
       #  run: pip install "pybind11<2.13" "numpy<3" jupyter wheel
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-        
+      - name: Install Python dependencies
+        #run: pip install -r requirements.txt
+        run: |
+          "${{ steps.py.outputs.python-path }}" -m pip install -U pip
+          if [ -f requirements.txt ]; then
+            "${{ steps.py.outputs.python-path }}" -m pip install -r requirements.txt
+          fi
+
       #   # Export expanded include paths for the next step
       # - name: Set include flags
       #   run: |
@@ -119,9 +125,18 @@ jobs:
       # - name: Setup Julia
       #   uses: julia-actions/setup-julia@v1
 
+
+
+
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Force reticulate (R engine) to this Python:
+          RETICULATE_PYTHON: ${{ steps.py.outputs.python-path }}
+          # Force Quarto’s Python engine (Jupyter) to this Python:
+          QUARTO_PYTHON: ${{ steps.py.outputs.python-path }}
+
+          
