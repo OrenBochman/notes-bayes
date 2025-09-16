@@ -61,7 +61,10 @@ You will be asked to upload pictures summarizing your results.
 
 R code to fit the model: 
 
-- requires R packages `gtrends`,and `dlm` as well as the files  "all_dlm_functions_unknown_v.R" and "discountfactor_selection_functions.R" also provided below. 
+- requires R packages `gtrends`,and `dlm` as well as the files     
+   - "all_dlm_functions_unknown_v.R" and
+   - "discountfactor_selection_functions.R" 
+  also provided below. 
 
 
 ### All dlm functions unknown v
@@ -423,6 +426,21 @@ The assignment will be graded based on the uploaded pictures summarizing the res
 
 
 ```{r}
+#| label: code-gtrendsR-helper
+# --- Clean helper ---
+clean_gtrends <- function(df, lt1_value = 0.5) {
+  # Map "<1" to a numeric (choose 0, 0.5, or 1; 0.5 is a common midpoint choice)
+  df$hits <- as.numeric(ifelse(df$hits == "<1", lt1_value, df$hits))
+  # Ensure date is Date (works fine in base plot)
+  df$date <- as.Date(df$date)
+  # Drop rows with missing/invalid values
+  df <- df[is.finite(df$hits) & !is.na(df$date), ]
+  rownames(df) <- NULL
+  df
+}
+```
+
+```r
 #| label: code-gtrendsR-get-data
 # download data 
 library(gtrendsR)
@@ -436,10 +454,24 @@ timeseries_data=timeseries_data$interest_over_time
 data=list(yt=timeseries_data$hits)
 plot(data$yt, type='l', main="Google Trends: time series", 
      xlab='time', ylab='Google hits', lty=3, ylim=c(0,100))
+
+ts <- clean_gtrends(ts, lt1_value = 0.5)
+
+write.csv(ts, "google_trends_timeseries.csv", row.names = FALSE)
+
 ```
 
 ```{r}
 #| label: code-gtrendsR-data-analysis
+
+loaded_csv <- read.csv("google_trends_timeseries.csv",stringsAsFactors = FALSE)
+loaded_csv <- clean_gtrends(loaded_csv, lt1_value = 0.5)
+
+data=list(yt=loaded_csv$hits,date=loaded_csv$date)
+
+plot(loaded_csv$date, loaded_csv$hits, type = 'l', main = "Google Trends: time series (Loaded)",
+     xlab = 'Time', ylab = 'Google hits', lty = 3, ylim = c(0,100))
+     
 
 library(dlm)
 model_seasonal=dlmModTrig(s=12,q=4,dV=0,dW=1)
@@ -488,7 +520,7 @@ ci_smoothed <- get_credible_interval_unknown_v(
 
 ## plot smoothing results 
 par(mfrow=c(1,1), mar = c(3, 4, 2, 1))
-index <- timeseries_data$date
+index <- data$date
 plot(index, data$yt, ylab='Google hits',
      main = "Google Trends: time series", type = 'l',
      xlab = 'time', lty=3,ylim=c(0,100))
@@ -524,12 +556,10 @@ plot(index,results_smoothed$mnt[,9],lwd=2,col="darkgreen",
 
 #Estimate for the observational variance: St[T]
 results_filtered$St[T]
-
 ```
 
 
 ## My Submission
-
 
 What modifications to the lines of R-code below have to be made to consider a DLM with the following structure: 
 
@@ -622,7 +652,7 @@ ci_smoothed <- get_credible_interval_unknown_v(
 #| fig-cap: Plot smoothing results
 ## plot smoothing results 
 par(mfrow=c(1,1), mar = c(3, 4, 2, 1))
-index <- timeseries_data$date
+index <- data$date
 plot(index, data$yt, ylab='Google hits',
      main = "Google Trends: time series", type = 'l',
      xlab = 'time', lty=3,ylim=c(0,100))
