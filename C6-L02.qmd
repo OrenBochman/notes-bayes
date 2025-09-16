@@ -98,49 +98,59 @@ The Dirichlet Process (DP) is a non parametric pr
 
 The DP is often used with another likelihood function to build a nonparametric model. In this case we will use it with a Finite Gaussian Mixture to build a clustering model for a set of points.
 
-Recall our material for mixture models: we have k=2 components in our mixture and one way we can set  things up is to generate a component selector $z_n$ for each data point then to use it to draw the data point $x_n$ from the normal distribution associated with the selected component.
+Recall our material for mixture models: we have $k=2$ components in our mixture and one way we can set  things up is to generate a component selector $z_n$ for each data point then to use it to draw the data point $x_n$ from the normal distribution associated with the selected component.
 
-we can write this as follows:
+#### The Generative model as a Story:
 
-$$ 
-\mathbb{P}r(parameters \mid data) \propto \mathbb{P}r(data \mid parameters)\; \mathbb{P}r(parameters)
-$$
+Lets start a story: 
 
 - Finite Gaussian mixture model (K=2 clusters)
-- We start by generating a component selector $z_n$ from two clusters by drawing it from a Categorical distribution with parameters $\rho_1$ and $\rho_2$. In this case these parameters are simply the probabilities of selecting each of the two clusters and since we have two clusters $\rho_2 = 1 - \rho_1$. However we don't know these parameters so we will be putting a prior on them.
+- We start by generating a component selector $z_n$ from two clusters by drawing it from a Categorical distribution with parameters $\rho_1$ and $\rho_2$. In this case these parameters are simply the probabilities of selecting each of the two clusters and since we have two clusters $\rho_2 = 1 - \rho_1$. 
+- However, we do not know these parameters, so we will be putting a prior on them.
+- Next we generate the data points $x_n$ from a normal distribution with mean $\mu_0$ and covariance $\Sigma$. We assume that the data points are independent given the cluster assignments. 
+- Again we don't know the means of the clusters so we will put a prior on them as well.
 
+Actually this is a bit backwards, thinking causally we need to start at the top of the PGM plate model ((priors or hyper-priors) and work our way down.
+
+So at the end of the slide the instructor summarizes the generative story as follows:
+
+1. we generate the weights $\rho_1, \rho_2$ for the two clusters from a Beta distribution with parameters $\alpha_0, \beta_0$. 
+2. we generate the means $\mu_1, \mu_2$ for the two clusters from a normal distribution with mean $\mu_0$ and variance $\sigma_0^2$.
+3. we generate the points $x_n$ from a normal distribution with mean $\mu_{z_n}$ and covariance $\Sigma$ where $z_n$ is the cluster assignment for point $n$.
+
+#### The Hierarchical Model for the Generative Story:
+
+we can write this as follows:
 $$
-z_n \stackrel{iid}{\sim} \text{Categorical}(\rho_1, \rho_2)
-$$
+\begin{aligned}
+z_n & \stackrel{iid}{\sim} \text{Categorical}(\rho_1, \rho_2) &&  \text{cluster assignments} \\
+x_n & \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma) && \text{data points} \\
+\rho_1 & \sim \text{Beta}(\alpha_0, \beta_0) && \text{prior for weights} \\
+\rho_2 & = 1 - \rho_1 && \text{since } K=2 \\
+\mu_k & \stackrel{iid}{\sim} \mathcal{N}(\mu_0, \sigma_0^2), \quad k=1,2 && \text{prior for means} 
+\end{aligned}
+$$ {#eq-bnp-gaussian-mixture-model}
+
+- We do not know $\mu_1 , \mu_2, \rho_1 , \rho_2$
+- We assume the quantities $\Sigma, \sigma_0^2, \mu_0, \alpha_0, \beta_0$ are fixed and known to keep things simple but the instructor notes that we we could also put priors on these hyperparameters.
+
+- Inference goal: assignments of data points to clusters, cluster parameters. 
+$$ 
+\mathbb{P}r(parameters \mid data) \propto \mathbb{P}r(data \mid parameters)\; \mathbb{P}r(parameters)
+$$ 
 
 
+### The Beta Distribution (review){#sec-NPM-beta-distribution}
 
-$$
-x_n \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma)
-$$
-
--  We don't know $\mu_1 , \mu_2$
-$$
-\mu_k \stackrel{iid}{\sim} \mathcal{N}(\mu_0, \sigma_0^2) \quad k=1,2
-$$
--  Don’t know $\rho_1 , \rho_2$
-$$
-\rho_1 \sim \text{Beta}(\alpha_0, \beta_0) 
-$$
-
-$$
-\rho_2 = 1 - \rho_1
-$$
-
-
-
-- Inference goal: assignments of data points to clusters, cluster parameters
-
-## Beta distribution review
-
-![beta distribution](images/c6/C6-SL11.png){.collumn-margin}
+![beta distribution](images/c6/C6-SL11.png){.column-margin}
 
 \index{distribution!Beta}
+
+We just used the Beta distribution in our generative model. We picked the Beta distribution as a prior because it is the conjugate prior for the Categorical distribution.
+
+It turns out that the Beta distribution is a special case of the Dirichlet distribution. We need to understand it well,  as we can use it in a number of constructions of the Dirichlet Process. Once we have a basic intuition for the Beta distribution we can extend it to the Dirichlet distribution and then to the Dirichlet Process. So let us review it.
+
+The Beta distribution is a distribution over the interval [0,1]. It is often used as a prior for probabilities. It is the conjugate prior for the Categorical distribution.
 
 $$
 \text{Beta}(\rho \mid \alpha_1, \alpha_2) = \frac{\Gamma(\alpha_1 + \alpha_2)}{\Gamma(\alpha_1)\Gamma(\alpha_2)} \rho^{\alpha_1 - 1} (1 - \rho)^{\alpha_2 - 1} 
