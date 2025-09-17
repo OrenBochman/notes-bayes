@@ -20,7 +20,7 @@ I find that MIT Tenured Professor, Tamara Broderick's explanations are very clea
 
 I found the videos hard to follow at times, as she is talking fast (a good thing). So I watched them a number of times at my leisure. Many times I found myself surprised by things she said. But each time I checked I not only learned something new but was able to put aside some of my misconceptions. 
 
-I want to develop the generative and behavioral stories that help us connect the abstract stochastic processes to problems we might want to solve in the real world. Again this is something I have already stated on in earlier notes in course 1 and the appendicies on distributions.
+I want to develop the generative and behavioral stories that help us connect the abstract stochastic processes to problems we might want to solve in the real world. Again this is something I have already stated on in earlier notes in course 1 and the appendices on distributions.
 :::
 
 ## Nonparametric Bayes
@@ -120,7 +120,6 @@ The Dirichlet Process (DP) is a non parametric pr
 
 ### Generative Model {#sec-NPM-generative-model}
 
-![Finite Gaussian Mixture with two clusters](images/c6/C6-SL10.png){.column-margin}
 
 The DP is often used with another likelihood function to build a nonparametric model. In this case we will use it with a Finite Gaussian Mixture to build a clustering model for a set of points.
 
@@ -140,11 +139,18 @@ Actually this is a bit backwards, thinking causally we need to start at the top 
 
 So at the end of the slide the instructor summarizes the generative story as follows:
 
+![generating cluster weights](images/c6/C6-SL10a.png){.column-margin}
+
+
 1. we generate the weights $\rho_1, \rho_2$ for the two clusters from a Beta distribution with parameters $\alpha_0, \beta_0$. 
 2. we generate the means $\mu_1, \mu_2$ for the two clusters from a normal distribution with mean $\mu_0$ and variance $\sigma_0^2$.
 3. we generate the points $x_n$ from a normal distribution with mean $\mu_{z_n}$ and covariance $\Sigma$ where $z_n$ is the cluster assignment for point $n$.
 
 #### The Hierarchical Model for the Generative Story:
+
+
+![generating cluster means](images/c6/C6-SL10b.png){.column-margin}
+
 
 we can write this as follows:
 $$
@@ -164,6 +170,8 @@ $$ {#eq-bnp-gaussian-mixture-model}
 $$ 
 \mathbb{P}r(parameters \mid data) \propto \mathbb{P}r(data \mid parameters)\; \mathbb{P}r(parameters)
 $$ 
+
+![generating points](images/c6/C6-SL10b.png){.column-margin}
 
 
 ### The Beta Distribution (review){#sec-NPM-beta-distribution}
@@ -207,11 +215,14 @@ $$
 
 Now the instructor points out correctly that these Gamma functions are just Binomial coefficients when we are dealing with integers. In 
 
--Now lets 
+-Now let's look at the shape of the Beta distribution for different values of $\alpha_1$ and $\alpha_2$.
   - What happens?
-    - $a = a_1 = a_2 \to 0$
-    - $a = a_1 = a_2 \to \infty$
-    - $a_1 > a_2$
+    - $1 = a_1 = a_2  \implies Beta(1,1)=\frac{1!}{0! \times 0!}\rho^{0}(1-\rho)^{0} = 1$   
+      - This is a uniform distribution over regardless of the value of $\rho$.
+    - $a = a_1 = a_2 \to \infty \implies \text{Beta}(a,a)$ is highly concentrated at  around 0.5 and almost zero elsewhere.
+    - $a_1 > a_2 \implies \text{Beta}(a_1, a_2)$ is skewed to the left
+    - $a_1 < a_2 \implies \text{Beta}(a_1, a_2)$ is skewed to the right
+  
 - Beta is conjugate to Cat
 
 $$
@@ -228,6 +239,81 @@ p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1-1}} (1 - \rho_1 )^{\mathbb{1}_{z=2
 $$
 
 
-![two clusters](images/c6/C6-SL12.png){.column-margin}
+## N-component gaussian mixture model {#sec-BNP-n-component-gaussian-mixture-model}
 
-![two clusters](images/c6/C6-SL13.png){.column-margin}
+we now move to the case where we have K components in our mixture model
+
+
+### Generative story for K components {#sec-BNP-generative-story-k-components}
+
+
+![generating cluster weights](images/c6/C6-SL12a.png){.column-margin}
+
+
+
+summarizes the generative story as follows:
+
+1. we draw the weights $\rho_{1:k}, $ for the each cluster from a **Dirichlet distribution** with parameters $\alpha_{0:K}$. 
+2. we generate the means $\mu_1, \mu_2$ for the two clusters from a normal distribution with mean $\mu_0$ and variance $\sigma_0^2$.
+3. we generate the points $x_n$ from a normal distribution with mean $\mu_{z_n}$ and covariance $\Sigma$ where $z_n$ is the cluster assignment for point $n$.
+
+
+![generating cluster means](images/c6/C6-SL12b.png){.column-margin}
+
+
+#### The Hierarchical Model for the Generative Story:
+
+
+$$
+\begin{aligned}
+\rho_{1:K} & \sim \text{Dirichlet}(\alpha_{1:k}) && \text{cluster weights} \\
+\mu_k & \stackrel{iid}{\sim} \mathcal{N}(\mu_0, \sigma_0^2), \quad k=1,2 && \text{cluster means} \\
+z_n & \stackrel{iid}{\sim} \text{Categorical}(\rho_{1:k} &&  \text{point cluster assignments} \\
+x_n & \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma) && \text{point generation} \\
+\end{aligned}
+$$ {#eq-bnp-gaussian-mixture-model}
+
+
+![generating points](images/c6/C6-SL12c.png){.column-margin}
+
+
+## Dirichlet distribution Review {#sec-BNP-dirichlet-distribution}
+
+![Peter Gustav Lejeune Dirichlet](images/c6/Peter_Gustav_Lejeune_Dirichlet.jpg){.column-margin}
+
+
+Although we have looked at the Dirichlet distribution in the context of Bayesian Mixture Models we will now dive deeper into this distribution and its properties. 
+
+BNPs teach us that the Dirichlet distribution is a conjugate prior for the categorical distribution. And to a large extent is the basic building block of non-parametric Bayesian methods. 
+
+Once you understand the Dirichlet distribution, you should be able to understand 50% of the non-parametric Bayesian methods used in research today. I found that this lesson does for me what early differential equations did for me in my undergraduate studies. It is a key concept that opens the door to understanding many other concepts. We will see that the Dirichlet distribution is a generalization of the Beta distribution and that it is also a stepping stone to the Chinese Restaurant Process.
+
+We start with the Dirichlet distribution, which is a distribution over a simplex. A simplex is a generalization of a triangle to higher dimensions. For example, in 2D, a simplex is a triangle, and in 3D, it is a tetrahedron. Why a simplex? Because we want to model probabilities, and probabilities must sum to 1. A simplex is a set of points that satisfy this constraint. 
+
+Here is the pdf for the Dirichlet distribution:
+
+$$
+\text{Dirichlet}(\rho \mid \alpha_1, \ldots , \alpha_K) = \frac{\Gamma(\sum_{k=1}^K \alpha_k)}{\prod_{k=1}^K \Gamma(\alpha_k)} \prod_{k=1}^K \rho_k^{\alpha_k - 1} \qquad a_k>0
+$$ {#eq-dirichlet-pdf}
+
+- where $\rho_k$ is the $k$-th component of the vector $\rho$ and 
+- $\alpha_k$ is the concentration parameter for the $k$-th component.
+- $\Gamma$ is the gamma function, which is a generalization of the factorial function. Recall that $\Gamma(n) = (n-1)!$ for positive integers $n$.
+
+The concentration parameters control how concentrated the distribution is around the mean.
+
+Now we should develop some intuition about the Dirichlet distribution with respect to its parameters.
+
+- what happen when $a=a_1=a_K=1$?
+- what happen when $a=a_1=a_K \to 0$?
+- what happen when $a=a_1=a_K \to \infty$?
+
+$$
+\rho_{1:K} \sim \textrm{Dirichlet}(a_{1:K}) \quad z\sim \textrm{Cat}(\rho_{1:K})
+$$
+
+$$
+\rho_{1:K}|z \stackrel{d}{=} \textrm{Dirichlet}(a_{1:K}) \quad a'_k= a_k + \mathbb{1}_{\{z=k\}} 
+$$
+
+- what happen when $a_1 > a_2$?

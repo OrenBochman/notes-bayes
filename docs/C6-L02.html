@@ -1366,6 +1366,11 @@ window.Quarto = {
   <li><a href="#sec-NPM-generative-model" id="toc-sec-NPM-generative-model" class="nav-link" data-scroll-target="#sec-NPM-generative-model"><span class="header-section-number">114.3.2</span> Generative Model</a></li>
   <li><a href="#sec-NPM-beta-distribution" id="toc-sec-NPM-beta-distribution" class="nav-link" data-scroll-target="#sec-NPM-beta-distribution"><span class="header-section-number">114.3.3</span> The Beta Distribution (review)</a></li>
   </ul></li>
+  <li><a href="#sec-BNP-n-component-gaussian-mixture-model" id="toc-sec-BNP-n-component-gaussian-mixture-model" class="nav-link" data-scroll-target="#sec-BNP-n-component-gaussian-mixture-model"><span class="header-section-number">114.4</span> N-component gaussian mixture model</a>
+  <ul class="collapse">
+  <li><a href="#sec-BNP-generative-story-k-components" id="toc-sec-BNP-generative-story-k-components" class="nav-link" data-scroll-target="#sec-BNP-generative-story-k-components"><span class="header-section-number">114.4.1</span> Generative story for K components</a></li>
+  </ul></li>
+  <li><a href="#sec-BNP-dirichlet-distribution" id="toc-sec-BNP-dirichlet-distribution" class="nav-link" data-scroll-target="#sec-BNP-dirichlet-distribution"><span class="header-section-number">114.5</span> Dirichlet distribution Review</a></li>
   </ul>
 </nav>
     </div>
@@ -1390,7 +1395,7 @@ window.Quarto = {
 <p>The following material is based on the <a href="https://https://tamarabroderick.com/tutorial_2016_mlss_cadiz.html">Nonparametric Bayes Tutorial</a> that took place in the 2016 ML the University of Cádiz in Cádiz, Spain. Which focuses primarily on the Dirichlet Process and related processes. There is so much material on BNP and non-parametric methods out there it is hard to get started. The speaker has a <a href="https://tamarabroderick.com/blog/">blog</a> with more material on this and other topics.</p>
 <p>I find that MIT Tenured Professor, Tamara Broderick’s explanations are very clear and accessible. She uses simple motivating examples, she shares the basis of how she has built her intuition for the topic. Most significantly she is very enthusiastic about the BNP which I find inspiring and contagious.</p>
 <p>I found the videos hard to follow at times, as she is talking fast (a good thing). So I watched them a number of times at my leisure. Many times I found myself surprised by things she said. But each time I checked I not only learned something new but was able to put aside some of my misconceptions.</p>
-<p>I want to develop the generative and behavioral stories that help us connect the abstract stochastic processes to problems we might want to solve in the real world. Again this is something I have already stated on in earlier notes in course 1 and the appendicies on distributions.</p>
+<p>I want to develop the generative and behavioral stories that help us connect the abstract stochastic processes to problems we might want to solve in the real world. Again this is something I have already stated on in earlier notes in course 1 and the appendices on distributions.</p>
 </div>
 </div>
 <section id="nonparametric-bayes" class="level2" data-number="114.1">
@@ -1497,15 +1502,9 @@ The Dirichlet Process (DP) is a non parametric pr
 </section>
 <section id="sec-NPM-generative-model" class="level3 page-columns page-full" data-number="114.3.2">
 <h3 data-number="114.3.2" class="anchored" data-anchor-id="sec-NPM-generative-model"><span class="header-section-number">114.3.2</span> Generative Model</h3>
-
-<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="images/c6/C6-SL10.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Finite Gaussian Mixture with two clusters"><img src="images/c6/C6-SL10.png" class="img-fluid figure-img" alt="Finite Gaussian Mixture with two clusters"></a></p>
-<figcaption>Finite Gaussian Mixture with two clusters</figcaption>
-</figure>
-</div></div><p>The DP is often used with another likelihood function to build a nonparametric model. In this case we will use it with a Finite Gaussian Mixture to build a clustering model for a set of points.</p>
+<p>The DP is often used with another likelihood function to build a nonparametric model. In this case we will use it with a Finite Gaussian Mixture to build a clustering model for a set of points.</p>
 <p>Recall our material for mixture models: we have <span class="math inline">k=2</span> components in our mixture and one way we can set things up is to generate a component selector <span class="math inline">z_n</span> for each data point then to use it to draw the data point <span class="math inline">x_n</span> from the normal distribution associated with the selected component.</p>
-<section id="the-generative-model-as-a-story" class="level4" data-number="114.3.2.1">
+<section id="the-generative-model-as-a-story" class="level4 page-columns page-full" data-number="114.3.2.1">
 <h4 data-number="114.3.2.1" class="anchored" data-anchor-id="the-generative-model-as-a-story"><span class="header-section-number">114.3.2.1</span> The Generative model as a Story:</h4>
 <p>Lets start a story:</p>
 <ul>
@@ -1517,15 +1516,27 @@ The Dirichlet Process (DP) is a non parametric pr
 </ul>
 <p>Actually this is a bit backwards, thinking causally we need to start at the top of the PGM plate model ((priors or hyper-priors) and work our way down.</p>
 <p>So at the end of the slide the instructor summarizes the generative story as follows:</p>
-<ol type="1">
+
+<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/c6/C6-SL10a.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="generating cluster weights"><img src="images/c6/C6-SL10a.png" class="img-fluid figure-img" alt="generating cluster weights"></a></p>
+<figcaption>generating cluster weights</figcaption>
+</figure>
+</div></div><ol type="1">
 <li>we generate the weights <span class="math inline">\rho_1, \rho_2</span> for the two clusters from a Beta distribution with parameters <span class="math inline">\alpha_0, \beta_0</span>.</li>
 <li>we generate the means <span class="math inline">\mu_1, \mu_2</span> for the two clusters from a normal distribution with mean <span class="math inline">\mu_0</span> and variance <span class="math inline">\sigma_0^2</span>.</li>
 <li>we generate the points <span class="math inline">x_n</span> from a normal distribution with mean <span class="math inline">\mu_{z_n}</span> and covariance <span class="math inline">\Sigma</span> where <span class="math inline">z_n</span> is the cluster assignment for point <span class="math inline">n</span>.</li>
 </ol>
 </section>
-<section id="the-hierarchical-model-for-the-generative-story" class="level4" data-number="114.3.2.2">
+<section id="the-hierarchical-model-for-the-generative-story" class="level4 page-columns page-full" data-number="114.3.2.2">
 <h4 data-number="114.3.2.2" class="anchored" data-anchor-id="the-hierarchical-model-for-the-generative-story"><span class="header-section-number">114.3.2.2</span> The Hierarchical Model for the Generative Story:</h4>
-<p>we can write this as follows: <span id="eq-bnp-gaussian-mixture-model"><span class="math display">
+
+<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/c6/C6-SL10b.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="generating cluster means"><img src="images/c6/C6-SL10b.png" class="img-fluid figure-img" alt="generating cluster means"></a></p>
+<figcaption>generating cluster means</figcaption>
+</figure>
+</div></div><p>we can write this as follows: <span id="eq-bnp-gaussian-mixture-model"><span class="math display">
 \begin{aligned}
 z_n &amp; \stackrel{iid}{\sim} \text{Categorical}(\rho_1, \rho_2) &amp;&amp;  \text{cluster assignments} \\
 x_n &amp; \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma) &amp;&amp; \text{data points} \\
@@ -1541,14 +1552,20 @@ x_n &amp; \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma) &amp;&amp; \text{dat
 \mathbb{P}r(parameters \mid data) \propto \mathbb{P}r(data \mid parameters)\; \mathbb{P}r(parameters)
 </span></p></li>
 </ul>
-</section>
+
+<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/c6/C6-SL10b.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="generating points"><img src="images/c6/C6-SL10b.png" class="img-fluid figure-img" alt="generating points"></a></p>
+<figcaption>generating points</figcaption>
+</figure>
+</div></div></section>
 </section>
 <section id="sec-NPM-beta-distribution" class="level3 page-columns page-full" data-number="114.3.3">
 <h3 data-number="114.3.3" class="anchored" data-anchor-id="sec-NPM-beta-distribution"><span class="header-section-number">114.3.3</span> The Beta Distribution (review)</h3>
 
 <div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="images/c6/C6-SL11.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="beta distribution"><img src="images/c6/C6-SL11.png" class="img-fluid figure-img" alt="beta distribution"></a></p>
+<p><a href="images/c6/C6-SL11.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="beta distribution"><img src="images/c6/C6-SL11.png" class="img-fluid figure-img" alt="beta distribution"></a></p>
 <figcaption>beta distribution</figcaption>
 </figure>
 </div></div><p></p>
@@ -1587,7 +1604,11 @@ x_n &amp; \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma) &amp;&amp; \text{dat
 </ul></li>
 </ul>
 <p>Now the instructor points out correctly that these Gamma functions are just Binomial coefficients when we are dealing with integers. In</p>
-<p>-Now lets - What happens? - <span class="math inline">a = a_1 = a_2 \to 0</span> - <span class="math inline">a = a_1 = a_2 \to \infty</span> - <span class="math inline">a_1 &gt; a_2</span> - Beta is conjugate to Cat</p>
+<p>-Now let’s look at the shape of the Beta distribution for different values of <span class="math inline">\alpha_1</span> and <span class="math inline">\alpha_2</span>. - What happens? - <span class="math inline">1 = a_1 = a_2  \implies Beta(1,1)=\frac{1!}{0! \times 0!}\rho^{0}(1-\rho)^{0} = 1</span><br>
+- This is a uniform distribution over regardless of the value of <span class="math inline">\rho</span>. - <span class="math inline">a = a_1 = a_2 \to \infty \implies \text{Beta}(a,a)</span> is highly concentrated at around 0.5 and almost zero elsewhere. - <span class="math inline">a_1 &gt; a_2 \implies \text{Beta}(a_1, a_2)</span> is skewed to the left - <span class="math inline">a_1 &lt; a_2 \implies \text{Beta}(a_1, a_2)</span> is skewed to the right</p>
+<ul>
+<li>Beta is conjugate to Cat</li>
+</ul>
 <p><span class="math display">
 \rho \sim \text{Beta}(\alpha_1, \alpha_2),\qquad z \sim \text{Cat}(\rho_1, \rho_2)
 </span></p>
@@ -1597,18 +1618,87 @@ p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1}} (1 - \rho_1 )^{\mathbb{1}_{z=2}}
 <p><span class="math display">
 p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1-1}} (1 - \rho_1 )^{\mathbb{1}_{z=2}-1} \propto \text{Beta}(\rho_1 \mid a_1 + \mathbb{1}_{z=1}, a_2 + \mathbb{1}_{z=2})
 </span></p>
+</section>
+</section>
+<section id="sec-BNP-n-component-gaussian-mixture-model" class="level2 page-columns page-full" data-number="114.4">
+<h2 data-number="114.4" class="anchored" data-anchor-id="sec-BNP-n-component-gaussian-mixture-model"><span class="header-section-number">114.4</span> N-component gaussian mixture model</h2>
+<p>we now move to the case where we have K components in our mixture model</p>
+<section id="sec-BNP-generative-story-k-components" class="level3 page-columns page-full" data-number="114.4.1">
+<h3 data-number="114.4.1" class="anchored" data-anchor-id="sec-BNP-generative-story-k-components"><span class="header-section-number">114.4.1</span> Generative story for K components</h3>
 
 <div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="images/c6/C6-SL12.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="two clusters"><img src="images/c6/C6-SL12.png" class="img-fluid figure-img" alt="two clusters"></a></p>
-<figcaption>two clusters</figcaption>
+<p><a href="images/c6/C6-SL12a.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="generating cluster weights"><img src="images/c6/C6-SL12a.png" class="img-fluid figure-img" alt="generating cluster weights"></a></p>
+<figcaption>generating cluster weights</figcaption>
 </figure>
-</div><div class="quarto-figure quarto-figure-center">
+</div></div><p>summarizes the generative story as follows:</p>
+<ol type="1">
+<li>we draw the weights $_{1:k}, $ for the each cluster from a <strong>Dirichlet distribution</strong> with parameters <span class="math inline">\alpha_{0:K}</span>.</li>
+<li>we generate the means <span class="math inline">\mu_1, \mu_2</span> for the two clusters from a normal distribution with mean <span class="math inline">\mu_0</span> and variance <span class="math inline">\sigma_0^2</span>.</li>
+<li>we generate the points <span class="math inline">x_n</span> from a normal distribution with mean <span class="math inline">\mu_{z_n}</span> and covariance <span class="math inline">\Sigma</span> where <span class="math inline">z_n</span> is the cluster assignment for point <span class="math inline">n</span>.</li>
+</ol>
+
+<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="images/c6/C6-SL13.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="two clusters"><img src="images/c6/C6-SL13.png" class="img-fluid figure-img" alt="two clusters"></a></p>
-<figcaption>two clusters</figcaption>
+<p><a href="images/c6/C6-SL12b.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="generating cluster means"><img src="images/c6/C6-SL12b.png" class="img-fluid figure-img" alt="generating cluster means"></a></p>
+<figcaption>generating cluster means</figcaption>
 </figure>
-</div></div>
+</div></div><section id="the-hierarchical-model-for-the-generative-story-1" class="level4 page-columns page-full" data-number="114.4.1.1">
+<h4 data-number="114.4.1.1" class="anchored" data-anchor-id="the-hierarchical-model-for-the-generative-story-1"><span class="header-section-number">114.4.1.1</span> The Hierarchical Model for the Generative Story:</h4>
+<p><span id="eq-bnp-gaussian-mixture-model"><span class="math display">
+\begin{aligned}
+\rho_{1:K} &amp; \sim \text{Dirichlet}(\alpha_{1:k}) &amp;&amp; \text{cluster weights} \\
+\mu_k &amp; \stackrel{iid}{\sim} \mathcal{N}(\mu_0, \sigma_0^2), \quad k=1,2 &amp;&amp; \text{cluster means} \\
+z_n &amp; \stackrel{iid}{\sim} \text{Categorical}(\rho_{1:k} &amp;&amp;  \text{point cluster assignments} \\
+x_n &amp; \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma) &amp;&amp; \text{point generation} \\
+\end{aligned}
+\tag{114.4}</span></span></p>
+
+<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/c6/C6-SL12c.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="generating points"><img src="images/c6/C6-SL12c.png" class="img-fluid figure-img" alt="generating points"></a></p>
+<figcaption>generating points</figcaption>
+</figure>
+</div></div></section>
+</section>
+</section>
+<section id="sec-BNP-dirichlet-distribution" class="level2 page-columns page-full" data-number="114.5">
+<h2 data-number="114.5" class="anchored" data-anchor-id="sec-BNP-dirichlet-distribution"><span class="header-section-number">114.5</span> Dirichlet distribution Review</h2>
+
+<div class="no-row-height column-margin column-container"><div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/c6/Peter_Gustav_Lejeune_Dirichlet.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Peter Gustav Lejeune Dirichlet"><img src="images/c6/Peter_Gustav_Lejeune_Dirichlet.jpg" class="img-fluid figure-img" alt="Peter Gustav Lejeune Dirichlet"></a></p>
+<figcaption>Peter Gustav Lejeune Dirichlet</figcaption>
+</figure>
+</div></div><p>Although we have looked at the Dirichlet distribution in the context of Bayesian Mixture Models we will now dive deeper into this distribution and its properties.</p>
+<p>BNPs teach us that the Dirichlet distribution is a conjugate prior for the categorical distribution. And to a large extent is the basic building block of non-parametric Bayesian methods.</p>
+<p>Once you understand the Dirichlet distribution, you should be able to understand 50% of the non-parametric Bayesian methods used in research today. I found that this lesson does for me what early differential equations did for me in my undergraduate studies. It is a key concept that opens the door to understanding many other concepts. We will see that the Dirichlet distribution is a generalization of the Beta distribution and that it is also a stepping stone to the Chinese Restaurant Process.</p>
+<p>We start with the Dirichlet distribution, which is a distribution over a simplex. A simplex is a generalization of a triangle to higher dimensions. For example, in 2D, a simplex is a triangle, and in 3D, it is a tetrahedron. Why a simplex? Because we want to model probabilities, and probabilities must sum to 1. A simplex is a set of points that satisfy this constraint.</p>
+<p>Here is the pdf for the Dirichlet distribution:</p>
+<p><span id="eq-dirichlet-pdf"><span class="math display">
+\text{Dirichlet}(\rho \mid \alpha_1, \ldots , \alpha_K) = \frac{\Gamma(\sum_{k=1}^K \alpha_k)}{\prod_{k=1}^K \Gamma(\alpha_k)} \prod_{k=1}^K \rho_k^{\alpha_k - 1} \qquad a_k&gt;0
+\tag{114.5}</span></span></p>
+<ul>
+<li>where <span class="math inline">\rho_k</span> is the <span class="math inline">k</span>-th component of the vector <span class="math inline">\rho</span> and</li>
+<li><span class="math inline">\alpha_k</span> is the concentration parameter for the <span class="math inline">k</span>-th component.</li>
+<li><span class="math inline">\Gamma</span> is the gamma function, which is a generalization of the factorial function. Recall that <span class="math inline">\Gamma(n) = (n-1)!</span> for positive integers <span class="math inline">n</span>.</li>
+</ul>
+<p>The concentration parameters control how concentrated the distribution is around the mean.</p>
+<p>Now we should develop some intuition about the Dirichlet distribution with respect to its parameters.</p>
+<ul>
+<li>what happen when <span class="math inline">a=a_1=a_K=1</span>?</li>
+<li>what happen when <span class="math inline">a=a_1=a_K \to 0</span>?</li>
+<li>what happen when <span class="math inline">a=a_1=a_K \to \infty</span>?</li>
+</ul>
+<p><span class="math display">
+\rho_{1:K} \sim \textrm{Dirichlet}(a_{1:K}) \quad z\sim \textrm{Cat}(\rho_{1:K})
+</span></p>
+<p><span class="math display">
+\rho_{1:K}|z \stackrel{d}{=} \textrm{Dirichlet}(a_{1:K}) \quad a'_k= a_k + \mathbb{1}_{\{z=k\}}
+</span></p>
+<ul>
+<li>what happen when <span class="math inline">a_1 &gt; a_2</span>?</li>
+</ul>
 
 
 <!-- -->
@@ -1660,7 +1750,6 @@ Saria, Suchi, Anand K. Rajani, Jeffrey Gould, Daphne Koller, and Anna A. Penn. 2
 Sudderth, Erik, and Michael Jordan. 2008. <span>“Shared Segmentation of Natural Scenes Using Dependent Pitman-Yor Processes.”</span> In <em>Advances in Neural Information Processing Systems</em>, edited by D. Koller, D. Schuurmans, Y. Bengio, and L. Bottou. Vol. 21. Curran Associates, Inc. <a href="https://proceedings.neurips.cc/paper_files/paper/2008/file/883e881bb4d22a7add958f2d6b052c9f-Paper.pdf">https://proceedings.neurips.cc/paper_files/paper/2008/file/883e881bb4d22a7add958f2d6b052c9f-Paper.pdf</a>.
 </div>
 </div>
-</section>
 </section>
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr>
@@ -2225,7 +2314,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>I found the videos hard to follow at times, as she is talking fast (a good thing). So I watched them a number of times at my leisure. Many times I found myself surprised by things she said. But each time I checked I not only learned something new but was able to put aside some of my misconceptions. </span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>I want to develop the generative and behavioral stories that help us connect the abstract stochastic processes to problems we might want to solve in the real world. Again this is something I have already stated on in earlier notes in course 1 and the appendicies on distributions.</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>I want to develop the generative and behavioral stories that help us connect the abstract stochastic processes to problems we might want to solve in the real world. Again this is something I have already stated on in earlier notes in course 1 and the appendices on distributions.</span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="fu">## Nonparametric Bayes</span></span>
@@ -2325,117 +2414,203 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a><span class="fu">### Generative Model {#sec-NPM-generative-model}</span></span>
 <span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a><span class="al">![Finite Gaussian Mixture with two clusters](images/c6/C6-SL10.png)</span>{.column-margin}</span>
-<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a>The DP is often used with another likelihood function to build a nonparametric model. In this case we will use it with a Finite Gaussian Mixture to build a clustering model for a set of points.</span>
-<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a>Recall our material for mixture models: we have $k=2$ components in our mixture and one way we can set  things up is to generate a component selector $z_n$ for each data point then to use it to draw the data point $x_n$ from the normal distribution associated with the selected component.</span>
-<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="fu">#### The Generative model as a Story:</span></span>
-<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>Lets start a story: </span>
-<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Finite Gaussian mixture model (K=2 clusters)</span>
-<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We start by generating a component selector $z_n$ from two clusters by drawing it from a Categorical distribution with parameters $\rho_1$ and $\rho_2$. In this case these parameters are simply the probabilities of selecting each of the two clusters and since we have two clusters $\rho_2 = 1 - \rho_1$. </span>
-<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>However, we do not know these parameters, so we will be putting a prior on them.</span>
-<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Next we generate the data points $x_n$ from a normal distribution with mean $\mu_0$ and covariance $\Sigma$. We assume that the data points are independent given the cluster assignments. </span>
-<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Again we don't know the means of the clusters so we will put a prior on them as well.</span>
-<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a>Actually this is a bit backwards, thinking causally we need to start at the top of the PGM plate model ((priors or hyper-priors) and work our way down.</span>
-<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a>So at the end of the slide the instructor summarizes the generative story as follows:</span>
-<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>we generate the weights $\rho_1, \rho_2$ for the two clusters from a Beta distribution with parameters $\alpha_0, \beta_0$. </span>
-<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>we generate the means $\mu_1, \mu_2$ for the two clusters from a normal distribution with mean $\mu_0$ and variance $\sigma_0^2$.</span>
-<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>we generate the points $x_n$ from a normal distribution with mean $\mu_{z_n}$ and covariance $\Sigma$ where $z_n$ is the cluster assignment for point $n$.</span>
-<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a><span class="fu">#### The Hierarchical Model for the Generative Story:</span></span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a>The DP is often used with another likelihood function to build a nonparametric model. In this case we will use it with a Finite Gaussian Mixture to build a clustering model for a set of points.</span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>Recall our material for mixture models: we have $k=2$ components in our mixture and one way we can set  things up is to generate a component selector $z_n$ for each data point then to use it to draw the data point $x_n$ from the normal distribution associated with the selected component.</span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a><span class="fu">#### The Generative model as a Story:</span></span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a>Lets start a story: </span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Finite Gaussian mixture model (K=2 clusters)</span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We start by generating a component selector $z_n$ from two clusters by drawing it from a Categorical distribution with parameters $\rho_1$ and $\rho_2$. In this case these parameters are simply the probabilities of selecting each of the two clusters and since we have two clusters $\rho_2 = 1 - \rho_1$. </span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>However, we do not know these parameters, so we will be putting a prior on them.</span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Next we generate the data points $x_n$ from a normal distribution with mean $\mu_0$ and covariance $\Sigma$. We assume that the data points are independent given the cluster assignments. </span>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Again we don't know the means of the clusters so we will put a prior on them as well.</span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>Actually this is a bit backwards, thinking causally we need to start at the top of the PGM plate model ((priors or hyper-priors) and work our way down.</span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a>So at the end of the slide the instructor summarizes the generative story as follows:</span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a><span class="al">![generating cluster weights](images/c6/C6-SL10a.png)</span>{.column-margin}</span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>we generate the weights $\rho_1, \rho_2$ for the two clusters from a Beta distribution with parameters $\alpha_0, \beta_0$. </span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>we generate the means $\mu_1, \mu_2$ for the two clusters from a normal distribution with mean $\mu_0$ and variance $\sigma_0^2$.</span>
+<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>we generate the points $x_n$ from a normal distribution with mean $\mu_{z_n}$ and covariance $\Sigma$ where $z_n$ is the cluster assignment for point $n$.</span>
 <span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a>we can write this as follows:</span>
-<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
-<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a>z_n &amp; \stackrel{iid}{\sim} \text{Categorical}(\rho_1, \rho_2) &amp;&amp;  \text{cluster assignments} <span class="sc">\\</span></span>
-<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a>x_n &amp; \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma) &amp;&amp; \text{data points} <span class="sc">\\</span></span>
-<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a>\rho_1 &amp; \sim \text{Beta}(\alpha_0, \beta_0) &amp;&amp; \text{prior for weights} <span class="sc">\\</span></span>
-<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a>\rho_2 &amp; = 1 - \rho_1 &amp;&amp; \text{since } K=2 <span class="sc">\\</span></span>
-<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a>\mu_k &amp; \stackrel{iid}{\sim} \mathcal{N}(\mu_0, \sigma_0^2), \quad k=1,2 &amp;&amp; \text{prior for means} </span>
-<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
-<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a>$$ {#eq-bnp-gaussian-mixture-model}</span>
-<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We do not know $\mu_1 , \mu_2, \rho_1 , \rho_2$</span>
-<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We assume the quantities $\Sigma, \sigma_0^2, \mu_0, \alpha_0, \beta_0$ are fixed and known to keep things simple but the instructor notes that we we could also put priors on these hyperparameters.</span>
-<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Inference goal: assignments of data points to clusters, cluster parameters. </span>
-<span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a>$$ </span>
-<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(parameters \mid data) \propto \mathbb{P}r(data \mid parameters)\; \mathbb{P}r(parameters)</span>
-<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a>$$ </span>
-<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a><span class="fu">#### The Hierarchical Model for the Generative Story:</span></span>
+<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a><span class="al">![generating cluster means](images/c6/C6-SL10b.png)</span>{.column-margin}</span>
+<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a>we can write this as follows:</span>
+<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a>z_n &amp; \stackrel{iid}{\sim} \text{Categorical}(\rho_1, \rho_2) &amp;&amp;  \text{cluster assignments} <span class="sc">\\</span></span>
+<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a>x_n &amp; \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma) &amp;&amp; \text{data points} <span class="sc">\\</span></span>
+<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a>\rho_1 &amp; \sim \text{Beta}(\alpha_0, \beta_0) &amp;&amp; \text{prior for weights} <span class="sc">\\</span></span>
+<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a>\rho_2 &amp; = 1 - \rho_1 &amp;&amp; \text{since } K=2 <span class="sc">\\</span></span>
+<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a>\mu_k &amp; \stackrel{iid}{\sim} \mathcal{N}(\mu_0, \sigma_0^2), \quad k=1,2 &amp;&amp; \text{prior for means} </span>
+<span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a>$$ {#eq-bnp-gaussian-mixture-model}</span>
+<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We do not know $\mu_1 , \mu_2, \rho_1 , \rho_2$</span>
+<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We assume the quantities $\Sigma, \sigma_0^2, \mu_0, \alpha_0, \beta_0$ are fixed and known to keep things simple but the instructor notes that we we could also put priors on these hyperparameters.</span>
 <span id="cb1-168"><a href="#cb1-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Beta Distribution (review){#sec-NPM-beta-distribution}</span></span>
-<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a><span class="al">![beta distribution](images/c6/C6-SL11.png)</span>{.column-margin}</span>
-<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a>\index{distribution!Beta}</span>
-<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-175"><a href="#cb1-175" aria-hidden="true" tabindex="-1"></a>We just used the <span class="co">[</span><span class="ot">Beta distribution</span><span class="co">](https://en.wikipedia.org/wiki/Beta_distribution)</span> in our generative model for a two component Gaussian mixture. </span>
+<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Inference goal: assignments of data points to clusters, cluster parameters. </span>
+<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(parameters \mid data) \propto \mathbb{P}r(data \mid parameters)\; \mathbb{P}r(parameters)</span>
+<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a>$$ </span>
+<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a><span class="al">![generating points](images/c6/C6-SL10b.png)</span>{.column-margin}</span>
+<span id="cb1-175"><a href="#cb1-175" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-176"><a href="#cb1-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-177"><a href="#cb1-177" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-178"><a href="#cb1-178" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We picked the Beta distribution for a number of reasons:</span>
-<span id="cb1-179"><a href="#cb1-179" aria-hidden="true" tabindex="-1"></a><span class="ss">  1. </span>We said that it a good choice for a prior because it is the <span class="co">[</span><span class="ot">conjugate prior for the Categorical distribution.</span><span class="co">]</span>{.mark} </span>
-<span id="cb1-180"><a href="#cb1-180" aria-hidden="true" tabindex="-1"></a><span class="ss">     - </span>I found that odd as I recall that the Dirichlet distribution is the conjugate prior for the Binomial, bernoulli, negative binomial and geometric distributions but not the Categorical distribution.</span>
-<span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>What about the Categorical distribution how did we miss that one?  I was stumped except that when K=2 the Categorical distribution is equivalent to the Bernoulli distribution. 🤥</span>
-<span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a>    And when K gets bigger we will need to use a Dirichlet prior and the categorical will be a non-degenerate case which no longer a Bernoulli distribution. However we are building up to the case where K is unbounded. So even if it is a but of a stretch this is actually a clever point that the instructor is making. 🤭</span>
-<span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a><span class="ss">  2. </span>The Beta distribution is a distribution over the interval <span class="co">[</span><span class="ot">0,1</span><span class="co">]</span> which is <span class="co">[</span><span class="ot">a good choice when we want to draw a probabilities</span><span class="co">]</span>{.mark}. And we are setting the prior for the probabilities of selecting each cluster.</span>
-<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a><span class="ss">  3. </span>The Beta distribution is more flexible than the Binomial as <span class="co">[</span><span class="ot">it can if we want it to be a uniform distribution</span><span class="co">]</span>{.mark}! This is where it Beta trumps the Binomial! </span>
-<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a><span class="ss">  4. </span>If we have a good understanding of the Binomial distribution we can use it to build an intuition for most discrete cases for the Beta distribution.</span>
-<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a>It turns out that the Categorical distribution is a special case of the Multinomial distribution. And the Dirichlet distribution is the conjugate prior for the Multinomial distribution. </span>
-<span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a>It certainly looks like the Bernoulli distribution once you understand that the Gamma functions are just Binomial coefficients. And if we look at the non gamma part it looks like the likelihood of a Bernoulli distribution. I.e. it seems like we are summing all the ways one can get a certain number of successes and failures in a series of Bernoulli trials.</span>
-<span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-192"><a href="#cb1-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-193"><a href="#cb1-193" aria-hidden="true" tabindex="-1"></a>It turns out that the Beta distribution is a special case of the Dirichlet distribution. We need to understand it well,  as we can use it in a number of constructions of the Dirichlet Process. Once we have a basic intuition for the Beta distribution we can extend it to the Dirichlet distribution and then to the Dirichlet Process. So let us review it.</span>
+<span id="cb1-177"><a href="#cb1-177" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Beta Distribution (review){#sec-NPM-beta-distribution}</span></span>
+<span id="cb1-178"><a href="#cb1-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-179"><a href="#cb1-179" aria-hidden="true" tabindex="-1"></a><span class="al">![beta distribution](images/c6/C6-SL11.png)</span>{.column-margin}</span>
+<span id="cb1-180"><a href="#cb1-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a>\index{distribution!Beta}</span>
+<span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a>We just used the <span class="co">[</span><span class="ot">Beta distribution</span><span class="co">](https://en.wikipedia.org/wiki/Beta_distribution)</span> in our generative model for a two component Gaussian mixture. </span>
+<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We picked the Beta distribution for a number of reasons:</span>
+<span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a><span class="ss">  1. </span>We said that it a good choice for a prior because it is the <span class="co">[</span><span class="ot">conjugate prior for the Categorical distribution.</span><span class="co">]</span>{.mark} </span>
+<span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a><span class="ss">     - </span>I found that odd as I recall that the Dirichlet distribution is the conjugate prior for the Binomial, bernoulli, negative binomial and geometric distributions but not the Categorical distribution.</span>
+<span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>What about the Categorical distribution how did we miss that one?  I was stumped except that when K=2 the Categorical distribution is equivalent to the Bernoulli distribution. 🤥</span>
+<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a>    And when K gets bigger we will need to use a Dirichlet prior and the categorical will be a non-degenerate case which no longer a Bernoulli distribution. However we are building up to the case where K is unbounded. So even if it is a but of a stretch this is actually a clever point that the instructor is making. 🤭</span>
+<span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a><span class="ss">  2. </span>The Beta distribution is a distribution over the interval <span class="co">[</span><span class="ot">0,1</span><span class="co">]</span> which is <span class="co">[</span><span class="ot">a good choice when we want to draw a probabilities</span><span class="co">]</span>{.mark}. And we are setting the prior for the probabilities of selecting each cluster.</span>
+<span id="cb1-192"><a href="#cb1-192" aria-hidden="true" tabindex="-1"></a><span class="ss">  3. </span>The Beta distribution is more flexible than the Binomial as <span class="co">[</span><span class="ot">it can if we want it to be a uniform distribution</span><span class="co">]</span>{.mark}! This is where it Beta trumps the Binomial! </span>
+<span id="cb1-193"><a href="#cb1-193" aria-hidden="true" tabindex="-1"></a><span class="ss">  4. </span>If we have a good understanding of the Binomial distribution we can use it to build an intuition for most discrete cases for the Beta distribution.</span>
 <span id="cb1-194"><a href="#cb1-194" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-195"><a href="#cb1-195" aria-hidden="true" tabindex="-1"></a>The Beta distribution is a distribution over the interval <span class="co">[</span><span class="ot">0,1</span><span class="co">]</span>. It is often used as a prior for probabilities. It is the conjugate prior for the Categorical distribution.</span>
-<span id="cb1-196"><a href="#cb1-196" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-197"><a href="#cb1-197" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-198"><a href="#cb1-198" aria-hidden="true" tabindex="-1"></a>\text{Beta}(\rho \mid \alpha_1, \alpha_2) = \frac{\Gamma(\alpha_1 + \alpha_2)}{\Gamma(\alpha_1)\Gamma(\alpha_2)} \rho^{\alpha_1 - 1} (1 - \rho)^{\alpha_2 - 1} </span>
-<span id="cb1-199"><a href="#cb1-199" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-195"><a href="#cb1-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-196"><a href="#cb1-196" aria-hidden="true" tabindex="-1"></a>It turns out that the Categorical distribution is a special case of the Multinomial distribution. And the Dirichlet distribution is the conjugate prior for the Multinomial distribution. </span>
+<span id="cb1-197"><a href="#cb1-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-198"><a href="#cb1-198" aria-hidden="true" tabindex="-1"></a>It certainly looks like the Bernoulli distribution once you understand that the Gamma functions are just Binomial coefficients. And if we look at the non gamma part it looks like the likelihood of a Bernoulli distribution. I.e. it seems like we are summing all the ways one can get a certain number of successes and failures in a series of Bernoulli trials.</span>
+<span id="cb1-199"><a href="#cb1-199" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-200"><a href="#cb1-200" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-201"><a href="#cb1-201" aria-hidden="true" tabindex="-1"></a><span class="ss">-  </span>$\alpha_1, \alpha_2 &gt; 0$</span>
-<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a><span class="ss">-  </span>$\rho \in <span class="co">[</span><span class="ot">0,1</span><span class="co">]</span>$</span>
-<span id="cb1-203"><a href="#cb1-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-204"><a href="#cb1-204" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>A few point here first about the Gamma function $\Gamma$</span>
-<span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>integer m: $\Gamma(m+1) = m!$</span>
-<span id="cb1-206"><a href="#cb1-206" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>for x &gt; 0: $\Gamma(x+1) = x\Gamma(x)$</span>
-<span id="cb1-207"><a href="#cb1-207" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a>Now the instructor points out correctly that these Gamma functions are just Binomial coefficients when we are dealing with integers. In </span>
-<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-210"><a href="#cb1-210" aria-hidden="true" tabindex="-1"></a>-Now lets </span>
-<span id="cb1-211"><a href="#cb1-211" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>What happens?</span>
-<span id="cb1-212"><a href="#cb1-212" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>$a = a_1 = a_2 \to 0$</span>
-<span id="cb1-213"><a href="#cb1-213" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>$a = a_1 = a_2 \to \infty$</span>
-<span id="cb1-214"><a href="#cb1-214" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>$a_1 &gt; a_2$</span>
-<span id="cb1-215"><a href="#cb1-215" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Beta is conjugate to Cat</span>
-<span id="cb1-216"><a href="#cb1-216" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-217"><a href="#cb1-217" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-218"><a href="#cb1-218" aria-hidden="true" tabindex="-1"></a>\rho \sim \text{Beta}(\alpha_1, \alpha_2),\qquad z \sim \text{Cat}(\rho_1, \rho_2)</span>
-<span id="cb1-219"><a href="#cb1-219" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-220"><a href="#cb1-220" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-221"><a href="#cb1-221" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-222"><a href="#cb1-222" aria-hidden="true" tabindex="-1"></a>p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1}} (1 - \rho_1 )^{\mathbb{1}_{z=2}} \rho_1^{a_1 -1} (1 - \rho_1 )^{a_2 -1}</span>
-<span id="cb1-223"><a href="#cb1-223" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-224"><a href="#cb1-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-225"><a href="#cb1-225" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-226"><a href="#cb1-226" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-227"><a href="#cb1-227" aria-hidden="true" tabindex="-1"></a>p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1-1}} (1 - \rho_1 )^{\mathbb{1}_{z=2}-1} \propto \text{Beta}(\rho_1 \mid a_1 + \mathbb{1}_{z=1}, a_2 + \mathbb{1}_{z=2})</span>
+<span id="cb1-201"><a href="#cb1-201" aria-hidden="true" tabindex="-1"></a>It turns out that the Beta distribution is a special case of the Dirichlet distribution. We need to understand it well,  as we can use it in a number of constructions of the Dirichlet Process. Once we have a basic intuition for the Beta distribution we can extend it to the Dirichlet distribution and then to the Dirichlet Process. So let us review it.</span>
+<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-203"><a href="#cb1-203" aria-hidden="true" tabindex="-1"></a>The Beta distribution is a distribution over the interval <span class="co">[</span><span class="ot">0,1</span><span class="co">]</span>. It is often used as a prior for probabilities. It is the conjugate prior for the Categorical distribution.</span>
+<span id="cb1-204"><a href="#cb1-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-206"><a href="#cb1-206" aria-hidden="true" tabindex="-1"></a>\text{Beta}(\rho \mid \alpha_1, \alpha_2) = \frac{\Gamma(\alpha_1 + \alpha_2)}{\Gamma(\alpha_1)\Gamma(\alpha_2)} \rho^{\alpha_1 - 1} (1 - \rho)^{\alpha_2 - 1} </span>
+<span id="cb1-207"><a href="#cb1-207" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a><span class="ss">-  </span>$\alpha_1, \alpha_2 &gt; 0$</span>
+<span id="cb1-210"><a href="#cb1-210" aria-hidden="true" tabindex="-1"></a><span class="ss">-  </span>$\rho \in <span class="co">[</span><span class="ot">0,1</span><span class="co">]</span>$</span>
+<span id="cb1-211"><a href="#cb1-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-212"><a href="#cb1-212" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>A few point here first about the Gamma function $\Gamma$</span>
+<span id="cb1-213"><a href="#cb1-213" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>integer m: $\Gamma(m+1) = m!$</span>
+<span id="cb1-214"><a href="#cb1-214" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>for x &gt; 0: $\Gamma(x+1) = x\Gamma(x)$</span>
+<span id="cb1-215"><a href="#cb1-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-216"><a href="#cb1-216" aria-hidden="true" tabindex="-1"></a>Now the instructor points out correctly that these Gamma functions are just Binomial coefficients when we are dealing with integers. In </span>
+<span id="cb1-217"><a href="#cb1-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-218"><a href="#cb1-218" aria-hidden="true" tabindex="-1"></a>-Now let's look at the shape of the Beta distribution for different values of $\alpha_1$ and $\alpha_2$.</span>
+<span id="cb1-219"><a href="#cb1-219" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>What happens?</span>
+<span id="cb1-220"><a href="#cb1-220" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>$1 = a_1 = a_2  \implies Beta(1,1)=\frac{1!}{0! \times 0!}\rho^{0}(1-\rho)^{0} = 1$   </span>
+<span id="cb1-221"><a href="#cb1-221" aria-hidden="true" tabindex="-1"></a><span class="ss">      - </span>This is a uniform distribution over regardless of the value of $\rho$.</span>
+<span id="cb1-222"><a href="#cb1-222" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>$a = a_1 = a_2 \to \infty \implies \text{Beta}(a,a)$ is highly concentrated at  around 0.5 and almost zero elsewhere.</span>
+<span id="cb1-223"><a href="#cb1-223" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>$a_1 &gt; a_2 \implies \text{Beta}(a_1, a_2)$ is skewed to the left</span>
+<span id="cb1-224"><a href="#cb1-224" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>$a_1 &lt; a_2 \implies \text{Beta}(a_1, a_2)$ is skewed to the right</span>
+<span id="cb1-225"><a href="#cb1-225" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-226"><a href="#cb1-226" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Beta is conjugate to Cat</span>
+<span id="cb1-227"><a href="#cb1-227" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-228"><a href="#cb1-228" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb1-229"><a href="#cb1-229" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-230"><a href="#cb1-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-231"><a href="#cb1-231" aria-hidden="true" tabindex="-1"></a><span class="al">![two clusters](images/c6/C6-SL12.png)</span>{.column-margin}</span>
-<span id="cb1-232"><a href="#cb1-232" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-233"><a href="#cb1-233" aria-hidden="true" tabindex="-1"></a><span class="al">![two clusters](images/c6/C6-SL13.png)</span>{.column-margin}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-229"><a href="#cb1-229" aria-hidden="true" tabindex="-1"></a>\rho \sim \text{Beta}(\alpha_1, \alpha_2),\qquad z \sim \text{Cat}(\rho_1, \rho_2)</span>
+<span id="cb1-230"><a href="#cb1-230" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-231"><a href="#cb1-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-232"><a href="#cb1-232" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-233"><a href="#cb1-233" aria-hidden="true" tabindex="-1"></a>p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1}} (1 - \rho_1 )^{\mathbb{1}_{z=2}} \rho_1^{a_1 -1} (1 - \rho_1 )^{a_2 -1}</span>
+<span id="cb1-234"><a href="#cb1-234" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-235"><a href="#cb1-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-236"><a href="#cb1-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-237"><a href="#cb1-237" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-238"><a href="#cb1-238" aria-hidden="true" tabindex="-1"></a>p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1-1}} (1 - \rho_1 )^{\mathbb{1}_{z=2}-1} \propto \text{Beta}(\rho_1 \mid a_1 + \mathbb{1}_{z=1}, a_2 + \mathbb{1}_{z=2})</span>
+<span id="cb1-239"><a href="#cb1-239" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-240"><a href="#cb1-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-241"><a href="#cb1-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-242"><a href="#cb1-242" aria-hidden="true" tabindex="-1"></a><span class="fu">## N-component gaussian mixture model {#sec-BNP-n-component-gaussian-mixture-model}</span></span>
+<span id="cb1-243"><a href="#cb1-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-244"><a href="#cb1-244" aria-hidden="true" tabindex="-1"></a>we now move to the case where we have K components in our mixture model</span>
+<span id="cb1-245"><a href="#cb1-245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-246"><a href="#cb1-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-247"><a href="#cb1-247" aria-hidden="true" tabindex="-1"></a><span class="fu">### Generative story for K components {#sec-BNP-generative-story-k-components}</span></span>
+<span id="cb1-248"><a href="#cb1-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-249"><a href="#cb1-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-250"><a href="#cb1-250" aria-hidden="true" tabindex="-1"></a><span class="al">![generating cluster weights](images/c6/C6-SL12a.png)</span>{.column-margin}</span>
+<span id="cb1-251"><a href="#cb1-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-252"><a href="#cb1-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-253"><a href="#cb1-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-254"><a href="#cb1-254" aria-hidden="true" tabindex="-1"></a>summarizes the generative story as follows:</span>
+<span id="cb1-255"><a href="#cb1-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-256"><a href="#cb1-256" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>we draw the weights $\rho_{1:k}, $ for the each cluster from a **Dirichlet distribution** with parameters $\alpha_{0:K}$. </span>
+<span id="cb1-257"><a href="#cb1-257" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>we generate the means $\mu_1, \mu_2$ for the two clusters from a normal distribution with mean $\mu_0$ and variance $\sigma_0^2$.</span>
+<span id="cb1-258"><a href="#cb1-258" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>we generate the points $x_n$ from a normal distribution with mean $\mu_{z_n}$ and covariance $\Sigma$ where $z_n$ is the cluster assignment for point $n$.</span>
+<span id="cb1-259"><a href="#cb1-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-260"><a href="#cb1-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-261"><a href="#cb1-261" aria-hidden="true" tabindex="-1"></a><span class="al">![generating cluster means](images/c6/C6-SL12b.png)</span>{.column-margin}</span>
+<span id="cb1-262"><a href="#cb1-262" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-263"><a href="#cb1-263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-264"><a href="#cb1-264" aria-hidden="true" tabindex="-1"></a><span class="fu">#### The Hierarchical Model for the Generative Story:</span></span>
+<span id="cb1-265"><a href="#cb1-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-266"><a href="#cb1-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-267"><a href="#cb1-267" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-268"><a href="#cb1-268" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb1-269"><a href="#cb1-269" aria-hidden="true" tabindex="-1"></a>\rho_{1:K} &amp; \sim \text{Dirichlet}(\alpha_{1:k}) &amp;&amp; \text{cluster weights} <span class="sc">\\</span></span>
+<span id="cb1-270"><a href="#cb1-270" aria-hidden="true" tabindex="-1"></a>\mu_k &amp; \stackrel{iid}{\sim} \mathcal{N}(\mu_0, \sigma_0^2), \quad k=1,2 &amp;&amp; \text{cluster means} <span class="sc">\\</span></span>
+<span id="cb1-271"><a href="#cb1-271" aria-hidden="true" tabindex="-1"></a>z_n &amp; \stackrel{iid}{\sim} \text{Categorical}(\rho_{1:k} &amp;&amp;  \text{point cluster assignments} <span class="sc">\\</span></span>
+<span id="cb1-272"><a href="#cb1-272" aria-hidden="true" tabindex="-1"></a>x_n &amp; \stackrel{indep}{\sim} \mathcal{N}(\mu_0, \Sigma) &amp;&amp; \text{point generation} <span class="sc">\\</span></span>
+<span id="cb1-273"><a href="#cb1-273" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb1-274"><a href="#cb1-274" aria-hidden="true" tabindex="-1"></a>$$ {#eq-bnp-gaussian-mixture-model}</span>
+<span id="cb1-275"><a href="#cb1-275" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-276"><a href="#cb1-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-277"><a href="#cb1-277" aria-hidden="true" tabindex="-1"></a><span class="al">![generating points](images/c6/C6-SL12c.png)</span>{.column-margin}</span>
+<span id="cb1-278"><a href="#cb1-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-279"><a href="#cb1-279" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-280"><a href="#cb1-280" aria-hidden="true" tabindex="-1"></a><span class="fu">## Dirichlet distribution Review {#sec-BNP-dirichlet-distribution}</span></span>
+<span id="cb1-281"><a href="#cb1-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-282"><a href="#cb1-282" aria-hidden="true" tabindex="-1"></a><span class="al">![Peter Gustav Lejeune Dirichlet](images/c6/Peter_Gustav_Lejeune_Dirichlet.jpg)</span>{.column-margin}</span>
+<span id="cb1-283"><a href="#cb1-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-284"><a href="#cb1-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-285"><a href="#cb1-285" aria-hidden="true" tabindex="-1"></a>Although we have looked at the Dirichlet distribution in the context of Bayesian Mixture Models we will now dive deeper into this distribution and its properties. </span>
+<span id="cb1-286"><a href="#cb1-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-287"><a href="#cb1-287" aria-hidden="true" tabindex="-1"></a>BNPs teach us that the Dirichlet distribution is a conjugate prior for the categorical distribution. And to a large extent is the basic building block of non-parametric Bayesian methods. </span>
+<span id="cb1-288"><a href="#cb1-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-289"><a href="#cb1-289" aria-hidden="true" tabindex="-1"></a>Once you understand the Dirichlet distribution, you should be able to understand 50% of the non-parametric Bayesian methods used in research today. I found that this lesson does for me what early differential equations did for me in my undergraduate studies. It is a key concept that opens the door to understanding many other concepts. We will see that the Dirichlet distribution is a generalization of the Beta distribution and that it is also a stepping stone to the Chinese Restaurant Process.</span>
+<span id="cb1-290"><a href="#cb1-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-291"><a href="#cb1-291" aria-hidden="true" tabindex="-1"></a>We start with the Dirichlet distribution, which is a distribution over a simplex. A simplex is a generalization of a triangle to higher dimensions. For example, in 2D, a simplex is a triangle, and in 3D, it is a tetrahedron. Why a simplex? Because we want to model probabilities, and probabilities must sum to 1. A simplex is a set of points that satisfy this constraint. </span>
+<span id="cb1-292"><a href="#cb1-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-293"><a href="#cb1-293" aria-hidden="true" tabindex="-1"></a>Here is the pdf for the Dirichlet distribution:</span>
+<span id="cb1-294"><a href="#cb1-294" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-295"><a href="#cb1-295" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-296"><a href="#cb1-296" aria-hidden="true" tabindex="-1"></a>\text{Dirichlet}(\rho \mid \alpha_1, \ldots , \alpha_K) = \frac{\Gamma(\sum_{k=1}^K \alpha_k)}{\prod_{k=1}^K \Gamma(\alpha_k)} \prod_{k=1}^K \rho_k^{\alpha_k - 1} \qquad a_k&gt;0</span>
+<span id="cb1-297"><a href="#cb1-297" aria-hidden="true" tabindex="-1"></a>$$ {#eq-dirichlet-pdf}</span>
+<span id="cb1-298"><a href="#cb1-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-299"><a href="#cb1-299" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>where $\rho_k$ is the $k$-th component of the vector $\rho$ and </span>
+<span id="cb1-300"><a href="#cb1-300" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\alpha_k$ is the concentration parameter for the $k$-th component.</span>
+<span id="cb1-301"><a href="#cb1-301" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\Gamma$ is the gamma function, which is a generalization of the factorial function. Recall that $\Gamma(n) = (n-1)!$ for positive integers $n$.</span>
+<span id="cb1-302"><a href="#cb1-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-303"><a href="#cb1-303" aria-hidden="true" tabindex="-1"></a>The concentration parameters control how concentrated the distribution is around the mean.</span>
+<span id="cb1-304"><a href="#cb1-304" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-305"><a href="#cb1-305" aria-hidden="true" tabindex="-1"></a>Now we should develop some intuition about the Dirichlet distribution with respect to its parameters.</span>
+<span id="cb1-306"><a href="#cb1-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-307"><a href="#cb1-307" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>what happen when $a=a_1=a_K=1$?</span>
+<span id="cb1-308"><a href="#cb1-308" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>what happen when $a=a_1=a_K \to 0$?</span>
+<span id="cb1-309"><a href="#cb1-309" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>what happen when $a=a_1=a_K \to \infty$?</span>
+<span id="cb1-310"><a href="#cb1-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-311"><a href="#cb1-311" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-312"><a href="#cb1-312" aria-hidden="true" tabindex="-1"></a>\rho_{1:K} \sim \textrm{Dirichlet}(a_{1:K}) \quad z\sim \textrm{Cat}(\rho_{1:K})</span>
+<span id="cb1-313"><a href="#cb1-313" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-314"><a href="#cb1-314" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-315"><a href="#cb1-315" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-316"><a href="#cb1-316" aria-hidden="true" tabindex="-1"></a>\rho_{1:K}|z \stackrel{d}{=} \textrm{Dirichlet}(a_{1:K}) \quad a'_k= a_k + \mathbb{1}_{<span class="sc">\{</span>z=k<span class="sc">\}</span>} </span>
+<span id="cb1-317"><a href="#cb1-317" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-318"><a href="#cb1-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-319"><a href="#cb1-319" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>what happen when $a_1 &gt; a_2$?</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">
