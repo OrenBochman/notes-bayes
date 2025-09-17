@@ -8,6 +8,8 @@ categories:
   - Bayesian Nonparametric Methods
 keywords:
   - Dirichlet Processes
+filters:
+  - shinylive
 ---
 
 
@@ -193,7 +195,7 @@ We just used the [Beta distribution](https://en.wikipedia.org/wiki/Beta_distribu
   4. If we have a good understanding of the Binomial distribution we can use it to build an intuition for most discrete cases for the Beta distribution.
 
 
-It turns out that the Categorical distribution is a special case of the Multinomial distribution. And the Dirichlet distribution is the conjugate prior for the Multinomial distribution. 
+It turns out that the [Categorical distribution](https://en.wikipedia.org/wiki/Categorical_distribution) is a special case of the Multinomial distribution. And the [Dirichlet distribution](https://en.wikipedia.org/wiki/Dirichlet_distribution) is the conjugate prior for the Multinomial distribution.
 
 It certainly looks like the Bernoulli distribution once you understand that the Gamma functions are just Binomial coefficients. And if we look at the non gamma part it looks like the likelihood of a Bernoulli distribution. I.e. it seems like we are summing all the ways one can get a certain number of successes and failures in a series of Bernoulli trials.
 
@@ -237,6 +239,125 @@ $$
 $$
 p(\rho_1 , z) \propto \rho_1^{\mathbb{1}_{z=1-1}} (1 - \rho_1 )^{\mathbb{1}_{z=2}-1} \propto \text{Beta}(\rho_1 \mid a_1 + \mathbb{1}_{z=1}, a_2 + \mathbb{1}_{z=2})
 $$
+
+### Beta Distribution Playground {#sec-BNP-beta-distribution-playground}
+
+:::{.column-screen-inset-right}
+```{shinylive-python}
+#| standalone: true
+#| viewerHeight: 420
+#| components: [editor, viewer]
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+import altair as alt
+
+from shiny import App, reactive, render, ui
+from shinywidgets import output_widget, render_altair
+
+# ---- UI ---------------------------------------------------------------------
+app_ui = ui.page_fluid(
+    ui.layout_sidebar(
+        ui.sidebar(
+            ui.h3("Parameters"),
+            ui.input_slider("a", "a (alpha)", min=0.1, max=100.0, value=2.0, step=0.1),
+            ui.input_slider("b", "b (beta)", min=0.1, max=100.0, value=2.0, step=0.1),
+            ui.input_action_button("draw", "Draw", class_="btn-primary"),
+            ui.input_action_button("reset", "Reset"),
+        ),
+        ui.layout_columns(
+            ui.card(
+                ui.card_header("Latest draw: probabilities over {1, 2}"),
+                output_widget("w_bar"),
+                ui.output_text("latest_label"),
+            ),
+            ui.card(
+                ui.card_header("Histogram of draws ρ"),
+                output_widget("w_hist"),
+                ui.output_text("count_label"),
+            ),
+        )
+    ),
+    title="Beta(a, b) — ShinyLive Demo"
+)
+
+# ---- Server -----------------------------------------------------------------
+
+def server(input, output, session):
+    samples = reactive.Value(np.array([], dtype=float))
+
+    @reactive.effect
+    @reactive.event(input.reset)
+    def _reset():
+        samples.set(np.array([], dtype=float))
+
+    @reactive.effect
+    @reactive.event(input.draw)
+    def _draw_one():
+        a = float(input.a())
+        b = float(input.b())
+        rho = float(np.random.beta(a, b))
+        xs = samples()
+        samples.set(np.concatenate([xs, [rho]]))
+
+    @render.text
+    def latest_label():
+        xs = samples()
+        if xs.size == 0:
+            return "No draws yet. Click ‘Draw’."
+        rho = float(xs[-1])
+        return f"ρ (latest) = {rho:.4f}; 1−ρ = {1 - rho:.4f}"
+
+    @render_altair
+    def w_bar():
+        xs = samples()
+        if xs.size == 0:
+            df = pd.DataFrame({"index": ["1", "2"], "prob": [0.0, 0.0]})
+        else:
+            rho = float(xs[-1])
+            df = pd.DataFrame({"index": ["1", "2"], "prob": [rho, 1 - rho]})
+
+        return (
+            alt.Chart(df)
+            .mark_bar()
+            .encode(
+                x=alt.X("index:N", title="index"),
+                y=alt.Y("prob:Q", scale=alt.Scale(domain=[0, 1]), title="probability"),
+                tooltip=[
+                    alt.Tooltip("index:N", title="index"),
+                    alt.Tooltip("prob:Q", format=".4f", title="probability"),
+                ],
+            )
+            .properties(height=260, title=f"(ρ₁, ρ₂) ~ Beta({input.a():.1f}, {input.b():.1f})")
+        )
+
+    @render.text
+    def count_label():
+        return f"Total draws: {samples().size}"
+
+    @render_altair
+    def w_hist():
+        xs = samples()
+        if xs.size == 0:
+            note = pd.DataFrame({"note": ["Click Draw to start"]})
+            return alt.Chart(note).mark_text(size=16).encode(text="note:N")
+
+        df = pd.DataFrame({"rho": xs})
+        return (
+            alt.Chart(df)
+            .mark_bar()
+            .encode(
+                x=alt.X("rho:Q", bin=alt.Bin(maxbins=30), title="ρ"),
+                y=alt.Y("count():Q", title="count"),
+                tooltip=[alt.Tooltip("count():Q", title="count")],
+            )
+            .properties(height=300)
+        )
+
+app = App(app_ui, server)
+```
+:::
 
 
 ## N-component gaussian mixture model {#sec-BNP-n-component-gaussian-mixture-model}
@@ -302,11 +423,18 @@ $$ {#eq-dirichlet-pdf}
 
 The concentration parameters control how concentrated the distribution is around the mean.
 
+![different concentration parameters](images/c6/C6-SL13.png){.column-margin}
+
+
+
+
 Now we should develop some intuition about the Dirichlet distribution with respect to its parameters.
 
 - what happen when $a=a_1=a_K=1$?
 - what happen when $a=a_1=a_K \to 0$?
 - what happen when $a=a_1=a_K \to \infty$?
+
+
 
 $$
 \rho_{1:K} \sim \textrm{Dirichlet}(a_{1:K}) \quad z\sim \textrm{Cat}(\rho_{1:K})
@@ -317,3 +445,213 @@ $$
 $$
 
 - what happen when $a_1 > a_2$?
+
+### Dirichlet Distribution Playground {#sec-BNP-dirichlet-distribution-playground}
+
+:::{.column-screen-inset-right}
+```{shinylive-python}
+#| standalone: true
+#| viewerHeight: 520
+#| components: [editor, viewer]
+
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+import altair as alt
+from math import sqrt
+
+from shiny import App, reactive, render, ui
+from shinywidgets import output_widget, render_altair
+
+# --- Helpers ------------------------------------------------------------------
+
+def dirichlet_sample(a1: float, a2: float, a3: float) -> np.ndarray:
+    return np.random.dirichlet(np.array([a1, a2, a3])).astype(float)
+
+def barycentric_to_cartesian(r1: float, r2: float, r3: float) -> tuple[float, float]:
+    """
+    Map (r1,r2,r3), sum=1, to 2D coords of an equilateral triangle with vertices:
+      v1=(0,0) for component 1
+      v2=(1,0) for component 2
+      v3=(0.5, sqrt(3)/2) for component 3
+    """
+    x = r2 + 0.5 * r3
+    y = (sqrt(3) / 2.0) * r3
+    return x, y
+
+def triangle_frame_df() -> pd.DataFrame:
+    # outline of triangle for plotting
+    verts = [(0.0, 0.0), (1.0, 0.0), (0.5, sqrt(3)/2), (0.0, 0.0)]
+    return pd.DataFrame({"x": [v[0] for v in verts], "y": [v[1] for v in verts]})
+
+# --- UI -----------------------------------------------------------------------
+
+app_ui = ui.page_fluid(
+    ui.layout_sidebar(
+        ui.sidebar(
+            ui.h3("Dirichlet(α₁, α₂, α₃)"),
+            ui.input_slider("a1", "α₁", min=0.1, max=100.0, value=2.0, step=0.1),
+            ui.input_slider("a2", "α₂", min=0.1, max=100.0, value=2.0, step=0.1),
+            ui.input_slider("a3", "α₃", min=0.1, max=100.0, value=2.0, step=0.1),
+            ui.input_action_button("draw", "Draw", class_="btn-primary"),
+            ui.input_action_button("reset", "Reset"),
+            ui.hr(),
+            ui.output_text("summary_text"),
+        ),
+        ui.layout_columns(
+            ui.card(
+                ui.card_header("Latest draw: probabilities over {1, 2, 3}"),
+                output_widget("w_bar"),
+                ui.output_text("latest_text"),
+            ),
+            ui.card(
+                ui.card_header("All draws on the 2D simplex (ternary)"),
+                output_widget("w_ternary"),
+                ui.output_text("count_text"),
+            ),
+        )
+    ),
+    title="Dirichlet(α₁, α₂, α₃) — ShinyLive Demo"
+)
+
+# --- Server -------------------------------------------------------------------
+
+def server(input, output, session):
+    # Store draws as an (n, 3) array
+    samples = reactive.Value(np.zeros((0, 3), dtype=float))
+
+    @reactive.effect
+    @reactive.event(input.reset)
+    def _reset():
+        samples.set(np.zeros((0, 3), dtype=float))
+
+    @reactive.effect
+    @reactive.event(input.draw)
+    def _draw_one():
+        a1 = float(input.a1())
+        a2 = float(input.a2())
+        a3 = float(input.a3())
+        rho = dirichlet_sample(a1, a2, a3)
+        xs = samples()
+        samples.set(np.vstack([xs, rho[None, :]]))
+
+    @render.text
+    def latest_text():
+        xs = samples()
+        if xs.shape[0] == 0:
+            return "No draws yet. Click ‘Draw’."
+        r1, r2, r3 = xs[-1]
+        return f"ρ (latest) = ({r1:.4f}, {r2:.4f}, {r3:.4f})"
+
+    @render.text
+    def count_text():
+        return f"Total draws: {samples().shape[0]}"
+
+    @render.text
+    def summary_text():
+        a1 = float(input.a1()); a2 = float(input.a2()); a3 = float(input.a3())
+        s = a1 + a2 + a3
+        mean = (a1/s, a2/s, a3/s)
+        # Var for component i: α_i(α₀-α_i) / (α₀²(α₀+1)) for covariances; for scalar var use α_i(α₀-α_i)/(α₀²(α₀+1))
+        # Here we just show the mean—clean and informative.
+        return f"E[ρ] = ({mean[0]:.4f}, {mean[1]:.4f}, {mean[2]:.4f})"
+
+    @render_altair
+    def w_bar():
+        xs = samples()
+        if xs.shape[0] == 0:
+            df = pd.DataFrame({"index": ["1", "2", "3"], "prob": [0.0, 0.0, 0.0]})
+        else:
+            r1, r2, r3 = xs[-1]
+            df = pd.DataFrame({"index": ["1", "2", "3"], "prob": [r1, r2, r3]})
+
+        a1 = float(input.a1()); a2 = float(input.a2()); a3 = float(input.a3())
+        return (
+            alt.Chart(df)
+            .mark_bar()
+            .encode(
+                x=alt.X("index:N", title="index"),
+                y=alt.Y("prob:Q", scale=alt.Scale(domain=[0, 1]), title="probability"),
+                tooltip=[
+                    alt.Tooltip("index:N", title="index"),
+                    alt.Tooltip("prob:Q", format=".4f", title="probability"),
+                ],
+            )
+            .properties(
+                width="container",
+                height=260,
+                title=f"ρ ~ Dirichlet({a1:.1f}, {a2:.1f}, {a3:.1f})",
+            )
+        )
+
+    @render_altair
+    def w_ternary():
+        xs = samples()
+        tri = triangle_frame_df()
+
+        if xs.shape[0] == 0:
+            base = (
+                alt.Chart(tri)
+                .mark_line()
+                .encode(x="x:Q", y="y:Q")
+            )
+            return (
+                base
+                .properties(width="container", height=320)
+                .configure_axis(grid=False, ticks=False)
+            )
+
+        # Map all draws to triangle coords
+        cart = np.array([barycentric_to_cartesian(r1, r2, r3) for r1, r2, r3 in xs])
+        df_pts = pd.DataFrame({
+            "x": cart[:, 0],
+            "y": cart[:, 1],
+            "r1": xs[:, 0],
+            "r2": xs[:, 1],
+            "r3": xs[:, 2],
+            "idx": np.arange(1, xs.shape[0] + 1),
+        })
+
+        base = (
+            alt.Chart(tri)
+            .mark_line()
+            .encode(x="x:Q", y="y:Q")
+        )
+
+        pts = (
+            alt.Chart(df_pts)
+            .mark_circle(opacity=0.6)
+            .encode(
+                x=alt.X("x:Q", title=None, scale=alt.Scale(domain=[-0.05, 1.05])),
+                y=alt.Y("y:Q", title=None, scale=alt.Scale(domain=[-0.05, (sqrt(3)/2)+0.05])),
+                tooltip=[
+                    alt.Tooltip("idx:Q", title="#"),
+                    alt.Tooltip("r1:Q", format=".4f", title="ρ₁"),
+                    alt.Tooltip("r2:Q", format=".4f", title="ρ₂"),
+                    alt.Tooltip("r3:Q", format=".4f", title="ρ₃"),
+                ],
+            )
+        )
+
+        # Add vertex labels
+        lbls = pd.DataFrame({
+            "x": [0.0, 1.0, 0.5],
+            "y": [0.0, 0.0, sqrt(3)/2],
+            "lab": ["1", "2", "3"],
+        })
+        labels = (
+            alt.Chart(lbls)
+            .mark_text(dy=-8)
+            .encode(x="x:Q", y="y:Q", text="lab:N")
+        )
+
+        return (
+            (base + pts + labels)
+            .properties(width="container", height=320)
+            .configure_axis(grid=False, ticks=False, labels=False)
+        )
+
+app = App(app_ui, server)
+```
+:::
