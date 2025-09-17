@@ -81,23 +81,15 @@ jobs:
             echo 'CXX11FLAGS=-g -O2 -Wno-error=format-security'
           } > ~/.R/Makevars
 
-      # ✅ Install TinyTeX (pdflatex + latexmk) with caching
+      # Install TinyTeX (pdflatex + latexmk) with caching a few LaTeX pkgs often needed by TikZ
       - uses: r-lib/actions/setup-tinytex@v2
-
-      # (Optional) preinstall a few LaTeX pkgs often needed by TikZ
-      - name: tlmgr install common TikZ deps
+      
+      - name: tlmgr install common Lua/Xe deps
         run: |
           tlmgr install latexmk amsmath xcolor pgf standalone preview
-
-
-
-      # # Install LaTeX for PDF output
-      # - name: Install latex
-      #   run: |
-      #     sudo apt-get install -y --no-install-recommends \
-      #       texlive-latex-recommended \
-      #       texlive-latex-extra \
-      #       texlive-fonts-recommended
+          tlmgr install fontspec luaotfload unicode-math
+          # TeX Live’s Libertinus package (not strictly needed if system OTFs are found, but harmless):
+          tlmgr install libertinus-fonts
 
       - name: Install R Dependencies
         uses: r-lib/actions/setup-renv@v2
@@ -153,6 +145,9 @@ jobs:
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: gh-pages
+          path: ./
+          render: true
+          render-args: '--to html'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Force reticulate (R engine) to this Python:
