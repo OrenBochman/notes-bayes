@@ -655,3 +655,92 @@ def server(input, output, session):
 app = App(app_ui, server)
 ```
 :::
+
+- some comments on the code above:
+  1. we need to stretch it so that the plot on the right is triangular
+  2. We have more of a scatter plot than a density plot. It would be better if we could view the density building up as we draw more samples. 
+     - Perhaps adding contours, 
+     - perhaps break it into bins (hexagonal or triangular) and use a heat map.
+     - Perhaps we can add a z-axis and make it a 3D plot.
+
+
+
+## More Classes than points K>N {#sec-BNP-more-classess-than-points-k>n}
+
+
+We have gotten to one of the strongest reasons to use BNP models. When we deal with data we often have more columns than rows. For example, 
+  - in genetics we may have a few hundred samples but thousands of genes. 
+  - on the web we may have thousands of interactions but billions users, millions of websites and ads.
+  - In text analysis we may have a few hundred documents or sentences but thousands of words.
+  - In image analysis we may have millions of images but potentially infinite number of captions, segmentation.
+  
+Yet for almost all ML models assume a fixed K (number of classes, clusters or components). So far we haven't actually discussed how to handle this but we will in the next section. Before we can do that we will want to highlight a new distinction we have not yet made. 
+
+The main point we need to make goes back to an idea we covered in course 3 on mixture models when we discussed density estimation. As I Recall the advantage of mixtures is that they can learn complex densities with a small number of components. The original formulation without mixtures used an array of basis functions (e.g. Gaussians) and then learned the weights for all the basis function. Mixtures go further and let us drop the basis functions that have zero weight. This is what we want to do here but in a more general sense we want to have a number of components that is not fixed (i.e. potentially infinite) but to only have to deal with finite number number of clusters which are the ones that have at least one data point assigned to them. That way we get to handle infinite complexity using finite resources.
+
+To summerize 
+
+- Components: the number of latent groups
+- CClusters: the number of components represented in the data.
+
+
+Next we have a couple of demos.
+
+First we look at generating different Dirichlet with 1000 components. ~~We use a innovation parameter alpha and we can see different results.~~
+
+One setting gives a partition with a few large components and all the others being smaller. My intuition is that they are smaller by orders of magnitude. The second setting gives a more uniform distribution for the components. In fact if we went to an sufficiently large number of components on the way to infinity I think that pretty soon we would get infinitesimal. Components. We may soon be able to test this intuition. But the idea of these demos is to build intuitions about the mechanisms and we will be looking at a number of these next. If we have these handy we may be able to get subtly different behaviors out of this model by using different mechanisms.
+
+
+In the second demo we consider how quickly clusters are filled as we draw points from a uniform distribution and see which component they belong to.
+
+If we have some large components we soon (after 20 draws) seem to have covered almost all the area in the [0,1] interval with the first few clusters.  This is in stark contrast to the fact that there are 1000 components. We now investigate how the growth of the number of clusters as we draw more points for different Dirichlet distribution parametrization.
+
+
+We again look at two settings and we see the one described above but for a second more uniform partition we see what seems to be a near linear growth in the number of clusters however eventually we see that this pattern is deceptive many more partitions need to be drawn but soon we see that some clusters are being filled more than than others indicating that they are substantially larger. So even with a much more uniform partition there are sufficient fluctuations that a few clusters accumulate for most of the mass. Fundamentally we are observing a power law behavior.
+
+- TODO: create an online demo for exploring the dirichlet distribution in greater depth.
+
+
+- Number of clusters for N data points is < K and random
+
+## Choosing $K = \infty${#sec-BNP-choosing-k-infinity}   
+
+- Here, difficult to choose finite $K$ in advance (contrast with small $K$): don't know $K$, difficult to infer, streaming data
+
+- How to generate $K = \infty$ strictly positive frequencies that sum to one?
+  - Observation: $\rho_{1:K} \sim \text{Dirichlet}((a_{1:K}))$ 
+
+$$
+\implies \rho_1 \stackrel{d}{=} Beta(a_1, \sum^K_{k=1}a_k= a_1) \perp \frac{\rho_2,\ldots,\rho_K}{1-\rho_1} \stackrel{d}{=} Dirichlet(a_{2}, \ldots , a_{K} )
+$$
+
+"Stick breaking" construction [Sethuraman, 1994]:
+
+$$
+\begin{aligned}
+V_1 &\sim Beta(a_1, a_2 + a_3 + a_4) &&\implies \rho_1 = V_1 \\
+V_2 &\sim Beta(a_2, a_3 + a_4) &&\implies \rho_2 = (1 - V_2) V_2 \\
+V_3 &\sim Beta(a_3, a_4) &&\implies \rho_3 = (1-V_1)(1 - V_2) V_3 \\
+&                        && \implies \rho_4  = (1-\sum_{k=1}^3 \rho_k) 
+\end{aligned}
+$$
+
+- Dirichlet process stick-breaking $a_k=1, b_k=\alpha > 0$
+$$
+\begin{aligned}
+V_1 &\sim Beta(a_1, a_2 + a_3 + a_4) && \rho_1 = V_1 \\
+V_2 &\sim Beta(a_2, a_3 + a_4)       && \rho_2 = (1 - V_2) V_2 \\
+V_k & \sim Beta(a_k,b_k)            && \rho_k  = \left [ \prod_{k=1}^{k-1} (1-V_j)\right ]  V_k 
+\end{aligned}
+$$
+
+[McCloskey 1965]; [Engen 1975]; [Patil and Taillie 1977]; [Ewens 1987]; [Sethuraman 1994]; [Ishwaran and James, 2001]
+
+
+- Griffiths-Engen-McCloskey (GEM) distribution:
+
+$$
+\begin{aligned}
+V_k &\stackrel{iid}{\sim} Beta(1,\alpha)  && \rho_k  = \left [ \prod_{j=1}^{k-1} (1-V_j)\right ] V_k 
+\end{aligned}
+$$
