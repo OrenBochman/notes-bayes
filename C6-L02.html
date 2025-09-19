@@ -1380,6 +1380,8 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#sec-BNP-dirichlet-distribution-playground" id="toc-sec-BNP-dirichlet-distribution-playground" class="nav-link" data-scroll-target="#sec-BNP-dirichlet-distribution-playground"><span class="header-section-number">114.5.1</span> Dirichlet Distribution Playground</a></li>
   </ul></li>
+  <li><a href="#more-classes-than-points-kn-sec-bnp-more-classess-than-points-kn" id="toc-more-classes-than-points-kn-sec-bnp-more-classess-than-points-kn" class="nav-link" data-scroll-target="#more-classes-than-points-kn-sec-bnp-more-classess-than-points-kn"><span class="header-section-number">114.6</span> More Classes than points K&gt;N {#sec-BNP-more-classess-than-points-k&gt;n}</a></li>
+  <li><a href="#sec-BNP-choosing-k-infinity" id="toc-sec-BNP-choosing-k-infinity" class="nav-link" data-scroll-target="#sec-BNP-choosing-k-infinity"><span class="header-section-number">114.7</span> Choosing <span class="math inline">K = \infty</span></a></li>
   </ul>
 </nav>
     </div>
@@ -2044,6 +2046,80 @@ def server(input, output, session):
 
 app = App(app_ui, server)</code></pre>
 </div>
+<ul>
+<li>some comments on the code above:
+<ol type="1">
+<li>we need to stretch it so that the plot on the right is triangular</li>
+<li>We have more of a scatter plot than a density plot. It would be better if we could view the density building up as we draw more samples.
+<ul>
+<li>Perhaps adding contours,</li>
+<li>perhaps break it into bins (hexagonal or triangular) and use a heat map.</li>
+<li>Perhaps we can add a z-axis and make it a 3D plot.</li>
+</ul></li>
+</ol></li>
+</ul>
+</section>
+</section>
+<section id="more-classes-than-points-kn-sec-bnp-more-classess-than-points-kn" class="level2" data-number="114.6">
+<h2 data-number="114.6" class="anchored" data-anchor-id="more-classes-than-points-kn-sec-bnp-more-classess-than-points-kn"><span class="header-section-number">114.6</span> More Classes than points K&gt;N {#sec-BNP-more-classess-than-points-k&gt;n}</h2>
+<p>We have gotten to one of the strongest reasons to use BNP models. When we deal with data we often have more columns than rows. For example, - in genetics we may have a few hundred samples but thousands of genes. - on the web we may have thousands of interactions but billions users, millions of websites and ads. - In text analysis we may have a few hundred documents or sentences but thousands of words. - In image analysis we may have millions of images but potentially infinite number of captions, segmentation.</p>
+<p>Yet for almost all ML models assume a fixed K (number of classes, clusters or components). So far we haven’t actually discussed how to handle this but we will in the next section. Before we can do that we will want to highlight a new distinction we have not yet made.</p>
+<p>The main point we need to make goes back to an idea we covered in course 3 on mixture models when we discussed density estimation. As I Recall the advantage of mixtures is that they can learn complex densities with a small number of components. The original formulation without mixtures used an array of basis functions (e.g.&nbsp;Gaussians) and then learned the weights for all the basis function. Mixtures go further and let us drop the basis functions that have zero weight. This is what we want to do here but in a more general sense we want to have a number of components that is not fixed (i.e.&nbsp;potentially infinite) but to only have to deal with finite number number of clusters which are the ones that have at least one data point assigned to them. That way we get to handle infinite complexity using finite resources.</p>
+<p>To summerize</p>
+<ul>
+<li>Components: the number of latent groups</li>
+<li>CClusters: the number of components represented in the data.</li>
+</ul>
+<p>Next we have a couple of demos.</p>
+<p>First we look at generating different Dirichlet with 1000 components. <del>We use a innovation parameter alpha and we can see different results.</del></p>
+<p>One setting gives a partition with a few large components and all the others being smaller. My intuition is that they are smaller by orders of magnitude. The second setting gives a more uniform distribution for the components. In fact if we went to an sufficiently large number of components on the way to infinity I think that pretty soon we would get infinitesimal. Components. We may soon be able to test this intuition. But the idea of these demos is to build intuitions about the mechanisms and we will be looking at a number of these next. If we have these handy we may be able to get subtly different behaviors out of this model by using different mechanisms.</p>
+<p>In the second demo we consider how quickly clusters are filled as we draw points from a uniform distribution and see which component they belong to.</p>
+<p>If we have some large components we soon (after 20 draws) seem to have covered almost all the area in the [0,1] interval with the first few clusters. This is in stark contrast to the fact that there are 1000 components. We now investigate how the growth of the number of clusters as we draw more points for different Dirichlet distribution parametrization.</p>
+<p>We again look at two settings and we see the one described above but for a second more uniform partition we see what seems to be a near linear growth in the number of clusters however eventually we see that this pattern is deceptive many more partitions need to be drawn but soon we see that some clusters are being filled more than than others indicating that they are substantially larger. So even with a much more uniform partition there are sufficient fluctuations that a few clusters accumulate for most of the mass. Fundamentally we are observing a power law behavior.</p>
+<ul>
+<li><p>TODO: create an online demo for exploring the dirichlet distribution in greater depth.</p></li>
+<li><p>Number of clusters for N data points is &lt; K and random</p></li>
+</ul>
+</section>
+<section id="sec-BNP-choosing-k-infinity" class="level2" data-number="114.7">
+<h2 data-number="114.7" class="anchored" data-anchor-id="sec-BNP-choosing-k-infinity"><span class="header-section-number">114.7</span> Choosing <span class="math inline">K = \infty</span></h2>
+<ul>
+<li><p>Here, difficult to choose finite <span class="math inline">K</span> in advance (contrast with small <span class="math inline">K</span>): don’t know <span class="math inline">K</span>, difficult to infer, streaming data</p></li>
+<li><p>How to generate <span class="math inline">K = \infty</span> strictly positive frequencies that sum to one?</p>
+<ul>
+<li>Observation: <span class="math inline">\rho_{1:K} \sim \text{Dirichlet}((a_{1:K}))</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">
+\implies \rho_1 \stackrel{d}{=} Beta(a_1, \sum^K_{k=1}a_k= a_1) \perp \frac{\rho_2,\ldots,\rho_K}{1-\rho_1} \stackrel{d}{=} Dirichlet(a_{2}, \ldots , a_{K} )
+</span></p>
+<p>“Stick breaking” construction [Sethuraman, 1994]:</p>
+<p><span class="math display">
+\begin{aligned}
+V_1 &amp;\sim Beta(a_1, a_2 + a_3 + a_4) &amp;&amp;\implies \rho_1 = V_1 \\
+V_2 &amp;\sim Beta(a_2, a_3 + a_4) &amp;&amp;\implies \rho_2 = (1 - V_2) V_2 \\
+V_3 &amp;\sim Beta(a_3, a_4) &amp;&amp;\implies \rho_3 = (1-V_1)(1 - V_2) V_3 \\
+&amp;                        &amp;&amp; \implies \rho_4  = (1-\sum_{k=1}^3 \rho_k)
+\end{aligned}
+</span></p>
+<ul>
+<li>Dirichlet process stick-breaking <span class="math inline">a_k=1, b_k=\alpha &gt; 0</span> <span class="math display">
+\begin{aligned}
+V_1 &amp;\sim Beta(a_1, a_2 + a_3 + a_4) &amp;&amp; \rho_1 = V_1 \\
+V_2 &amp;\sim Beta(a_2, a_3 + a_4)       &amp;&amp; \rho_2 = (1 - V_2) V_2 \\
+V_k &amp; \sim Beta(a_k,b_k)            &amp;&amp; \rho_k  = \left [ \prod_{k=1}^{k-1} (1-V_j)\right ]  V_k
+\end{aligned}
+</span></li>
+</ul>
+<p>[McCloskey 1965]; [Engen 1975]; [Patil and Taillie 1977]; [Ewens 1987]; [Sethuraman 1994]; [Ishwaran and James, 2001]</p>
+<ul>
+<li>Griffiths-Engen-McCloskey (GEM) distribution:</li>
+</ul>
+<p><span class="math display">
+\begin{aligned}
+V_k &amp;\stackrel{iid}{\sim} Beta(1,\alpha)  &amp;&amp; \rho_k  = \left [ \prod_{j=1}^{k-1} (1-V_j)\right ] V_k
+\end{aligned}
+</span></p>
 
 
 <!-- -->
@@ -2095,7 +2171,6 @@ Saria, Suchi, Anand K. Rajani, Jeffrey Gould, Daphne Koller, and Anna A. Penn. 2
 Sudderth, Erik, and Michael Jordan. 2008. <span>“Shared Segmentation of Natural Scenes Using Dependent Pitman-Yor Processes.”</span> In <em>Advances in Neural Information Processing Systems</em>, edited by D. Koller, D. Schuurmans, Y. Bengio, and L. Bottou. Vol. 21. Curran Associates, Inc. <a href="https://proceedings.neurips.cc/paper_files/paper/2008/file/883e881bb4d22a7add958f2d6b052c9f-Paper.pdf">https://proceedings.neurips.cc/paper_files/paper/2008/file/883e881bb4d22a7add958f2d6b052c9f-Paper.pdf</a>.
 </div>
 </div>
-</section>
 </section>
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr>
@@ -3295,7 +3370,96 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb3-654"><a href="#cb3-654" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-655"><a href="#cb3-655" aria-hidden="true" tabindex="-1"></a><span class="ex">app</span> = App<span class="er">(</span><span class="ex">app_ui,</span> server<span class="kw">)</span></span>
 <span id="cb3-656"><a href="#cb3-656" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-657"><a href="#cb3-657" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb3-657"><a href="#cb3-657" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-658"><a href="#cb3-658" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-659"><a href="#cb3-659" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>some comments on the code above:</span>
+<span id="cb3-660"><a href="#cb3-660" aria-hidden="true" tabindex="-1"></a><span class="ss">  1. </span>we need to stretch it so that the plot on the right is triangular</span>
+<span id="cb3-661"><a href="#cb3-661" aria-hidden="true" tabindex="-1"></a><span class="ss">  2. </span>We have more of a scatter plot than a density plot. It would be better if we could view the density building up as we draw more samples. </span>
+<span id="cb3-662"><a href="#cb3-662" aria-hidden="true" tabindex="-1"></a><span class="ss">     - </span>Perhaps adding contours, </span>
+<span id="cb3-663"><a href="#cb3-663" aria-hidden="true" tabindex="-1"></a><span class="ss">     - </span>perhaps break it into bins (hexagonal or triangular) and use a heat map.</span>
+<span id="cb3-664"><a href="#cb3-664" aria-hidden="true" tabindex="-1"></a><span class="ss">     - </span>Perhaps we can add a z-axis and make it a 3D plot.</span>
+<span id="cb3-665"><a href="#cb3-665" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-666"><a href="#cb3-666" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-667"><a href="#cb3-667" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-668"><a href="#cb3-668" aria-hidden="true" tabindex="-1"></a><span class="fu">## More Classes than points K&gt;N {#sec-BNP-more-classess-than-points-k&gt;n}</span></span>
+<span id="cb3-669"><a href="#cb3-669" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-670"><a href="#cb3-670" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-671"><a href="#cb3-671" aria-hidden="true" tabindex="-1"></a>We have gotten to one of the strongest reasons to use BNP models. When we deal with data we often have more columns than rows. For example, </span>
+<span id="cb3-672"><a href="#cb3-672" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>in genetics we may have a few hundred samples but thousands of genes. </span>
+<span id="cb3-673"><a href="#cb3-673" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>on the web we may have thousands of interactions but billions users, millions of websites and ads.</span>
+<span id="cb3-674"><a href="#cb3-674" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>In text analysis we may have a few hundred documents or sentences but thousands of words.</span>
+<span id="cb3-675"><a href="#cb3-675" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>In image analysis we may have millions of images but potentially infinite number of captions, segmentation.</span>
+<span id="cb3-676"><a href="#cb3-676" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-677"><a href="#cb3-677" aria-hidden="true" tabindex="-1"></a>Yet for almost all ML models assume a fixed K (number of classes, clusters or components). So far we haven't actually discussed how to handle this but we will in the next section. Before we can do that we will want to highlight a new distinction we have not yet made. </span>
+<span id="cb3-678"><a href="#cb3-678" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-679"><a href="#cb3-679" aria-hidden="true" tabindex="-1"></a>The main point we need to make goes back to an idea we covered in course 3 on mixture models when we discussed density estimation. As I Recall the advantage of mixtures is that they can learn complex densities with a small number of components. The original formulation without mixtures used an array of basis functions (e.g. Gaussians) and then learned the weights for all the basis function. Mixtures go further and let us drop the basis functions that have zero weight. This is what we want to do here but in a more general sense we want to have a number of components that is not fixed (i.e. potentially infinite) but to only have to deal with finite number number of clusters which are the ones that have at least one data point assigned to them. That way we get to handle infinite complexity using finite resources.</span>
+<span id="cb3-680"><a href="#cb3-680" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-681"><a href="#cb3-681" aria-hidden="true" tabindex="-1"></a>To summerize </span>
+<span id="cb3-682"><a href="#cb3-682" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-683"><a href="#cb3-683" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Components: the number of latent groups</span>
+<span id="cb3-684"><a href="#cb3-684" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>CClusters: the number of components represented in the data.</span>
+<span id="cb3-685"><a href="#cb3-685" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-686"><a href="#cb3-686" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-687"><a href="#cb3-687" aria-hidden="true" tabindex="-1"></a>Next we have a couple of demos.</span>
+<span id="cb3-688"><a href="#cb3-688" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-689"><a href="#cb3-689" aria-hidden="true" tabindex="-1"></a>First we look at generating different Dirichlet with 1000 components. ~~We use a innovation parameter alpha and we can see different results.~~</span>
+<span id="cb3-690"><a href="#cb3-690" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-691"><a href="#cb3-691" aria-hidden="true" tabindex="-1"></a>One setting gives a partition with a few large components and all the others being smaller. My intuition is that they are smaller by orders of magnitude. The second setting gives a more uniform distribution for the components. In fact if we went to an sufficiently large number of components on the way to infinity I think that pretty soon we would get infinitesimal. Components. We may soon be able to test this intuition. But the idea of these demos is to build intuitions about the mechanisms and we will be looking at a number of these next. If we have these handy we may be able to get subtly different behaviors out of this model by using different mechanisms.</span>
+<span id="cb3-692"><a href="#cb3-692" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-693"><a href="#cb3-693" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-694"><a href="#cb3-694" aria-hidden="true" tabindex="-1"></a>In the second demo we consider how quickly clusters are filled as we draw points from a uniform distribution and see which component they belong to.</span>
+<span id="cb3-695"><a href="#cb3-695" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-696"><a href="#cb3-696" aria-hidden="true" tabindex="-1"></a>If we have some large components we soon (after 20 draws) seem to have covered almost all the area in the <span class="co">[</span><span class="ot">0,1</span><span class="co">]</span> interval with the first few clusters.  This is in stark contrast to the fact that there are 1000 components. We now investigate how the growth of the number of clusters as we draw more points for different Dirichlet distribution parametrization.</span>
+<span id="cb3-697"><a href="#cb3-697" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-698"><a href="#cb3-698" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-699"><a href="#cb3-699" aria-hidden="true" tabindex="-1"></a>We again look at two settings and we see the one described above but for a second more uniform partition we see what seems to be a near linear growth in the number of clusters however eventually we see that this pattern is deceptive many more partitions need to be drawn but soon we see that some clusters are being filled more than than others indicating that they are substantially larger. So even with a much more uniform partition there are sufficient fluctuations that a few clusters accumulate for most of the mass. Fundamentally we are observing a power law behavior.</span>
+<span id="cb3-700"><a href="#cb3-700" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-701"><a href="#cb3-701" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>TODO: create an online demo for exploring the dirichlet distribution in greater depth.</span>
+<span id="cb3-702"><a href="#cb3-702" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-703"><a href="#cb3-703" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-704"><a href="#cb3-704" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Number of clusters for N data points is &lt; K and random</span>
+<span id="cb3-705"><a href="#cb3-705" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-706"><a href="#cb3-706" aria-hidden="true" tabindex="-1"></a><span class="fu">## Choosing $K = \infty${#sec-BNP-choosing-k-infinity}   </span></span>
+<span id="cb3-707"><a href="#cb3-707" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-708"><a href="#cb3-708" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Here, difficult to choose finite $K$ in advance (contrast with small $K$): don't know $K$, difficult to infer, streaming data</span>
+<span id="cb3-709"><a href="#cb3-709" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-710"><a href="#cb3-710" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>How to generate $K = \infty$ strictly positive frequencies that sum to one?</span>
+<span id="cb3-711"><a href="#cb3-711" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Observation: $\rho_{1:K} \sim \text{Dirichlet}((a_{1:K}))$ </span>
+<span id="cb3-712"><a href="#cb3-712" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-713"><a href="#cb3-713" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb3-714"><a href="#cb3-714" aria-hidden="true" tabindex="-1"></a>\implies \rho_1 \stackrel{d}{=} Beta(a_1, \sum^K_{k=1}a_k= a_1) \perp \frac{\rho_2,\ldots,\rho_K}{1-\rho_1} \stackrel{d}{=} Dirichlet(a_{2}, \ldots , a_{K} )</span>
+<span id="cb3-715"><a href="#cb3-715" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb3-716"><a href="#cb3-716" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-717"><a href="#cb3-717" aria-hidden="true" tabindex="-1"></a>"Stick breaking" construction <span class="co">[</span><span class="ot">Sethuraman, 1994</span><span class="co">]</span>:</span>
+<span id="cb3-718"><a href="#cb3-718" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-719"><a href="#cb3-719" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb3-720"><a href="#cb3-720" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb3-721"><a href="#cb3-721" aria-hidden="true" tabindex="-1"></a>V_1 &amp;\sim Beta(a_1, a_2 + a_3 + a_4) &amp;&amp;\implies \rho_1 = V_1 <span class="sc">\\</span></span>
+<span id="cb3-722"><a href="#cb3-722" aria-hidden="true" tabindex="-1"></a>V_2 &amp;\sim Beta(a_2, a_3 + a_4) &amp;&amp;\implies \rho_2 = (1 - V_2) V_2 <span class="sc">\\</span></span>
+<span id="cb3-723"><a href="#cb3-723" aria-hidden="true" tabindex="-1"></a>V_3 &amp;\sim Beta(a_3, a_4) &amp;&amp;\implies \rho_3 = (1-V_1)(1 - V_2) V_3 <span class="sc">\\</span></span>
+<span id="cb3-724"><a href="#cb3-724" aria-hidden="true" tabindex="-1"></a>&amp;                        &amp;&amp; \implies \rho_4  = (1-\sum_{k=1}^3 \rho_k) </span>
+<span id="cb3-725"><a href="#cb3-725" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb3-726"><a href="#cb3-726" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb3-727"><a href="#cb3-727" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-728"><a href="#cb3-728" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Dirichlet process stick-breaking $a_k=1, b_k=\alpha &gt; 0$</span>
+<span id="cb3-729"><a href="#cb3-729" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb3-730"><a href="#cb3-730" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb3-731"><a href="#cb3-731" aria-hidden="true" tabindex="-1"></a>V_1 &amp;\sim Beta(a_1, a_2 + a_3 + a_4) &amp;&amp; \rho_1 = V_1 <span class="sc">\\</span></span>
+<span id="cb3-732"><a href="#cb3-732" aria-hidden="true" tabindex="-1"></a>V_2 &amp;\sim Beta(a_2, a_3 + a_4)       &amp;&amp; \rho_2 = (1 - V_2) V_2 <span class="sc">\\</span></span>
+<span id="cb3-733"><a href="#cb3-733" aria-hidden="true" tabindex="-1"></a>V_k &amp; \sim Beta(a_k,b_k)            &amp;&amp; \rho_k  = \left [ \prod_{k=1}^{k-1} (1-V_j)\right ]  V_k </span>
+<span id="cb3-734"><a href="#cb3-734" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb3-735"><a href="#cb3-735" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb3-736"><a href="#cb3-736" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-737"><a href="#cb3-737" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">McCloskey 1965</span><span class="co">]</span>; <span class="co">[</span><span class="ot">Engen 1975</span><span class="co">]</span>; <span class="co">[</span><span class="ot">Patil and Taillie 1977</span><span class="co">]</span>; <span class="co">[</span><span class="ot">Ewens 1987</span><span class="co">]</span>; <span class="co">[</span><span class="ot">Sethuraman 1994</span><span class="co">]</span>; <span class="co">[</span><span class="ot">Ishwaran and James, 2001</span><span class="co">]</span></span>
+<span id="cb3-738"><a href="#cb3-738" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-739"><a href="#cb3-739" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-740"><a href="#cb3-740" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Griffiths-Engen-McCloskey (GEM) distribution:</span>
+<span id="cb3-741"><a href="#cb3-741" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-742"><a href="#cb3-742" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb3-743"><a href="#cb3-743" aria-hidden="true" tabindex="-1"></a>\begin{aligned}</span>
+<span id="cb3-744"><a href="#cb3-744" aria-hidden="true" tabindex="-1"></a>V_k &amp;\stackrel{iid}{\sim} Beta(1,\alpha)  &amp;&amp; \rho_k  = \left <span class="co">[</span><span class="ot"> \prod_{j=1}^{k-1} (1-V_j)\right </span><span class="co">]</span> V_k </span>
+<span id="cb3-745"><a href="#cb3-745" aria-hidden="true" tabindex="-1"></a>\end{aligned}</span>
+<span id="cb3-746"><a href="#cb3-746" aria-hidden="true" tabindex="-1"></a>$$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">
