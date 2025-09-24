@@ -25,6 +25,16 @@ I found the videos hard to follow at times, as she is talking fast (a good thing
 I want to develop the generative and behavioral stories that help us connect the abstract stochastic processes to problems we might want to solve in the real world. Again this is something I have already stated on in earlier notes in course 1 and the appendices on distributions.
 :::
 
+
+::: {.column-margin #fig-bnp}
+{{< video https://youtu.be/kKZkNUvsJ4M
+    title='Tamara Broderick 1: Bayesian Nonparametrics - MLSS Cadiz 2016' >}}
+
+Bayseian Non Parametrics Workshop at MLSS Cadiz 2016 by Tamara Broderick.
+:::
+
+
+
 ## Nonparametric Bayes
 
 - Bayesian Nonparametrics (BNP) = Bayesian + Nonparametric
@@ -246,7 +256,7 @@ $$
 ```{shinylive-python}
 #| standalone: true
 #| viewerHeight: 420
-#| components: [editor, viewer]
+#| components: [viewer] #editor
 from __future__ import annotations
 
 import numpy as np
@@ -452,7 +462,7 @@ $$
 ```{shinylive-python}
 #| standalone: true
 #| viewerHeight: 520
-#| components: [editor, viewer]
+#| components: [ viewer] # editor,
 
 from __future__ import annotations
 
@@ -665,7 +675,7 @@ app = App(app_ui, server)
 
 
 
-## More Classes than points K>N {#sec-BNP-more-classess-than-points-k>n}
+## More Classes than points K>N {#sec-BNP-more-classess-than-points-k-gt-n}
 
 
 We have gotten to one of the strongest reasons to use BNP models. When we deal with data we often have more columns than rows. For example, 
@@ -678,7 +688,7 @@ Yet for almost all ML models assume a fixed K (number of classes, clusters or co
 
 The main point we need to make goes back to an idea we covered in course 3 on mixture models when we discussed density estimation. As I Recall the advantage of mixtures is that they can learn complex densities with a small number of components. The original formulation without mixtures used an array of basis functions (e.g. Gaussians) and then learned the weights for all the basis function. Mixtures go further and let us drop the basis functions that have zero weight. This is what we want to do here but in a more general sense we want to have a number of components that is not fixed (i.e. potentially infinite) but to only have to deal with finite number number of clusters which are the ones that have at least one data point assigned to them. That way we get to handle infinite complexity using finite resources.
 
-To summerize 
+To summarize 
 
 - Components: the number of latent groups
 - CClusters: the number of components represented in the data.
@@ -734,13 +744,161 @@ V_k & \sim Beta(a_k,b_k)            && \rho_k  = \left [ \prod_{k=1}^{k-1} (1-V_
 \end{aligned}
 $$
 
-[McCloskey 1965]; [Engen 1975]; [Patil and Taillie 1977]; [Ewens 1987]; [Sethuraman 1994]; [Ishwaran and James, 2001]
+### Bibliographic Review {#sec-BNP-bibliographic-review}
+
+The instructor provides a number of references for at this point
+
+- [@ferguson1973bayesian] - Ferguson's paper on the Dirichlet process in which he introduced the random measure and a construction mapping from H to G. This paper lacks details on how to sample from the DP. At this point it was more about the existence and uniqueness proofs for the DP. This is some solid bit of mathematics for when you break new ground and have no foundations to stand on so you dig down to the axioms or near by some properties like conjugacy and the fact that it is a distribution over distributions.
+- [@blackwell1973PolyaUrn] - Blackwell and MacQueen's paper on the Polya urn scheme for sampling from the DP. This paper also introduced the Chinese Restaurant Process
+- [@sethuraman1994constructive] - Sethuraman's paper on the stick breaking construction of the Dirichlet process.
+
+The other papers seem to be about the GEM and sampling methods.
+
+- [@mccloskey1965model] - McCloskey Phd Thesis dealing with the problem of enumerating (clustering) species in an ecological context. This is an first paper one the GEM distribution for sampling infinite partitions.
+- [@engen1975note] - Engen's work dealing with the same problem.
+- [@patil1982diversity] - not clear why this is cited.
+- [@Ewens1990] - Chapter on Gibbs Sampling from Ewens and Grant's book on population genetics. This chapter has a nice summary of the Polya urn scheme for sampling from the Dirichlet process.
+- [@ishwaran2001gibbs] - Ishwaran and James paper on Gibbs sampling for stick breaking priors.
 
 
-- Griffiths-Engen-McCloskey (GEM) distribution:
+- [Griffiths-Engen-McCloskey](https://courses.grainger.illinois.edu/cs598jhm/sp2013/Slides/Lecture13.pdf) (GEM) distribution:
 
 $$
 \begin{aligned}
 V_k &\stackrel{iid}{\sim} Beta(1,\alpha)  && \rho_k  = \left [ \prod_{j=1}^{k-1} (1-V_j)\right ] V_k 
 \end{aligned}
 $$
+
+## Exercises
+
+
+::: {#exr-bnp-dp-01}
+## Categorical conjugacy with Dirichlet distributions
+
+1. Prove the beta (Dirichlet) is conjugate to the categorical
+  - What is the posterior after N data points?
+:::
+
+::: {#sol-bnp-dp-01}
+
+- what is the Categorical distribution?
+
+we can view it in two ways in terms of distributions I am more familiar with:
+
+- it is a generalization of the Bernoulli distribution to K categories.
+- it is a special case of the multinomial distribution where we have one trial.
+
+
+### Urn formulation
+
+another way to think about it is based on an urn model. We have an urn with K colors and we draw one ball from the urn. The probability of drawing a ball of color k is $\rho_k$ is the number of balls of color k divided by the total number of balls in the urn.
+
+But what is the outcome of a draw from a Categorical distribution?
+
+it is a one-hot vector of length K with a 1 in the position corresponding to the color drawn and 0s elsewhere.
+
+
+ok now to the exercise: how do we prove that the Dirichlet is conjugate to the Categorical distribution?
+
+Technically what we need to do is starting with a Dirichlet prior and a Categorical likelihood use Bayes to infer that the posterior is also a Dirichlet distribution.
+
+Let's start with the Dirichlet prior:
+
+
+$$
+p(\rho_{1:K}) = \frac{\Gamma(\sum_{k=1}^K \alpha_k)}{\prod_{k=1}^K \Gamma(\alpha_k)} \prod_{k=1}^K \rho_k^{\alpha_k - 1} 
+$$
+
+Now the likelihood of a single draw from a Categorical distribution is: 
+
+$$
+p(z_n \mid \rho_{1:K}) = \prod_{k=1}^K \rho_k^{\mathbb{1}_{z_n=k}} 
+$$
+
+we need to show that:
+
+
+
+$$
+p(\rho_{1:K} \mid z_{1:N}) \propto p(z_{1:N} \mid \rho_{1:K}) p(\rho_{1:K})
+$$
+
+:::
+
+
+::: {#exr-bnp-dp-02}
+2. Suppose $p_{1:K}\sim \mathrm{Dirichlet}(a_{1:K})$ prove that
+
+$$
+ \rho_{1:K} \stackrel{d}{=} Beta(a_1, \sum_{k=1}^K a_k - a_1) \perp (\rho_2, \ldots, \rho_K) \stackrel{d}{=} Dirichlet(a_2, \ldots, a_K)
+$$
+
+:::
+
+::: {#exr-bnp-dp-03}
+3. Code your own GEM simulator for $\rho$ why is this hard?
+:::
+
+::: {#exr-bnp-dp-04}
+4. Simulate drawing cluster indicators (z) from your $\rho$
+:::
+
+::: {#exr-bnp-dp-05}
+5. Compare the number of clusters as N changes in the GEM case with the growth in the K=1000 case
+:::
+
+::: {#exr-bnp-dp-06}
+6. How does the growth in N change when you change $\alpha$?
+:::
+
+
+
+## Some insights 
+
+
+### Zen of the Random Measure {#sec-BNP-random-measure}
+
+The random measure $G$ is a new concept. Like a random variable it has a confusing formalism and a more straightforward interpretation that is easier to understand and perhaps almost intuitive. I tried to hash it out using an AI but I got the final confirmation watching a lecture by Larry Wasserman, who did not write "all of bayesian non-parametric statistics" yet a pillar of erudition and also not afraid to point out weaknesses in the Bayesian formulations. 
+
+- We have two approaches to building the random measure which we use to define a DP. One is by definitions which is due to [@ferguson1973bayesian].
+- The other is using two steps process with step 2. due to [@sethuraman1994constructive]
+   1. We pick a sample from sample space using our prior aka the base distribution H. We get to use a parameter alpha to control how much we trust H. 
+   2. Then we do stick breaking to partition of the unit interval.
+   3. We assign the weights to the sample from 1. so that we now have a random measure.
+
+The first construction is more abstract and does not give us a way to sample from the DP. It doesn't concern itself with the details of the inferring so many parameters (infinity * 3) for Normal H
+
+The second construction is more concrete and gives us a way to sample from the DP. But it is less abstract and so it is more challenging to generalize from it and that is pretty much our goal in this course.
+
+The big idea here we need to make things practical is that we don't want to deal with all the infinite parameters. We only want to deal with as many parameters as we need to handle our data. And the idea here is about marginalization. We can integrate out the random measure G and work directly with the cluster indicators z. This removes an infinity of pain.
+
+The process is very zen like - we need to use a infinite random measure G but then we will integrate it out and not have to deal with it in practice. 
+
+### Spikiness 
+
+First is that we are using a discrete distribution to model a continuous distribution. This is a bit like using a histogram to model a continuous distribution. The more bins we have the better the approximation. But here we have an infinite number of bins. So we can get as close as we want to the true distribution.
+
+Larry Wasserman goes into more detail on this pointing out that each draw from the DP is a spiky discrete distribution. But if we draw multiple times from the DP and average the results will be smooth in the limit.
+
+He suggest this is an advantage of the DP, perhaps more on this later.
+
+### Full Bayesian treatment of Mixture Models
+
+At the end of the course on Bayesian Mixtures I pointed out that we could also give parameter a full bayesian treatment and infer it from the model. But this was not so easy to do. How do we modify the gibs sampler, how do we set the prior for the parameters.
+
+But now we have ready to get some closure on this issue. We will next consider inference methods for the DP mixture model and how we can set a prior on K that is non-informative in the sense that all values of K are allowed.
+
+
+### Nonparametric CDFs
+
+Wasserman start with constructions of nonparametric CDFs. This is actually illuminating. It is simpler than the DP and the mixture model and highlights how bayesian and frequentist nonparametric methods are related but give different kinds of results. There is a good case to add a note on this subject before this page.
+
+### The DP as a Swiss Army Knife
+
+I now realize that the DP is so central and so interesting because it lets us switch H in the random measure G and thus potentially handle BNPs with different kinds of data. 
+
+It is a like when I explained measures in course 1. We  deal with the Borrel measure on the [0,1] Interval but behind this facade we can push back to some other measure which has a support from any event space. It can be cards, dice, DNA sequences, text, images, audio, video, tree and graphs.
+
+The same caveat also applies now. We have a toolkit for building BNPs but it doesn't mean what we get will
+be useful for handling the the different forms of events. Graphs are going to very different from dice or from time series. Much of what remains after we consider inference methods is to consider how to apply the DP on some of these different event spaces like graphs. We saw in the introduction that people have actually done this already. 
+
