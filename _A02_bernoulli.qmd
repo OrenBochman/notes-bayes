@@ -1,0 +1,156 @@
+## Bernoulli Distribution {#sec-bernoulli-distribution}
+
+\index{Bernoulli trial} \index{distribution!Bernoulli}
+
+### Stories
+
+::: {.callout-note}
+
+The Bernoulli distribution arises when modeling the outcome of a binary event called a **Bernoulli trial**. 
+
+Let $X$ be the indicator variable corresponding to the success of getting "heads" in a "coin toss", with a coin that has probability of success $p$ for getting "heads".
+
+Then X has a *Bernoulli Distribution* with parameter $p$
+
+We denote this as $X \sim Bern(p)$
+:::
+
+### Parameters
+
+Because of this story, the *parameter* $p$ is often called the **success** probability of the Bern(p) distribution.
+
+### Examples
+
+::: {.callout-note}
+
+-   fair coin toss
+-   unfair coin toss
+-   ad click
+-   web site conversion
+-   death or survival of a patient in a medical trial
+-   indicator random variable
+:::
+
+### Checklist
+
+::: {.callout-note}
+
+-   [ ] Discrete data
+-   [ ] A single trial
+-   [ ] Only two outcomes: **success** and **failure** (These do not need to literally represent successes and failures, but this shorthand is typically used.)
+:::
+
+$$
+\begin{aligned} 
+X &\sim Bernoulli(p)\\
+  & \sim Bern(p)\\ 
+  & \sim B(p)  
+\end{aligned}
+$$ {#eq-bernoulli-rv}
+
+### Moments
+
+$$
+M_X(t)=q+pe^{t} \qquad \text{(MGF)}
+$$ {#eq-bernoulli-MGF}
+
+$$
+\mathbb{E}[X]= p \qquad \text{(Expectation)}
+$$ {#eq-bernoulli-expectation}
+
+$$
+\mathbb{V}ar[x]= \mathbb{P}r(1-p) \qquad \text{(Variance)}
+$$ {#eq-bernoulli-variance}
+
+### PMF
+
+Where parameter $p$ is the probability of getting heads.
+
+The probability for the two events is:
+
+$$
+\mathbb{P}r(X=1) = p \qquad \mathbb{P}r(X=0)=1-p 
+$$
+
+$$
+    \begin{cases}
+        1-p     & \text{if } k=0 \\
+        p       & \text{if } k=1
+    \end{cases}
+  \qquad \text{(PMF)}
+$$ {#eq-bernoulli-pmf}
+
+### CDF
+
+$$
+    \begin{cases}
+        0&{\text{if }}k<0  \\
+        1-p&{\text{if }}0\leq k<1 \\
+        1&{\text{if }}k\geq 1
+    \end{cases}
+    \qquad \text{(CDF)}
+$$ {#eq-bernoulli-cdf}
+
+### Likelihood
+
+$$
+L(\theta) = \prod p^x(1-p)^{1-x} \mathbb{I}_{[0,1]}(x)  \qquad \text{(Likelihood)}
+$$ {#eq-bernoulli-likelihood}
+
+$$
+\mathcal{L}(\theta) =log(p) \sum x + log(1-p)\sum (1-x)  \qquad \text{(Log Likelihood)}
+$$ {#eq-bernoulli-log-likelihood}
+
+### Entropy and Information
+
+$$
+\mathbb{H}(x)= -q \ln(q)- p \ln(p) \qquad \text{(Entropy)}
+$$ {#eq-bernoulli-entropy}
+
+$$
+\mathcal{I}[X]\frac{1}{\mathbb{P}r(1-p)} \qquad \text{(Fisher Information)}
+$$ {#eq-bernoulli-information}
+
+$$
+Beta(x) \qquad \text{(Conjugate Prior)}
+$$ {#eq-bernoulli-prior}
+
+### Usage
+
+| Package | Syntax                                  |
+|---------|:----------------------------------------|
+| NumPy   | `rg.choice([0, 1], p=[1-theta, theta])` |
+| SciPy   | `scipy.stats.bernoulli(theta)`          |
+| Stan    | `bernoulli(theta)`                      |
+
+: Usage of Bernoulli {#tbl-bernoulli-api}
+
+### Plots
+
+```{python}
+#| label: A02-2
+import numpy as np
+from scipy.stats import bernoulli
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(1, 1)
+p = 0.3
+mean, var, skew, kurt = bernoulli.stats(p, moments='mvsk')
+print(f'{mean=:1.2f}, {var=:1.2f}, {skew=:1.2f}, {kurt=:1.2f}')
+
+x = np.arange(bernoulli.ppf(0.01, p),
+              bernoulli.ppf(0.99, p))
+ax.plot(x, bernoulli.pmf(x, p), 'bo', ms=8, label='bernoulli pmf')
+ax.vlines(x, 0, bernoulli.pmf(x, p), colors='b', lw=5, alpha=0.5)
+
+rv = bernoulli(p)
+ax.vlines(x, 0, rv.pmf(x), colors='k', linestyles='-', lw=1,
+        label='frozen pmf')
+ax.legend(loc='best', frameon=False)
+plt.show()
+
+## Generate random numbers
+r = bernoulli.rvs(p, size=10)
+r
+```
+
