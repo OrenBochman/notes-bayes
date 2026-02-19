@@ -1,0 +1,285 @@
+---
+title : 'Classification - M4L7'
+subtitle : 'Bayesian Statistics: Mixture Models - Applications'
+categories:
+  - Bayesian Statistics
+keywords:
+  - Mixture Models
+  - Classification
+  - Naïve Bayes Classifier
+  - Notes
+---
+
+## Classification with Mixture Models  :movie_camera:  {#sec-classification-mixture-models
+}
+[**Classification** is *a supervised learning problem where we want to predict the class of a new observation based on its features*.]{.mark}
+
+According to the instructor the main difference from clustering is that in classification we have a training set. I would think the main difference is that we have labels for some of the data, while in clustering we do not have labels at all.
+
+The fact that we have labels and a training set means we should know how many classes we have and we can use these labels to train a model and use it to predict the class of a new observation.
+
+\index{Naïve Bayes classifier}
+The instructor mentions *Support Vector Machines* (SVM), *logistic regression* and *linear discriminant analysis* (LDA) as familiar examples of *classification methods*. These and a number of others are covered in [@james2013introduction]. We will focus on *Naïve Bayes classifiers* as it is the most similar to mixture models and the EM algorithm which we have seen earlier
+
+## Mixture Models and Naïve Bayes classifiers  :movie_camera: {#sec-mixture-models-naïve-bayes}
+
+![K-means clustering](/images/c3l4-ss-04-classification-overview.png){.column-margin width="53mm"}
+
+
+![K-means clustering](/images/c3l4-ss-05-classification-naive-bayes.png){.column-margin width="53mm"}
+
+
+![Mixture Models for Clustering](/images/c3l4-ss-06-classification-mixtures.png){.column-margin width="53mm"}
+
+
+## Naïve Bayes classifiers {sec-naïve-bayes-classifiers}
+
+\index{Naïve Bayes classifier}
+The idea of Naïve Bayes classifiers is that we want to know what is the probability that observation i belongs to class k and we can obtain this using Bayes' theorem by computing the prior probability that an observation is in that class. This is just the frequency of the class multiplied by the density of that class and divided by the sum over the classes of the same expression.
+
+$$
+\mathbb{P}r(x_i \in \text{class}_k) = \frac{w_k \cdot g_k(x_i \mid \theta_k)}{\sum_{j=1}^K w_j \cdot g_j(x_i\mid \theta_j)}
+$$ {#eq-bayes-classifier}
+
+where $w_k$ is the prior probability of class k, $g_k(x_i \mid \theta_k)$ is the density of class k, and $\theta_k$ is the parameter of class k.
+
+with 
+
+$$
+\tilde{c}_i = \arg \max_k \mathbb{P}r(x_i \in \text{class}_k)\ for \; i=n+1,\ldots,n+m
+$$ {#eq-bayes-classifier-assign}
+
+The naïve Bayes classifier assumes that the features are conditionally independent given the class. This means that the density of class k can be written as the product of the densities of each feature given the class:
+$$
+g_k(x_i\mid \theta_k) = \prod_{l=1}^p g_{kl}(x_{il}\mid\theta_{kl})
+$$ {#eq-naïve-bayes-density}
+
+where $g_{kl}(x_{il} \mid \theta_{kl})$ is the density of feature $l$ given class $k$ and $\theta_{kl}$ is the parameter of feature $l$ given class $k$. This means that we can estimate the density of each feature separately and then multiply them together to get the density of the class.
+
+This is *a very strong assumption* and is not true in general. However, it works well in practice and is often used in text classification problems where the features are the words in the text.
+
+The **Naïve Bayes classifier** is a special case of the mixture model where the components are the classes and the densities are the product of the densities of each feature given the class. This means that we can use the EM algorithm to estimate the parameters of the model in the same way as we did for the mixture model. The only difference is that we need to estimate the densities of each feature separately and then multiply them together to get the density of the class.
+
+
+::: {.callout-note collapse="true"} 
+
+## Video Transcript
+
+<!-- TODO: summarize this transcript -->
+
+{{< include transcripts/_C3-L07-T01.qmd >}}
+
+:::
+
+
+### LDA and the EM algorithm  :movie_camera:  {#sec-classification-LDA-EM-Alg}
+
+![LDA](/images/c3l4-ss-08-lda.png){.column-margin width="53mm"}
+
+
+![LDA](/images/c3l4-ss-09-lda.png){.column-margin width="53mm"}
+
+
+It is important to understand the connection between using mixture models for classification and other procedures that are commonly used out there for classification. One example of those procedures that has a strong connection is linear discriminant analysis and also  to quadratic discriminant analysis.
+
+To illustrate that connection, we start with a very simple mixture model. 
+
+So let's start with a mixture model of the form:
+
+$$
+f(x) = \sum_{k=1}^2 \omega_k \frac{1}{\sqrt{2\pi}} \frac{1}{\sqrt{\text{det}(\Sigma)}} e^{-\frac{1}{2}(x - \mu_k)^T \Sigma^{-1} (x - \mu_k)}.
+$$ {#eq-mixture-model-simple}
+
+::: {.callout-note collapse="true"}
+
+## Video Transcript
+
+<!-- TODO: summarize this transcript -->
+
+{{< include transcripts/_C3-L07-T02.qmd >}}
+
+:::
+
+## Linear and quadratic discriminant analysis in the context of Mixture Models  :movie_camera:  {#sec-classification-linear-quadratic-discriminant-analysis}
+
+### Classification example
+
+\index{mixture!classification} \index{mixture!LDA} \index{mixture!QDA}
+
+This video walks through the code in @sec-em-algorithm-classification-sample.
+
+
+::: {.callout-note collapse="true"}
+
+## Video Transcript
+
+<!-- TODO: summarize this transcript -->
+
+{{< include transcripts/_C3-L07-T03.qmd >}}
+
+:::
+
+
+## Sample EM algorithm for classification problems  :spiral_notepad:  $\mathcal{R}${#sec-em-algorithm-classification-sample}
+
+In the following code sample we will illustrate how to use the EM algorithm for classification problems.
+
+Using mixture models for classification in the wine dataset
+Compare linear and quadratic discriminant analysis and a 
+(semi-supervised) location and scale mixture model with K normals
+Comparing only against the EM algorithm
+
+# Semi-supervised, quadratic discriminant analysis 
+
+```{r}
+#| label: lbl-em-algorithm-classification-initialization
+
+
+library(MASS)    #<1>
+library(mvtnorm) #<1>
+wine.training = read.table("data/wine_training.txt", sep=",", header=TRUE)     #<2>
+wine.test = read.table("data/wine_test.txt", sep=",", header=TRUE) #<2>
+
+# Set up global variables
+n = dim(wine.training)[1]  # <3>
+m = dim(wine.test)[1]      # <4>
+x = rbind(as.matrix(wine.training[,-1]), 
+          as.matrix(wine.test[,-1]))   # <5>
+p       = dim(x)[2]                    # <6>
+KK      = 3
+epsilon = 0.00001
+```
+
+1. Load necessary libraries
+2. Load the wine dataset
+3. Size of the training set
+4. Size of the test set
+5. The dataset stacking: training set + test set
+6. Number of features in the dataset
+
+```{r}
+#| label: fig-pair-plot-wine-training-EDA
+#| fig.cap: "Pair plot of the training set of the wine dataset"
+par(mfrow=c(1,1))
+par(mar=c(2,2,2,2)+0.1)
+colscale = c("black","red","blue")
+pairs(wine.training[,-1], col=colscale[wine.training[,1]], pch=wine.training[,1]) #<7>
+```
+
+7. Pair plot of the training set of the wine dataset
+
+
+```{r}
+#| label: lbl-em-algorithm-classification-EM-algorithm
+
+## Initialization step
+set.seed(63252) # <8>
+w   = rep(1,KK)/KK  # <9>
+mu  = rmvnorm(KK, apply(x,2,mean), var(x)) # <10>
+
+Sigma      = array(0, dim=c(KK,p,p))  # <11>
+Sigma[1,,] = var(x)/KK  
+Sigma[2,,] = var(x)/KK
+Sigma[3,,] = var(x)/KK
+
+sw     = FALSE # <12>
+KL     = -Inf
+KL.out = NULL
+s      = 0
+
+while(!sw){
+  ## E step
+  v = array(0, dim=c(n+m,KK))
+  for(k in 1:KK){  
+    # Compute the log of the weights
+    v[1:n,k] = ifelse(wine.training[,1]==k,0,-Inf)  # Training set
+    v[(n+1):(n+m),k] = log(w[k]) + mvtnorm::dmvnorm(x[(n+1):(n+m),], mu[k,], Sigma[k,,],log=TRUE)  # Test set
+  }
+  for(i in 1:(n+m)){
+    v[i,] = exp(v[i,] - max(v[i,]))/
+            sum(exp(v[i,] - max(v[i,])))  
+    # Go from logs to actual weights in a numerically stable manner
+  }
+  
+  ## M step
+  w = apply(v,2,mean)
+  mu = matrix(0, nrow=KK, ncol=p)
+  for(k in 1:KK){
+    for(i in 1:(n+m)){
+      mu[k,]    = mu[k,] + v[i,k]*x[i,]
+    }
+    mu[k,] = mu[k,]/sum(v[,k])
+  }
+  Sigma = array(0,dim=c(KK,p,p))
+  for(k in 1:KK){
+    for(i in 1:(n+m)){
+      Sigma[k,,] = Sigma[k,,] + v[i,k]*(x[i,] - 
+                   mu[k,])%*%t(x[i,] - mu[k,])
+    }
+    Sigma[k,,] = Sigma[k,,]/sum(v[,k])
+  }
+
+  # Convergence Check step
+  KLn = 0
+  for(i in 1:(n+m)){
+    for(k in 1:KK){
+      KLn = KLn + v[i,k]*(log(w[k]) + 
+            mvtnorm::dmvnorm(x[i,],mu[k,],Sigma[k,,],log=TRUE)) # <13>
+    }
+  }
+  if(abs(KLn-KL)/abs(KLn)<epsilon){
+    sw=TRUE # <14>
+  }
+  KL = KLn
+  KL.out = c(KL.out, KL)
+  s = s + 1
+  print(paste(s, KLn)) # <15>
+}
+```
+
+8. Set the random seed for reproducibility
+9. Initialize set equal weights to each component
+10. Cluster centers randomly spread over the support of the data
+11. Initial variances are assumed to be the same
+12. Init Convergence flag to False
+13. Compute the Kullback-Leibler divergence
+14. If converged, set the flag to True and exit the outer loop
+15. Report iteration and Kullback-Leibler divergence
+
+Next we perform predictions and evaluate the classification.
+
+```{r}
+#| label: lbl-em-classification-prediction
+#| 
+apply(v, 1, which.max)[(n+1):(n+m)] # <16>
+wine.test[,1] # <17>
+apply(v, 1, which.max)[(n+1):(n+m)] == wine.test[,1] # <18>
+sum(!(apply(v, 1, which.max)[(n+1):(n+m)] == wine.test[,1])) # <19> 
+```
+
+16. Predicted labels for the test set
+17. True labels for the test set
+18. Comparison of predicted labels with true labels
+19. Number of errors in the classification - One error
+
+Using the `qda` and `lda` functions in `R`
+
+First we preform quadratic discriminant analysis using the `qda` function in R, which is part of the MASS package.
+
+```{r}
+#| label: lbl-em-classification-qda
+# qda
+modqda = qda(grouping=wine.training[,1], x=wine.training[,-1], method="mle")
+ccpredqda = predict(modqda,newdata=wine.test[,-1])
+sum(!(ccpredqda$class == wine.test[,1])) # One error
+```
+
+Next we perform linear discriminant analysis using the `lda` function in R, which is also part of the MASS package.
+
+```{r}
+#| label: lbl-em-classification-lda
+modlda = lda(grouping=wine.training[,1], x=wine.training[,-1], method="mle")
+ccpredlda = predict(modlda,newdata=wine.test[,-1])
+sum(!(ccpredlda$class == wine.test[,1])) # No errors!!!
+```
+
