@@ -25,9 +25,49 @@ title-block-banner: images/banner_deep.jpg
 ::: {#vid-sean-law .column-margin}
 {{< video https://www.youtube.com/watch?v=0O6dlq6a4rA&ab_channel=SciPy >}}
 
-Sean Law - STUMPY: Modern Time Series Analysis with Matrix Profiles 
+Sean Law - STUMPY: Modern Time Series Analysis with [Matrix Profiles](https://medium.com/data-science/introduction-to-matrix-profiles-5568f3375d90) 
 :::
 ::::
+
+::: {.callout-tip collapse="true"}
+### Automating NDLM
+
+Question: can we use the Matrix profile & EDA to construct a good NDLM model for a given time series?
+
+1. EDA should be able to give us a global view of the time series, its periodicity, its stationarity, etc.
+
+  1. Nonstationary mean (rolling mean drifts) $\implies$  add local level or local linear trend.
+  1. Clear periodicity (ACF spikes at known lags; seasonal subseries plots) $\implies$  add seasonal component (Fourier or dummy seasonal states).
+  1. Calendar effects (day-of-week, holidays, promotions) $\implies$  dynamic regression (time-varying coefficients if needed).
+  1. Heteroskedasticity (variance clusters) $\implies$ discount-factor volatility or a stochastic volatility extension.
+  1. Outliers (rare spikes) $\implies$  robust observation model (Student-t) or explicit intervention indicators.
+
+Output of this step: **a baseline state vector design** $F_t,G_t$ + initial priors + whether we will use discount factors.
+
+2. Matrix profile can detect motifs and discords and segments, in other words local patterns in the time series.
+
+  1. Motifs $\implies$ suggest event templates you can encode as regressors (pulse/boxcar/decay kernels), or as a dictionary of basis events.
+  1. Discords $\implies$ suggest interventions / robust likelihood / outlier mixture.
+  1. Segments $\implies$ suggest changepoints or regime switching (piecewise DLM, switching DLM, or time-varying discount factors).
+  1. Output of this step: a set of candidate changepoints and event regressors.
+
+Output of this step: a set of candidate changepoints and event regressors.
+
+3. Recall that in Harisson & West the DLM is DYNAMIC
+
+At any time step we can change everything or anything about the model if we are clever enough to do so -- If we know about Motifs in the data we can encode them using dummy seasonal states or regression states. 
+
+Yet even if the DLM can handle such radical changes, these regime changes need to be detected and encoded in the model very explicitly. This might be automated with the Matrix profile, but it seems to be unsatisfactory to change the model whenever we stray from the global pattern.
+
+It seems that if we use Markov switching to the model i.e. a Markov switching DLM, we should be to add regimes for segments with motifs or discords without having to specify the precise their precise timing. 
+
+What seems to be more promising is to use the Matrix profile to detect motifs, discords and segments and then to augment the DLM with prior knowledge of these and then trust in Bayes to infer the best regime.
+
+
+4. Model selection: use AIC/BIC/DIC to select among candidate models, or use cross-validation to evaluate forecast performance.
+
+
+:::
 
 We will now delve into Bayesian inference for the case where we have an NDLM with both  observational variance and system variance known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach.
 
@@ -201,7 +241,7 @@ $$ {#eq-derivation-for-q-t}
 Now, denoting $e_t = (y_t - f_t)$ and $A_t = R_t F_t q_t^{-1}$, we can rewrite the equations above as:
 
 
-It follows that 
+It follows that :
 
 $$
 \begin{pmatrix}Y \\ \theta\end{pmatrix} \sim \mathcal{N}
@@ -211,11 +251,8 @@ $$
 \right)
 $$
 
-Therefore, identifying $Y$ with $X_1$ and $\theta$ with $X_2$ in the partition of $X$ in 17.2.2, we have
-RF R
-)]
+Therefore, identifying $Y$ with $X_1$ and $\theta$  with $X_2$ in the partition of $X$ in [@west2013bayesian §17.2.2], we have
 
-Therefore, identifying Y with X1 and $\theta$  with X2 in the partition of X in 17.2.2, we have
 $$
 Y \sim \mathcal{N}[F'a, F'RF + V]
 $$
@@ -226,15 +263,13 @@ $$
 
 where
 
-
-
 $$
-m = a + RF[F′RF + V]−1[Y − F′a]
+m = a + RF[F'RF + V]−1[Y − F'a]
 $$
 
 and
 $$
-C = R − RF[F′RF + V]−1F′R.
+C = R − RF[F'RF + V]−1F'R.
 $$
 
 
@@ -246,7 +281,7 @@ $$
   \end{aligned}
 $$ {#eq-posterior-distribution}
 
-@eq-derivation-for-a-t-and-R-t , @eq-derivation-for-f-t-and-q-t and @eq-posterior-distribution are often referred to as the [Kalman filtering](https://en.wikipedia.org/wiki/Kalman_filter) equations. 
+@eq-derivation-for-a-t-and-R-t , @eq-derivation-for-q-t and @eq-posterior-distribution are often referred to as the [Kalman filtering](https://en.wikipedia.org/wiki/Kalman_filter) equations. 
 
 ::: {.callout-note collapse="true"}
 ## Video Transcript
