@@ -1,0 +1,195 @@
+
+## Sample code for EM example 1  :spiral_notepad:  $\mathcal{R}$ {#sec-em-code-example-1}
+
+We start in @lst-em-loc-mixture-setup with some house cleaning by clearing the environment and setting the seed for reproducibility.
+
+```{r}
+#| label: lst-em-loc-mixture-setup
+#| lst-label: lst-em-loc-mixture-setup
+#| lst-cap: "Setup"
+
+rm(list=ls())    # <1>
+set.seed(81196)  # <2> 
+```
+
+1. Clear the environment and load required libraries
+2. Set the seed for reproducibility of the results.
+
+
+Since the algorithm will be tested on simulated data, we proceed in @lst-em-example-synthesize-data to generate the synthetic dataset from a mixture of 2 Gaussians. 
+
+```{r}
+#| label: lst-em-example-synthesize-data
+#| lst-label: lst-em-example-synthesize-data
+#| lst-cap: "Generate data from a mixture with 2 components"
+
+## Ground Truth parameters initialization
+KK         = 2          # <1>
+w.true     = 0.6        # <2>
+mu.true    = rep(0, KK) # <3>
+mu.true[1] = 0          # <4>
+mu.true[2] = 5          # <4>
+sigma.true = 1          # <5>
+
+n  = 120         # <6>
+cc = sample(1:KK, n, replace=T, prob=c(w.true,1-w.true)) # <7>
+x  = rep(0, n)   # <8>
+
+for(i in 1:n){ 
+  # sample from a distribution with mean selected by component indicator
+  # the SD is the same for all components as this is a location mixture
+  x[i] = rnorm(1, mu.true[cc[i]], sigma.true)
+}
+```
+1. Number of components of the mixture
+2. Ground Truth (GT) True weights associated with the components
+3. Initialize the true means list
+4. Ground Truth (GT) True means for each component
+5. GT standard deviation of all components
+6. Number of synthetic samples to generate
+7. Simulate the latent variables for the component indicator function
+8. Initialize the data vector x (or load data)
+
+
+Let us plot the data and the true components before running the EM algorithm.
+
+```{r}
+#| label: lst-em-plot-synthtic-dataset
+#| lst-label: lst-em-example-1
+#| lst-cap: "Plotting the synthetic dataset"
+
+# Plot the true density
+par(mfrow=c(1,1))
+xx.true = seq(-8,11,length=200)
+yy.true = w.true*dnorm(xx.true, mu.true[1], sigma.true) + 
+          (1-w.true)*dnorm(xx.true, mu.true[2], sigma.true) 
+plot(xx.true, yy.true, type="l", xlab="x", ylab="True density", lwd=2)
+points(x, rep(0,n), col=cc)
+```
+
+```{r}
+#| label: lst-em-Location-Mixture-EM-plotting-helper
+#| lst-label: lst-em-Location-Mixture-EM-plotting-helper
+#| lst-cap: "Helper function for plotting the EM algorithm for a location mixture of Gaussians"
+
+plot_components <- function(  mu, sigma, w, xx, yy.true, x, cc, s, QQ.out){
+  # Plot current estimate over data
+  layout(matrix(c(1,2),2,1), widths=c(1,1), heights=c(1.3,3))
+  par(mar=c(3.1,4.1,0.5,0.5))
+  plot(QQ.out[1:s],type="l", xlim=c(1,max(10,s)), las=1, ylab="Q", lwd=2)
+  
+  par(mar=c(5,4,1.5,0.5))
+  xx = seq(-8,11,length=200)
+  yy = w*dnorm(xx, mu[1], sigma) + (1-w)*dnorm(xx, mu[2], sigma)
+  plot(xx, yy, type="l", ylim=c(0, max(c(yy,yy.true))), main=paste("s =",s,"   Q =", round(QQ.out[s],4)), lwd=2, col="red", lty=2, xlab="x", ylab="Density")
+  lines(xx.true, yy.true, lwd=2)
+  points(x, rep(0,n), col=cc)
+  legend(6,0.22,c("Truth","Estimate"),col=c("black","red"), lty=c(1,2))
+}
+```
+
+Now it is time to run the actual EM algorithm - in @lst-em-Location-Mixture-EM-Initialization we initialize the parameters of the algorithm.
+
+```{r}
+#| label: lst-em-Location-Mixture-EM-Initialization
+#| lst-label: lst-em-Location-Mixture-EM-Initialization
+#| lst-cap: "Initialization of the EM algorithm for a location mixture of Gaussians"
+
+## Initialize the parameters
+w     = 1/2                         # Assign equal weight to each component to start with
+mu    = rnorm(KK, mean(x), sd(x))   # Random cluster centers randomly spread over the support of the data
+sigma = sd(x)                       # Initial standard deviation
+
+s  = 0
+sw = FALSE
+QQ = -Inf
+QQ.out = NULL
+epsilon = 10^(-5)
+```
+
+Mow we can Plot the initial guess for the density
+
+```{r}
+#| label: lst-em-Location-Mixture-EM-Initialization-plot
+#| lst-label: lst-em-Location-Mixture-EM-Initialization-plot
+#| lst-cap: "Initial parameter estimates of the EM algorithm for a location mixture of Gaussians"
+
+xx = seq(-8,11,length=200)
+yy = w*dnorm(xx, mu[1], sigma) + (1-w)*dnorm(xx, mu[2], sigma)
+plot(xx, yy, type="l", ylim=c(0, max(yy)), xlab="x", ylab="Initial density")
+points(x, rep(0,n), col=cc)
+```
+
+
+in @lst-em-Location-Mixture-EM we run the E and M steps until convergence.
+
+```{r}
+#| label: lst-em-Location-Mixture-EM
+#| lst-label: lst-em-Location-Mixture-EM
+#| lst-cap: "EM algorithm for a location mixture of Gaussians"
+
+## Checking convergence of the algorithm
+while(!sw){
+  ## E step
+  v = array(0, dim=c(n,KK))
+  v[,1] = log(w) + dnorm(x, mu[1], sigma, log=TRUE)    # Compute the log of the weights
+  v[,2] = log(1-w) + dnorm(x, mu[2], sigma, log=TRUE)  # Compute the log of the weights
+  for(i in 1:n){
+    v[i,] = exp(v[i,] - max(v[i,]))/sum(exp(v[i,] - max(v[i,])))  #Go from logs to actual weights in a numerically stable manner
+  }
+  
+  ## M step
+  # Weights
+  w = mean(v[,1])
+  mu = rep(0, KK)
+  for(k in 1:KK){
+    for(i in 1:n){
+      mu[k]    = mu[k] + v[i,k]*x[i]
+    }
+    mu[k] = mu[k]/sum(v[,k])
+  }
+  # Standard deviations
+  sigma = 0
+  for(i in 1:n){
+    for(k in 1:KK){
+      sigma = sigma + v[i,k]*(x[i] - mu[k])^2
+    }
+  }
+  sigma = sqrt(sigma/sum(v))
+  
+  ##Check convergence
+  QQn = 0 # This is the value of the Q function at the new parameter estimates
+  for(i in 1:n){
+    QQn = QQn + v[i,1]*(log(w)   + dnorm(x[i], mu[1], sigma, log=TRUE)) +
+                v[i,2]*(log(1-w) + dnorm(x[i], mu[2], sigma, log=TRUE))
+  }
+  if(abs(QQn-QQ)/abs(QQn)<epsilon){
+    sw=TRUE
+  }
+  QQ = QQn
+  QQ.out = c(QQ.out, QQ)
+  s = s + 1
+  # print(paste(s, QQn))
+  plot_components(mu, sigma, w, xx, yy.true, x, cc, s, QQ.out)
+
+}
+```
+
+```{r}
+#| label: lst-em-final-estimate
+#| lst-label: lst-em-final-estimate
+#| lst-cap: "Final estimate of the EM algorithm"
+
+# Plot final estimate over data
+layout(matrix(c(1,2),2,1), widths=c(1,1), heights=c(1.3,3))
+par(mar=c(3.1,4.1,0.5,0.5))
+plot(QQ.out[1:s],type="l", xlim=c(1,max(10,s)), las=1, ylab="Q", lwd=2)
+
+par(mar=c(5,4,1.5,0.5))
+xx = seq(-8,11,length=200)
+yy = w*dnorm(xx, mu[1], sigma) + (1-w)*dnorm(xx, mu[2], sigma)
+plot(xx, yy, type="l", ylim=c(0, max(c(yy,yy.true))), main=paste("s =",s,"   Q =", round(QQ.out[s],4)), lwd=2, col="red", lty=2, xlab="x", ylab="Density")
+lines(xx.true, yy.true, lwd=2)
+points(x, rep(0,n), col=cc)
+legend(6,0.22,c("Truth","Estimate"),col=c("black","red"), lty=c(1,2), bty="n")
+```

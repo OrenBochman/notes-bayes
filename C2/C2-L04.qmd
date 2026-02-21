@@ -15,7 +15,7 @@ keywords:
 ::: {.callout-note}
 ## Learning Objectives
 
-- Understand the basics of MCMC including Metropolis-Hastings and Gibbs sampling.
+- Understand the basics of MCMC including @alg-metropolis-hastings and Gibbs sampling.
 - Write a statistical model in `JAGS` and produce posterior samples by calling `JAGS` from `R`.
 - Assess MCMC output to determine if it is suitable for inference.
 
@@ -27,7 +27,7 @@ keywords:
 ::: {#fig-c2-l04-MCMC-MH1}
 ![Metropolis-Hastings algorithm where the proposals come from a uniform prior distribution, to sample a normal one-dimensional posterior probability distribution.](/images/c2/MCMC-MH1.png){.column-margin group="slides" width="53mm"}
 
-Jaewook Lee Woosuk Sung Joo-Ho Choi - Metamodel for Efficient Estimation of Capacity-Fade Uncertainty in Li-Ion Batteries for Electric Vehicles June 2015Energies 8(6):5538-5554 DOI:10.3390/en8065538
+[@lee2015metamodel]
 :::
 
 ::: {#fig-c2-l04-MCMC-MH1}
@@ -53,7 +53,42 @@ We will use M-H or other MCMC methods if there is no easy way to simulate indepe
 
 
 \index{target distribution}
-Let's say we wish to produce samples from a *target distribution* $\mathbb{P}r(\theta) \propto g(\theta)$, where we don't know the normalizing constant (since $\int g(\theta)d\theta$ is hard or impossible to compute), so we only have $g(\theta)$, the *unnormalized joint probability* to work with. The Metropolis-Hastings algorithm proceeds as follows.
+Let us say we wish to produce samples from a *target distribution* $\mathbb{P}r(\theta) \propto g(\theta)$, where we don't know the normalizing constant (since $\int g(\theta)d\theta$ is hard or impossible to compute). 
+Thus, we are forced to work with the *unnormalized joint probability* $g(\theta)$. 
+
+The Metropolis-Hastings algorithm proceeds as follows.
+
+::: {#alg-metropolis-hastings}
+```pseudocode
+#| html-indent-size: "1.2em"
+#| html-comment-delimiter: "//"
+#| html-line-number: true
+#| html-line-number-punc: ":"
+#| html-no-end: false
+#| pdf-placement: "htb!"
+#| pdf-line-number: true
+#| pdf-comment-delimiter: "//"
+
+\begin{algorithm}
+\caption{Metropolis-Hastings Algorithm}
+\begin{algorithmic}
+\Procedure{MetropolisHastings}{$\theta_0, m$}
+  \State Initialize $\theta_0$
+  \For{$i = 1$ \To $m$}
+    \State Draw a candidate sample $\theta^*$ from a proposal distribution $q(\theta^* \mid \theta_{i-1})$
+    \State Compute the acceptance ratio $\alpha = \frac{g(\theta^*)q(\theta_{i-1} \mid \theta^*)}{g(\theta_{i-1})q(\theta^* \mid \theta_{i-1})}$
+    \If{$\alpha \ge 1$}
+      \State Accept $\theta^*$ and set $\theta_i = \theta^*$
+    \Else
+      \State Accept $\theta^*$ with probability $\alpha$, otherwise set $\theta_i = \theta_{i-1}$
+    \EndIf
+  \EndFor
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+```
+:::
+
 
 1.  Select an **initial value** $\theta_0$.
 2.  For $i=1,\dots,m$ repeat the following steps:
@@ -68,10 +103,19 @@ Let's say we wish to produce samples from a *target distribution* $\mathbb{P}r(\
 ::: {.callout-important}
 ## Correction to the proposal distribution
 
-Steps 2.b and 2.c act as a **correction** [**correction**]{.column-margin} since the *proposal distribution* is not the *target distribution*. 
+Q. What is going on in lines 5-10 of the algorithm?
+
+Lines 5-10 act as a **correction** [**correction**]{.column-margin} since the *proposal distribution* is not the *target distribution*. 
+
 At each step in the chain, we draw a random candidate value of the parameter and decide whether to *"move"* the chain there or remain where we are. 
-If the proposed move to the candidate is "advantageous," $(\alpha \ge 1)$ we "move" there and if it is not *"advantageous,"* we still might move there, but only with probability $\alpha$. 
-Since our decision to "move" to the candidate only depends on where the chain currently is, this is a *Markov chain*.
+
+If the proposed move to the candidate is "advantageous," $(\alpha \ge 1)$ we "move" there and if it is *"disadvantageous,"* we still might move there, but only with probability $\alpha$. 
+
+Because our decision to "move" to the candidate depends only on the current chain location (value), this is a *Markov chain*.
+
+Question: is the acceptance ratio related to Importance Sampling? 
+
+Yes, the acceptance ratio $\alpha$ can be seen as a correction factor similar to the one used in importance sampling. In importance sampling, we also have a proposal distribution and we need to correct for the fact that we are not sampling directly from the target distribution. The acceptance ratio in Metropolis-Hastings serves a similar purpose by correcting for the discrepancy between the proposal distribution and the target distribution, ensuring that the Markov chain converges to the correct stationary distribution.
 :::
 
 ## Proposal distribution *q*
@@ -166,9 +210,8 @@ We can do this with Markov chain Monte Carlo. In particular, using the Metropoli
 
 ![The Metropolis-Hastings Algorithm](/images/c2l04-ss-03-Monte-Carlo-Demonstration.png){#fig-metropolis-hastings-alg  .column-margin group="slides" width="53mm"}
 
-
-
-So under the Metropolis-Hastings algorithm, step one is we start at an arbitrary location. And in this case, we can
+So under the Metropolis-Hastings algorithm, step one is we start at an arbitrary location. 
+And in this case, we can
 
 1.  start at either $\theta \ne \text{fair}$, or $\theta \ne \text{loaded}$.
 
@@ -178,7 +221,7 @@ So the key is we'll be simulating.
 
 2.  Run $m$ simulations and in each iteration, we'll propose a candidate and either accept it or reject it.
 
-a.  So the first part is we're proposing a new candidate. We'll call this candidate $\theta^*$, and we're going to propose it be the other state compared to where we are now. Where we are now is $\theta_{i-1}$, and so we'll propose to move to $\theta^*$.
+  a.  So the first part is we're proposing a new candidate. We'll call this candidate $\theta^*$, and we're going to propose it be the other state compared to where we are now. Where we are now is $\theta_{i-1}$, and so we'll propose to move to $\theta^*$.
     -   If our *current state* is `fair`, we'll propose $\theta^*=\text{loaded}$.
     -   If our *current state* is `loaded`, we'll propose $\theta^*=\text{fair}$.
 

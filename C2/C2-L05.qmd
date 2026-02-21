@@ -23,8 +23,21 @@ keywords:
 
 Gibbs sampling is a Gibbs sampling is named after the physicist Josiah Willard Gibbs, in reference to an analogy between the sampling algorithm and statistical physics. The algorithm was described in [@geman1984] by brothers *Stuart and Donald Geman*, and became popularized in the statistics community for calculating marginal probability distribution, especially the posterior distribution. Gibbs sampling is better suited for sampling from models with many variables by sampling them one at a time from a full conditional distribution.
 
-![Gibbs sampler](/images/c2l05-fig-01-Gibbs-sampler.jpg){ #fig-gibbs-sampler .column-margin group="slides" width="53mm"}
+::: { #fig-gibbs-sampler .column-margin group="slides" width="53mm"}
+![Gibbs sampler](/images/c2l05-fig-01-Gibbs-sampler.jpg)
 
+- Gibbs sampler cartoon: 
+  - Each panel (Step 1, Step 2, …, Step K) showd the 1D conditional distribution for a single coordinate $(\theta_{k}\mid\theta_{-k},y)$	​
+  - The cartoon has a $log \pi(\theta_{-k}\mid y)$ as a reminder of "log posterior thinking."
+  - The red dot on the x-axis is the new sampled value for that co-ordinate
+  - The dashed vertical line indicates where we sampled x
+  - The dashed horizontal line indicates the corresponding value of the conditional distribution at the new sampled value
+  - The red dot on the y-axis is the value of the conditional distribution at the new sampled value
+  - $I(\cdot)$ is the information and $H(\cdot)$ is the entropy indicating a way to quantify how much knowing one block of variables reduces uncertainty about the other. This matters because in the Gibbs sampler, the chain often mixes slowly: updating one coordinate doesn't "forget" the others quickly because the posterior ties them together. So lower mutual information and higher entropy means faster mixing.
+  - The big arrow on top indicates the next step of the Gibbs sampler, which is to update the next sweep!
+
+Statmath, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons
+:::
 
 
 
@@ -66,7 +79,9 @@ If you recall, this is the namesake of `JAGS`, "just another Gibbs sampler."
 
 ### Full conditional distributions
 
-Before describing the full **Gibbs sampling algorithm** \index{Gibbs sampling algorithm}, there's one more thing we can do. Using the chain rule of probability, we have
+Before describing the full **Gibbs sampling algorithm** \index{Gibbs sampling algorithm}, there's one more thing we can do.
+
+Using the chain rule of probability, we have
 
 $$
 \mathbb{P}r(\theta, \phi \mid y) = \mathbb{P}r(\theta \mid \phi, y) \cdot \mathbb{P}r(\phi \mid y)
@@ -84,22 +99,60 @@ Gibbs samplers require a little more work up front because you need to find the 
 
 $$
 \mathbb{P}r(\theta \mid \phi, y) \propto \mathbb{P}r(\theta, \phi \mid y)
-$$
+$$ {#eq-full-conditional-proportional-to-joint-posterior}
 
 where we simply now treat $\phi$ as a known number. Likewise, the other full conditional is $\mathbb{P}r(\phi \mid \theta, y) \propto \mathbb{P}r(\theta, \phi \mid y)$ where here, we consider $\theta$ to be a known number. We always start with the full posterior distribution. Thus, the process of finding full conditional distributions is the same as finding the posterior distribution of each parameter, pretending that all other parameters are known.
 
 ### Gibbs sampler
 
-::: {.callout-note}
-The idea of Gibbs sampling is that we can **update multiple parameters by sampling just one parameter at a time**, cycling through all parameters and repeating. To perform the update for one particular parameter, we substitute in the current values of all other parameters.
+Here is the algorithm. 
+
+::: {#alg-gibbs-sampler}
+```pseudocode
+#| html-indent-size: "1.2em"
+#| html-comment-delimiter: "//"
+#| html-line-number: true
+#| html-line-number-punc: ":"
+#| html-no-end: false
+#| pdf-placement: "htb!"
+#| pdf-line-number: true
+#| pdf-comment-delimiter: "//"
+
+\begin{algorithm}
+\caption{Gibbs sampling algorithm for two parameters $\theta$ and $\phi$}
+\begin{algorithmic}
+\Procedure{GibbsSampler}{$\theta_0, \phi_0, m$}
+  \State Initialize $\theta_0, \phi_0$
+  \For{$i = 1$ \To $m$}
+    \State Draw a sample $\theta_i$ from $\mathbb{P}r(\theta \mid \phi = \phi_{i-1}, y)$
+    \State Draw a sample $\phi_i$ from $\mathbb{P}r(\phi \mid \theta = \theta_i, y)$
+  \EndFor
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+```
 :::
 
-Here is the algorithm. Suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $\mathbb{P}r(\theta, \phi \mid y)$. If we can find the distribution of each parameter at a time, i.e., $\mathbb{P}r(\theta \mid \phi, y)$ and $\mathbb{P}r(\phi \mid \theta, y)$, then we can take turns sampling these distributions like so:
+Here is a longer more verbose version of @alg-gibbs-sampler, which includes the case where there are more than two parameters.
+
+<!-- convert this to refer to the above statement instead -->
+
+Suppose we have a joint posterior distribution for two parameters $\theta$ and $\phi$, written $\mathbb{P}r(\theta, \phi \mid y)$. If we can find the distribution of each parameter at a time, i.e., $\mathbb{P}r(\theta \mid \phi, y)$ and $\mathbb{P}r(\phi \mid \theta, y)$, then we can take turns sampling these distributions like so:
 
 1.  Using $\phi_{i-1}$, draw $\theta_i$ from $\mathbb{P}r(\theta \mid \phi = \phi_{i-1}, y)$.
 2.  Using $\theta_i$, draw $\phi_i$ from $\mathbb{P}r(\phi \mid \theta = \theta_i, y)$.
 
 Together, steps 1 and 2 complete one cycle of the Gibbs sampler and produce the draw for $(\theta_i, \phi_i)$ in one iteration of a MCMC sampler. If there are more than two parameters, we can handle that also. One Gibbs cycle would include an update for each of the parameters.
+
+
+::: {.callout-tip}
+## Gibbs sampler - TL--DR
+The idea of @alg-gibbs-sampler is that we can **update multiple parameters by sampling just one parameter at a time**, cycling through all parameters and repeating. 
+
+To perform the update for one particular parameter, we substitute in the current values of the other parameters that we already sampled.
+
+We must be **blessed** to be able to apply the divide and conquer strategy to the most horiffic looking posterior distribution, and find the full conditional distributions for each parameter. If we can do that, then we can sample from those full conditionals directly, and we don't need to worry about acceptance probabilities at all. The resulting Markov chain will have the correct stationary distribution, which is the full posterior distribution of all parameters.
+:::
 
 In the following segments, we will provide a concrete example of finding full conditional distributions and constructing a Gibbs sampler.
 
@@ -111,8 +164,6 @@ In the following segments, we will provide a concrete example of finding full co
 
 
 ![Normal likelihood conjugate prior](/images/c2l05-ss-04-conditionally-conjugate-prior-example-with-Normal-likelihood.png){#fig-normal-likelihood-conjugate-prior .column-margin group="slides" width="53mm"}
-
-
 
 
 Let's return to the example at the end of Lesson 2 where we have normal likelihood with unknown mean and unknown variance. The model is:
@@ -189,10 +240,10 @@ $$ {#eq-full-conditional-update-for-mean}
 #| label: C2-L05-1
 #' update_mu
 #'
-#' @param n - sample size
-#' @param ybar - sample mean
-#' @param sig2 - current sigma squared
-#' @param mu_0 - mean hyper-parameter
+#' @param n      - sample size
+#' @param ybar   - sample mean
+#' @param sig2   - current sigma squared
+#' @param mu_0   - mean hyper-parameter
 #' @param sig2_0 - variance  hyper-parameter
 #' 
 #' @output - updated  value for mu the mean
@@ -208,7 +259,7 @@ update_mu = function(n, ybar, sig2, mu_0, sig2_0) {   # <1>
 3.  `mu_1` is $\sigma^2_1$ the left term in @eq-full-conditional-update-for-mean which uses `sig2_1` we just computed
 4.  we now draw from the a $N(\mu_1,\sigma_1^2)$ for `update_sig2` and the `trace`.
 
-### conditionally conjugate priors for the variance
+### Conditionally conjugate priors for the variance
 
 The full conditional for $\sigma^2$ given $\mu$ and data is
 
@@ -220,9 +271,9 @@ $$ {#eq-full-conditional-update-for-variance}
 #| label: C2-L05-2
 #' update_sig2
 #'
-#' @param n - sample size
-#' @param y - the data
-#' @param nu_0 - nu hyper-parameter
+#' @param n      - sample size
+#' @param y      - the data
+#' @param nu_0   - nu hyper-parameter
 #' @param beta_0 - beta hyper-parameter
 #' 
 #' @output - updated  value for sigma2 the variance
@@ -341,4 +392,4 @@ plot(as.mcmc(post))
 summary(as.mcmc(post))
 ```
 
-As with the Metropolis-Hastings example, these chains appear to have converged. In the next lesson, we will discuss convergence in more detail.
+As with the Metropolis-Hastings example, these chains appear to have converged. In the next lesson, we will discuss convergence in greater detail.
