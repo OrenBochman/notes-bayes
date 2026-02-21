@@ -1772,27 +1772,6 @@ y_{11}^{(k)} = \frac{1}{2} \frac{y_1}{1/2 + \psi^{(k)}/4} \qquad
 y_{12}^{(k)} = y_1 - y_{11}^{(k)}
 </span></p>
 <p>we can use the following R code to implement the EM algorithm for this problem:</p>
-<!--
-
-function psi = emexample(y1, y2, y3, y4, tol, start)
-%-------------psi_last = 0;
-n = y1 + y2 + y3 + y4;
-psi_current = start;
-psi = psi_current;
-while (abs(psi_last-psi) > tol )
-[y11, y12] = estep(psi_current, y1);
-psi = mstep(y12, y11, y4, n);
-psi_last = psi_current;
-psi_current = psi
-end %while
-%-------------------------function psi_new = mstep(y12, y11, y4, n)
-psi_new = (y12+y4)/(n-y11);
-%-------------------------function [y11, y12] = estep(psi_current, y1)
-y11 = (1/2*y1)/(1/2+psi_current/4);
-y12 = y1 - y11;
-%--------------------------
-emexample(125, 18, 20, 34, 10ˆ-6, 0.5)
--->
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#: label: fisher-em-port</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>em_example <span class="ot">&lt;-</span> <span class="cf">function</span>(y1, y2, y3, y4, <span class="at">tol =</span> <span class="fl">1e-6</span>, <span class="at">start =</span> <span class="fl">0.5</span>) {</span>
@@ -1871,7 +1850,7 @@ L(\mathbb{\theta},\mathbb{\omega}) = \prod_{i=1}^{N} \sum_{k=1}^{K} \omega_k g_k
 <p>The EM algorithm is iterative and consists of two steps: the E-step and the M-step. The E-step computes the expected value of the complete-data log-likelihood given the observed data and the current parameter estimates, while the M-step maximizes this expected log-likelihood with respect to the parameters. However before we start these steps we need to set initial values for the parameters.</p>
 <div id="alg-em-general-mixture" class="theorem algorithm">
 <p><span class="theorem-title"><strong>Algorithm 67.1</strong></span> &nbsp;</p>
-<div class="pseudocode-container quarto-float" data-pseudocode-number="1" data-line-number-punc=":" data-caption-prefix="Algorithm" data-comment-delimiter="//" data-no-end="false" data-line-number="true" data-indent-size="1.2em">
+<div class="pseudocode-container quarto-float" data-comment-delimiter="//" data-line-number="true" data-pseudocode-number="1" data-line-number-punc=":" data-caption-prefix="Algorithm" data-indent-size="1.2em" data-no-end="false">
 <div class="pseudocode">
 \begin{algorithm} \caption{EM Algorithm for Mixture Models} \begin{algorithmic} \Procedure{EM}{$x, K, \epsilon$} \State Initialize $\omega^{(0)}, \theta^{(0)}$ \State $t \gets 0$ \Repeat \State E-step: Compute $Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x)$ \State M-step: $(\omega^{(t+1)}, \theta^{(t+1)}) \gets \arg\max_{\omega, \theta} Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x)$ \State $t \gets t + 1$ \Until{convergence criterion is met (e.g., parameter change or log-likelihood change $&lt; \epsilon$)} \State \Return $\hat{\omega} = \omega^{(t)},\ \hat{\theta} = \theta^{(t)}$ \EndProcedure \end{algorithmic} \end{algorithm}
 </div>
@@ -2643,7 +2622,7 @@ Figure&nbsp;67.8
 <span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_components</span>(QQ.out, s, x, cc, KK, Sigma, mu, <span class="fu">c</span>(<span class="sc">-</span><span class="dv">200</span>, <span class="sc">-</span><span class="dv">100</span>), <span class="at">png_dir =</span> <span class="st">"em_mvn_frames"</span>)</span>
 <span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell quarto-layout-panel" data-layout-ncol="2" data-layout-nrows="6">
+<div class="cell quarto-layout-panel" data-layout-nrows="6" data-layout-ncol="2">
 
 </div>
 <div class="cell">
@@ -3606,224 +3585,201 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb20-305"><a href="#cb20-305" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-306"><a href="#cb20-306" aria-hidden="true" tabindex="-1"></a>we can use the following R code to implement the EM algorithm for this problem:</span>
 <span id="cb20-307"><a href="#cb20-307" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-308"><a href="#cb20-308" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!--</span></span>
-<span id="cb20-309"><a href="#cb20-309" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-310"><a href="#cb20-310" aria-hidden="true" tabindex="-1"></a><span class="co">function psi = emexample(y1, y2, y3, y4, tol, start)</span></span>
-<span id="cb20-311"><a href="#cb20-311" aria-hidden="true" tabindex="-1"></a><span class="co">%-------------psi_last = 0;</span></span>
-<span id="cb20-312"><a href="#cb20-312" aria-hidden="true" tabindex="-1"></a><span class="co">n = y1 + y2 + y3 + y4;</span></span>
-<span id="cb20-313"><a href="#cb20-313" aria-hidden="true" tabindex="-1"></a><span class="co">psi_current = start;</span></span>
-<span id="cb20-314"><a href="#cb20-314" aria-hidden="true" tabindex="-1"></a><span class="co">psi = psi_current;</span></span>
-<span id="cb20-315"><a href="#cb20-315" aria-hidden="true" tabindex="-1"></a><span class="co">while (abs(psi_last-psi) &gt; tol )</span></span>
-<span id="cb20-316"><a href="#cb20-316" aria-hidden="true" tabindex="-1"></a><span class="co">[y11, y12] = estep(psi_current, y1);</span></span>
-<span id="cb20-317"><a href="#cb20-317" aria-hidden="true" tabindex="-1"></a><span class="co">psi = mstep(y12, y11, y4, n);</span></span>
-<span id="cb20-318"><a href="#cb20-318" aria-hidden="true" tabindex="-1"></a><span class="co">psi_last = psi_current;</span></span>
-<span id="cb20-319"><a href="#cb20-319" aria-hidden="true" tabindex="-1"></a><span class="co">psi_current = psi</span></span>
-<span id="cb20-320"><a href="#cb20-320" aria-hidden="true" tabindex="-1"></a><span class="co">end %while</span></span>
-<span id="cb20-321"><a href="#cb20-321" aria-hidden="true" tabindex="-1"></a><span class="co">%-------------------------function psi_new = mstep(y12, y11, y4, n)</span></span>
-<span id="cb20-322"><a href="#cb20-322" aria-hidden="true" tabindex="-1"></a><span class="co">psi_new = (y12+y4)/(n-y11);</span></span>
-<span id="cb20-323"><a href="#cb20-323" aria-hidden="true" tabindex="-1"></a><span class="co">%-------------------------function [y11, y12] = estep(psi_current, y1)</span></span>
-<span id="cb20-324"><a href="#cb20-324" aria-hidden="true" tabindex="-1"></a><span class="co">y11 = (1/2*y1)/(1/2+psi_current/4);</span></span>
-<span id="cb20-325"><a href="#cb20-325" aria-hidden="true" tabindex="-1"></a><span class="co">y12 = y1 - y11;</span></span>
-<span id="cb20-326"><a href="#cb20-326" aria-hidden="true" tabindex="-1"></a><span class="co">%--------------------------</span></span>
-<span id="cb20-327"><a href="#cb20-327" aria-hidden="true" tabindex="-1"></a><span class="co">emexample(125, 18, 20, 34, 10ˆ-6, 0.5)</span></span>
-<span id="cb20-328"><a href="#cb20-328" aria-hidden="true" tabindex="-1"></a><span class="co">--&gt;</span></span>
-<span id="cb20-329"><a href="#cb20-329" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-332"><a href="#cb20-332" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb20-333"><a href="#cb20-333" aria-hidden="true" tabindex="-1"></a><span class="co">#: label: fisher-em-port</span></span>
-<span id="cb20-334"><a href="#cb20-334" aria-hidden="true" tabindex="-1"></a>em_example <span class="ot">&lt;-</span> <span class="cf">function</span>(y1, y2, y3, y4, <span class="at">tol =</span> <span class="fl">1e-6</span>, <span class="at">start =</span> <span class="fl">0.5</span>) {</span>
-<span id="cb20-335"><a href="#cb20-335" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> y1 <span class="sc">+</span> y2 <span class="sc">+</span> y3 <span class="sc">+</span> y4</span>
-<span id="cb20-336"><a href="#cb20-336" aria-hidden="true" tabindex="-1"></a>  psi_current <span class="ot">&lt;-</span> start</span>
-<span id="cb20-337"><a href="#cb20-337" aria-hidden="true" tabindex="-1"></a>  psi_last <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb20-338"><a href="#cb20-338" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb20-339"><a href="#cb20-339" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> (<span class="fu">abs</span>(psi_last <span class="sc">-</span> psi_current) <span class="sc">&gt;</span> tol) {</span>
-<span id="cb20-340"><a href="#cb20-340" aria-hidden="true" tabindex="-1"></a>    <span class="co"># E-step</span></span>
-<span id="cb20-341"><a href="#cb20-341" aria-hidden="true" tabindex="-1"></a>    y11 <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">/</span><span class="dv">2</span> <span class="sc">*</span> y1) <span class="sc">/</span> (<span class="dv">1</span><span class="sc">/</span><span class="dv">2</span> <span class="sc">+</span> psi_current <span class="sc">/</span> <span class="dv">4</span>)</span>
-<span id="cb20-342"><a href="#cb20-342" aria-hidden="true" tabindex="-1"></a>    y12 <span class="ot">&lt;-</span> y1 <span class="sc">-</span> y11</span>
-<span id="cb20-343"><a href="#cb20-343" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb20-344"><a href="#cb20-344" aria-hidden="true" tabindex="-1"></a>    <span class="co"># M-step</span></span>
-<span id="cb20-345"><a href="#cb20-345" aria-hidden="true" tabindex="-1"></a>    psi_new <span class="ot">&lt;-</span> (y12 <span class="sc">+</span> y4) <span class="sc">/</span> (n <span class="sc">-</span> y11)</span>
-<span id="cb20-346"><a href="#cb20-346" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb20-347"><a href="#cb20-347" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Update for next iteration</span></span>
-<span id="cb20-348"><a href="#cb20-348" aria-hidden="true" tabindex="-1"></a>    psi_last <span class="ot">&lt;-</span> psi_current</span>
-<span id="cb20-349"><a href="#cb20-349" aria-hidden="true" tabindex="-1"></a>    psi_current <span class="ot">&lt;-</span> psi_new</span>
-<span id="cb20-350"><a href="#cb20-350" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb20-351"><a href="#cb20-351" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb20-352"><a href="#cb20-352" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(psi_current)</span>
-<span id="cb20-353"><a href="#cb20-353" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb20-354"><a href="#cb20-354" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-355"><a href="#cb20-355" aria-hidden="true" tabindex="-1"></a><span class="fu">em_example</span>(<span class="dv">125</span>, <span class="dv">18</span>, <span class="dv">20</span>, <span class="dv">34</span>, <span class="fl">1e-6</span>, <span class="fl">0.5</span>)</span>
-<span id="cb20-356"><a href="#cb20-356" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb20-310"><a href="#cb20-310" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb20-311"><a href="#cb20-311" aria-hidden="true" tabindex="-1"></a><span class="co">#: label: fisher-em-port</span></span>
+<span id="cb20-312"><a href="#cb20-312" aria-hidden="true" tabindex="-1"></a>em_example <span class="ot">&lt;-</span> <span class="cf">function</span>(y1, y2, y3, y4, <span class="at">tol =</span> <span class="fl">1e-6</span>, <span class="at">start =</span> <span class="fl">0.5</span>) {</span>
+<span id="cb20-313"><a href="#cb20-313" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> y1 <span class="sc">+</span> y2 <span class="sc">+</span> y3 <span class="sc">+</span> y4</span>
+<span id="cb20-314"><a href="#cb20-314" aria-hidden="true" tabindex="-1"></a>  psi_current <span class="ot">&lt;-</span> start</span>
+<span id="cb20-315"><a href="#cb20-315" aria-hidden="true" tabindex="-1"></a>  psi_last <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb20-316"><a href="#cb20-316" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb20-317"><a href="#cb20-317" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> (<span class="fu">abs</span>(psi_last <span class="sc">-</span> psi_current) <span class="sc">&gt;</span> tol) {</span>
+<span id="cb20-318"><a href="#cb20-318" aria-hidden="true" tabindex="-1"></a>    <span class="co"># E-step</span></span>
+<span id="cb20-319"><a href="#cb20-319" aria-hidden="true" tabindex="-1"></a>    y11 <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">/</span><span class="dv">2</span> <span class="sc">*</span> y1) <span class="sc">/</span> (<span class="dv">1</span><span class="sc">/</span><span class="dv">2</span> <span class="sc">+</span> psi_current <span class="sc">/</span> <span class="dv">4</span>)</span>
+<span id="cb20-320"><a href="#cb20-320" aria-hidden="true" tabindex="-1"></a>    y12 <span class="ot">&lt;-</span> y1 <span class="sc">-</span> y11</span>
+<span id="cb20-321"><a href="#cb20-321" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb20-322"><a href="#cb20-322" aria-hidden="true" tabindex="-1"></a>    <span class="co"># M-step</span></span>
+<span id="cb20-323"><a href="#cb20-323" aria-hidden="true" tabindex="-1"></a>    psi_new <span class="ot">&lt;-</span> (y12 <span class="sc">+</span> y4) <span class="sc">/</span> (n <span class="sc">-</span> y11)</span>
+<span id="cb20-324"><a href="#cb20-324" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb20-325"><a href="#cb20-325" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Update for next iteration</span></span>
+<span id="cb20-326"><a href="#cb20-326" aria-hidden="true" tabindex="-1"></a>    psi_last <span class="ot">&lt;-</span> psi_current</span>
+<span id="cb20-327"><a href="#cb20-327" aria-hidden="true" tabindex="-1"></a>    psi_current <span class="ot">&lt;-</span> psi_new</span>
+<span id="cb20-328"><a href="#cb20-328" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb20-329"><a href="#cb20-329" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb20-330"><a href="#cb20-330" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(psi_current)</span>
+<span id="cb20-331"><a href="#cb20-331" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb20-332"><a href="#cb20-332" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-333"><a href="#cb20-333" aria-hidden="true" tabindex="-1"></a><span class="fu">em_example</span>(<span class="dv">125</span>, <span class="dv">18</span>, <span class="dv">20</span>, <span class="dv">34</span>, <span class="fl">1e-6</span>, <span class="fl">0.5</span>)</span>
+<span id="cb20-334"><a href="#cb20-334" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb20-335"><a href="#cb20-335" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb20-336"><a href="#cb20-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-337"><a href="#cb20-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-338"><a href="#cb20-338" aria-hidden="true" tabindex="-1"></a>I should mention that MLE is more of a **frequentist approach**, as it provides point estimates of the parameters rather than a distributional view. In contrast, Bayesian methods we will consider later provide a full posterior distribution of the parameters, which is more informative and allows for uncertainty quantification. However in many complex models where dimensionality is high, researchers are more interested in a point estimate and some uncertainty quantification, so things may not look all that different from the MLE approach. </span>
+<span id="cb20-339"><a href="#cb20-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-340"><a href="#cb20-340" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM algorithms for general mixtures  :movie_camera:  {#sec-EM-algorithm-for-general-mixtures}</span></span>
+<span id="cb20-341"><a href="#cb20-341" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-342"><a href="#cb20-342" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Challenge](/images/c3l2-ss-01-em-for-general-mixtures.png)</span>{#fig-s_01 .column-margin width="53mm" group="slides"}</span>
+<span id="cb20-343"><a href="#cb20-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-344"><a href="#cb20-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-345"><a href="#cb20-345" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Steps](/images/c3l2-ss-02-em-for-general-mixtures.png)</span>{#fig-s_02 .column-margin width="53mm" group="slides"}</span>
+<span id="cb20-346"><a href="#cb20-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-347"><a href="#cb20-347" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-348"><a href="#cb20-348" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Deep Dive](/images/c3l2-ss-03-em-for-general-mixtures.png)</span>{#fig-s_03 .column-margin width="53mm" group="slides"}</span>
+<span id="cb20-349"><a href="#cb20-349" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-350"><a href="#cb20-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-351"><a href="#cb20-351" aria-hidden="true" tabindex="-1"></a>\index{EM algorithm} \index{Expectation-Maximization algorithm}</span>
+<span id="cb20-352"><a href="#cb20-352" aria-hidden="true" tabindex="-1"></a>The **EM algorithm** comes up a lot in NLP and other fields so it is worthwhile to understand it the way we will do so in the course.</span>
+<span id="cb20-353"><a href="#cb20-353" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-354"><a href="#cb20-354" aria-hidden="true" tabindex="-1"></a>It also important that the EM algorithm we use for mixture models is from the 1970s and is not the same as the general EM algorithm. c.f. <span class="co">[</span><span class="ot">@dempster1977maximum</span><span class="co">]</span></span>
+<span id="cb20-355"><a href="#cb20-355" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-356"><a href="#cb20-356" aria-hidden="true" tabindex="-1"></a>The goal of the EM algorithm is to find the parameters $\omega$ and $\theta$  for which the observed-data likelihood is maximized. We start with the **complete-data log-likelihood** Q function and then use it to construct maximum likelihood estimators for the parameters we are interested in, these are primarily the weights $\omega$ and the parameters $\theta$ of the distributional components.</span>
 <span id="cb20-357"><a href="#cb20-357" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-358"><a href="#cb20-358" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb20-358"><a href="#cb20-358" aria-hidden="true" tabindex="-1"></a>we can express the complete-data log-likelihood as:</span>
 <span id="cb20-359"><a href="#cb20-359" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-360"><a href="#cb20-360" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-361"><a href="#cb20-361" aria-hidden="true" tabindex="-1"></a>I should mention that MLE is more of a **frequentist approach**, as it provides point estimates of the parameters rather than a distributional view. In contrast, Bayesian methods we will consider later provide a full posterior distribution of the parameters, which is more informative and allows for uncertainty quantification. However in many complex models where dimensionality is high, researchers are more interested in a point estimate and some uncertainty quantification, so things may not look all that different from the MLE approach. </span>
-<span id="cb20-362"><a href="#cb20-362" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-363"><a href="#cb20-363" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM algorithms for general mixtures  :movie_camera:  {#sec-EM-algorithm-for-general-mixtures}</span></span>
-<span id="cb20-364"><a href="#cb20-364" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-365"><a href="#cb20-365" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Challenge](/images/c3l2-ss-01-em-for-general-mixtures.png)</span>{#fig-s_01 .column-margin width="53mm" group="slides"}</span>
-<span id="cb20-366"><a href="#cb20-366" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-367"><a href="#cb20-367" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-368"><a href="#cb20-368" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Steps](/images/c3l2-ss-02-em-for-general-mixtures.png)</span>{#fig-s_02 .column-margin width="53mm" group="slides"}</span>
+<span id="cb20-360"><a href="#cb20-360" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb20-361"><a href="#cb20-361" aria-hidden="true" tabindex="-1"></a>L(\mathbb{\theta},\mathbb{\omega}) = \prod_{i=1}^{N} \sum_{k=1}^{K} \omega_k g_k(x_i \mid \theta_k)</span>
+<span id="cb20-362"><a href="#cb20-362" aria-hidden="true" tabindex="-1"></a>$$ {#eq-em-complete-data-log-likelihood}</span>
+<span id="cb20-363"><a href="#cb20-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-364"><a href="#cb20-364" aria-hidden="true" tabindex="-1"></a>MLE's $\hat{\theta}$ and $\hat{\omega}$ are defined </span>
+<span id="cb20-365"><a href="#cb20-365" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-366"><a href="#cb20-366" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb20-367"><a href="#cb20-367" aria-hidden="true" tabindex="-1"></a>(\mathbb{\theta},\mathbb{\omega}) \stackrel{.}{=} \arg \max_{\mathbb{\theta},\mathbb{\omega}} L(\mathbb{\theta},\mathbb{\omega})</span>
+<span id="cb20-368"><a href="#cb20-368" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb20-369"><a href="#cb20-369" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-370"><a href="#cb20-370" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-371"><a href="#cb20-371" aria-hidden="true" tabindex="-1"></a><span class="al">![EM - Deep Dive](/images/c3l2-ss-03-em-for-general-mixtures.png)</span>{#fig-s_03 .column-margin width="53mm" group="slides"}</span>
-<span id="cb20-372"><a href="#cb20-372" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-373"><a href="#cb20-373" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-374"><a href="#cb20-374" aria-hidden="true" tabindex="-1"></a>\index{EM algorithm} \index{Expectation-Maximization algorithm}</span>
-<span id="cb20-375"><a href="#cb20-375" aria-hidden="true" tabindex="-1"></a>The **EM algorithm** comes up a lot in NLP and other fields so it is worthwhile to understand it the way we will do so in the course.</span>
-<span id="cb20-376"><a href="#cb20-376" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-377"><a href="#cb20-377" aria-hidden="true" tabindex="-1"></a>It also important that the EM algorithm we use for mixture models is from the 1970s and is not the same as the general EM algorithm. c.f. <span class="co">[</span><span class="ot">@dempster1977maximum</span><span class="co">]</span></span>
-<span id="cb20-378"><a href="#cb20-378" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-379"><a href="#cb20-379" aria-hidden="true" tabindex="-1"></a>The goal of the EM algorithm is to find the parameters $\omega$ and $\theta$  for which the observed-data likelihood is maximized. We start with the **complete-data log-likelihood** Q function and then use it to construct maximum likelihood estimators for the parameters we are interested in, these are primarily the weights $\omega$ and the parameters $\theta$ of the distributional components.</span>
-<span id="cb20-380"><a href="#cb20-380" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-381"><a href="#cb20-381" aria-hidden="true" tabindex="-1"></a>we can express the complete-data log-likelihood as:</span>
+<span id="cb20-370"><a href="#cb20-370" aria-hidden="true" tabindex="-1"></a>The EM algorithm is iterative and consists of two steps: the E-step and the M-step. The E-step computes the expected value of the complete-data log-likelihood given the observed data and the current parameter estimates, while the M-step maximizes this expected log-likelihood with respect to the parameters. However before we start these steps we need to set initial values for the parameters.</span>
+<span id="cb20-371"><a href="#cb20-371" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-372"><a href="#cb20-372" aria-hidden="true" tabindex="-1"></a>::: {#alg-em-general-mixture}</span>
+<span id="cb20-373"><a href="#cb20-373" aria-hidden="true" tabindex="-1"></a><span class="in">```pseudocode</span></span>
+<span id="cb20-374"><a href="#cb20-374" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-indent-size: "1.2em"</span></span>
+<span id="cb20-375"><a href="#cb20-375" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-comment-delimiter: "//"</span></span>
+<span id="cb20-376"><a href="#cb20-376" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-line-number: true</span></span>
+<span id="cb20-377"><a href="#cb20-377" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-line-number-punc: ":"</span></span>
+<span id="cb20-378"><a href="#cb20-378" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-no-end: false</span></span>
+<span id="cb20-379"><a href="#cb20-379" aria-hidden="true" tabindex="-1"></a><span class="in">#| pdf-placement: "htb!"</span></span>
+<span id="cb20-380"><a href="#cb20-380" aria-hidden="true" tabindex="-1"></a><span class="in">#| pdf-line-number: true</span></span>
+<span id="cb20-381"><a href="#cb20-381" aria-hidden="true" tabindex="-1"></a><span class="in">#| pdf-comment-delimiter: "//"</span></span>
 <span id="cb20-382"><a href="#cb20-382" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-383"><a href="#cb20-383" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb20-384"><a href="#cb20-384" aria-hidden="true" tabindex="-1"></a>L(\mathbb{\theta},\mathbb{\omega}) = \prod_{i=1}^{N} \sum_{k=1}^{K} \omega_k g_k(x_i \mid \theta_k)</span>
-<span id="cb20-385"><a href="#cb20-385" aria-hidden="true" tabindex="-1"></a>$$ {#eq-em-complete-data-log-likelihood}</span>
-<span id="cb20-386"><a href="#cb20-386" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-387"><a href="#cb20-387" aria-hidden="true" tabindex="-1"></a>MLE's $\hat{\theta}$ and $\hat{\omega}$ are defined </span>
-<span id="cb20-388"><a href="#cb20-388" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-389"><a href="#cb20-389" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb20-390"><a href="#cb20-390" aria-hidden="true" tabindex="-1"></a>(\mathbb{\theta},\mathbb{\omega}) \stackrel{.}{=} \arg \max_{\mathbb{\theta},\mathbb{\omega}} L(\mathbb{\theta},\mathbb{\omega})</span>
-<span id="cb20-391"><a href="#cb20-391" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb20-392"><a href="#cb20-392" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-393"><a href="#cb20-393" aria-hidden="true" tabindex="-1"></a>The EM algorithm is iterative and consists of two steps: the E-step and the M-step. The E-step computes the expected value of the complete-data log-likelihood given the observed data and the current parameter estimates, while the M-step maximizes this expected log-likelihood with respect to the parameters. However before we start these steps we need to set initial values for the parameters.</span>
-<span id="cb20-394"><a href="#cb20-394" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-395"><a href="#cb20-395" aria-hidden="true" tabindex="-1"></a>::: {#alg-em-general-mixture}</span>
-<span id="cb20-396"><a href="#cb20-396" aria-hidden="true" tabindex="-1"></a><span class="in">```pseudocode</span></span>
-<span id="cb20-397"><a href="#cb20-397" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-indent-size: "1.2em"</span></span>
-<span id="cb20-398"><a href="#cb20-398" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-comment-delimiter: "//"</span></span>
-<span id="cb20-399"><a href="#cb20-399" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-line-number: true</span></span>
-<span id="cb20-400"><a href="#cb20-400" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-line-number-punc: ":"</span></span>
-<span id="cb20-401"><a href="#cb20-401" aria-hidden="true" tabindex="-1"></a><span class="in">#| html-no-end: false</span></span>
-<span id="cb20-402"><a href="#cb20-402" aria-hidden="true" tabindex="-1"></a><span class="in">#| pdf-placement: "htb!"</span></span>
-<span id="cb20-403"><a href="#cb20-403" aria-hidden="true" tabindex="-1"></a><span class="in">#| pdf-line-number: true</span></span>
-<span id="cb20-404"><a href="#cb20-404" aria-hidden="true" tabindex="-1"></a><span class="in">#| pdf-comment-delimiter: "//"</span></span>
+<span id="cb20-383"><a href="#cb20-383" aria-hidden="true" tabindex="-1"></a><span class="in">\begin{algorithm}</span></span>
+<span id="cb20-384"><a href="#cb20-384" aria-hidden="true" tabindex="-1"></a><span class="in">\caption{EM Algorithm for Mixture Models}</span></span>
+<span id="cb20-385"><a href="#cb20-385" aria-hidden="true" tabindex="-1"></a><span class="in">\begin{algorithmic}</span></span>
+<span id="cb20-386"><a href="#cb20-386" aria-hidden="true" tabindex="-1"></a><span class="in">\Procedure{EM}{$x, K, \epsilon$}</span></span>
+<span id="cb20-387"><a href="#cb20-387" aria-hidden="true" tabindex="-1"></a><span class="in">  \State Initialize $\omega^{(0)}, \theta^{(0)}$</span></span>
+<span id="cb20-388"><a href="#cb20-388" aria-hidden="true" tabindex="-1"></a><span class="in">  \State $t \gets 0$</span></span>
+<span id="cb20-389"><a href="#cb20-389" aria-hidden="true" tabindex="-1"></a><span class="in">  \Repeat</span></span>
+<span id="cb20-390"><a href="#cb20-390" aria-hidden="true" tabindex="-1"></a><span class="in">    \State E-step: Compute $Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x)$</span></span>
+<span id="cb20-391"><a href="#cb20-391" aria-hidden="true" tabindex="-1"></a><span class="in">    \State M-step: $(\omega^{(t+1)}, \theta^{(t+1)}) \gets \arg\max_{\omega, \theta} Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x)$</span></span>
+<span id="cb20-392"><a href="#cb20-392" aria-hidden="true" tabindex="-1"></a><span class="in">    \State $t \gets t + 1$</span></span>
+<span id="cb20-393"><a href="#cb20-393" aria-hidden="true" tabindex="-1"></a><span class="in">  \Until{convergence criterion is met (e.g., parameter change or log-likelihood change $&lt; \epsilon$)}</span></span>
+<span id="cb20-394"><a href="#cb20-394" aria-hidden="true" tabindex="-1"></a><span class="in">  \State \Return $\hat{\omega} = \omega^{(t)},\ \hat{\theta} = \theta^{(t)}$</span></span>
+<span id="cb20-395"><a href="#cb20-395" aria-hidden="true" tabindex="-1"></a><span class="in">\EndProcedure</span></span>
+<span id="cb20-396"><a href="#cb20-396" aria-hidden="true" tabindex="-1"></a><span class="in">\end{algorithmic}</span></span>
+<span id="cb20-397"><a href="#cb20-397" aria-hidden="true" tabindex="-1"></a><span class="in">\end{algorithm}</span></span>
+<span id="cb20-398"><a href="#cb20-398" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb20-399"><a href="#cb20-399" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb20-400"><a href="#cb20-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-401"><a href="#cb20-401" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-402"><a href="#cb20-402" aria-hidden="true" tabindex="-1"></a><span class="fu">### E step: </span></span>
+<span id="cb20-403"><a href="#cb20-403" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-404"><a href="#cb20-404" aria-hidden="true" tabindex="-1"></a>Set</span>
 <span id="cb20-405"><a href="#cb20-405" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-406"><a href="#cb20-406" aria-hidden="true" tabindex="-1"></a><span class="in">\begin{algorithm}</span></span>
-<span id="cb20-407"><a href="#cb20-407" aria-hidden="true" tabindex="-1"></a><span class="in">\caption{EM Algorithm for Mixture Models}</span></span>
-<span id="cb20-408"><a href="#cb20-408" aria-hidden="true" tabindex="-1"></a><span class="in">\begin{algorithmic}</span></span>
-<span id="cb20-409"><a href="#cb20-409" aria-hidden="true" tabindex="-1"></a><span class="in">\Procedure{EM}{$x, K, \epsilon$}</span></span>
-<span id="cb20-410"><a href="#cb20-410" aria-hidden="true" tabindex="-1"></a><span class="in">  \State Initialize $\omega^{(0)}, \theta^{(0)}$</span></span>
-<span id="cb20-411"><a href="#cb20-411" aria-hidden="true" tabindex="-1"></a><span class="in">  \State $t \gets 0$</span></span>
-<span id="cb20-412"><a href="#cb20-412" aria-hidden="true" tabindex="-1"></a><span class="in">  \Repeat</span></span>
-<span id="cb20-413"><a href="#cb20-413" aria-hidden="true" tabindex="-1"></a><span class="in">    \State E-step: Compute $Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x)$</span></span>
-<span id="cb20-414"><a href="#cb20-414" aria-hidden="true" tabindex="-1"></a><span class="in">    \State M-step: $(\omega^{(t+1)}, \theta^{(t+1)}) \gets \arg\max_{\omega, \theta} Q(\omega, \theta \mid \omega^{(t)}, \theta^{(t)}, x)$</span></span>
-<span id="cb20-415"><a href="#cb20-415" aria-hidden="true" tabindex="-1"></a><span class="in">    \State $t \gets t + 1$</span></span>
-<span id="cb20-416"><a href="#cb20-416" aria-hidden="true" tabindex="-1"></a><span class="in">  \Until{convergence criterion is met (e.g., parameter change or log-likelihood change $&lt; \epsilon$)}</span></span>
-<span id="cb20-417"><a href="#cb20-417" aria-hidden="true" tabindex="-1"></a><span class="in">  \State \Return $\hat{\omega} = \omega^{(t)},\ \hat{\theta} = \theta^{(t)}$</span></span>
-<span id="cb20-418"><a href="#cb20-418" aria-hidden="true" tabindex="-1"></a><span class="in">\EndProcedure</span></span>
-<span id="cb20-419"><a href="#cb20-419" aria-hidden="true" tabindex="-1"></a><span class="in">\end{algorithmic}</span></span>
-<span id="cb20-420"><a href="#cb20-420" aria-hidden="true" tabindex="-1"></a><span class="in">\end{algorithm}</span></span>
-<span id="cb20-421"><a href="#cb20-421" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb20-422"><a href="#cb20-422" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb20-406"><a href="#cb20-406" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb20-407"><a href="#cb20-407" aria-hidden="true" tabindex="-1"></a>Q(\omega,\theta \mid \omega^{(t)}, \theta^{(t)},x) = E_{c \mid \omega^{(t)},\theta^{(t)}, x} \left<span class="co">[</span><span class="ot"> \log \mathbb{P}r(x,c \mid \omega,\theta) \right</span><span class="co">]</span></span>
+<span id="cb20-408"><a href="#cb20-408" aria-hidden="true" tabindex="-1"></a>$$ {#eq-em-q-function}</span>
+<span id="cb20-409"><a href="#cb20-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-410"><a href="#cb20-410" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-411"><a href="#cb20-411" aria-hidden="true" tabindex="-1"></a>Where $c$ is the latent variable indicating the component from which each observation was generated, $\omega$ are the weights, and $\theta$ are the parameters of the Gaussian components (means and standard deviations).</span>
+<span id="cb20-412"><a href="#cb20-412" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-413"><a href="#cb20-413" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-414"><a href="#cb20-414" aria-hidden="true" tabindex="-1"></a><span class="fu">### M step: </span></span>
+<span id="cb20-415"><a href="#cb20-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-416"><a href="#cb20-416" aria-hidden="true" tabindex="-1"></a>Set</span>
+<span id="cb20-417"><a href="#cb20-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-418"><a href="#cb20-418" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb20-419"><a href="#cb20-419" aria-hidden="true" tabindex="-1"></a>\hat{\omega}^{(t+1)},\hat{\theta}^{(t+1)} = \arg \max_{\omega,\theta} Q(\omega,\theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)},y)</span>
+<span id="cb20-420"><a href="#cb20-420" aria-hidden="true" tabindex="-1"></a>$$ {#eq-em-m-step}</span>
+<span id="cb20-421"><a href="#cb20-421" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-422"><a href="#cb20-422" aria-hidden="true" tabindex="-1"></a>where $\hat{\omega}^{(t)}$ and $\hat{\theta}^{(t)}$ are the current estimates of the parameters, and $y$ is the observed data.</span>
 <span id="cb20-423"><a href="#cb20-423" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-424"><a href="#cb20-424" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-425"><a href="#cb20-425" aria-hidden="true" tabindex="-1"></a><span class="fu">### E step: </span></span>
-<span id="cb20-426"><a href="#cb20-426" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-427"><a href="#cb20-427" aria-hidden="true" tabindex="-1"></a>Set</span>
-<span id="cb20-428"><a href="#cb20-428" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-429"><a href="#cb20-429" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb20-430"><a href="#cb20-430" aria-hidden="true" tabindex="-1"></a>Q(\omega,\theta \mid \omega^{(t)}, \theta^{(t)},x) = E_{c \mid \omega^{(t)},\theta^{(t)}, x} \left<span class="co">[</span><span class="ot"> \log \mathbb{P}r(x,c \mid \omega,\theta) \right</span><span class="co">]</span></span>
-<span id="cb20-431"><a href="#cb20-431" aria-hidden="true" tabindex="-1"></a>$$ {#eq-em-q-function}</span>
-<span id="cb20-432"><a href="#cb20-432" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-424"><a href="#cb20-424" aria-hidden="true" tabindex="-1"></a>These two steps are repeated until convergence, which is typically defined as the change in the full-data log-likelihood $Q$ function being below a certain threshold.</span>
+<span id="cb20-425"><a href="#cb20-425" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-426"><a href="#cb20-426" aria-hidden="true" tabindex="-1"></a>A key point is that if we condition each component independently on the $\omega, \theta, x$ we can write:</span>
+<span id="cb20-427"><a href="#cb20-427" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-428"><a href="#cb20-428" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb20-429"><a href="#cb20-429" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(c_i=k \mid \omega, \theta, x_i) = \frac{\omega_k g_k(x_i \mid \theta_k)}{\sum_{j=1}^{K} \omega_j g_j(x_i \mid \theta_j)}= v_{ik}(\omega, \theta)</span>
+<span id="cb20-430"><a href="#cb20-430" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb20-431"><a href="#cb20-431" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-432"><a href="#cb20-432" aria-hidden="true" tabindex="-1"></a>where the value of $v_{ik}$ is interpreted as the probability that the $i$^-th^ observation comes from the $k$^-th^ component of the mixture assuming the population parameters $\omega$ and $\theta$.</span>
 <span id="cb20-433"><a href="#cb20-433" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-434"><a href="#cb20-434" aria-hidden="true" tabindex="-1"></a>Where $c$ is the latent variable indicating the component from which each observation was generated, $\omega$ are the weights, and $\theta$ are the parameters of the Gaussian components (means and standard deviations).</span>
+<span id="cb20-434"><a href="#cb20-434" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM for location Mixture of Gaussians  :movie_camera:   {#sec-em-for-location-mixtures-of-gaussians}</span></span>
 <span id="cb20-435"><a href="#cb20-435" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-436"><a href="#cb20-436" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-437"><a href="#cb20-437" aria-hidden="true" tabindex="-1"></a><span class="fu">### M step: </span></span>
+<span id="cb20-436"><a href="#cb20-436" aria-hidden="true" tabindex="-1"></a><span class="al">![the responsibility](/images/c3l2-ss-04-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_04 .column-margin width="53mm" group="slides"}</span>
+<span id="cb20-437"><a href="#cb20-437" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-438"><a href="#cb20-438" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-439"><a href="#cb20-439" aria-hidden="true" tabindex="-1"></a>Set</span>
+<span id="cb20-439"><a href="#cb20-439" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to w](/images/c3l2-ss-05-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_05 .column-margin width="53mm" group="slides"}</span>
 <span id="cb20-440"><a href="#cb20-440" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-441"><a href="#cb20-441" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb20-442"><a href="#cb20-442" aria-hidden="true" tabindex="-1"></a>\hat{\omega}^{(t+1)},\hat{\theta}^{(t+1)} = \arg \max_{\omega,\theta} Q(\omega,\theta \mid \hat{\omega}^{(t)}, \hat{\theta}^{(t)},y)</span>
-<span id="cb20-443"><a href="#cb20-443" aria-hidden="true" tabindex="-1"></a>$$ {#eq-em-m-step}</span>
+<span id="cb20-441"><a href="#cb20-441" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-442"><a href="#cb20-442" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to mu](/images/c3l2-ss-06-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_06 .column-margin width="53mm" group="slides"}</span>
+<span id="cb20-443"><a href="#cb20-443" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-444"><a href="#cb20-444" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-445"><a href="#cb20-445" aria-hidden="true" tabindex="-1"></a>where $\hat{\omega}^{(t)}$ and $\hat{\theta}^{(t)}$ are the current estimates of the parameters, and $y$ is the observed data.</span>
+<span id="cb20-445"><a href="#cb20-445" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to sigma](/images/c3l2-ss-07-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_07 .column-margin width="53mm" group="slides"}</span>
 <span id="cb20-446"><a href="#cb20-446" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-447"><a href="#cb20-447" aria-hidden="true" tabindex="-1"></a>These two steps are repeated until convergence, which is typically defined as the change in the full-data log-likelihood $Q$ function being below a certain threshold.</span>
+<span id="cb20-447"><a href="#cb20-447" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-448"><a href="#cb20-448" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-449"><a href="#cb20-449" aria-hidden="true" tabindex="-1"></a>A key point is that if we condition each component independently on the $\omega, \theta, x$ we can write:</span>
-<span id="cb20-450"><a href="#cb20-450" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-451"><a href="#cb20-451" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb20-452"><a href="#cb20-452" aria-hidden="true" tabindex="-1"></a>\mathbb{P}r(c_i=k \mid \omega, \theta, x_i) = \frac{\omega_k g_k(x_i \mid \theta_k)}{\sum_{j=1}^{K} \omega_j g_j(x_i \mid \theta_j)}= v_{ik}(\omega, \theta)</span>
-<span id="cb20-453"><a href="#cb20-453" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb20-449"><a href="#cb20-449" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-450"><a href="#cb20-450" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM example 1  :movie_camera:  {#sec-em-example-1}</span></span>
+<span id="cb20-451"><a href="#cb20-451" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-452"><a href="#cb20-452" aria-hidden="true" tabindex="-1"></a>This video covers the code sample given in the listings below. </span>
+<span id="cb20-453"><a href="#cb20-453" aria-hidden="true" tabindex="-1"></a>It is a simple implementation of the @alg-em-general-mixture for fitting a 2-component Gaussian location mixture model to simulated data.</span>
 <span id="cb20-454"><a href="#cb20-454" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-455"><a href="#cb20-455" aria-hidden="true" tabindex="-1"></a>where the value of $v_{ik}$ is interpreted as the probability that the $i$^-th^ observation comes from the $k$^-th^ component of the mixture assuming the population parameters $\omega$ and $\theta$.</span>
-<span id="cb20-456"><a href="#cb20-456" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-457"><a href="#cb20-457" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM for location Mixture of Gaussians  :movie_camera:   {#sec-em-for-location-mixtures-of-gaussians}</span></span>
-<span id="cb20-458"><a href="#cb20-458" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-459"><a href="#cb20-459" aria-hidden="true" tabindex="-1"></a><span class="al">![the responsibility](/images/c3l2-ss-04-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_04 .column-margin width="53mm" group="slides"}</span>
-<span id="cb20-460"><a href="#cb20-460" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-455"><a href="#cb20-455" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>This code sample is both cool and awkward. </span>
+<span id="cb20-456"><a href="#cb20-456" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>It is cool because it provides a step-by-step implementation of the EM algorithm, which is a fundamental concept in statistics and machine learning.</span>
+<span id="cb20-457"><a href="#cb20-457" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>It is not broken in to functions lacks useful variables naming which would reduce the amounts of comments and cognitive load.  </span>
+<span id="cb20-458"><a href="#cb20-458" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>However it does provide nice visualizations of the @alg-em-general-mixture in action - particularly if run inside of RStudio IDE (as shown in the video).</span>
+<span id="cb20-459"><a href="#cb20-459" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>would be interesting to make the number of components be drawn from a distribution rather than fixed at 2, then run the EM algorithm for multiple draws and pick the one with the best fit.</span>
+<span id="cb20-460"><a href="#cb20-460" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Later on we learn about using *BIC* to select the number of components in a mixture model, which is a more principled approach than simply fixing the number of components at 2. However it stills seems that the number of components might be a RV even if it's prior would be centred at the *BIC estimate*.</span>
 <span id="cb20-461"><a href="#cb20-461" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-462"><a href="#cb20-462" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to w](/images/c3l2-ss-05-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_05 .column-margin width="53mm" group="slides"}</span>
+<span id="cb20-462"><a href="#cb20-462" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- I've extracted this example to refactor the very long monolith into functions --&gt;</span></span>
 <span id="cb20-463"><a href="#cb20-463" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-464"><a href="#cb20-464" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-465"><a href="#cb20-465" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to mu](/images/c3l2-ss-06-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_06 .column-margin width="53mm" group="slides"}</span>
+<span id="cb20-464"><a href="#cb20-464" aria-hidden="true" tabindex="-1"></a>{{&lt; include _C3-L03-EM1-Normal-Location-Mixture.qmd  &gt;}}</span>
+<span id="cb20-465"><a href="#cb20-465" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-466"><a href="#cb20-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-467"><a href="#cb20-467" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-468"><a href="#cb20-468" aria-hidden="true" tabindex="-1"></a><span class="al">![the derivative of Q wrt to sigma](/images/c3l2-ss-07-em-for-location-mixtures-of-gaussians.png)</span>{#fig-s_07 .column-margin width="53mm" group="slides"}</span>
-<span id="cb20-469"><a href="#cb20-469" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-470"><a href="#cb20-470" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-467"><a href="#cb20-467" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM example 2  :movie_camera:  {#sec-em-example-2}</span></span>
+<span id="cb20-468"><a href="#cb20-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-469"><a href="#cb20-469" aria-hidden="true" tabindex="-1"></a>This video covers the code sample given in @sec-multivariate-EM below. </span>
+<span id="cb20-470"><a href="#cb20-470" aria-hidden="true" tabindex="-1"></a>It is a more advanced implementation of the EM algorithm for fitting a mixture of multivariate Gaussian components to simulated data.</span>
 <span id="cb20-471"><a href="#cb20-471" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-472"><a href="#cb20-472" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-473"><a href="#cb20-473" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM example 1  :movie_camera:  {#sec-em-example-1}</span></span>
-<span id="cb20-474"><a href="#cb20-474" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-475"><a href="#cb20-475" aria-hidden="true" tabindex="-1"></a>This video covers the code sample given in the listings below. </span>
-<span id="cb20-476"><a href="#cb20-476" aria-hidden="true" tabindex="-1"></a>It is a simple implementation of the @alg-em-general-mixture for fitting a 2-component Gaussian location mixture model to simulated data.</span>
-<span id="cb20-477"><a href="#cb20-477" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-478"><a href="#cb20-478" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>This code sample is both cool and awkward. </span>
-<span id="cb20-479"><a href="#cb20-479" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>It is cool because it provides a step-by-step implementation of the EM algorithm, which is a fundamental concept in statistics and machine learning.</span>
-<span id="cb20-480"><a href="#cb20-480" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>It is not broken in to functions lacks useful variables naming which would reduce the amounts of comments and cognitive load.  </span>
-<span id="cb20-481"><a href="#cb20-481" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>However it does provide nice visualizations of the @alg-em-general-mixture in action - particularly if run inside of RStudio IDE (as shown in the video).</span>
-<span id="cb20-482"><a href="#cb20-482" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>would be interesting to make the number of components be drawn from a distribution rather than fixed at 2, then run the EM algorithm for multiple draws and pick the one with the best fit.</span>
-<span id="cb20-483"><a href="#cb20-483" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Later on we learn about using *BIC* to select the number of components in a mixture model, which is a more principled approach than simply fixing the number of components at 2. However it stills seems that the number of components might be a RV even if it's prior would be centred at the *BIC estimate*.</span>
-<span id="cb20-484"><a href="#cb20-484" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-485"><a href="#cb20-485" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- I've extracted this example to refactor the very long monolith into functions --&gt;</span></span>
-<span id="cb20-486"><a href="#cb20-486" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-487"><a href="#cb20-487" aria-hidden="true" tabindex="-1"></a>{{&lt; include _C3-L03-EM1-Normal-Location-Mixture.qmd  &gt;}}</span>
-<span id="cb20-488"><a href="#cb20-488" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-489"><a href="#cb20-489" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-490"><a href="#cb20-490" aria-hidden="true" tabindex="-1"></a><span class="fu">## EM example 2  :movie_camera:  {#sec-em-example-2}</span></span>
+<span id="cb20-472"><a href="#cb20-472" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- I've extracted this example to refactor the very long monolith into functions --&gt;</span></span>
+<span id="cb20-473"><a href="#cb20-473" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-474"><a href="#cb20-474" aria-hidden="true" tabindex="-1"></a>{{&lt; include _C3-L03-EM2-MVN.qmd  &gt;}}</span>
+<span id="cb20-475"><a href="#cb20-475" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-476"><a href="#cb20-476" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-477"><a href="#cb20-477" aria-hidden="true" tabindex="-1"></a><span class="fu">## Mixture of Log Gaussians  {#sec-mixture-of-log-gaussians}</span></span>
+<span id="cb20-478"><a href="#cb20-478" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-479"><a href="#cb20-479" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb20-480"><a href="#cb20-480" aria-hidden="true" tabindex="-1"></a><span class="fu">## Prompt {.unnumbered .unlisted}</span></span>
+<span id="cb20-481"><a href="#cb20-481" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-482"><a href="#cb20-482" aria-hidden="true" tabindex="-1"></a>If your data had support on the positive real numbers rather than the whole real line, how could you use the EM algorithm you just learned to instead fit a mixture of log-Gaussian distributions?  </span>
+<span id="cb20-483"><a href="#cb20-483" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-484"><a href="#cb20-484" aria-hidden="true" tabindex="-1"></a>Would you need to recode your algorithm?</span>
+<span id="cb20-485"><a href="#cb20-485" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-486"><a href="#cb20-486" aria-hidden="true" tabindex="-1"></a><span class="fu">### Response {.unnumbered .unlisted}</span></span>
+<span id="cb20-487"><a href="#cb20-487" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-488"><a href="#cb20-488" aria-hidden="true" tabindex="-1"></a>Updating the algorithm is nontrivial - it requires derivatives for each parameter.</span>
+<span id="cb20-489"><a href="#cb20-489" aria-hidden="true" tabindex="-1"></a>Depending on the distribution, we may need to add custom code to update each. </span>
+<span id="cb20-490"><a href="#cb20-490" aria-hidden="true" tabindex="-1"></a>We also need to update the distribution if these are changed.</span>
 <span id="cb20-491"><a href="#cb20-491" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-492"><a href="#cb20-492" aria-hidden="true" tabindex="-1"></a>This video covers the code sample given in @sec-multivariate-EM below. </span>
-<span id="cb20-493"><a href="#cb20-493" aria-hidden="true" tabindex="-1"></a>It is a more advanced implementation of the EM algorithm for fitting a mixture of multivariate Gaussian components to simulated data.</span>
+<span id="cb20-492"><a href="#cb20-492" aria-hidden="true" tabindex="-1"></a>So while the algorithm does not change, the code may change quite a bit.</span>
+<span id="cb20-493"><a href="#cb20-493" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb20-494"><a href="#cb20-494" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-495"><a href="#cb20-495" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- I've extracted this example to refactor the very long monolith into functions --&gt;</span></span>
-<span id="cb20-496"><a href="#cb20-496" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-497"><a href="#cb20-497" aria-hidden="true" tabindex="-1"></a>{{&lt; include _C3-L03-EM2-MVN.qmd  &gt;}}</span>
-<span id="cb20-498"><a href="#cb20-498" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-495"><a href="#cb20-495" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-496"><a href="#cb20-496" aria-hidden="true" tabindex="-1"></a><span class="fu">## Advanced EM algorithms {#sec-advanced-em-algorithms}</span></span>
+<span id="cb20-497"><a href="#cb20-497" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-498"><a href="#cb20-498" aria-hidden="true" tabindex="-1"></a><span class="fu">### HW: The EM for ZIP mixtures</span></span>
 <span id="cb20-499"><a href="#cb20-499" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-500"><a href="#cb20-500" aria-hidden="true" tabindex="-1"></a><span class="fu">## Mixture of Log Gaussians  {#sec-mixture-of-log-gaussians}</span></span>
+<span id="cb20-500"><a href="#cb20-500" aria-hidden="true" tabindex="-1"></a>Data on the lifetime (in years) of fuses produced by the ACME Corporation is available in the file <span class="in">`fuses.csv`</span>:</span>
 <span id="cb20-501"><a href="#cb20-501" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-502"><a href="#cb20-502" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb20-503"><a href="#cb20-503" aria-hidden="true" tabindex="-1"></a><span class="fu">## Prompt {.unnumbered .unlisted}</span></span>
-<span id="cb20-504"><a href="#cb20-504" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-505"><a href="#cb20-505" aria-hidden="true" tabindex="-1"></a>If your data had support on the positive real numbers rather than the whole real line, how could you use the EM algorithm you just learned to instead fit a mixture of log-Gaussian distributions?  </span>
-<span id="cb20-506"><a href="#cb20-506" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-507"><a href="#cb20-507" aria-hidden="true" tabindex="-1"></a>Would you need to recode your algorithm?</span>
-<span id="cb20-508"><a href="#cb20-508" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-509"><a href="#cb20-509" aria-hidden="true" tabindex="-1"></a><span class="fu">### Response {.unnumbered .unlisted}</span></span>
-<span id="cb20-510"><a href="#cb20-510" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-511"><a href="#cb20-511" aria-hidden="true" tabindex="-1"></a>Updating the algorithm is nontrivial - it requires derivatives for each parameter.</span>
-<span id="cb20-512"><a href="#cb20-512" aria-hidden="true" tabindex="-1"></a>Depending on the distribution, we may need to add custom code to update each. </span>
-<span id="cb20-513"><a href="#cb20-513" aria-hidden="true" tabindex="-1"></a>We also need to update the distribution if these are changed.</span>
-<span id="cb20-514"><a href="#cb20-514" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-515"><a href="#cb20-515" aria-hidden="true" tabindex="-1"></a>So while the algorithm does not change, the code may change quite a bit.</span>
-<span id="cb20-516"><a href="#cb20-516" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb20-517"><a href="#cb20-517" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-518"><a href="#cb20-518" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-519"><a href="#cb20-519" aria-hidden="true" tabindex="-1"></a><span class="fu">## Advanced EM algorithms {#sec-advanced-em-algorithms}</span></span>
-<span id="cb20-520"><a href="#cb20-520" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-521"><a href="#cb20-521" aria-hidden="true" tabindex="-1"></a><span class="fu">### HW: The EM for ZIP mixtures</span></span>
-<span id="cb20-522"><a href="#cb20-522" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-523"><a href="#cb20-523" aria-hidden="true" tabindex="-1"></a>Data on the lifetime (in years) of fuses produced by the ACME Corporation is available in the file <span class="in">`fuses.csv`</span>:</span>
-<span id="cb20-524"><a href="#cb20-524" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-525"><a href="#cb20-525" aria-hidden="true" tabindex="-1"></a>Provide the EM algorithm to fit the mixture model</span>
-<span id="cb20-526"><a href="#cb20-526" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-527"><a href="#cb20-527" aria-hidden="true" tabindex="-1"></a><span class="fu">### HW+: The EM for Mixture Models</span></span>
+<span id="cb20-502"><a href="#cb20-502" aria-hidden="true" tabindex="-1"></a>Provide the EM algorithm to fit the mixture model</span>
+<span id="cb20-503"><a href="#cb20-503" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-504"><a href="#cb20-504" aria-hidden="true" tabindex="-1"></a><span class="fu">### HW+: The EM for Mixture Models</span></span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
