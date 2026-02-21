@@ -13,7 +13,7 @@ keywords:
     - "linear algebra"
 ---
 
-The Moore-Penrose inversion and the Cholesky decomposition are two important methods in linear algebra for solving linear equations efficiently. They are widely used in various applications, including statistics, machine learning, and numerical analysis.
+The Moore-Penrose inversion and the Cholesky decomposition are two important methods in computational linear algebra for solving linear equations efficiently. They are widely used in various applications, including statistics, machine learning, and numerical analysis.
 
 ## Properties of transpose {#sec-linear-algebra-results}
 
@@ -139,9 +139,10 @@ For any $m \times n$ matrix $A$, $\text{rank}(A) = \text{rank}(A^+) = \text{rank
 
 
 Let A be an m × m symmetric matrix. Then
-a. $A^+$ is also symmetric,
-b. $AA^+$ = $A^+A,
-c. $A^+$ = $A$, if $A$ is idempotent.
+
+1. $A^+$ is also symmetric,
+2. $AA^+$ = $A^+A,
+3. $A^+$ = $A$, if $A$ is idempotent.
 :::
 
 
@@ -153,22 +154,22 @@ In the context of MLE, the Moore-Penrose inverse allows us to obtain parameter e
 we start with:
 
 $$
-y = \mathbf{X} \boldsymbol{\beta} + \boldsymbol\varepsilon \qquad \boldsymbol\varepsilon \sim \mathcal{N} (0, v\mathbf{I})
+y = \mathbf{X} \mathbf{\beta} + \mathbf{\varepsilon} \qquad \mathbf{\varepsilon} \sim \mathcal{N} (0, v\mathbf{I})
 $$
 
-we want MLE of $\boldsymbol{\beta}$, which is given by:
+we want MLE of $\mathbf{\beta}$, which is given by:
 $$
-\hat{\boldsymbol{\beta}}_{NKE} = (\mathbf{X}^\top \mathbf{X})^{-1} \mathbf{X}^\top y
+\hat{\mathbf{\beta}}_{NKE} = (\mathbf{X}^\top \mathbf{X})^{-1} \mathbf{X}^\top y
 $$
 
-Also in the bayesian setting we can show that MLE is equivalent to minimizing the negative log-likelihood function, under a uniform prior on $\boldsymbol{\beta}$, which is equivalent to minimizing the residual sum of squares.
+Also in the bayesian setting we can show that MLE is equivalent to minimizing the negative log-likelihood function, under a uniform prior on $\mathbf{\beta}$, which is equivalent to minimizing the residual sum of squares.
 
 we can show that if we use least squares AKA l_2 norm minimization, we will end up with the Moore-Penrose inverse to find the solution:
 
 we can write this explicitly as:
 
 $$
-\mathbb{E}_{l_2}(\boldsymbol{\beta}) = \frac{1}{2} \sum (y - \boldsymbol{\beta}^\top \mathbf{X})^2
+\mathbb{E}_{l_2}(\mathbf{\beta}) = \frac{1}{2} \sum (y - \mathbf{\beta}^\top \mathbf{X})^2
 $$
 
 ## Cholesky Decomposition {#sec-cholesky}
@@ -192,6 +193,38 @@ The Cholesky decomposition is unique for a given positive definite matrix, and i
 
 
 ### Doolittle Algorithm {#sec-doolittle-algorithm}
+
+
+
+::: {#alg-doolittle-algorithm}
+```pseudocode
+#| html-indent-size: "1.2em"
+#| html-comment-delimiter: "//"
+#| html-line-number: true
+#| html-line-number-punc: ":"
+#| html-no-end: false
+#| pdf-placement: "htb!"
+#| pdf-line-number: true
+#| pdf-comment-delimiter: "//"
+
+\begin{algorithm}
+\caption{Doolittle's algorithm for LU decomposition}
+\begin{algorithmic}
+\Require $A$ is an $n \times n$ matrix
+\Ensure $L$ is a unit lower triangular matrix and $U$ is an upper triangular matrix such that $A = LU$
+\State Initialize $L$ as an $n \times n$ identity matrix and $U$ as an $n \times n$ zero matrix
+\For{$i = 0$ to $n-1$}
+    \For{$k = i$ to $n-1$}
+        \State $U[i][k] = A[i][k] - \sum_{j=0}^{i-1} L[i][j] U[j][k]$   
+    \EndFor
+    \For{$k = i+1$ to $n-1$}
+        \State $L[k][i] = \frac{A[k][i] - \sum_{j=0}^{i-1} L[k][j] U[j][i]}{U[i][i]}$
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+```
+:::
 
 ```{python}
 def doolittle(A):
@@ -231,14 +264,11 @@ A = [
     [4, 7, 7],
     [6, 18, 22]
 ]
-
 print_matrix(A, name="A")
-
 
 L, U = doolittle(A)
 print_matrix(L, name="L")
 print_matrix(U, name="U")
-
 
 ```
 
@@ -248,6 +278,7 @@ print_matrix(U, name="U")
 When performing LU decomposition, it is often necessary to use partial pivoting to ensure numerical stability and to handle cases where the matrix may be singular or nearly singular. Partial pivoting involves swapping rows of the matrix to place the largest absolute value in the pivot position.
 
 Adding partial pivoting is algebraically equivalent to multiplying the original matrix by a permutation matrix $P$, such that $PA = LU$, where $P$ is a permutation matrix, $L$ is a lower triangular matrix, and $U$ is an upper triangular matrix.
+
 
 
 
@@ -398,6 +429,37 @@ print_matrix(U, name="U")
 ```
 
 ### Crout's Algorithm {#sec-crout-algorithm}
+
+
+::: {#alg-crout-algorithm}
+```pseudocode
+#| html-indent-size: "1.2em"
+#| html-comment-delimiter: "//"
+#| html-line-number: true
+#| html-line-number-punc: ":"
+#| html-no-end: false
+#| pdf-placement: "htb!"
+#| pdf-line-number: true
+#| pdf-comment-delimiter: "//"
+
+\begin{algorithm}
+\caption{Crout's algorithm for LU decomposition}
+\begin{algorithmic}
+\Require $A$ is an $n \times n$ matrix
+\Ensure $L$ is a lower triangular matrix and $U$ is an upper triangular matrix such that $A = LU$
+\State Initialize $L$ as an $n \times n$ zero matrix and $U$ as an $n \times n$ identity matrix
+\For{$j = 0$ to $n-1$}
+    \For{$i = j$ to $n-1$}
+        \State $L[i][j] = A[i][j] - \sum_{k=0}^{j-1} L[i][k] U[k][j]$   
+    \EndFor
+    \For{$i = j+1$ to $n-1$}
+        \State $U[j][i] = \frac{A[j][i] - \sum_{k=0}^{j-1} L[j][k] U[k][i]}{L[j][j]}$
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+```
+:::
 
 Crout's algorithm is another method for performing LU decomposition, similar to Doolittle's algorithm. It constructs the lower triangular matrix $L$ directly, while the upper triangular matrix $U$ is obtained from the original matrix $A$.
 

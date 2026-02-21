@@ -46,31 +46,31 @@ Each term is Gaussian and independent, given the past values and parameters.
 
 ### Regression Formulation
 
-This is recast as a linear regression: response vector $\mathbf{y}$ starting from $y_{p+1}$ to $y_T$, design matrix $\mathbb{X}$ built from lagged values, and $\boldsymbol\beta$ as the AR coefficients $\phi_j$.
+This is recast as a linear regression: response vector $\mathbf{y}$ starting from $y_{p+1}$ to $y_T$, design matrix $\mathbb{X}$ built from lagged values, and $\mathbf{\beta}$ as the AR coefficients $\phi_j$.
 
 $$
-\mathbf{y}= \mathbb{X}\boldsymbol \beta + \boldsymbol \varepsilon \qquad \varepsilon \sim \mathcal{N}(0, vI)
+\mathbf{y}= \mathbf{X}\mathbf{\beta} + \mathbf {\varepsilon} \qquad \mathbf{ \varepsilon} \sim \mathcal{N}(0, vI)
 $$ {#eq-arp-inf-regression}
 
 
 $$
 \mathbf{y} = \begin{pmatrix} y_{p+1} \\ y_{p+2} \\ \vdots \\ y_T \end{pmatrix}, \quad
-\boldsymbol \beta = \begin{pmatrix} \phi_1 \\ \phi_2 \\ \vdots \\ \phi_p \end{pmatrix}, \quad
-\mathbb{X} = \begin{pmatrix} y_{p} & y_{p-1} & \cdots & y_{1} \\ y_{p+1} & y_{p} & \cdots & y_{2} \\ \vdots & \vdots & \ddots & \vdots \\ y_{T-1} & y_{T-2} & \cdots & y_{T-p} \end{pmatrix}
+\mathbf {\beta} = \begin{pmatrix} \phi_1 \\ \phi_2 \\ \vdots \\ \phi_p \end{pmatrix}, \quad
+\mathbf{X} = \begin{pmatrix} y_{p} & y_{p-1} & \cdots & y_{1} \\ y_{p+1} & y_{p} & \cdots & y_{2} \\ \vdots & \vdots & \ddots & \vdots \\ y_{T-1} & y_{T-2} & \cdots & y_{T-p} \end{pmatrix}
 $$
 
-In the design matrix $\mathbb{X}$ each row corresponds to lagged observations used to predict the next value. This setup enables applying linear regression machinery.
+In the design matrix $\mathbf{X}$ each row corresponds to lagged observations used to predict the next value. This setup enables applying linear regression machinery.
 
-Assuming full-rank $\mathbb{X}$, we may now infer the parameters by using the left generalized Moore-Penrose inverse of $\mathbb{X}$ as the maximum likelihood estimator (MLE) of the AR coefficients $\boldsymbol \beta$.
+Assuming full-rank $\mathbf{X}$, we may now infer the parameters by using the left generalized Moore-Penrose inverse of $\mathbf{X}$ as the maximum likelihood estimator (MLE) of the AR coefficients $\mathbf{\beta}$.
 
 $$
-\boldsymbol \beta_{MLE} = (\mathbb{X}^\top \mathbb{X})^{-1} \mathbb{X}^\top \mathbf{y}
+\mathbf{\beta}_{MLE} = (\mathbf{X}^\top \mathbf{X})^{-1} \mathbf{X}^\top \mathbf{y}
 $$ {#eq-arp-inf-regression-mle}
 
 where:
 
-- $\mathbb{X}$ is the design matrix, 
-- $\boldsymbol \beta$ is the vector of AR coefficients, and 
+- $\mathbf{X}$ is the design matrix, 
+- $\mathbf{\beta}$ is the vector of AR coefficients, and 
 - $\mathbf{y}$ is the response vector.
 
 It matches the usual OLS solution in linear regression.
@@ -80,14 +80,14 @@ It matches the usual OLS solution in linear regression.
 The reference prior reflects non-informative beliefs. This yields a conjugate posterior due to the Gaussian likelihood.
 
 $$
-p(\beta,v) \propto 1/v
+p(\mathbf{\beta},v) \propto 1/v
 $$ {#eq-arp-inf-prior}
 
 $$
-(\boldsymbol \beta \mid \mathbf{y}_{:T}, v) \sim \mathcal{N}(\boldsymbol \beta_{MLE}, v (\mathbb{X}^\top \mathbb{X})^{-1})
+(\mathbf{\beta} \mid \mathbf{y}_{:T}, v) \sim \mathcal{N}(\mathbf{\beta}_{MLE}, v (\mathbf{X}^\top \mathbf{X})^{-1})
 $$ {#eq-arp-inf-posterior-beta}
 
-The posterior is Gaussian with mean $\boldsymbol \beta_{MLE}$ and scaled covariance $v(\mathbb{X}^\top \mathbb{X})^{-1}$, analogous to the OLS variance.
+The posterior is Gaussian with mean $\mathbf{\beta}_{MLE}$ and scaled covariance $v(\mathbf{X}^\top \mathbf{X})^{-1}$, analogous to the OLS variance.
 
 $$
 (v \mid \mathbf{y}_{:T}) \sim \text{Inverse-Gamma}\left(\frac{T - 2p}{2}, \frac{S^2}{2}\right)
@@ -95,7 +95,7 @@ $$ {#eq-arp-inf-posterior-v}
 
 where:  
 
-- $S^2 = \sum_{t=p+1}^{T} (y_t - \mathbb{X} \boldsymbol \beta_{MLE})^2$ is the unbiased estimator of the variance $v$.
+- $S^2 = \sum_{t=p+1}^{T} (y_t - \mathbf{X} \mathbf{\beta}_{MLE})^2$ is the unbiased estimator of the variance $v$.
 - $T$ is the total number of observations.
 
 Posterior for $v$ is inverse gamma. The shape parameter is $(T - 2p)/2$ because the number of residual degrees of freedom is $T - 2p$ (residual = $T-p$ obs minus $p$ params). Scale is half the sum of squared residuals.
@@ -105,9 +105,9 @@ Posterior for $v$ is inverse gamma. The shape parameter is $(T - 2p)/2$ because 
 Posterior sampling:
 
 - Draw $v$ from the inverse gamma posterior.
-- Plug $v$ into the posterior of $\boldsymbol\beta$ and sample from the Gaussian.
+- Plug $v$ into the posterior of $\mathbf{\beta}$ and sample from the Gaussian.
 
-This gives full Bayesian posterior samples of $(\boldsymbol\beta, v)$.
+This gives full Bayesian posterior samples of $(\mathbf{\beta}, v)$.
 
 
 ### Summary
@@ -432,7 +432,7 @@ Using this information, we can also obtain a spectral representation of the proc
 
 
 $$
-f(\omega) = \frac{v}{ \mid 1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omega p}) \mid^2 2\pi}
+f(\omega) = \frac{v}{ \mid (1 - \phi_1 e^{-i\omega} - \ldots - \phi_p e^{-i \omega p}) \mid^2 2\pi}
 $$
 
 with:
@@ -475,7 +475,7 @@ This video walks through the code in the next section.
   * Posterior samples:
 
     * $v \sim \text{Inverse-Gamma}$
-    * $\boldsymbol\Phi \mid v \sim \text{Bivariate Normal}$
+    * $\mathbf{\Phi} \mid v \sim \text{Bivariate Normal}$
 
 * **Spectral density estimation**:
 
