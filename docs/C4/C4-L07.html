@@ -159,24 +159,8 @@ gtag('config', 'G-GYZ17VPVEJ', { 'anonymize_ip': true});
         background: images/banner_deep.jpg;
       }
 </style>
-<script>
-MathJax = {
-  loader: {
-    load: ["[tex]/boldsymbol"],
-  },
-  tex: {
-    tags: "all",
-    inlineMath: [["$", "$"], ["\\(", "\\)"]],
-    displayMath: [["$$", "$$"], ["\\[", "\\]"]],
-    processEscapes: true,
-    processEnvironments: true,
-    packages: {
-      "[+]": ["boldsymbol"],
-    },
-  },
-};
-</script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+<script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+<script>window.backupDefine = window.define; window.define = undefined;</script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
     <style type="text/css">
     .ps-root .ps-algorithm {
       border-top: 2px solid;
@@ -194,7 +178,7 @@ MathJax = {
       </style>
     
 
-  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
  var mathElements = document.getElementsByClassName("math");
  var macros = [];
@@ -209,7 +193,7 @@ MathJax = {
    });
 }}});
   </script>
-  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
 
 <script type="text/javascript">
 const typesetMath = (el) => {
@@ -1424,12 +1408,55 @@ window.Quarto = {
 <div class="quarto-video ratio ratio-16x9"><iframe data-external="1" src="https://www.youtube.com/embed/0O6dlq6a4rA" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-vid" id="vid-sean-law-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Video&nbsp;98.1: Sean Law - STUMPY: Modern Time Series Analysis with Matrix Profiles
+Video&nbsp;98.1: Sean Law - STUMPY: Modern Time Series Analysis with <a href="https://medium.com/data-science/introduction-to-matrix-profiles-5568f3375d90">Matrix Profiles</a>
 </figcaption>
 </figure>
-</div></div><p>We will now delve into Bayesian inference for the case where we have an NDLM with both observational variance and system variance known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach.</p>
+</div></div><div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Automating NDLM
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Question: can we use the Matrix profile &amp; EDA to construct a good NDLM model for a given time series?</p>
+<ol type="1">
+<li><p>EDA should be able to give us a global view of the time series, its periodicity, its stationarity, etc.</p></li>
+<li><p>Nonstationary mean (rolling mean drifts) <span class="math inline">\implies</span> add local level or local linear trend.</p></li>
+<li><p>Clear periodicity (ACF spikes at known lags; seasonal subseries plots) <span class="math inline">\implies</span> add seasonal component (Fourier or dummy seasonal states).</p></li>
+<li><p>Calendar effects (day-of-week, holidays, promotions) <span class="math inline">\implies</span> dynamic regression (time-varying coefficients if needed).</p></li>
+<li><p>Heteroskedasticity (variance clusters) <span class="math inline">\implies</span> discount-factor volatility or a stochastic volatility extension.</p></li>
+<li><p>Outliers (rare spikes) <span class="math inline">\implies</span> robust observation model (Student-t) or explicit intervention indicators.</p></li>
+</ol>
+<p>Output of this step: <strong>a baseline state vector design</strong> <span class="math inline">F_t,G_t</span> + initial priors + whether we will use discount factors.</p>
+<ol start="2" type="1">
+<li><p>Matrix profile can detect motifs and discords and segments, in other words local patterns in the time series.</p></li>
+<li><p>Motifs <span class="math inline">\implies</span> suggest event templates you can encode as regressors (pulse/boxcar/decay kernels), or as a dictionary of basis events.</p></li>
+<li><p>Discords <span class="math inline">\implies</span> suggest interventions / robust likelihood / outlier mixture.</p></li>
+<li><p>Segments <span class="math inline">\implies</span> suggest changepoints or regime switching (piecewise DLM, switching DLM, or time-varying discount factors).</p></li>
+<li><p>Output of this step: a set of candidate changepoints and event regressors.</p></li>
+</ol>
+<p>Output of this step: a set of candidate changepoints and event regressors.</p>
+<ol start="3" type="1">
+<li>Recall that in Harisson &amp; West the DLM is DYNAMIC</li>
+</ol>
+<p>At any time step we can change everything or anything about the model if we are clever enough to do so – If we know about Motifs in the data we can encode them using dummy seasonal states or regression states.</p>
+<p>Yet even if the DLM can handle such radical changes, these regime changes need to be detected and encoded in the model very explicitly. This might be automated with the Matrix profile, but it seems to be unsatisfactory to change the model whenever we stray from the global pattern.</p>
+<p>It seems that if we use Markov switching to the model i.e.&nbsp;a Markov switching DLM, we should be to add regimes for segments with motifs or discords without having to specify the precise their precise timing.</p>
+<p>What seems to be more promising is to use the Matrix profile to detect motifs, discords and segments and then to augment the DLM with prior knowledge of these and then trust in Bayes to infer the best regime.</p>
+<ol start="4" type="1">
+<li>Model selection: use AIC/BIC/DIC to select among candidate models, or use cross-validation to evaluate forecast performance.</li>
+</ol>
+</div>
+</div>
+</div>
+<p>We will now delve into Bayesian inference for the case where we have an NDLM with both observational variance and system variance known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach.</p>
 <div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="true" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1438,7 +1465,7 @@ Video&nbsp;98.1: Sean Law - STUMPY: Modern Time Series Analysis with Matrix Prof
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div id="callout-2" class="callout-2-contents callout-collapse collapse show">
 <div class="callout-body-container callout-body">
 <ol type="1">
 <li><p>This lesson is one of several dedicated to Bayesian inference on the NDLM. Professor Prado doesn’t outline this study of apparently eclectic collection of NDLM or explain the NDLM framework upfront. It doesn’t mean there isn’t a method to the madness, however it is up to the student to sort things out.</p></li>
@@ -1456,14 +1483,14 @@ Video&nbsp;98.1: Sean Law - STUMPY: Modern Time Series Analysis with Matrix Prof
 </ol></li>
 </ol>
 <p>Working with AR(<span class="math inline">p</span>) loosely followed this process so I expected NDLM would be the same. In the NDLM framework the algorithm is the Kalman Filter. Kalman Filter had originally a Bayesian formulation. The Kalman filter lets us do filtering and smoothing to infer the system parameters we call <span class="math inline">\theta_t</span>. The Kalman filter uses a set of recursive equations to update the state and returns these with an uncertainty estimate! The NDLM framework is mostly a scaffolding to handle the requirements of the Kalman filter (<del>discretization of continuous time equations</del>, assembling the different part into a single system evolution matrix, converting them into the representation a KF needs, and assembling the different sources of uncertainty i.e.&nbsp;<span class="math inline">v</span> and <span class="math inline">w</span> into just one of each per overall model, linearity, <del>controllability</del>, setting the boundary conditions from the priors</p>
-<p>But I did not know all this. Initially I expected that once we choose a (normal) prior <span class="math inline">\mathcal{N}(M_0,\mathbf{C}_0)</span> we would infer <span class="math inline">\{F,G,V,W\}</span> from the data. I supposed that no one has been able to write a prior for <span class="math inline">F</span> and <span class="math inline">G</span> and even Kalman in his paper <span class="citation" data-cites="kalman1960new">(<a href="#ref-kalman1960new" role="doc-biblioref">Kalman 1960</a>)</span> does not describe how to work out the linear system <span class="math inline">G</span>.</p>
+<p>But I did not know all this. Initially I expected that once we choose a (normal) prior <span class="math inline">\mathcal{N}(M_0,\mathbf{C}_0)</span> we would infer <span class="math inline">\{F,G,V,W\}</span> from the data. I supposed that no one has been able to write a prior for <span class="math inline">F</span> and <span class="math inline">G</span> and even Kalman in his paper <span class="citation" data-cites="kalman1960new">(<a href="../references.html#ref-kalman1960new" role="doc-biblioref">Kalman 1960</a>)</span> does not describe how to work out the linear system <span class="math inline">G</span>.</p>
 <p>While it is never stated explicitly our choice of <span class="math inline">F</span> and <span class="math inline">G</span> are very much modeling decisions. <span class="math inline">F</span> maps the output of <span class="math inline">\theta\; G</span> and so must be compatible in two sense</p>
 <ol type="1">
 <li><span class="math inline">F</span> must have the same number of rows as <span class="math inline">\theta</span> has columns</li>
 <li><span class="math inline">F</span> must have the same number of non-zero rows as the output <span class="math inline">y_t</span></li>
 </ol>
 <p><span class="math inline">G</span> is the hidden state’s evolution matrix. In the NDLM, we don’t know very much about the data generating process. Unlike the usual setting for Kalman Filter we don’t have access to a dynamical system. All we have is a time series and as modelers we need to construct a surrogate state space model based on very vague prior assumption likely based on some exploration of the time series. (Another problem which could be mitigated via model selection but can also introduce a new issue of too many comparisons if we can choose from too many models)</p>
-<p>But this is not the case. In fact we don’t seem to be particularly Bayesian when going about constructing the NDLM model. Similar to constructing a neural network we pick an architecture <span class="math inline">\sum \{\mathbf{F}_{i,t},\mathbf{G}_{i,t},\cdot,\cdot\}</span> with a hyperparameter like a polynomial degree <span class="math inline">q</span>, an AR(<span class="math inline">p</span>) or the number of fourier components <span class="math inline">r</span> and we give it to the Kalman Filter, which returns an estimate for the <span class="math inline">\boldsymbol{\theta}_t</span> for us. But that still leaves <span class="math inline">\nu_t</span> and <span class="math inline">\omega_t</span>.</p>
+<p>But this is not the case. In fact we don’t seem to be particularly Bayesian when going about constructing the NDLM model. Similar to constructing a neural network we pick an architecture <span class="math inline">\sum \{\mathbf{F}_{i,t},\mathbf{G}_{i,t},\cdot,\cdot\}</span> with a hyperparameter like a polynomial degree <span class="math inline">q</span>, an AR(<span class="math inline">p</span>) or the number of fourier components <span class="math inline">r</span> and we give it to the Kalman Filter, which returns an estimate for the <span class="math inline">\mathbf{\theta}_t</span> for us. But that still leaves <span class="math inline">\nu_t</span> and <span class="math inline">\omega_t</span>.</p>
 <p>Now as far as Kalman Filters go <span class="math inline">\nu_t</span> and <span class="math inline">\omega_t</span> are errors inherent in the system that cannot be eliminated. One consequence is that our estimates of <span class="math inline">theta</span> will never converge to the actual state, though they can reach optimality. So as far as the KF is concerned <span class="math inline">\nu_t</span> and <span class="math inline">\omega_t</span> are</p>
 <p>(i.e.&nbsp;filtering smoothing, of the parameters <span class="math inline">\theta_t</span> given the data and forecasting <span class="math inline">y_t</span> based on that)</p>
 <p>I was initially disappointed that we assume that we know everything I want to infer. This is an open question for the proverbial <a href="../C4/C4-L06.html">Feynman Notebook</a>. In reality that is just another problem. But that is not the process with time series analysis.</p>
@@ -1527,9 +1554,9 @@ Figure&nbsp;98.2: Derivation of the Posterior at Time t
 \tag{98.2}</span></span></p>
 <p>We assume that this the filtering distribution follows this normal distribution based on</p>
 <ol type="1">
-<li>the prior in <a href="#eq-generic-NDLM" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-generic-NDLM</span></a> being conjugate of the normal and<br>
+<li>the prior in <a href="#eq-generic-NDLM" class="quarto-xref">Equation&nbsp;<span>98.10</span></a> being conjugate of the normal and<br>
 </li>
-<li>the linearity of the model in <a href="#eq-generic-NDLM" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-generic-NDLM</span></a>.</li>
+<li>the linearity of the model in <a href="#eq-generic-NDLM" class="quarto-xref">Equation&nbsp;<span>98.10</span></a>.</li>
 </ol>
 <p>These result in updates to the model parameters and uncertainty, at each time step, preserving the normal structure from the prior.</p>
 <p>Then, we can obtain the following distributions:</p>
@@ -1545,7 +1572,7 @@ Figure&nbsp;98.2: Derivation of the Posterior at Time t
   R_t \doteq&amp; \mathbb{V}ar[\theta_t \mid \mathcal{D}_{t-1}] =&amp; G_t \mathbb{V}ar[\theta_t \mid \mathcal{D}_{t-1}] =&amp; G_t C_{t-1} G_t' + W_t.
   \end{aligned}
    \tag{98.4}</span></span></p>
-<p>Where we simply took the first and second moments of the system equation from <a href="#eq-generic-NDLM" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-generic-NDLM</span></a> conditioned on our information set <span class="math inline">\mathcal{D}_{t-1}</span></p>
+<p>Where we simply took the first and second moments of the system equation from <a href="#eq-generic-NDLM" class="quarto-xref">Equation&nbsp;<span>98.10</span></a> conditioned on our information set <span class="math inline">\mathcal{D}_{t-1}</span></p>
 <ol start="2" type="1">
 <li>One-Step Forecast</li>
 </ol>
@@ -1566,7 +1593,7 @@ q_t &amp; \doteq    \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}] \\
     &amp;= F_t' R_t F_t + v_t
 \end{aligned}
 \tag{98.7}</span></span></p>
-<p>Where we took the first moments on the observation equation conditioned on the information set <span class="math inline">\mathcal{D}_t</span> and substituted <a href="#eq-one-step-forecast-fn" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-one-step-forecast-fn</span></a></p>
+<p>Where we took the first moments on the observation equation conditioned on the information set <span class="math inline">\mathcal{D}_t</span> and substituted <a href="#eq-one-step-forecast-fn" class="quarto-xref">Equation&nbsp;<span>98.5</span></a></p>
 <ol start="3" type="1">
 <li>Posterior at Time <span class="math inline">t</span></li>
 </ol>
@@ -1579,7 +1606,7 @@ q_t &amp; \doteq    \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}] \\
   C_t &amp;= R_t - R_t F_t q_t^{-1} F_t' R_t.
   \end{aligned}
    \tag{98.8}</span></span></p>
-<p>These can be derived via Normal theory or via the Multivariate Bayes’ theorem. The background for both seems to be provided in <span class="citation" data-cites="west2013bayesian">(<a href="#ref-west2013bayesian" role="doc-biblioref">West and Harrison 2013, secs. 17.2.3 p.639</a>)</span></p>
+<p>These can be derived via Normal theory or via the Multivariate Bayes’ theorem. The background for both seems to be provided in <span class="citation" data-cites="west2013bayesian">(<a href="../references.html#ref-west2013bayesian" role="doc-biblioref">West and Harrison 2013, secs. 17.2.3 p.639</a>)</span></p>
 <p>Now, denoting <span class="math inline">e_t = (y_t - f_t)</span> and <span class="math inline">A_t = R_t F_t q_t^{-1}</span>, we can rewrite the equations above as:</p>
 <p>It follows that :</p>
 <p><span class="math display">
@@ -1589,7 +1616,7 @@ q_t &amp; \doteq    \mathbb{V}ar[y_t \mid \mathcal{D}_{t-1}] \\
   \begin{pmatrix} F'RF + V &amp; F'R \\ RF &amp; R \end{pmatrix}
 \right)
 </span></p>
-<p>Therefore, identifying <span class="math inline">Y</span> with <span class="math inline">X_1</span> and <span class="math inline">\theta</span> with <span class="math inline">X_2</span> in the partition of <span class="math inline">X</span> in <span class="citation" data-cites="west2013bayesian">(<a href="#ref-west2013bayesian" role="doc-biblioref">West and Harrison 2013, sec. 17.2.2</a>)</span>, we have</p>
+<p>Therefore, identifying <span class="math inline">Y</span> with <span class="math inline">X_1</span> and <span class="math inline">\theta</span> with <span class="math inline">X_2</span> in the partition of <span class="math inline">X</span> in <span class="citation" data-cites="west2013bayesian">(<a href="../references.html#ref-west2013bayesian" role="doc-biblioref">West and Harrison 2013, sec. 17.2.2</a>)</span>, we have</p>
 <p><span class="math display">
 Y \sim \mathcal{N}[F'a, F'RF + V]
 </span></p>
@@ -1610,9 +1637,9 @@ C = R − RF[F'RF + V]−1F'R.
   C_t &amp;\doteq R_t - A_t q_t A_t'
   \end{aligned}
 \tag{98.9}</span></span></p>
-<p><a href="#eq-derivation-for-a-t-and-R-t" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-derivation-for-a-t-and-R-t</span></a> , <a href="#eq-derivation-for-q-t" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-derivation-for-q-t</span></a> and <a href="#eq-posterior-distribution" class="quarto-xref">Equation&nbsp;<span class="quarto-unresolved-ref">eq-posterior-distribution</span></a> are often referred to as the <a href="https://en.wikipedia.org/wiki/Kalman_filter">Kalman filtering</a> equations.</p>
+<p><a href="#eq-derivation-for-a-t-and-R-t" class="quarto-xref">Equation&nbsp;<span>98.4</span></a> , <a href="#eq-derivation-for-q-t" class="quarto-xref">Equation&nbsp;<span>98.7</span></a> and <a href="../C5/C5-L01.html#eq-posterior-distribution" class="quarto-xref">Equation&nbsp;<span>104.12</span></a> are often referred to as the <a href="https://en.wikipedia.org/wiki/Kalman_filter">Kalman filtering</a> equations.</p>
 <div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1621,7 +1648,7 @@ C = R − RF[F'RF + V]−1F'R.
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <!-- transcript of https://www.coursera.org/learn/bayesian-statistics-time-series-analysis/lecture/EILYM/filtering -->
 <p><mark>I will now discuss Bayesian inference in the case of the normal dynamic linear model where both the observational variance and the system variance are known. We will talk about filtering equations, smoothing equations and also forecasting in this setting using Bayesian approach.</mark></p>
@@ -2060,7 +2087,7 @@ q_t(h) = F_{t+h}' R_t(h) F_{t+h} + v_{t+h},
 a_t(0) = m_t, \quad R_t(0) = C_t.
 </span></p>
 <div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -2069,7 +2096,7 @@ a_t(0) = m_t, \quad R_t(0) = C_t.
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <!-- transcript of https://www.coursera.org/learn/bayesian-statistics-time-series-analysis/lecture/EIciI/smoothing-and-forecasting -->
 <section id="smoothing-1" class="level3 unnumbered">
@@ -2437,7 +2464,7 @@ a_t(0) = m_t, \quad R_t(0) = C_t.
 <h2 data-number="98.8" class="anchored" data-anchor-id="sec-second-order-polynomial"><span class="header-section-number">98.8</span> Second order polynomial: Filtering and smoothing example <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
 <p>In this video walk through the code provided in the section below the comment</p>
 <div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -2446,7 +2473,7 @@ a_t(0) = m_t, \quad R_t(0) = C_t.
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <!-- transcript of https://www.coursera.org/learn/bayesian-statistics-time-series-analysis/lecture/EMgQY/second-order-polynomial-filtering-and-smoothing-example -->
 <p>We now consider another example where instead of fitting a first order polynomial we’re fitting a second order polynomial DLM. So I just want to show you how to set up the structure of the model in a case in which you have a state parameter vector. That is of dimension larger than one in this particular case we have a bivariate state parameter vector. So once again we are going to source this file that has all the DLM functions for the case in which the <span class="math inline">F</span>, <span class="math inline">G</span>, <span class="math inline">V</span> and <span class="math inline">W</span> are known. So we’re just assuming that this is the case and then we’re assuming that <span class="math inline">F</span>, <span class="math inline">G</span>, <span class="math inline">V</span> and <span class="math inline">W</span> are constant over time in these examples. So we just I’m going to use a new data set which is also data set available in R this data set corresponds to the atmospheric CO2 concentrations in parts per million in the location of Mauna Loa. And this is monthly data so I’m just plotting the data here. If you look at the data you can see that it has two important features. One of them is an increasing trend as the time increases the concentration increases. And then the other very specific feature that you can see in this data set is this seasonal behavior. So right now what I’m going to do with this example is we are going to ignore the seasonal behavior, and we are going to try to fit the model that captures the linear increasing trend using a second order polynomial model.</p>
@@ -2458,9 +2485,9 @@ a_t(0) = m_t, \quad R_t(0) = C_t.
 </section>
 <section id="using-the-dlm-package-in-r" class="level2" data-number="98.9">
 <h2 data-number="98.9" class="anchored" data-anchor-id="using-the-dlm-package-in-r"><span class="header-section-number">98.9</span> Using the <code>DLM</code> package in R <span class="emoji" data-emoji="movie_camera">🎥</span></h2>
-<p>The <code>DLM</code> library in R is a powerful tool for working with dynamic linear models. The package provides a wide range of functions for filtering, smoothing, forecasting, and parameter estimation in DLMs. In this video, we walk through the code provided in <a href="#lst-dlm-package" class="quarto-xref">Listing&nbsp;<span class="quarto-unresolved-ref">lst-dlm-package</span></a>.</p>
+<p>The <code>DLM</code> library in R is a powerful tool for working with dynamic linear models. The package provides a wide range of functions for filtering, smoothing, forecasting, and parameter estimation in DLMs. In this video, we walk through the code provided in <a href="#lst-dlm-package" class="quarto-xref">Listing&nbsp;<span>98.7</span></a>.</p>
 <div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -2469,7 +2496,7 @@ a_t(0) = m_t, \quad R_t(0) = C_t.
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <!-- transcript of https://www.coursera.org/learn/bayesian-statistics-time-series-analysis/lecture/lg1g0/using-the-dlm-package-in-r -->
 <p>So here I’m going to show you how to use the <code>dlm</code> package to fit these dynamic linear models as well. So the dlm is package that is available from Cran. And it allows you to compute the filtering smoothing and forecasting equations for dynamic linear models. So I’m just going to show you how to do the same thing we’ve been doing with the code that I provided just using the dlm package. So I’m going to just run here the first examples that we ran. And I’m going to show you how to do the same again. So here, I’m just going through the Lake Huron data. So just setting up every_thing as we did before. And then going through the filtering and smoothing equations. And so we can now plot the results and just want to have all the results here. So we have the red line corresponds to the posterior mean for the distribution of <span class="math inline">\theta_t</span> given the <span class="math inline">Dt</span> using a first order polynomial model to fit the data. And the blue line corresponds to the smoothing mean. So the mean of the posterior distribution of the smoothing equations here. So now we can look at how to fit this with the dlm package. So you have to call, install the package if you don’t have it installed. And then just call that library once you have installed the package. And the dlm package has a different set of functions to construct the model first.</p>
@@ -2838,7 +2865,7 @@ Listing&nbsp;98.7: Using the <code>dlm</code> package for dynamic linear models
 
 <!-- -->
 
-<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
 <div id="ref-kalman1960new" class="csl-entry" role="listitem">
 Kalman, Rudolph Emil. 1960. <span>“A New Approach to Linear Filtering and Prediction Problems.”</span>
 </div>
@@ -3488,7 +3515,7 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <span id="cb32-103"><a href="#cb32-103" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-104"><a href="#cb32-104" aria-hidden="true" tabindex="-1"></a>But this is not the case. In fact we don't seem to be particularly Bayesian when going about constructing the NDLM model.</span>
 <span id="cb32-105"><a href="#cb32-105" aria-hidden="true" tabindex="-1"></a>Similar to constructing a neural network we pick an architecture $\sum <span class="sc">\{</span>\mathbf{F}_{i,t},\mathbf{G}_{i,t},\cdot,\cdot<span class="sc">\}</span>$ </span>
-<span id="cb32-106"><a href="#cb32-106" aria-hidden="true" tabindex="-1"></a>with a hyperparameter like a polynomial degree $q$, an AR($p$) or the number of fourier components $r$ and we give it to the Kalman Filter, which returns an estimate for the $\boldsymbol{\theta}_t$ for us. But that still leaves $\nu_t$ and $\omega_t$. </span>
+<span id="cb32-106"><a href="#cb32-106" aria-hidden="true" tabindex="-1"></a>with a hyperparameter like a polynomial degree $q$, an AR($p$) or the number of fourier components $r$ and we give it to the Kalman Filter, which returns an estimate for the $\mathbf{\theta}_t$ for us. But that still leaves $\nu_t$ and $\omega_t$. </span>
 <span id="cb32-107"><a href="#cb32-107" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-108"><a href="#cb32-108" aria-hidden="true" tabindex="-1"></a>Now as far as Kalman Filters go $\nu_t$ and $\omega_t$ are errors inherent in the system that cannot be eliminated. One consequence is that our estimates of $theta$ will never converge to the actual state, though they can reach optimality. So as far as the KF is concerned $\nu_t$ and $\omega_t$ are </span>
 <span id="cb32-109"><a href="#cb32-109" aria-hidden="true" tabindex="-1"></a></span>
