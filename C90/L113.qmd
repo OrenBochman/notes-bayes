@@ -1,0 +1,104 @@
+---
+title: "Lesson 1.1.3: Working through a KF example at high-level"
+subtitle: "Kalman Filter Boot Camp (and State Estimation)"
+description: "This appendix explains the Kalman Filter, a mathematical method for estimating the state of a dynamic system from a series of noisy measurements."
+categories: 
+    - "Probability and Statistics"
+keywords: 
+    - "Kalman Filter"
+    - "state estimation"
+    - "linear algebra"
+---
+
+## Working through a KF example at high-level {#sec-kf-1.1.3-high-level-ex}
+
+### A problem for which KF should be a good solution
+
+- We will now walk through an example---without going into all the details---to illustrate how a KF works.
+- [Consider a car traveling in a straight line. We would like to estimate its position.]{.mark}
+- We use GPS as a position sensor---but GPS estimates have *measurement uncertainty* and [we wonder if blending our knowledge of the car's dynamics with GPS might let us infer a better position estimate.]{.mark} [**navigation problem**]{.column-margin}
+- We might think, "Maybe we could use a Kalman filter to estimate the car's position better than simply using GPS."
+  - We would be right!
+
+### Designing the Kalman filter: The model
+
+- To design the KF, we require a **discrete-time state-space model** of the dynamics of the car.
+- We adopt the model of 1-d motion of a rigid object from the prior lesson.
+  - The state comprises position pk and velocity (speed) $s_t$ :
+
+$$
+\begin{bmatrix} p_t \\ s_t \end{bmatrix} =
+\begin{bmatrix} 1 & \Delta t \\ 0 & 1 \end{bmatrix}
+\begin{bmatrix} p_{k-1} \\ s_{k-1} \end{bmatrix} +
+\begin{bmatrix} 0 \\ \Delta t \end{bmatrix} u_{k-1} + w_{k-1}
+$$
+
+where $\Delta t$ is the time interval between iterations $t-1$ and $t$ .
+- $u_t$ is equal to force divided by mass;
+- $w_t$ is a vector that perturbs both $p_t$ and $s
+
+The measurement is a noisy GPS position estimate:
+$$
+z_t =
+\begin{bmatrix} 1 & 0 \end{bmatrix}
+\begin{bmatrix} p_t \\ s_t \end{bmatrix}  + v_t
+$$ 
+
+
+### Designing the Kalman filter: The uncertainties
+
+- We also need to describe what we know about the uncertainties of the scenario.
+  - What do we know about the initial state of the car, $x_0$ ?
+  - What do we know about process noise $w_t$ (wind) affecting the state's evolution?
+  - What do we know about the measurement noise $v_t$ (GPS measurement error)?
+- For most of the specialization, we will assume that these uncertainties are
+described by Gaussian (normal) distributions, which can be specified if we know the
+means and standard deviations of the probability density functions. We assume:
+  - That GPS measurement error has zero mean and standard deviation of 1.5 m. The overall confidence is then about 4.5 m.
+  - That $x_0$ is initialized via a GPS measurement, so has zero mean and standard deviation of 5 ft.
+  - That $w_t$ has zero mean and a standard deviation of $3cm\; s^{-1}$ on the velocity state.
+
+### Visualizing the Kalman-filter process: Prediction
+
+- We first initialize the KF state estimate for iteration $t = 0$.
+$x_0$ is uncertain since it is estimated from a GPS measurement.
+- We draw this uncertainty as a shaded blue pdf.
+- We don't know the car's position exactly; but we do know where we expect it to be (at the measurement location) and we know the range of likely true locations (about $\pm 4.5$ m).
+- One time-step later, the car has moved.
+- The KF uses the model plus knowledge of $u_t$ to predict where the car will be, drawn as the shaded yellow pdf.
+- Since we do not know $w_t$, the uncertainty of the position estimate has increased.
+
+
+### Visualizing the Kalman-filter process: Estimation
+
+- At this point, we make a GPS measurement of the car's new position, remembering that the measurement has uncertainty.
+- Again, we show this as a shaded blue pdf.
+  - We now have an uncertain prediction of the position from the model (yellow) and an uncertain measurement (blue).
+- We need to combine these.
+- The KF takes into consideration the prediction and the measurement and their uncertainties to compute an estimate of the car's location.
+- This estimate (green) will be optimal in some sense, and will have less uncertainty than either the prediction or the measurement.
+
+### Properties of the Kalman-filter solution
+
+- The KF repeatedly takes two steps: prediction and correction.
+
+  - The prediction step uses the known dynamics of the state and known characteristics of the process noise $w_t$.
+  - The correction step combines the prediction and the measurement and their uncertainties to make a state estimate valid for this time step.
+
+- The output of the KF at every time step comprises two quantities: the state estimate and confidence bounds on this estimate.
+
+- The [KF never "knows" the true system state exactly and does not converge to the true state]{.mark} (i.e., with vanishingly small confidence bounds) over time, since process noise $w_t$ continuously modifies the state in unknown ways.
+
+- But, the confidence bounds allow us to interpret the output of the KF appropriately.
+
+### Summary
+
+- This lesson has illustrated KF operation for a specific example.
+- We learned that we will need to specify a model of the system and the uncertainties of the signals in the model.
+- We will need to initialize the KF with an estimate of $x_0$.
+- Then, every measurement interval we perform a prediction and a correction step.
+- [Prediction increases uncertainty and correction decreases uncertainty. The KF "fuses" the prediction with the measurement to make an optimal estimate.]{.mark}
+- The *output of the KF* is the **state estimate** as well as its **confidence bounds**.
+- The estimate will always contain some randomness due to $w_t$, so the confidence bounds will not decay to zero width.
+- The confidence bounds are necessary so we know the estimate's accuracy level.
+

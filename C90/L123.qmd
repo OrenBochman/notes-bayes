@@ -1,0 +1,127 @@
+---
+title: "Lesson 1.2.3: Understanding the time-domain response of a state-space model"
+subtitle: "Kalman Filter Boot Camp (and State Estimation)"
+description: "This appendix explains the Kalman Filter, a mathematical method for estimating the state of a dynamic system from a series of noisy measurements."
+categories: 
+    - "Probability and Statistics"
+keywords: 
+    - "Kalman Filter"
+    - "state estimation"
+    - "linear algebra"
+---
+
+
+##  Understanding the time-domain response of a state-space model {#sec-kf-1.2.3-time-domain-response}
+
+### Intro to continuous-time state-space models
+
+-  You have seen that simulation is a valuable tool for understanding state-space models.
+-  But, we would like to develop more insight into the system response by more general analytic means; specifically, by looking at the time-domain solution for $x(t)$.
+-  We solve first for the homogeneous solution $(u(t) = 0)$:
+   -  Start with $\dot x(t) = A x(t)$ and some initial state $x(0)$.
+   -  Take Laplace transform: 
+$$
+\begin{aligned}
+sX(s) - x(0) &= AX(s)        && \text{Initial value theorem} 
+\\ (sI - A)X(s) &= x(0)      && \text{take care with matrix dimensions!} 
+\\ X(s) &= (sI - A)^{-1}x(0) && \text{Assume invertible}
+\end{aligned}
+$$
+
+      Detailed Laplace-transform knowledge will be helpful
+
+-  So far we have: 
+$$
+x(t) = \mathcal{L}^{-1}[(sI - A)^{-1}]x(0)
+$$ {#eq-ct-model-homogeneous-solution}
+
+
+### The state-transition matrix
+
+-  Recapping, we have: @eq-ct-model-homogeneous-solution. But,
+$$
+(sI - A)^{-1} = \frac{I}{s}+\frac{A}{s^2}+\frac{A^2}{s^3}+\frac{A^3}{s^4}+\cdots \quad\text{(geometric series)}
+$$
+so,
+$$
+\mathcal{L}^{-1}[sI - A]^{-1} = I + At + \frac{1}{2!}A^2t^2 + \frac{1}{3!}A^3t^3 + \cdots \stackrel{\triangle}{=} e^{At} \quad\text{(matrix exponential)}
+$$
+
+-  Therefore, we write $x(t) =e^{At} x(0)$
+   -  $e^{At}$ is called the “transition matrix” or “state-transition matrix.”
+   -  Note that $e^{At}$ is not the same as taking the exponential of every element of $At$.
+   -  $e^{(A+B)t}=e^{At}e^{Bt}$ iff $AB=BA$: (that is, not in general).
+   -  In Octave, can compute $x(t)$  as: `x = expm(A*t)*x0;`
+-  Will say more about $e^{At}$ when we discuss the structure of $A$.
+
+### Computing the state-transition matrix by hand
+
+-  Computing $e^{At} = \mathcal{L}^{-1}[sI - A]^{-1}$ is straightforward for $2 \times 2$.
+-  EXAMPLE: Find $e^{At}$ when $A = \begin{bmatrix} 0 & 1 \\ 2 & 3 \end{bmatrix}$.
+   -  Solve: 
+$$
+\begin{aligned}
+  (sI - A)^{-1} &= \begin{bmatrix} s & -1 \\ 2 & s+3 \end{bmatrix}^{-1} \\
+  &= \frac{1}{s^2 + 3s + 2} \begin{bmatrix} s+3 & 1 \\ -2 & s \end{bmatrix} \\
+  &= \begin{bmatrix} 
+          \frac{ 2}{s+1} - \frac{1}{s+2}  & \frac{ 1}{s+1} - \frac{1}{s+2}  \\ 
+          \frac{-2}{s+1} + \frac{2}{s+2}  & \frac{-1}{s+1} + \frac{2}{s+2}  
+        \end{bmatrix} \\ 
+  e^{At} &= \begin{bmatrix} 
+               2e^{-t} -  e^{-2t}   &   e^{-t} -  e^{-2t}    \\ 
+              -2e^{-t} + 2e^{-2t}   & - e^{-t} + 2e^{-2t}
+            \end{bmatrix} \mathbb{1}(t)
+\end{aligned}
+$$
+
+-  This is probably the best way to find $e^{At}$ if the $A$ matrix is $2 \times 2$ .
+
+### Forced state response
+
+-  Solving for the forced solution $(u(t) \ne 0)$, we find: 
+$$
+x(t) = e^{At} x(0) + \underbrace{\int_0^t e^{A(t-\tau)} B u(\tau) d\tau}_{\text{convolution}}
+$$
+
+-  Where did this come from?
+  1. ${\color{blue} \dot{x}(t) - A x(t)} = {\color{yellow}B u(t)}$, simply by rearranging the state equation.
+  2. Multiply both sides by $e^{At}$ and rewrite the LHS as the middle expression: 
+  $$
+  e^{-At} {\color{blue}[\dot x(t) - A x(t)]} = {\color{red}\frac{d}{dt} (e^{-At} x(t))} = e^{-At} {\color{yellow}B u(t)} d\tau
+  $$
+  3. Integrate the middle and the RHS; rearrange and keep new middle and RHS: 
+  $$
+  \begin{aligned}
+  \int_0^t {\color{red}\frac{d}{d\tau} [ e^{-A(t-\tau)} x(\tau)]} d\tau &= e^{-At}x(t)-x(0) \\
+  &= \int_0^t e^{-A(t-\tau)} {\color{yellow} B u(\tau)} d\tau
+  \end{aligned}
+  $$
+
+### Forced output response
+
+-  So, we have established the following state dynamics:
+$$
+x(t) = e^{At} x(0) + \underbrace{\int_0^t e^{A(t-\tau)}{\color{yellow}B u(\tau)} d\tau}_{\text{convolution}}
+$$
+-  Since $z(t) = C x(t) + Du(t)$, the system output is then comprised of three parts:
+$$
+z(t) = 
+\underbrace{\vphantom{\int_0^t} C e^{At} x(0)}_{\text{initial resp}}+
+\underbrace{\int_0^t Ce^{A(t-\tau)}{\color{yellow}Bu(\tau)} d\tau}_{\text{convolution}} +
+\underbrace{\vphantom{\int_0^t} Du(t)}_{\text{feed through}}
+$$
+
+### Summary
+
+-  [You have learned how to compute the **homogeneous** and **forced** response of a state-space model.]{.mark}
+-  The output $z(t)$ comprises of:
+   -  [a response due to **initial conditions** :]{.mark} $C e^{At} x(0)$
+   -  [a dynamic response due to **forcing input** :]{.mark} $\int_0^t Ce^{A(t-\tau)}Bu(\tau) d\tau$
+   -  [an instantaneous response due to the **feed-through** :]{.mark} $Du(t)$
+-  These terms rely on the matrix exponential $e^{At}$.
+   -  **Caution** $e^{At}$ is not the term by term exponential operation on elements of $At$. 
+      -  Don't compute it as: ~~`exp(A*t)`~~;
+   -  One way to compute it (e.g., by hand) is via: $e^{At} = \mathcal{L}^{-1}[sI - A]^{-1}$.
+   -  Or, in Octave, it is correct to compute: `expm(A*t)`;
+-  We will dive deeper into the matrix exponential in [@sec-kf-1.2.4-time-domain-response]
+
