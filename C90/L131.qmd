@@ -1,10 +1,10 @@
 ---
 title: "Lesson 1.3.1: Understanding uncertainty via mean and covariance"
 subtitle: "Kalman Filter Boot Camp (and State Estimation)"
+date: "2027-02-24"
 description: ""
 categories: 
     - "Probability and Statistics"
-    
 keywords: 
     - "Kalman Filter"
     - "state estimation"
@@ -15,14 +15,94 @@ keywords:
 
 ### Review of probability
 
-![](images/L.1.3.1-1.png)
+::: {#fig-sequential-probabilistic-inference .column-margin group="slides"}
+![Sequential probabilistic inference](images/L.1.3.1-1.png)
+:::
 
-- Sequential probabilistic inference (and hence also any type of
-Kalman filter) seeks to find the best state estimate in the
-presence of unknown process and sensor noises.
+- Sequential probabilistic inference (and hence also any type of Kalman filter) seeks to find the best state estimate in the presence of unknown process and sensor noises.
+- By definition, noise is not deterministic, it is random in some sense.
+- To discuss the impact of noise on the system dynamics, we must understand (vector) **random variables** (RVs).
+     - We can't predict exactly what we will get each time we measure the RV, but,
+     - We can characterize the likelihood of different possible measurements by the RV's **probability density function** (PDF).
 
-- By definition, noise is not deterministic—it is random in some sense.
-- So, to discuss the impact of noise on the system dynamics, we must understand
-(vector) random variables (RVs):
-    - We can’t predict exactly what we will get each time we measure the RV, but,
-    - We can characterize the likelihood of different possible measurements by the RV’s probability density function (pdf).
+### Review of random vectors
+
+- As review, define random vector $X$, sample vector $x_0$:
+
+$$
+\begin{aligned}
+X = \begin{bmatrix}X_1 \\ X_2 \\ \vdots \\ X_n\end{bmatrix} \quad \text{and} \quad x_0 = \begin{bmatrix}x_{1} \\ x_{2} \\ \vdots \\ x_{n}\end{bmatrix}
+\end{aligned}
+$$
+  where $X_1$ through $X_n$ are themselves scalar RVs, and $x_1$ through $x_n$ are scalar constant values these RVs can take on.
+
+- Random vector $X$ is described by (scalar function) joint PDF $f_X(x)$ of vector $x$:
+  - $f_X(x_0)$ means $f_X(X_1 = x_1, X_2 = x_2, \ldots, X_n = x_n)$
+  - $f_X(x_0) dx_1 dx_2 \ldots dx_n$ is the probability that $X$ is between $x_0$ and $x_0 + dx$.
+  - $f_X(x_0)$ is the scaled probability or **likelihood** of measuring sample vector $x_0$. 
+
+### Key properties of joint PDF of random vector
+
+1. $f_X(x) \geq 0 \forall x \qquad \text{(Non-negativity)}$.
+2. $\displaystyle{\int_{-\infty}^{\infty} \int_{-\infty}^{\infty} \ldots \int_{-\infty}^{\infty} f_X(x) dx_1 dx_2 \ldots dx_n = 1 \quad \text{(Normalization)}}$.
+3. $\displaystyle{\bar{x} = \mathbb{E}[X] = \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} \ldots \int_{-\infty}^{\infty} x f_X(x) dx_1 dx_2 \ldots dx_n \qquad \text{(Mean)}}$
+4. Correlation matrix (note outer product, not inner product): 
+
+$$
+\Sigma_X = \mathbb{E}[XX^T] = \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} \ldots \int_{-\infty}^{\infty} xf_X(x) dx_1 dx_2 \ldots dx_n
+$$
+
+5. Covariance matrix: Define $\tilde{X} = X - \bar{x}$. Then, 
+
+$$
+\begin{aligned}
+\Sigma_X &= \mathbb{E}[(X - \bar{x})(X - \bar{x})^T] \\
+&= \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} \ldots \int_{-\infty}^{\infty} (x - \bar{x})(x - \bar{x})^T f_X(x) dx_1 dx_2 \ldots dx_n
+\end{aligned}
+$$
+
+### Properties of correlation and covariance
+
+- $\Sigma_{\tilde{X}}$ is symmetric and positive-semi-definite (PSD). This means:
+$$
+y^T \Sigma_X y \geq 0 \quad \forall y:
+$$
+- Notice that correlation = covariance for zero-mean random vectors. 
+- The covariance entries have specific meaning: 
+$$
+\begin{aligned}
+(\Sigma_X)_{ii} &= \sigma^2_{X_i} \\
+(\Sigma_X)_{ij} &= \rho_{ij}\sigma_{X_i}\sigma_{X_j} = \text{Cov}(X_i, X_j) \\
+(\Sigma_X)_{ji} &= (\Sigma_X)_{ij}
+\end{aligned}
+$$
+
+- The diagonal entries are the variances of each vector component. 
+- Correlation coefficient $\rho_{ij}$ is a measure of linear dependence between $X_i$ and $X_j$; $|\rho_{ij}| \leq 1$.
+
+### The multivariable Gaussian pdf
+
+- There are infinite variety in pdfs; however, we assume only (multivariable) Gaussian pdf in (linear) KF.
+- All noises and the state vector itself are assumed to be Gaussian random vectors.
+- Gaussian or normal pdf is (we say $X \sim \mathcal{N}(\bar{x}, \Sigma_{\tilde{X}})$):
+$$
+f_X(x) = \frac{1}{(2\pi)^{n/2} |\Sigma_{\tilde{X}}|^{1/2}} \exp\left(-\frac{1}{2}(x - \bar{x})^T \Sigma_{\tilde{X}}^{-1} (x - \bar{x})\right)
+$$
+
+$$
+\begin{aligned}
+|\Sigma_{\tilde{X}}| = \text{det}(\Sigma_{\tilde{X}})  \qqad \Sigma_{\tilde{X}}^{-1} \text{requires PSD} \Sigma_{\tilde{X}}
+\end{aligned}
+$$
+
+- Contours of constant $f_X(x)$ are hyper-ellipsoids, centered at $\bar{x}$, rotated via eigenvectors of $\Sigma_{\tilde{X}}$.
+- Good news... We won't need to work directly with this equation very much!
+
+### Summary
+
+- To develop sequential-probabilistic-inference solution, must have a background understanding of random variables (RVs).
+- RVs are described by probability density functions (pdfs).
+- These pdfs have important properties, which we have reviewed.
+- In particular, we will be making use of mean and covariance a lot.
+-  The pdf we will assume for all RVs is multivariable Gaussian (or normal) distribution.
+-  While this seems complicated at first, it turns out to simplify the math a lot later on.
