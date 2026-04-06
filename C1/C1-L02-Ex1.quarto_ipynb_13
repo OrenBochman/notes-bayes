@@ -1,0 +1,381 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"Conditional Probability and Bayes' Law - M1L2HW1\"\n",
+        "subtitle: \"Bayesian Statistics: From Concept to Data Analysis\"\n",
+        "categories:\n",
+        "  - Bayesian Statistics\n",
+        "keywords:\n",
+        "  - Conditional Probability\n",
+        "  - Bayes' Law\n",
+        "  - Homework\n",
+        "---\n",
+        "\n",
+        "::::: {.content-visible unless-profile=\"HC\"}\n",
+        "\n",
+        "::: {.callout-caution}\n",
+        "Section omitted to comply with the Honor Code\n",
+        ":::\n",
+        "\n",
+        ":::::\n",
+        "\n",
+        "::::: {.content-hidden unless-profile=\"HC\"} \n",
+        "\n",
+        "\\index{dataset! Titanic}\n",
+        "[Titanic data]{.column-margin} I put the data from the Titanic for this problem into a .csv file and loaded it into a data frame as follows:"
+      ],
+      "id": "958c10bb"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd\n",
+        "df=pd.read_csv(\"data/titanic.csv\",index_col='class')\n",
+        "print(df) "
+      ],
+      "id": "8c0ae38b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {#exr-cpb-1}\n",
+        "[Titanic data]{.column-margin} If we randomly select a person's name from the complete list of passengers and crew, what is the probability that this person traveled in 1st class? Round your answer to two decimal places.\n",
+        ":::\n",
+        "\n",
+        "::: {.solution  .column-screen-inset-right .callout-tip collapse=\"true\"}\n",
+        "#### Solution:"
+      ],
+      "id": "62508743"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def l02q01(df):\n",
+        "    return  round(df.loc[1].sum() / df.values.sum(),2)\n",
+        "l02q01(df)"
+      ],
+      "id": "5d405644",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {#exr-cpb-2}\n",
+        "[Titanic data]{.column-margin} What is the probability that a (randomly selected) person survived? Round your answer to two decimal places.\n",
+        ":::\n",
+        "\n",
+        "::: {.solution  .column-screen-inset-right .callout-tip collapse=\"true\"}\n",
+        "#### Solution:"
+      ],
+      "id": "65489007"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def l02q02(df):\n",
+        "    return  round(df.survived.sum() / df.values.sum(),2)\n",
+        "\n",
+        "l02q02(df)"
+      ],
+      "id": "07139fb3",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {#exr-cpb-3}\n",
+        "[Titanic data]{.column-margin} What is the probability that a (randomly selected) person survived, given that they were in 1st class? Round your answer to two decimal places.\n",
+        ":::\n",
+        "\n",
+        "::: {.solution  .column-screen-inset-right .callout-tip collapse=\"true\"}\n",
+        "#### Solution:"
+      ],
+      "id": "7b1aaca8"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def l02q03(df):\n",
+        "    return round(\n",
+        "        df.loc[1,'survived'].sum() /\n",
+        "        df.loc[1,].sum(),\n",
+        "        2)\n",
+        "\n",
+        "l02q03(df)"
+      ],
+      "id": "108f9cbb",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {#exr-cpb-4}\n",
+        "[Titanic data]{.column-margin} True/False: The events concerning class and survival are statistically independent.\n",
+        ":::\n",
+        "\n",
+        "::: {.solution  .column-screen-inset-right .callout-tip collapse=\"true\"}\n",
+        "#### Solution:\n",
+        "\n",
+        "False\n",
+        ":::\n",
+        "\n",
+        "\\index{dataset!marbles}\n",
+        "[Marbles data]{.column-margin} You have three bags, labeled A, B, and C. Bag A contains two red marbles and three blue marbles. Bag B contains five red marbles and one blue marble. Bag C contains three red marbles only.\n",
+        "again I put the data for this into a CSV file and loaded it as follows"
+      ],
+      "id": "876f7643"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "mdf=pd.read_csv(\"data/marbles.csv\",index_col='bag')\n",
+        "print(mdf) "
+      ],
+      "id": "19a08ab4",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {#exr-cpb-5}\n",
+        "[Marbles data]{.column-margin} If you select from bag B, what is the probability that you will draw a red marble?\n",
+        ":::\n",
+        "\n",
+        "::: {.solution  .column-screen-inset-right .callout-tip collapse=\"true\"}\n",
+        "#### Solution:"
+      ],
+      "id": "d3ba0caa"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def l02q05(df):\n",
+        "    p = {}\n",
+        "    p['red n b'] = df.loc['b','red'].sum() / df.loc['b',].sum()\n",
+        "    \n",
+        "    print(f\"pr['red n b'] = {df.loc['b','red'].sum()} / {df.loc['b',].sum()} = {p['red n b']}\")        \n",
+        "\n",
+        "l02q05(mdf)"
+      ],
+      "id": "c1984a92",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {#exr-cpb-6}\n",
+        "[Marbles data]{.column-margin} If you randomly select one of the three bags with equal probability, so that $\\mathbb{P}r(A)=\\mathbb{P}r(B)=\\mathbb{P}r(C)=1/3$, and then randomly draw a marble from that bag, what is the probability that the marble will be blue? Round your answer to two decimal places.\n",
+        ":::\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "#### Hint\n",
+        "\n",
+        "This is the marginal probability $\\mathbb{P}r(blue)$. You can obtain this using the `law of total` probability (which appears in the denominator of Bayes' theorem). It is\n",
+        "\n",
+        "$$\n",
+        "\\begin{aligned}\n",
+        "    \\mathbb{P}r(blue) &= \\mathbb{P}r(blue \\cap A) + \\mathbb{P}r(blue \\cap B) + \\mathbb{P}r(blue \\cap C) \n",
+        "    \\\\      &= \\mathbb{P}r(blue \\mid A) \\cdot \\mathbb{P}r(A)+\\mathbb{P}r(blue \\mid B)\\cdot \\mathbb{P}r(B) + \\mathbb{P}r(blue \\mid C) \\cdot \\mathbb{P}r(C)\n",
+        "    \\end{aligned}\n",
+        "$$\n",
+        ":::\n",
+        "\n",
+        "::: {.solution  .column-screen-inset-right .callout-tip collapse=\"true\"}\n",
+        "#### Solution:"
+      ],
+      "id": "31203f1c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def l02q06(df):\n",
+        "    p = {}\n",
+        "    for bag in ['a','b','c']:\n",
+        "        p[f'blue|{bag}'] = df.loc[bag,'blue'] / df.loc[bag,].sum() \n",
+        "        p[bag] = 1/3\n",
+        "        p[f'blue n {bag}'] =  p[f'blue|{bag}'] * p[bag]\n",
+        "    return round(p['blue n a'] +  p['blue n b'] +  p['blue n c'],2)  \n",
+        "\n",
+        "print(f'pr(blue)={l02q06(mdf)}')"
+      ],
+      "id": "01fb6f33",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {#exr-cpb-7}\n",
+        "[Marbles data]{.column-margin} Suppose a bag is randomly selected (again, with equal probability), but you do not know which it is. You randomly draw a marble and observe that it is blue. What is the probability that the bag you selected this marble from is A? That is, find $\\mathbb{P}r(A\\mid \\text{blue})$.\n",
+        ":::\n",
+        "\n",
+        "::: {.solution  .column-screen-inset-right .callout-tip collapse=\"true\"}\n",
+        "#### Solution:"
+      ],
+      "id": "62c1504a"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def l02q07(df):\n",
+        "    p = {}\n",
+        "    for bag in ['a','b','c']:\n",
+        "        p[f'blue|{bag}'] = df.loc[bag,'blue'] / df.loc[bag,].sum() \n",
+        "        p[bag] = 1/3\n",
+        "        p[f'blue n {bag}'] =  p[f'blue|{bag}'] * p[bag]   \n",
+        "    p['blue']= p['blue n a'] +  p['blue n b'] +  p['blue n c'] \n",
+        "    p['a|blue']=p['blue|a']*p['a']/p['blue']\n",
+        "    return p \n",
+        "\n",
+        "p=l02q07(mdf)\n",
+        "print(f\"{p['a|blue']=:1.2f}\")"
+      ],
+      "id": "37201a24",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {#exr-cpb-8}\n",
+        "[Marbles data]{.column-margin} Suppose a bag is randomly selected (again, with equal probability), but you do not know which it is. You randomly draw a marble and observe that it is blue. What is the probability that the bag you selected is `C`? That is, find $\\mathbb{P}r(C\\mid \\text{blue})$.\n",
+        ":::\n",
+        "\n",
+        "::: {.solution  .column-screen-inset-right .callout-tip collapse=\"true\"}\n",
+        "#### Solution:"
+      ],
+      "id": "48299837"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def l02q08(df):\n",
+        "    p = {}\n",
+        "    for bag in ['a','b','c']:\n",
+        "        p[f'blue|{bag}'] = df.loc[bag,'blue'] / df.loc[bag,].sum() \n",
+        "        p[bag] = 1/3\n",
+        "        p[f'blue n {bag}'] =  p[f'blue|{bag}'] * p[bag] \n",
+        "    p['blue']= p['blue n a'] +  p['blue n b'] +  p['blue n c'] \n",
+        "    p['z|blue']=p['blue|a']*p['a']/p['blue']\n",
+        "\n",
+        "    p['c|blue']=p['blue|c']*p['c']/p['blue']\n",
+        "\n",
+        "    return p \n",
+        "\n",
+        "p=l02q08(mdf)\n",
+        "print(f\"{p['c|blue']=:1.2f}\")"
+      ],
+      "id": "6064fb2b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {#exr-cpb-9}\n",
+        "[Marbles data]{.column-margin} Suppose a bag is randomly selected (again, with equal probability), but you do not know which it is. You randomly draw a marble and observe that it is red. What is the probability that the bag you selected is C? That is, find $\\mathbb{P}r(C\\mid \\text{red})$.\n",
+        ":::\n",
+        "\n",
+        "::: {.solution  .column-screen-inset-right .callout-tip collapse=\"true\"}\n",
+        "#### Solution:"
+      ],
+      "id": "56c89573"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def l02q09(df):\n",
+        "    p = {}\n",
+        "    for bag in ['a','b','c']:\n",
+        "        p[f'blue|{bag}'] = df.loc[bag,'blue'] / df.loc[bag,].sum() \n",
+        "        p[f'red|{bag}'] = df.loc[bag,'red'] / df.loc[bag,].sum() \n",
+        "\n",
+        "        p[bag] = 1/3\n",
+        "        p[f'blue n {bag}'] =  p[f'blue|{bag}'] * p[bag]\n",
+        "        p[f'red n {bag}'] =  p[f'red|{bag}'] * p[bag]\n",
+        "\n",
+        "    #print(f'{p}')\n",
+        "    \n",
+        "    p['blue'] = p['blue n a'] +  p['blue n b'] + p['blue n c'] \n",
+        "    p['red' ] = p['red n a'] +  p['red n b'] + p['red n c'] \n",
+        "    p['z|blue'] = p['blue|a'] * p['a'] / p['blue']\n",
+        "    p['c|blue'] = p['blue|c'] * p['c'] / p['blue']\n",
+        "    p['c|red' ] = p['red|c']  * p['c'] / p['red']\n",
+        "\n",
+        "    return p \n",
+        "\n",
+        "p=l02q09(mdf)\n",
+        "print(f\"{p['c|red']=:1.2f}\")"
+      ],
+      "id": "6a422aad",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        ":::::"
+      ],
+      "id": "8f473f10"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "/home/oren/.local/share/jupyter/kernels/python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
