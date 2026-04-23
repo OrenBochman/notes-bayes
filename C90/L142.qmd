@@ -1,0 +1,206 @@
+---
+title: "1.4.2 Preparing a Model for Use with the Linear Kalman Filter"
+description: "In this lesson, we will learn a neat trick to compute the discrete-time noise covariance from the continuous-time noise covariance and the plant dynamics."
+date: "2025-04-22"
+number-sections: true
+---
+
+## The Example We Study This Week
+
+The system we will use as an example of a Kalman Filter (KF) implementation is the **spring–mass–damper system** introduced earlier.
+
+The continuous-time state-space model is:
+
+$$
+\dot{x}(t) =
+\underbrace{
+\begin{bmatrix}
+0 & 1 \\
+-\frac{k}{m} & -\frac{b}{m}
+\end{bmatrix}}_{A}
+x(t)
++
+\underbrace{
+\begin{bmatrix}
+0 \\
+\frac{1}{m}
+\end{bmatrix}}_{B}
+u(t)
++
+\underbrace{
+\begin{bmatrix}
+0 \\
+\frac{1}{m}
+\end{bmatrix}}_{B_w}
+w(t)
+$$
+
+$$
+z(t) =
+\underbrace{
+\begin{bmatrix}
+1 & 0
+\end{bmatrix}}_{C}
+x(t)
++
+\underbrace{0}_{D} u(t)
++ v(t)
+$$
+
+To complete this model:
+
+- Define parameters $b$, $k$, and $m$
+- Specify noise processes $w(t)$ and $v(t)$
+- Choose a sampling period $\Delta t$ and convert to discrete-time
+
+---
+
+## Putting in Numbers
+
+For this example:
+
+- $m = 50$
+- $b = 2$
+- $k = 4$
+
+Substituting:
+
+$$
+\dot{x}(t) =
+\begin{bmatrix}
+0 & 1 \\
+-0.08 & -0.04
+\end{bmatrix}
+x(t)
++
+\begin{bmatrix}
+0 \\
+0.02
+\end{bmatrix}
+u(t)
++
+\begin{bmatrix}
+0 \\
+0.02
+\end{bmatrix}
+w(t)
+$$
+
+$$
+z(t) =
+\begin{bmatrix}
+1 & 0
+\end{bmatrix}
+x(t) + v(t)
+$$
+
+Noise assumptions:
+
+- $w(t) \sim \mathcal{N}(0, S_w)$, $S_w = 0.01$
+- $v(t) \sim \mathcal{N}(0, S_v)$, $S_v = 0.00001$
+
+Sampling period:
+
+$$
+\Delta t = 0.1 \text{ s}
+$$
+
+
+## Converting to Discrete-Time
+
+Using the matrix exponential trick:
+
+$$
+Z =
+\begin{bmatrix}
+-A & B_w S_w B_w^T \\
+0 & A^T
+\end{bmatrix}
+$$
+
+$$
+C = e^{Z \Delta t} =
+\begin{bmatrix}
+c_{11} & c_{12} \\
+0 & c_{22}
+\end{bmatrix}
+$$
+
+Then:
+
+- $A_d = c_{22}^T$
+- $B_d = A^{-1}(A_d - I)B$
+- $\Sigma_w = c_{22}^T c_{12}$
+- $\Sigma_v = S_v / \Delta t$
+
+Discrete-time model:
+
+$$
+x_{k+1} =
+\begin{bmatrix}
+0.9996 & 0.09979 \\
+-0.007983 & 0.9956
+\end{bmatrix}
+x_k
++
+\begin{bmatrix}
+9.986 \times 10^{-5} \\
+0.001996
+\end{bmatrix}
+u_k
++ w_k
+$$
+
+$$
+z_k =
+\begin{bmatrix}
+1 & 0
+\end{bmatrix}
+x_k + v_k
+$$
+
+Covariances:
+
+$$
+\Sigma_w =
+\begin{bmatrix}
+0.0013 & 0.0199 \\
+0.0199 & 0.3983
+\end{bmatrix}
+\times 10^{-6}
+$$
+
+$$
+\Sigma_v = 0.0001
+$$
+
+---
+
+## Simulating the Model in Octave: Setup
+
+```octave
+m = 50; b = 2; k = 4; % Specify physical constants
+
+A = [0 1; -k/m -b/m]; % Continuous-time model
+B = [0; 1/m];
+C = [1 0]; D = 0;
+
+dT = 0.1; % Sampling period
+
+Ad = expm(A*dT);
+Bd = inv(A)*(Ad - eye(2))*B;
+Cd = C; Dd = D;
+
+Sw = 0.01; Sv = 1e-5; % Noise parameters
+Bw = B;
+
+Z = [-A Bw*Sw*Bw';
+     zeros(2) A'];
+
+Cexp = expm(Z*dT);
+c12 = Cexp(1:2, 3:4);
+c22 = Cexp(3:4, 3:4);
+
+SigmaW = c22' * c12; % Process noise covariance
+SigmaV = Sv / dT;    % Measurement noise covariance
+```

@@ -9,6 +9,10 @@ keywords:
   - Distributions
   - Bernoulli Distribution
   - Binomial Distribution
+format: 
+  html:
+    mermaid:
+      theme: dark
 ---
 
 ## Distributions {#sec-distributions}
@@ -22,8 +26,6 @@ keywords:
 ## The Bernoulli & Binomial Distribution {#sec-the-bernoulli--binomial-distribution}
 
 ![Bernoulli and Binomial Distributions](/images/c1l03-ss-01-bernoulli-and-binomial-distributions.png){#fig-slide-l03-s01 .column-margin width="53mm" group="slides"}
-
-
 
 
 These two distributions are built on a trial of a coin toss (possibly biased).
@@ -56,7 +58,7 @@ Notation:
 This is a probability mass function since it is discrete. But we call it a Probability Density Function (PDF) in the measure-theoretic sense.
 
 $$
-f(X=x\mid p) = p^x(1-p)^x \mathbb{I}_{[0,1]}(x)
+f(X=x\mid p) = p^x(1-p)^{1-x} \mathbb{I}_{[0,1]}(x)
 $$ {#eq-l3-bernoulli-pmf}
 
 $$
@@ -70,7 +72,6 @@ $$ {#eq-l3-bernoulli-variance}
 ```{python}
 #| label: "bernoulli-distribution"
 #| fig-cap: "Bernoulli distribution"
-
 import numpy as np
 from scipy.stats import bernoulli
 import matplotlib.pyplot as plt
@@ -97,8 +98,6 @@ r
 ```
 
 ![Jacob Bernoulli](/images/bio-bernoulli.jpg){#fig-bio-bernoulli .column-margin width="53mm" group="slides"}
-
-
 
 
 ::: {.callout-tip}
@@ -128,41 +127,47 @@ The Binomial distribution models `counts` of successes in independent Bernoulli 
 -   The probability of success/failure is the same in each trial
 :::
 
-```{tikz binomial-reparams, engine.opts=font_opts}
-#| echo: false
-#| fig-cap: "Binomial reparams mindmap"
-#| fig-align: center
-#| fig-ext: png
-#| out-width: 100%
-\usetikzlibrary {mindmap,backgrounds,calc}
-\begin{tikzpicture}[
-  mindmap,
-  concept color=red!30, 
-     every node/.style = {concept}, 
-    grow cyclic,
-    level 1/.append style = {
-        level distance = 4.5cm,
-        sibling angle = 45
-    },
-    level 2/.append style = {
-        level distance = 3cm,
-        sibling angle = 45
-    },
-    every annotation/.append style = {
-        fill = yellow!20,
-        text width = 2cm
-    }
-      ]
-      
-\node (Reparams)[concept color = blue!30]{Binomial} 
-    child{node (Binomial1)[concept] {Binomial(n,p)}}
-    child{node (Binomial2)[concept] {Binomial(n,$\alpha$)}};
-    
-\node[annotation] at ($(Binomial2.south) + (0,0.25)$) { $\alpha = \log({p/1-p})$};
-\node[annotation] at ($(Binomial2.north) - (0,0.25)$) { $Logit$};
+```{mermaid}
+%%| label: fig-binomial-mindmap
+%%| column: body-outset-right
+%%| fig-width: 8
+%%| fig-cap: |
+%%|   Binomial distribution mindmap
+---
+config:
+  layout: tidy-tree
+---
+mindmap
+  root((Binomial 
+  Distribution))
+    Parametrizations
+      Standard["$$p \in [0, 1]$$"]
+        Mean_p["$$\mathbb{E}[X] = np$$"]
+        Var_p["$$\text{Var}(X) = np(1-p)$$"]
+      Natural_Alpha["$$\alpha = \ln\left(\frac{p}{1-p}\right)$$"]
+        Space["$$\alpha \in \mathbb{R}$$"]
+        Logistic["$$p = \frac{1}{1 + e^{-\alpha}}$$"]
+    (Information 
+     Geometry)
+      Fisher_Info["$$\mathcal{I}(p) = \frac{n}{p(1-p)}$$"]
+      KL_Divergence["$$D_{KL}(P || Q)$$"]
+      Entropy["$$H(X) \approx \frac{1}{2}\log(2\pi e npq)$$"]
+    (Relationships)
+      Discrete_Limits
+        Bernoulli["$$\mathcal{Bin}(1, p) \equiv \mathcal{Bern}(p)$$"]
+        Poisson["$$\lim_{n \to \infty, np=\mu} \mathcal{Bin} \to \mathcal{Pois}(\mu)$$"]
+      Continuous_Limits
+        Normal["$$\lim_{n \to \infty} \mathcal{Bin} \approx \mathcal{N}(np, npq)$$"]
+        BetaBinomial["$$p \sim \text{Beta}(a, b)$$"]
+      Sampling_Limits
+        Hypergeo["$$\lim_{n_3 \to \infty} \text{Hyper} \to \mathcal{Bin}$$"]
+        Polya["$$\lim_{\beta \to 0} \text{Polya} \to \mathcal{Bin}$$"]
+    Assumptions
+      n_Fixed["n Fixed trials"]
+      Indep["Independent trials"]
+      Binary["Binary outcomes"]
+```    
 
-\end{tikzpicture}
-```
 
 $$
 X \sim \mathrm{Bin}(n,p)
@@ -204,8 +209,6 @@ $$ {#eq-l3-binomial-information}
 #### Relationships
 
 ![binomial distribution relations](/images/dbinomial.png){#fig-dbinomial .column-margin width="53mm" group="slides"}
-
-
 
 
 The Binomial Distribution is related to:
@@ -550,14 +553,10 @@ $$ {#eq-l3-poisson-fisher-information}
 ![Relations of the Poisson distribution](/images/dpoisson.png){#fig-dPoisson .column-margin width="53mm" group="slides"}
 
 
-
-
 \index{process!Poisson}
 A *Poisson process* is a process wherein events occur on average at rate $\mathbb{E}$, events occur one at a time, and events occur independently of each other.
 
 ![Siméon Denis Poisson](/images/bio-SimeonDenisPoisson.jpg){#fig-bio-Poisson .column-margin width="53mm" group="slides"}
-
-
 
 
 ::: {.callout-tip}
@@ -589,4 +588,3 @@ $$ {#eq-l3-Hypergeometric-expectation}
 $$
 \mathbb{V}ar[X]=N\,\frac{ab}{(a + b)^2}\,\frac{a+b-N}{a+b-1} \qquad \text{(variance)}
 $$ {#eq-l3-Hypergeometric-variance}
-

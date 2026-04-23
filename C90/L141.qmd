@@ -1,0 +1,154 @@
+---
+title: "1.4.1: What are the Linear Kalman-Filter Steps?"
+description: "In this lesson, we will learn the steps of the linear Kalman filter, which we will derive in the next course. We will also see how to implement these steps in Octave code."
+date: "2025-04-20"
+---
+
+## The purpose behind “week 4” in each course
+
+- Welcome to the final week of the Kalman-Filter Boot Camp!  
+- It has been an intense experience, intended to strengthen your engineering skills to enable your success in the remaining specialization courses.  
+- I hope you have already found this tough process to be rewarding; I look forward to being able to pronounce “Victory!” with and for you at the end of this week.  
+- But first, my desire is that you find this week to be a special treat before continuing on to the second course, *Linear Kalman Filter Deep Dive*.  
+
+- The final week of each course focuses on an application of Kalman filters:
+  - This course presents a state-estimation example  
+  - The second course studies a target-tracking example  
+  - The third course investigates a parameter-estimation example  
+  - The final course looks at a navigation example  
+
+---
+
+## Why state estimation?
+
+- As you have learned, Kalman filters are *state estimators*.  
+- They combine a mathematical model of some system with input and output measurements to calculate the system’s most likely operating condition (state) at this moment, filtering random measurement noise.  
+
+- Sometimes, the estimate of the state is the final goal (e.g., target tracking); other times, finding a state estimate is an intermediate step in a more complex process.  
+  - For example, knowing a system’s state is necessary to solve many control-theory problems such as stabilizing a system using a state-feedback controller.  
+
+- In most practical cases, the physical state of the system cannot be determined by direct observation. Instead, indirect effects of the internal state are observed by way of the system outputs.  
+
+- The state-estimation example is the most direct application of KF theory, requiring the fewest additional assumptions and modifications to theory to implement.  
+
+---
+
+## Wait, we can implement a KF already?
+
+- By now, you have learned the required background math concepts that will be needed to derive the KF steps.  
+
+- But, we’ll save those details until the next course, *Linear Kalman Filter Deep Dive*.  
+  - In practice, it is critical to understand the assumptions made when deriving the KF and the steps of the derivation, since re-derivation is often needed when assumptions are violated.  
+  - However, when assumptions are met exactly, we simply need to know the KF steps to implement the filter and obtain state estimates.  
+
+- This week introduces the steps that will be derived later and shows how to implement a linear Kalman filter in Octave.  
+
+- You will execute this KF on a state-estimation problem to learn how to interpret its output and build intuition.  
+
+---
+
+## The KF prediction steps
+
+### Prediction
+
+$$
+\hat{x}_k^- = A_{k-1}\hat{x}_{k-1}^+ + B_{k-1}u_{k-1}
+$$
+
+$$
+\Sigma_{x,k}^- = A_{k-1}\Sigma_{x,k-1}^+ A_{k-1}^T + \Sigma_w
+$$
+
+$$
+\hat{z}_k = C_k \hat{x}_k^- + D_k u_k
+$$
+
+- **Step 1a:** State prediction (time update)  
+- **Step 1b:** Prediction-error covariance update  
+- **Step 1c:** Predict system output  
+
+- The KF has two principal steps (**prediction** and **correction**), each having three substeps.  
+
+- Definitions:
+  - $\hat{x}_k^-$: state prediction (best estimate given information up to time $k-1$)  
+  - $\Sigma_{x,k}^-$: covariance (uncertainty) of $\hat{x}_k^-$  
+  - $\hat{x}_k^+$: state estimate (best estimate given information up to time $k$)  
+  - $\Sigma_{x,k}^+$: covariance of $\hat{x}_k^+$  
+
+- The prediction steps compute:
+  - predicted state  
+  - predicted covariance  
+  - predicted output  
+
+---
+
+## The KF correction steps
+
+### Correction
+
+$$
+L_k = \Sigma_{x,k}^- C_k^T \left(C_k \Sigma_{x,k}^- C_k^T + \Sigma_v \right)^{-1}
+$$
+
+$$
+\hat{x}_k^+ = \hat{x}_k^- + L_k (z_k - \hat{z}_k)
+$$
+
+$$
+\Sigma_{x,k}^+ = (I - L_k C_k)\Sigma_{x,k}^-
+$$
+
+- **Step 2a:** Estimator gain matrix  
+- **Step 2b:** State estimate (measurement update)  
+- **Step 2c:** Estimation-error covariance update  
+
+- The optimality of the Kalman filter arises from how it computes the **time-varying gain matrix** $L_k$.  
+
+- The gain matrix blends:
+  - prediction  
+  - new measurement information  
+
+- The correction steps compute:
+  - estimator gain  
+  - updated state estimate  
+  - updated covariance  
+
+- The covariance $\Sigma_{x,k}^+$ is used to compute confidence bounds on $\hat{x}_k^+$.  
+
+---
+
+## The KF process
+
+- After initializing $\hat{x}_0^+$ and $\Sigma_{x,0}^+$ (somehow), we proceed recursively:
+
+  - Step 1 (prediction) at $k=1$  
+  - Step 2 (correction) at $k=1$  
+  - Repeat for $k=2,3,\dots$
+
+- The output of the KF at each timestep is:
+  - $\hat{x}_k^+$  
+  - $\Sigma_{x,k}^+$  
+
+- Intuition is built through application:
+  1. Define the system  
+  2. Implement the KF (e.g., in Octave)  
+  3. Explore example scenarios  
+
+---
+
+## Summary
+
+- The final week of each course studies a specific application of Kalman filters.  
+
+- This week focuses on **state estimation for a linear system**, often used within control-system design.  
+
+- Even without full derivation details, it is valuable to begin experimenting with KF steps.  
+
+- The Kalman filter consists of:
+  - 3 prediction substeps  
+  - 3 correction substeps  
+  - → **6 steps total**  
+
+- After initialization, these steps are executed **recursively at every measurement interval**.  
+
+- Next: define the example problem and implement the KF in code.  
