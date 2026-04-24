@@ -6,7 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-04-22">
+<meta name="dcterms.date" content="2026-04-22">
+<meta name="keywords" content="Kalman filter, state estimation, open-loop prediction, initialization">
 <meta name="description" content="In this lesson, we will explore some additional examples of KF state estimation, comparing with results from an open-loop state predictor. We will also see how the KF performs when it is initialized with a poor guess of the initial state.">
 
 <title>143&nbsp; 1.4.4: More KF examples for state estimation of a linear system – Bayesian Statistics</title>
@@ -89,6 +90,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/bootstrap/bootstrap-7b425c53eb2e173a017b8597ba5b501b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
+<script src="../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -413,13 +417,20 @@ window.Quarto = {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">April 22, 2025</p>
+        <p class="date">April 22, 2026</p>
       </div>
     </div>
     
       
     </div>
     
+
+  <div>
+    <div class="keywords">
+      <div class="block-title">Keywords</div>
+      <p>Kalman filter, state estimation, open-loop prediction, initialization</p>
+    </div>
+  </div>
   
   </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
@@ -1601,20 +1612,20 @@ window.Quarto = {
 <li>The first example implements an open-loop state estimator, for comparison with KF.</li>
 <li>To perform open-loop (OL) estimation, the main program loop is modified as follows:</li>
 </ul>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode matlab code-with-copy"><code class="sourceCode matlab"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">for</span> <span class="va">k</span> <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="va">length</span>(<span class="va">t</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode octave code-with-copy"><code class="sourceCode octave"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fu">length</span>(t)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">% KF Step 1a: State estimate time update</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">xhat</span> <span class="op">=</span> <span class="va">Ad</span><span class="op">*</span><span class="va">xhat</span> <span class="op">+</span> <span class="va">Bd</span><span class="op">*</span><span class="va">u</span>(<span class="va">k</span><span class="op">-</span><span class="fl">1</span>)<span class="op">;</span> <span class="co">% use prior value of "u"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    xhat <span class="op">=</span> Ad<span class="op">*</span>xhat <span class="op">+</span> Bd<span class="op">*</span>u(k<span class="op">-</span><span class="fl">1</span>)<span class="op">;</span> <span class="co">% use prior value of "u"</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">% KF Step 1b: Error covariance time update</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="va">SigmaX</span> <span class="op">=</span> <span class="va">Ad</span><span class="op">*</span><span class="va">SigmaX</span><span class="op">*</span><span class="va">Ad</span><span class="op">'</span> <span class="op">+</span> <span class="va">SigmaW</span><span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    SigmaX <span class="op">=</span> Ad<span class="op">*</span>SigmaX<span class="op">*</span>Ad<span class="op">'</span> <span class="op">+</span> SigmaW<span class="op">;</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">% For open-loop state estimation, there is no measurement feedback.</span></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">% So, delete steps 1c, 2a, 2b, and 2c.</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">% [Store information for evaluation/plotting purposes]</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="va">xhatstore</span>(<span class="op">:,</span><span class="va">k</span>) <span class="op">=</span> <span class="va">xhat</span><span class="op">;</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="va">boundstore</span>(<span class="op">:,</span><span class="va">k</span>) <span class="op">=</span> <span class="fl">3</span><span class="op">*</span><span class="va">sqrt</span>(<span class="va">diag</span>(<span class="va">SigmaX</span>))<span class="op">;</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    xhatstore(<span class="op">:,</span>k) <span class="op">=</span> xhat<span class="op">;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    boundstore(<span class="op">:,</span>k) <span class="op">=</span> <span class="fl">3</span><span class="op">*</span><span class="fu">sqrt</span>(<span class="fu">diag</span>(SigmaX))<span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="sample-open-loop-results-states-and-estimates" class="level2" data-number="143.2">
 <h2 data-number="143.2" class="anchored" data-anchor-id="sample-open-loop-results-states-and-estimates"><span class="header-section-number">143.2</span> Sample open-loop results: States and estimates</h2>
@@ -1624,6 +1635,7 @@ window.Quarto = {
 <li>We also notice that the position estimate (especially) of the OL estimator is far less accurate than it was for KF.</li>
 <li>The unknown influence of process noise <span class="math inline">w_k</span> has caused the OL estimator to be less accurate and less confident than the KF.</li>
 </ul>
+<p><a href="images/L.1.4.4-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="images/L.1.4.4-1.png" class="img-fluid"></a></p>
 </section>
 <section id="sample-open-loop-results-estimation-errors" class="level2" data-number="143.3">
 <h2 data-number="143.3" class="anchored" data-anchor-id="sample-open-loop-results-estimation-errors"><span class="header-section-number">143.3</span> Sample open-loop results: Estimation errors</h2>
@@ -1638,6 +1650,7 @@ window.Quarto = {
 </ul></li>
 <li>OL predictions become even worse if we don’t know <span class="math inline">x_0</span> exactly.</li>
 </ul>
+<p><a href="images/L.1.4.4-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="images/L.1.4.4-2.png" class="img-fluid"></a></p>
 </section>
 <section id="what-if-the-kf-is-poorly-initialized" class="level2" data-number="143.4">
 <h2 data-number="143.4" class="anchored" data-anchor-id="what-if-the-kf-is-poorly-initialized"><span class="header-section-number">143.4</span> What if the KF is poorly initialized?</h2>
@@ -1650,16 +1663,16 @@ window.Quarto = {
 <li>Then, we must enter a different <span class="math inline">\hat{x}_0^+</span> and <span class="math inline">\Sigma_{x,0}^+</span> in the code.</li>
 </ul></li>
 </ul>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode matlab code-with-copy"><code class="sourceCode matlab"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">% System's true initial state is x = [0;0]. But, what if we don't know that?</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="va">xhat</span> <span class="op">=</span> [<span class="fl">0.25</span><span class="op">;</span> <span class="op">-</span><span class="fl">0.05</span>]<span class="op">;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="va">xhatstore</span>(<span class="op">:,</span><span class="fl">1</span>) <span class="op">=</span> <span class="va">xhat</span><span class="op">;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode octave code-with-copy"><code class="sourceCode octave"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">% System's true initial state is x = [0;0]. But, what if we don't know that?</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>xhat <span class="op">=</span> [<span class="fl">0.25</span><span class="op">;</span> <span class="op">-</span><span class="fl">0.05</span>]<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>xhatstore(<span class="op">:,</span><span class="fl">1</span>) <span class="op">=</span> xhat<span class="op">;</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">% Assume that xhat is a 2-sigma sample from the true distribution of x(0).</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="va">SigmaX</span> <span class="op">=</span> <span class="va">diag</span>(<span class="va">xhat</span><span class="op">/</span><span class="fl">2</span>)<span class="op">.^</span><span class="fl">2</span><span class="op">;</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="va">boundstore</span>(<span class="op">:,</span><span class="fl">1</span>) <span class="op">=</span> <span class="fl">3</span><span class="op">*</span><span class="va">sqrt</span>(<span class="va">diag</span>(<span class="va">SigmaX</span>))<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>SigmaX <span class="op">=</span> <span class="fu">diag</span>(xhat<span class="op">/</span><span class="fl">2</span>)<span class="op">.^</span><span class="fl">2</span><span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>boundstore(<span class="op">:,</span><span class="fl">1</span>) <span class="op">=</span> <span class="fl">3</span><span class="op">*</span><span class="fu">sqrt</span>(<span class="fu">diag</span>(SigmaX))<span class="op">;</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">% Continue with standard KF code for the main simulation loop...</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">for</span> <span class="va">k</span> <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="va">length</span>(<span class="va">t</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fu">length</span>(t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="kf-results-for-bad-initialization" class="level2" data-number="143.5">
 <h2 data-number="143.5" class="anchored" data-anchor-id="kf-results-for-bad-initialization"><span class="header-section-number">143.5</span> KF results for “bad” initialization</h2>
@@ -1667,6 +1680,7 @@ window.Quarto = {
 <li>Plots show KF output when the state is initialized poorly.</li>
 <li>After a few seconds, the results are nearly the same as when the KF was initialized with exact knowledge of <span class="math inline">x_0</span>. Feedback works!</li>
 </ul>
+<p><a href="images/L.1.4.4-3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="images/L.1.4.4-3.png" class="img-fluid"></a></p>
 </section>
 <section id="kf-results-for-bad-initialization-zoom" class="level2" data-number="143.6">
 <h2 data-number="143.6" class="anchored" data-anchor-id="kf-results-for-bad-initialization-zoom"><span class="header-section-number">143.6</span> KF results for “bad” initialization (zoom)</h2>
@@ -1674,6 +1688,7 @@ window.Quarto = {
 <li>Zooming in on the first portions of the KF output, we see how effective the feedback mechanism of the KF actually is.</li>
 <li>Position uncertainty plummets in a single timestep (we measure this state directly, albeit with noise <span class="math inline">v_k</span>); velocity uncertainty converges in only a few seconds also.</li>
 </ul>
+<p><a href="images/L.1.4.4-4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="images/L.1.4.4-4.png" class="img-fluid"></a></p>
 </section>
 <section id="summary" class="level2" data-number="143.7">
 <h2 data-number="143.7" class="anchored" data-anchor-id="summary"><span class="header-section-number">143.7</span> Summary</h2>
@@ -2242,93 +2257,103 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "1.4.4: More KF examples for state estimation of a linear system"</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "In this lesson, we will explore some additional examples of KF state estimation, comparing with results from an open-loop state predictor. We will also see how the KF performs when it is initialized with a poor guess of the initial state."</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2025-04-22"</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## Open-loop estimation</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In this lesson, we explore some additional examples, comparing with results from the KF in Lesson 1.4.3.</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The first example implements an open-loop state estimator, for comparison with KF.</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>To perform open-loop (OL) estimation, the main program loop is modified as follows:</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="in">```matlab</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="kw">for</span> <span class="va">k</span> <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="va">length</span>(<span class="va">t</span>)</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">% KF Step 1a: State estimate time update</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="va">xhat</span> <span class="op">=</span> <span class="va">Ad</span><span class="op">*</span><span class="va">xhat</span> <span class="op">+</span> <span class="va">Bd</span><span class="op">*</span><span class="va">u</span>(<span class="va">k</span><span class="op">-</span><span class="fl">1</span>)<span class="op">;</span> <span class="co">% use prior value of "u"</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">% KF Step 1b: Error covariance time update</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="va">SigmaX</span> <span class="op">=</span> <span class="va">Ad</span><span class="op">*</span><span class="va">SigmaX</span><span class="op">*</span><span class="va">Ad</span><span class="op">'</span> <span class="op">+</span> <span class="va">SigmaW</span><span class="op">;</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">% For open-loop state estimation, there is no measurement feedback.</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">% So, delete steps 1c, 2a, 2b, and 2c.</span></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">% [Store information for evaluation/plotting purposes]</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="va">xhatstore</span>(<span class="op">:,</span><span class="va">k</span>) <span class="op">=</span> <span class="va">xhat</span><span class="op">;</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="va">boundstore</span>(<span class="op">:,</span><span class="va">k</span>) <span class="op">=</span> <span class="fl">3</span><span class="op">*</span><span class="va">sqrt</span>(<span class="va">diag</span>(<span class="va">SigmaX</span>))<span class="op">;</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>```</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>## <span class="va">Sample</span> <span class="va">open</span><span class="op">-</span><span class="va">loop</span> <span class="va">results</span><span class="op">:</span> <span class="va">States</span> <span class="va">and</span> <span class="va">estimates</span></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Plot</span> <span class="va">shows</span> <span class="va">OL</span> <span class="va">output</span> <span class="kw">for</span> <span class="va">the</span> <span class="va">spring</span><span class="op">-</span><span class="va">mass</span><span class="op">-</span><span class="va">damper</span> <span class="va">example</span><span class="op">,</span> <span class="va">using</span> <span class="va">simulation</span> <span class="va">data</span> <span class="va">from</span> <span class="va">earlier</span> <span class="va">this</span> <span class="va">week</span>.</span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Comparing</span> <span class="va">with</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">result</span> <span class="kw">for</span> <span class="va">the</span> <span class="va">same</span> <span class="va">data</span> <span class="va">in</span> <span class="va">Lesson</span> <span class="fl">1.4.3</span><span class="op">,</span> <span class="va">we</span> <span class="va">immediately</span> <span class="va">notice</span> <span class="va">that</span> <span class="va">the</span> <span class="va">confidence</span> <span class="va">bounds</span> <span class="kw">for</span> <span class="va">OL</span> <span class="va">are</span> <span class="va">much</span> <span class="va">wider</span> <span class="va">than</span> <span class="va">they</span> <span class="va">were</span> <span class="kw">for</span> <span class="va">KF</span>.</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">We</span> <span class="va">also</span> <span class="va">notice</span> <span class="va">that</span> <span class="va">the</span> <span class="va">position</span> <span class="va">estimate</span> (<span class="va">especially</span>) <span class="va">of</span> <span class="va">the</span> <span class="va">OL</span> <span class="va">estimator</span> <span class="va">is</span> <span class="va">far</span> <span class="va">less</span> <span class="va">accurate</span> <span class="va">than</span> <span class="va">it</span> <span class="va">was</span> <span class="kw">for</span> <span class="va">KF</span>.</span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">The</span> <span class="va">unknown</span> <span class="va">influence</span> <span class="va">of</span> <span class="va">process</span> <span class="va">noise</span> $<span class="va">w_k</span>$ <span class="va">has</span> <span class="va">caused</span> <span class="va">the</span> <span class="va">OL</span> <span class="va">estimator</span> <span class="va">to</span> <span class="va">be</span> <span class="va">less</span> <span class="va">accurate</span> <span class="va">and</span> <span class="va">less</span> <span class="va">confident</span> <span class="va">than</span> <span class="va">the</span> <span class="va">KF</span>.</span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>## <span class="va">Sample</span> <span class="va">open</span><span class="op">-</span><span class="va">loop</span> <span class="va">results</span><span class="op">:</span> <span class="va">Estimation</span> <span class="va">errors</span></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Plot</span> <span class="va">shows</span> <span class="va">an</span> <span class="va">alternate</span> <span class="va">way</span> <span class="va">of</span> <span class="va">viewing</span> <span class="va">the</span> <span class="va">OL</span> <span class="va">output</span><span class="op">,</span> <span class="va">looking</span> <span class="va">directly</span> <span class="va">at</span> <span class="va">the</span> <span class="va">state</span><span class="op">-</span><span class="va">estimation</span> <span class="va">errors</span><span class="op">,</span> $<span class="va">x_k</span> <span class="op">-</span> <span class="op">\</span><span class="va">hat</span>{<span class="va">x</span>}_<span class="va">k</span><span class="op">^+</span>$.</span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Comparing</span> <span class="va">with</span> <span class="va">the</span> <span class="va">corresponding</span> <span class="va">results</span> <span class="va">from</span> <span class="va">Lesson</span> <span class="fl">1.4.3</span><span class="op">,</span> <span class="va">we</span> <span class="va">notice</span> <span class="va">far</span> <span class="va">more</span> <span class="va">structure</span> (<span class="va">correlation</span>) <span class="va">in</span> <span class="va">the</span> <span class="va">OL</span> <span class="va">prediction</span> <span class="va">errors</span> <span class="va">than</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">estimation</span> <span class="va">errors</span>.</span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">This</span> <span class="va">is</span> <span class="va">because</span> $<span class="va">w_k</span>$ <span class="va">causes</span> <span class="va">the</span> <span class="va">states</span> <span class="va">to</span> <span class="va">evolve</span> <span class="va">according</span> <span class="va">to</span> <span class="va">the</span> <span class="va">system</span><span class="op">'</span><span class="va">s</span> <span class="va">dynamics</span> <span class="va">in</span> <span class="va">a</span> <span class="va">way</span> <span class="va">that</span> <span class="va">cannot</span> <span class="va">be</span> <span class="va">predicted</span> <span class="va">OL</span>.</span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Hence</span><span class="op">,</span> <span class="va">the</span> <span class="va">confidence</span> <span class="va">bounds</span> <span class="va">are</span> <span class="va">also</span> <span class="va">much</span> <span class="va">wider</span> <span class="va">because</span> <span class="va">of</span> <span class="va">this</span> <span class="va">uncertainty</span><span class="op">:</span></span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="va">About</span> <span class="fl">0.1</span> <span class="va">versus</span> <span class="fl">0.01</span> <span class="kw">for</span> <span class="va">position</span><span class="op">,</span> <span class="va">and</span></span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="fl">0.02</span> <span class="va">versus</span> <span class="fl">0.01</span> <span class="kw">for</span> <span class="va">velocity</span>.</span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">OL</span> <span class="va">predictions</span> <span class="va">become</span> <span class="va">even</span> <span class="va">worse</span> <span class="kw">if</span> <span class="va">we</span> <span class="va">don</span><span class="op">'</span><span class="va">t</span> <span class="va">know</span> $<span class="va">x_0</span>$ <span class="va">exactly</span>.</span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>## <span class="va">What</span> <span class="kw">if</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">is</span> <span class="va">poorly</span> <span class="va">initialized</span>?</span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">How</span> <span class="va">well</span> <span class="va">does</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">perform</span> <span class="kw">if</span> <span class="va">we</span> <span class="va">don</span><span class="op">'</span><span class="va">t</span> <span class="va">know</span> $<span class="va">x_0</span>$ <span class="va">exactly</span>?</span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Lesson</span> <span class="fl">1.4.2</span> <span class="va">simulated</span> <span class="va">the</span> <span class="va">spring</span><span class="op">-</span><span class="va">mass</span><span class="op">-</span><span class="va">damper</span> <span class="va">system</span> <span class="va">with</span> <span class="va">a</span> <span class="va">true</span> <span class="va">initial</span> <span class="va">state</span> $<span class="va">x_0</span> <span class="op">=</span> <span class="fl">0</span>$.</span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Lesson</span> <span class="fl">1.4.3</span> <span class="va">initialized</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">with</span> $<span class="op">\</span><span class="va">hat</span>{<span class="va">x</span>}_<span class="fl">0</span><span class="op">^+</span> <span class="op">=</span> <span class="fl">0</span>$ <span class="va">and</span> $<span class="op">\</span><span class="va">Sigma_</span>{<span class="va">x</span><span class="op">,</span><span class="fl">0</span>}<span class="op">^+</span> <span class="op">=</span> <span class="fl">0</span>$<span class="op">,</span> <span class="va">indicating</span> <span class="va">perfect</span> <span class="va">knowledge</span> <span class="va">of</span> $<span class="va">x_0</span>$ (<span class="va">i</span>.<span class="va">e</span>.<span class="op">,</span> <span class="va">no</span> <span class="va">uncertainty</span>).</span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Suppose</span> <span class="va">that</span> <span class="va">we</span> <span class="va">don</span><span class="op">'</span><span class="va">t</span> <span class="va">know</span> $<span class="va">x_0</span>$ <span class="va">exactly</span><span class="op">,</span> <span class="va">which</span> <span class="va">is</span> <span class="va">the</span> <span class="va">typical</span> <span class="kw">case</span>.</span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="va">Then</span><span class="op">,</span> <span class="va">we</span> <span class="va">must</span> <span class="va">enter</span> <span class="va">a</span> <span class="va">different</span> $<span class="op">\</span><span class="va">hat</span>{<span class="va">x</span>}_<span class="fl">0</span><span class="op">^+</span>$ <span class="va">and</span> $<span class="op">\</span><span class="va">Sigma_</span>{<span class="va">x</span><span class="op">,</span><span class="fl">0</span>}<span class="op">^+</span>$ <span class="va">in</span> <span class="va">the</span> <span class="va">code</span>.</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>```<span class="va">matlab</span></span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="co">% System's true initial state is x = [0;0]. But, what if we don't know that?</span></span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="va">xhat</span> <span class="op">=</span> [<span class="fl">0.25</span><span class="op">;</span> <span class="op">-</span><span class="fl">0.05</span>]<span class="op">;</span></span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a><span class="va">xhatstore</span>(<span class="op">:,</span><span class="fl">1</span>) <span class="op">=</span> <span class="va">xhat</span><span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2026-04-22"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="an">keywords:</span><span class="co"> [Kalman filter, state estimation, open-loop prediction, initialization]</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">## Open-loop estimation</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In this lesson, we explore some additional examples, comparing with results from the KF in Lesson 1.4.3.</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The first example implements an open-loop state estimator, for comparison with KF.</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>To perform open-loop (OL) estimation, the main program loop is modified as follows:</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="in">```octave</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="in">for k = 2:length(t)</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="in">    % KF Step 1a: State estimate time update</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="in">    xhat = Ad*xhat + Bd*u(k-1); % use prior value of "u"</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="in">    % KF Step 1b: Error covariance time update</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="in">    SigmaX = Ad*SigmaX*Ad' + SigmaW;</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="in">    % For open-loop state estimation, there is no measurement feedback.</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="in">    % So, delete steps 1c, 2a, 2b, and 2c.</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="in">    % [Store information for evaluation/plotting purposes]</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="in">    xhatstore(:,k) = xhat;</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="in">    boundstore(:,k) = 3*sqrt(diag(SigmaX));</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="in">end</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sample open-loop results: States and estimates</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Plot shows OL output for the spring-mass-damper example, using simulation data from earlier this week.</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Comparing with the KF result for the same data in Lesson 1.4.3, we immediately notice that the confidence bounds for OL are much wider than they were for KF.</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We also notice that the position estimate (especially) of the OL estimator is far less accurate than it was for KF.</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The unknown influence of process noise $w_k$ has caused the OL estimator to be less accurate and less confident than the KF.</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/L.1.4.4-1.png)</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sample open-loop results: Estimation errors</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Plot shows an alternate way of viewing the OL output, looking directly at the state-estimation errors, $x_k - \hat{x}_k^+$.</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Comparing with the corresponding results from Lesson 1.4.3, we notice far more structure (correlation) in the OL prediction errors than the KF estimation errors.</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>This is because $w_k$ causes the states to evolve according to the system's dynamics in a way that cannot be predicted OL.</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Hence, the confidence bounds are also much wider because of this uncertainty:</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>About 0.1 versus 0.01 for position, and</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>0.02 versus 0.01 for velocity.</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>OL predictions become even worse if we don't know $x_0$ exactly.</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/L.1.4.4-2.png)</span></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a><span class="fu">## What if the KF is poorly initialized?</span></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>How well does the KF perform if we don't know $x_0$ exactly?</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Lesson 1.4.2 simulated the spring-mass-damper system with a true initial state $x_0 = 0$.</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Lesson 1.4.3 initialized the KF with $\hat{x}_0^+ = 0$ and $\Sigma_{x,0}^+ = 0$, indicating perfect knowledge of $x_0$ (i.e., no uncertainty).</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Suppose that we don't know $x_0$ exactly, which is the typical case.</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Then, we must enter a different $\hat{x}_0^+$ and $\Sigma_{x,0}^+$ in the code.</span>
 <span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a><span class="co">% Assume that xhat is a 2-sigma sample from the true distribution of x(0).</span></span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="va">SigmaX</span> <span class="op">=</span> <span class="va">diag</span>(<span class="va">xhat</span><span class="op">/</span><span class="fl">2</span>)<span class="op">.^</span><span class="fl">2</span><span class="op">;</span></span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a><span class="va">boundstore</span>(<span class="op">:,</span><span class="fl">1</span>) <span class="op">=</span> <span class="fl">3</span><span class="op">*</span><span class="va">sqrt</span>(<span class="va">diag</span>(<span class="va">SigmaX</span>))<span class="op">;</span></span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a><span class="co">% Continue with standard KF code for the main simulation loop...</span></span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a><span class="kw">for</span> <span class="va">k</span> <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="va">length</span>(<span class="va">t</span>)</span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>```</span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>## <span class="va">KF</span> <span class="va">results</span> <span class="kw">for</span> <span class="st">"bad"</span> <span class="va">initialization</span></span>
-<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Plots</span> <span class="va">show</span> <span class="va">KF</span> <span class="va">output</span> <span class="va">when</span> <span class="va">the</span> <span class="va">state</span> <span class="va">is</span> <span class="va">initialized</span> <span class="va">poorly</span>.</span>
-<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">After</span> <span class="va">a</span> <span class="va">few</span> <span class="va">seconds</span><span class="op">,</span> <span class="va">the</span> <span class="va">results</span> <span class="va">are</span> <span class="va">nearly</span> <span class="va">the</span> <span class="va">same</span> <span class="va">as</span> <span class="va">when</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">was</span> <span class="va">initialized</span> <span class="va">with</span> <span class="va">exact</span> <span class="va">knowledge</span> <span class="va">of</span> $<span class="va">x_0</span>$. <span class="va">Feedback</span> <span class="va">works</span><span class="bn">!</span></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a><span class="in">```octave</span></span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="in">% System's true initial state is x = [0;0]. But, what if we don't know that?</span></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a><span class="in">xhat = [0.25; -0.05];</span></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a><span class="in">xhatstore(:,1) = xhat;</span></span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a><span class="in">% Assume that xhat is a 2-sigma sample from the true distribution of x(0).</span></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a><span class="in">SigmaX = diag(xhat/2).^2;</span></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a><span class="in">boundstore(:,1) = 3*sqrt(diag(SigmaX));</span></span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a><span class="in">% Continue with standard KF code for the main simulation loop...</span></span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a><span class="in">for k = 2:length(t)</span></span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>## <span class="va">KF</span> <span class="va">results</span> <span class="kw">for</span> <span class="st">"bad"</span> <span class="va">initialization</span> (<span class="va">zoom</span>)</span>
-<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Zooming</span> <span class="va">in</span> <span class="va">on</span> <span class="va">the</span> <span class="va">first</span> <span class="va">portions</span> <span class="va">of</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">output</span><span class="op">,</span> <span class="va">we</span> <span class="va">see</span> <span class="va">how</span> <span class="va">effective</span> <span class="va">the</span> <span class="va">feedback</span> <span class="va">mechanism</span> <span class="va">of</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">actually</span> <span class="va">is</span>.</span>
-<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Position</span> <span class="va">uncertainty</span> <span class="va">plummets</span> <span class="va">in</span> <span class="va">a</span> <span class="va">single</span> <span class="va">timestep</span> (<span class="va">we</span> <span class="va">measure</span> <span class="va">this</span> <span class="va">state</span> <span class="va">directly</span><span class="op">,</span> <span class="va">albeit</span> <span class="va">with</span> <span class="va">noise</span> $<span class="va">v_k</span>$)<span class="op">;</span> <span class="va">velocity</span> <span class="va">uncertainty</span> <span class="va">converges</span> <span class="va">in</span> <span class="va">only</span> <span class="va">a</span> <span class="va">few</span> <span class="va">seconds</span> <span class="va">also</span>.</span>
-<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>## <span class="va">Summary</span></span>
-<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">In</span> <span class="va">this</span> <span class="va">lesson</span> <span class="va">we</span> <span class="va">implemented</span> <span class="va">different</span> <span class="va">scenarios</span> <span class="va">to</span> <span class="va">help</span> <span class="va">gain</span> <span class="va">intuition</span> <span class="va">into</span> <span class="va">how</span> <span class="va">well</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">works</span>.</span>
-<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="va">I</span> <span class="va">recommend</span> <span class="va">that</span> <span class="va">you</span> <span class="va">also</span> <span class="kw">try</span> <span class="va">different</span> <span class="va">things</span><span class="op">---</span><span class="va">this</span> <span class="va">is</span> <span class="va">a</span> <span class="va">great</span> <span class="va">way</span> <span class="va">to</span> <span class="va">learn</span><span class="bn">!</span></span>
-<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">Specifically</span><span class="op">,</span> <span class="va">we</span> <span class="va">first</span> <span class="va">compared</span> <span class="va">KF</span> <span class="va">state</span> <span class="va">estimation</span> <span class="va">to</span> <span class="va">open</span><span class="op">-</span><span class="va">loop</span> <span class="va">state</span> <span class="va">prediction</span>.</span>
-<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="va">The</span> <span class="va">OL</span> <span class="va">predictor</span> <span class="va">has</span> <span class="va">no</span> <span class="va">feedback</span><span class="op">,</span> <span class="va">so</span> <span class="va">cannot</span> <span class="va">know</span> <span class="va">the</span> <span class="va">impact</span> <span class="va">of</span> $<span class="va">w_k</span>$ <span class="va">on</span> <span class="va">the</span> <span class="va">state</span>.</span>
-<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="va">So</span><span class="op">,</span> <span class="va">its</span> <span class="va">predictions</span> <span class="va">are</span> <span class="va">inferior</span> <span class="va">to</span> <span class="va">KF</span> <span class="va">estimates</span><span class="op">;</span> <span class="va">its</span> <span class="va">confidence</span> <span class="va">bounds</span> <span class="va">are</span> <span class="va">looser</span>.</span>
-<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">We</span> <span class="va">then</span> <span class="va">looked</span> <span class="va">at</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">output</span> <span class="va">when</span> <span class="va">we</span> <span class="va">don</span><span class="op">'</span><span class="va">t</span> <span class="va">know</span> $<span class="va">x_0</span>$ <span class="va">exactly</span>.</span>
-<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="va">We</span> <span class="va">found</span> <span class="va">that</span> <span class="va">the</span> <span class="va">feedback</span> <span class="va">mechanism</span> <span class="va">built</span> <span class="va">in</span> <span class="va">to</span> <span class="va">the</span> <span class="va">KF</span> <span class="va">allows</span> <span class="va">the</span> <span class="va">filter</span> <span class="va">state</span> <span class="va">estimates</span> <span class="va">to</span> <span class="va">converge</span> <span class="va">to</span> <span class="va">the</span> <span class="va">true</span> <span class="va">states</span> <span class="va">quite</span> <span class="va">quickly</span> <span class="kw">for</span> <span class="va">this</span> <span class="va">example</span>.</span>
-<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="va">Convergence</span> <span class="va">rate</span> <span class="va">depends</span> <span class="va">on</span> <span class="va">relative</span> <span class="va">sizes</span> $<span class="op">\</span><span class="va">Sigma_w</span>$ <span class="va">and</span> $<span class="op">\</span><span class="va">Sigma_v</span>$<span class="op">,</span> <span class="va">as</span> <span class="va">you</span> <span class="va">will</span> <span class="va">learn</span> <span class="va">later</span>.</span>
-<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="va">OL</span> <span class="va">predictors</span> <span class="va">have</span> <span class="va">no</span> <span class="va">way</span> <span class="va">of</span> <span class="va">knowing</span> <span class="kw">if</span> <span class="va">their</span> $<span class="op">\</span><span class="va">hat</span>{<span class="va">x</span>}_<span class="fl">0</span>$ <span class="va">is</span> <span class="va">incorrect</span><span class="op">,</span> <span class="va">so</span> <span class="va">wouldn</span><span class="op">'</span><span class="va">t</span> <span class="va">converge</span>.</span>
-<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="va">So</span><span class="op">,</span> <span class="va">KF</span> <span class="va">can</span> <span class="va">work</span> <span class="va">very</span> <span class="va">well</span> <span class="kw">if</span> <span class="va">all</span> <span class="va">the</span> <span class="va">assumptions</span> <span class="va">made</span> <span class="va">in</span> <span class="va">their</span> <span class="va">derivation</span> <span class="va">are</span> <span class="va">met</span>.</span>
-<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> <span class="va">What</span> <span class="kw">if</span> <span class="va">they</span> <span class="va">are</span> <span class="va">not</span>? <span class="va">We</span> <span class="va">explore</span> <span class="va">this</span> <span class="va">in</span> <span class="va">the</span> <span class="va">next</span> <span class="va">lesson</span>.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a><span class="fu">## KF results for "bad" initialization</span></span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Plots show KF output when the state is initialized poorly.</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>After a few seconds, the results are nearly the same as when the KF was initialized with exact knowledge of $x_0$. Feedback works!</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/L.1.4.4-3.png)</span></span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a><span class="fu">## KF results for "bad" initialization (zoom)</span></span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Zooming in on the first portions of the KF output, we see how effective the feedback mechanism of the KF actually is.</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Position uncertainty plummets in a single timestep (we measure this state directly, albeit with noise $v_k$); velocity uncertainty converges in only a few seconds also.</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/L.1.4.4-4.png)</span></span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary</span></span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In this lesson we implemented different scenarios to help gain intuition into how well the KF works.</span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>I recommend that you also try different things---this is a great way to learn!</span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Specifically, we first compared KF state estimation to open-loop state prediction.</span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>The OL predictor has no feedback, so cannot know the impact of $w_k$ on the state.</span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>So, its predictions are inferior to KF estimates; its confidence bounds are looser.</span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>We then looked at the KF output when we don't know $x_0$ exactly.</span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>We found that the feedback mechanism built in to the KF allows the filter state estimates to converge to the true states quite quickly for this example.</span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Convergence rate depends on relative sizes $\Sigma_w$ and $\Sigma_v$, as you will learn later.</span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>OL predictors have no way of knowing if their $\hat{x}_0$ is incorrect, so wouldn't converge.</span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>So, KF can work very well if all the assumptions made in their derivation are met.</span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>What if they are not? We explore this in the next lesson.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">
@@ -2401,6 +2426,38 @@ document.querySelectorAll(".pymd span.co").forEach(el => {
     })(document);
     </script>
   
+<script>var lightboxQuarto = GLightbox({"closeEffect":"fade","descPosition":"bottom","loop":true,"openEffect":"fade","selector":".lightbox","skin":"my-css-class"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

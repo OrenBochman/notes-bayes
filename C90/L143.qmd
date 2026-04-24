@@ -2,6 +2,7 @@
 title: "1.4.3: How do I implement the Kalman-filter steps in Octave?"
 description: "In this lesson, you will learn how to implement the Kalman-filter steps in Octave code. You will also see some sample results from executing a Kalman filter on simulated data."
 date: "2026-04-22"
+keywords: [Kalman filter, Octave implementation, state estimation, sample results]
 ---
 
 ## Introduction to lesson
@@ -9,49 +10,51 @@ date: "2026-04-22"
 - In this lesson, you will learn how to implement KF in Octave.  
 - It is recommended that you keep the KF equations nearby.
 
----
+::: {.callout-tip style="background-color: #c58aff;"}
+## Prediction
 
-## Kalman Filter Equations
-
-### Prediction
+**Step 1a:** State prediction (time update)  
 
 $$
 \hat{x}_k^- = A_{k-1}\hat{x}_{k-1}^+ + B_{k-1}u_{k-1}
 $$
 
+**Step 1b:** Prediction-error covariance update  
+
 $$
-\Sigma_{x,k}^- = A_{k-1}\Sigma_{x,k-1}^+ A_{k-1}^T + \Sigma_w
+\Sigma_{\tilde{x},k}^- = A_{k-1}\Sigma_{x,k-1}^+ A_{k-1}^T + \Sigma_{\tilde{w}}
 $$
+
+**Step 1c:** Predict system output  
 
 $$
 \hat{z}_k = C_k \hat{x}_k^- + D_k u_k
 $$
 
-- **Step 1a:** State prediction time update  
-- **Step 1b:** Prediction-error covariance time update  
-- **Step 1c:** Predict system output  
+:::
 
----
-
+::: {.callout-tip style="background-color: #72be68;"}
 ### Correction
 
+**Step 2a:** Estimator gain matrix
+
 $$
-L_k = \Sigma_{x,k}^- C_k^T \left(C_k \Sigma_{x,k}^- C_k^T + \Sigma_v \right)^{-1}
+L_k = \Sigma_{\tilde{x},k}^- C_k^T \left[C_k \Sigma_{\tilde{x},k}^- C_k^T + \Sigma_{\tilde{v}}\right]^{-1}
 $$
+
+**Step 2b:** State estimate (measurement update)
 
 $$
 \hat{x}_k^+ = \hat{x}_k^- + L_k (z_k - \hat{z}_k)
 $$
 
+**Step 2c:** Estimation-error covariance update
+
 $$
-\Sigma_{x,k}^+ = (I - L_k C_k)\Sigma_{x,k}^-
+\Sigma_{\tilde{x},k}^+ = (I - L_k C_k)\Sigma_{\tilde{x},k}^-
 $$
 
-- **Step 2a:** Estimator gain matrix  
-- **Step 2b:** State estimate measurement update  
-- **Step 2c:** Estimation-error covariance measurement update  
-
----
+:::
 
 ## Visualizing the Linear Kalman Filter
 
@@ -63,7 +66,7 @@ $$
   - Only six lines of code execute each iteration  
   - Most effort is in setup and plotting  
 
----
+![kf recursion](images/L1.4.5.-1.png){#fig-kf-recursion}
 
 ## KF Step 1 (Prediction)
 
@@ -92,9 +95,7 @@ for k = 2:length(t)
 
   % KF Step 1c: Predict system output
   zhat = Cd*xhat + Dd*u(:,k); % use present value of "u"
-````
-
-
+```
 
 ## KF Step 2 (Correction)
 
@@ -115,9 +116,7 @@ for k = 2:length(t)
 end
 ```
 
-* That’s it! We’re now ready to plot results.
-
-
+* That's it! We’re now ready to plot results.
 
 ## Plot Results from KF Execution
 
@@ -159,8 +158,6 @@ for k = 1:nx
 end
 ```
 
----
-
 ## Sample Results: States and Estimates
 
 * Output shown for spring-mass-damper example using simulation data.
@@ -172,7 +169,7 @@ Key observations:
 * Errors do not converge to zero
 * Estimates remain within confidence bounds (as expected)
 
-
+![Demonstration of Kalman filter state estimates](images/L1.4.5.-3.png){#fig-demonstration-of-kalman-filter-state-estimates}
 
 ## Sample Results: Estimation Errors
 
@@ -189,7 +186,7 @@ Observations:
 * Velocity estimate exceeds bounds once (≈ 0.1% of time)
 * Matches theoretical expectation (~99.7% confidence bounds)
 
-
+![Estimation error with bounds](images/L1.4.5.-2.png){#fig-estimation-error-with-bounds}
 
 ## Summary
 

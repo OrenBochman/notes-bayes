@@ -1,8 +1,8 @@
 ---
 title: "1.4.5: What can cause a Kalman filter to fail?"
-format: html
-toc: true
-number-sections: false
+description: "In this lesson, we will explore some conditions that can cause a KF to produce unreliable estimates. We will see how the KF performs when the model of the system is incorrect, when the noise covariances are incorrect, and when the noise assumptions are violated."
+date: "2026-04-22"
+keywords: [Kalman filter, failure modes, model mismatch, noise assumptions]
 ---
 
 ## Is the KF invincible?
@@ -11,9 +11,9 @@ number-sections: false
 - But, it turns out that there are ways to make a KF fail.
 - The derivation of the KF makes several assumptions. If those assumptions are not met, the KF will not perform as expected.
 - The first of these that we illustrate in this lesson is the case where our model of the system does not exactly agree with the true system dynamics.
-- We keep the same simulation dataset, but force the KF to use different `Ad`, `Bd`, and `Cd` matrices from the true system (`Dd = 0`).
+- We keep the same simulation dataset, but force the KF to use different $A_d$, $B_d$, and $C_d$ matrices from the true system ($D_d = 0$).
 
-```matlab
+```octave
 load simOut.mat Ad Bd Cd Dd SigmaV SigmaW dT t u x z
 
 % Force the KF to use different Ad, Bd, Cd, Dd from the model simulation:
@@ -34,11 +34,13 @@ Dd = 0.99*Dd;
 - Position estimation error with bounds
 - Velocity estimation error with bounds
 
+![](images/L.1.4.5-1.png)
+
 ## KF results when using incorrect noise variances
 
 - What if we know the system model exactly, but have poor information regarding the noise covariances?
 
-```matlab
+```octave
 % Force the KF to use different SigmaW and SigmaV from the model simulation:
 SigmaW = 0.1*SigmaW;
 SigmaV = 0.1*SigmaV;
@@ -50,19 +52,21 @@ SigmaV = 0.1*SigmaV;
 - Position estimation error with bounds
 - Velocity estimation error with bounds
 
+![](images/L.1.4.5-2.png)
+
 ## Nonzero-mean process and sensor noises
 
-- The KF derivation assumes that $E[w_k] = 0$ and $E[v_k] = 0$.
+- The KF derivation assumes that $\mathbb{E}[w_k] = 0$ and $\mathbb{E}[v_k] = 0$.
 - I created a new spring-mass-damper dataset where $w_k$ and $v_k$ had the same covariances as before, but
 
 $$
-E[w_k] = \begin{bmatrix} 0.001 \\ -0.0001 \end{bmatrix}
+\mathbb{E}[w_k] = \begin{bmatrix} 0.001 \\ -0.0001 \end{bmatrix}
 $$
 
 and
 
 $$
-E[v_k] = -0.025.
+\mathbb{E}[v_k] = -0.025.
 $$
 
 - I then executed the KF on this new dataset.
@@ -72,6 +76,8 @@ $$
 - KF state estimates with nonzero-mean noises
 - Position estimation error with bounds
 - Velocity estimation error with bounds
+
+![](images/L.1.4.5-3.png)
 
 ## Autocorrelated process and sensor noises
 
@@ -86,6 +92,8 @@ $$
 - Position estimation error with bounds
 - Velocity estimation error with bounds
 
+![](images/L.1.4.5-4.png)
+
 ## Summary
 
 - In this lesson you learned that the KF is not invincible.
@@ -98,8 +106,3 @@ $$
   - But, we can model the correlations; see Course 2.
 - **Non-Gaussian noise:** If the noises are not Gaussian (especially for nonlinear systems), the KF can fail; see Course 4.
 - Also, there can be numeric instabilities (cf. Course 2); and performance degradation if measurements of $u_k$ and $z_k$ are not synchronized (cf. Course 2).
-
-![](images/L.1.4.5-1.png)
-![](images/L.1.4.5-2.png)
-![](images/L.1.4.5-3.png)
-![](images/L.1.4.5-4.png)
