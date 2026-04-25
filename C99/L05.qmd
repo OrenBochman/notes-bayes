@@ -1,152 +1,520 @@
 ---
-title: "L05 : Extending the probability construct to countable additivity (sigma algebra) - continued"
+title: "L05 : Extending Probability Measures to Countable Additivity — Continued"
 subtitle: "Measure Theoretic Probability - Jen Corcoran"
 date: 2026-04-17
 ---
 
-::: {#vid-C99-L05 .column-margin}
+::: {#vid-C99-l05 .column-margin}
 {{< video https://youtu.be/1KLujFfMDZ8 >}}
 
-Lesson 5: Extending the probability construct to countable additivity (sigma algebra) - continued.
+Lesson 5: the outer-measure roadmap for extending $P$ from a field $\mathcal{F}_0$ to the generated $\sigma$-field $\mathcal{F}=\sigma(\mathcal{F}_0)$.
 :::
 
 ## Lesson map
 
-Extending the probability construct to countable additivity (sigma algebra)
+- 0:12 — Recap: extend a probability measure from a field $\mathcal{F}_0$ to $\sigma(\mathcal{F}_0)$.
+- 1:08 — The outer-measure idea: cover arbitrary $A\subseteq\Omega$ by sets from $\mathcal{F}_0$.
+- 3:37 — Definition of the outer measure $P^*$.
+- 5:17 — What “extension” means: preserve old values on $\mathcal{F}_0$.
+- 6:09 — Recap of the four known properties of $P^*$.
+- 9:13 — Motivation: splitting a set $B$ by $A$ and $A^c$.
+- 10:17 — Define the collection $\mathcal{M}$ of sets that split every $B$ correctly.
+- 11:15 — Equivalent definition of $\mathcal{M}$ using only one inequality.
+- 13:04 — Proof roadmap: six lemmas.
+- 16:59 — How the lemmas imply the desired extension theorem.
+- 20:29 — Uniqueness of the extension.
+- 25:14 — Stronger uniqueness theorem and future $\pi$-systems.
 
-P* is a wannabe Probability measure
-6:06 how? (Ik its discussed before, but just unintuitive)
-6:30 the 4 properties of P* discussed in the previous vid
+## Recap: the outer-measure construction
 
-:::{.column-margin #fig-L05-slide-01} 
-![replace with a caption.](images/l05-s01.png){fig-alt="me with alternative without math."}
+The previous lesson started with:
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+$$
+\Omega\neq\emptyset,
+\qquad
+\mathcal{F}_0 \text{ a field on } \Omega,
+\qquad
+\mathcal{F}=\sigma(\mathcal{F}_0),
+$$
+
+and a probability measure
+
+$$
+P:\mathcal{F}_0\to[0,1].
+$$
+
+The goal is to extend $P$ to the larger $\sigma$-field $\mathcal{F}$.
+
+For an arbitrary subset $A\subseteq\Omega$, the idea was to cover $A$ by countably many sets from $\mathcal{F}_0$, because those are the sets whose probabilities are already known.
+
+:::{.column-margin #fig-l05-slide-01} 
+![Covering an arbitrary set from outside.](images/l05-s01.png){fig-alt="A diagram shows a subset A inside Omega covered by several overlapping sets from the field F naught. The picture motivates estimating the probability of A using probabilities of larger covering sets."}
+
+The set $A$ may not itself be in $\mathcal{F}_0$, so $P(A)$ may not be defined. The workaround is to cover $A$ using sets $A_n\in\mathcal{F}_0$ and use the known values $P(A_n)$.
 :::
 
+The cover may include extra regions outside $A$, and the covering sets may overlap. So the sum of their probabilities is usually an overestimate.
 
-:::{.column-margin #fig-L05-slide-02} 
-![replace with a caption.](images/l05-s02.png){fig-alt="me with alternative without math."}
+:::{.column-margin #fig-l05-slide-02} 
+![Disjoint covers are possible but not always optimal.](images/l05-s02.png){fig-alt="A diagram shows a subset A covered by two large disjoint sets. The cover avoids overlap but contains a lot of extra area outside A."}
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+Requiring covering sets to be disjoint is not necessarily better. A disjoint cover can include much more material outside $A$, so the construction considers all countable covers and lets the infimum choose the best upper estimate.
 :::
 
-:::{.column-margin #fig-L05-slide-03}
-![replace with a caption.](images/l05-s03.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+## Outer measure $P^*$
+
+::: {#def-outer-measure-pstar}
+## Outer measure associated with $P$
+
+For every subset $A\subseteq\Omega$, define
+
+$$
+P^*(A)
+=
+\inf\left\{
+\sum_{n=1}^{\infty}P(A_n)
+:
+A_n\in\mathcal{F}_0
+\text{ and }
+A\subseteq\bigcup_{n=1}^{\infty}A_n
+\right\}.
+$$
 :::
 
+This is called an **outer measure** because it approaches $A$ from outside: cover $A$ by measurable pieces from $\mathcal{F}_0$, sum their probabilities, and take the best possible upper bound.
 
-:::{.column-margin #fig-L05-slide-04} 
-![replace with a caption.](images/L05-s04.png){fig-alt="me with alternative without math."}
+:::{.column-margin #fig-l05-slide-03}
+![Definition of the outer measure P star.](images/l05-s03.png){fig-alt="The slide defines P star of A as the infimum of sums of P of A n, where the A n are in F naught and cover A."}
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+The formula for $P^*$ is defined for every $A\subseteq\Omega$, even if $A$ is not in $\mathcal{F}_0$ or in $\mathcal{F}=\sigma(\mathcal{F}_0)$.
 :::
 
-:::{.column-margin #fig-L05-slide-05}
-![replace with a caption.](images/L05-s05.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+At this point, the terminology is slightly optimistic. We have called $P^*$ an outer measure, but we have not yet proved that it behaves like a probability measure on the $\sigma$-field we care about.
+
+## What extension should mean
+
+An extension must do two things:
+
+1. assign values to more sets;
+2. preserve the old values.
+
+So for every $A\in\mathcal{F}_0$, we want
+
+$$
+P^*(A)=P(A).
+$$
+
+So far, the previous lesson only proved one direction:
+
+$$
+P^*(A)\leq P(A)
+\qquad
+(A\in\mathcal{F}_0).
+$$
+
+:::{.column-margin #fig-l05-slide-04} 
+![An extension must preserve the original probability values.](images/l05-s04.png){fig-alt="The slide states that extending the probability measure means P star of A should equal P of A for all A in F naught."}
+
+Calling $P^*$ an extension means it should not disturb the probabilities already assigned by $P$ on the field $\mathcal{F}_0$.
 :::
 
+## Four known properties of $P^*$
 
-:::{.column-margin #fig-L05-slide-06} 
-![replace with a caption.](images/L05-s06.png){fig-alt="me with alternative without math."}
+From Lesson 4, we know:
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+1. $P^*(\emptyset)=0$.
+2. If $A\subseteq B$, then $P^*(A)\leq P^*(B)$.
+3. If $A\in\mathcal{F}_0$, then $P^*(A)\leq P(A)$.
+4. $P^*$ is countably subadditive:
+
+$$
+P^*\left(\bigcup_{n=1}^{\infty}A_n\right)
+\leq
+\sum_{n=1}^{\infty}P^*(A_n).
+$$
+
+:::{.column-margin #fig-l05-slide-05}
+![The first three known properties of P star.](images/l05-s05.png){fig-alt="The slide lists known properties of P star: P star of the empty set is zero, monotonicity under subset inclusion, and P star of A is at most P of A for A in F naught."}
+
+These are measure-like properties, but they do not yet prove that $P^*$ is a probability measure.
 :::
 
+:::{.column-margin #fig-l05-slide-06} 
+![Countable subadditivity of P star.](images/l05-s06.png){fig-alt="The slide states countable subadditivity: P star of the countable union of A n is less than or equal to the sum of P star of A n."}
 
-:::{.column-margin #fig-L05-slide-07} 
-![replace with a caption.](images/L05-s07.png){fig-alt="me with alternative without math."}
-
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+Countable subadditivity is weaker than countable additivity. A probability measure needs equality for countable unions of disjoint measurable sets.
 :::
 
-:::{.column-margin #fig-L05-slide-08}
-![replace with a caption.](images/L05-s08.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+The missing pieces are:
+
+- countable additivity on the right class of sets;
+- $P^*(\Omega)=1$;
+- equality $P^*(A)=P(A)$ for $A\in\mathcal{F}_0$;
+- identifying the $\sigma$-field on which $P^*$ is a probability measure.
+
+## Splitting a set by $A$ and $A^c$
+
+For an actual probability measure, every measurable set $B$ can be split into the part inside $A$ and the part outside $A$:
+
+$$
+B = (A\cap B)\cup(A^c\cap B),
+$$
+
+where the two pieces are disjoint. Therefore,
+
+$$
+P(B)
+=
+P(A\cap B)+P(A^c\cap B).
+$$
+
+:::{.column-margin #fig-l05-slide-07} 
+![Splitting B into the part inside A and the part outside A.](images/l05-s07.png){fig-alt="The slide writes P of B equals P of A intersect B plus P of A complement intersect B, explaining that B is decomposed into two disjoint pieces."}
+
+For a genuine measure, cutting $B$ by $A$ should not create or destroy mass: the measure of $B$ equals the sum of the measures of the two disjoint pieces.
 :::
 
+This motivates defining the sets for which $P^*$ has this splitting property.
 
-:::{.column-margin #fig-L05-slide-09} 
-![replace with a caption.](images/L05-s09.png){fig-alt="me with alternative without math."}
+## The collection $\mathcal{M}$
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+::: {#def-carath-measurable-sets}
+## The collection $\mathcal{M}$
+
+Define $\mathcal{M}$ to be the collection of all subsets $A\subseteq\Omega$ such that, for every $B\subseteq\Omega$,
+
+$$
+P^*(B)
+=
+P^*(A\cap B)+P^*(A^c\cap B).
+$$
 :::
 
-:::{.column-margin #fig-L05-slide-10}
-![replace with a caption.](images/L05-s10.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+These are the sets that split every test set $B$ correctly under $P^*$.
+
+:::{.column-margin #fig-l05-slide-08}
+![Definition of the collection M.](images/l05-s08.png){fig-alt="The slide defines script M as the collection of subsets A of Omega such that P star of A intersect B plus P star of A complement intersect B equals P star of B for all subsets B of Omega."}
+
+The class $\mathcal{M}$ collects the sets that are compatible with $P^*$ in the sense that they divide every $B$ into two additive pieces.
 :::
 
-:::{.column-margin #fig-L05-slide-11}
-![outer measure definition.](images/L05-s11.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+This is the Carathéodory-style measurability condition, although the lesson introduces it operationally rather than as a named theorem.
+
+### Equivalent one-sided condition
+
+By countable subadditivity,
+
+$$
+P^*(B)
+\leq
+P^*(A\cap B)+P^*(A^c\cap B)
+$$
+
+always holds, because $B=(A\cap B)\cup(A^c\cap B)$.
+
+Therefore, to show equality it is enough to prove the reverse inequality:
+
+$$
+P^*(A\cap B)+P^*(A^c\cap B)
+\leq
+P^*(B).
+$$
+
+:::{.column-margin #fig-l05-slide-09} 
+![The reverse inequality is enough to define M.](images/l05-s09.png){fig-alt="The slide uses countable subadditivity to show that P star of B is always less than or equal to P star of A intersect B plus P star of A complement intersect B, so M can be equivalently defined by the reverse inequality."}
+
+The equality definition and the one-sided inequality definition of $\mathcal{M}$ are equivalent because subadditivity already supplies the other inequality.
 :::
 
+## Roadmap: six lemmas
 
-:::{.column-margin #fig-L05-slide-12} 
-![replace with a caption.](images/L05-s12.png){fig-alt="me with alternative without math."}
+The proof that $P^*$ extends $P$ is long, so the lesson organizes it into six lemmas.
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+:::{.column-margin #fig-l05-slide-10}
+![Lemma roadmap, first half.](images/l05-s10.png){fig-alt="The slide lists the first lemmas: M is a field; countable additivity holds for P star on sets in M; and these results help prove that M is a sigma-field."}
+
+The first three lemmas build the measurable world for $P^*$: show that $\mathcal{M}$ is first a field, then closed under countable unions, hence a $\sigma$-field.
 :::
 
+### Lemma 1
 
-:::{.column-margin #fig-L05-slide-13} 
-![replace with a caption.](images/L05-s13.png){fig-alt="me with alternative without math."}
+$$
+\mathcal{M} \text{ is a field.}
+$$
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+This means:
+
+1. $\Omega\in\mathcal{M}$;
+2. if $A\in\mathcal{M}$, then $A^c\in\mathcal{M}$;
+3. if $A,C\in\mathcal{M}$, then $A\cup C\in\mathcal{M}$.
+
+### Lemma 2
+
+$P^*$ is countably additive on disjoint sets in $\mathcal{M}$:
+
+$$
+P^*\left(\bigcup_{n=1}^{\infty}A_n\right)
+=
+\sum_{n=1}^{\infty}P^*(A_n),
+$$
+
+whenever $A_1,A_2,\ldots\in\mathcal{M}$ are disjoint.
+
+### Lemma 3
+
+$$
+\mathcal{M} \text{ is a } \sigma\text{-field.}
+$$
+
+Lemma 2 helps upgrade finite-union closure to countable-union closure.
+
+:::{.column-margin #fig-l05-slide-11}
+![Lemma roadmap, second half.](images/l05-s11.png){fig-alt="The slide lists later lemmas: F naught is contained in M, P star equals P on F naught, and P star is a probability measure on M."}
+
+The next three lemmas connect the new class $\mathcal{M}$ back to the original field $\mathcal{F}_0$ and prove that $P^*$ really extends $P$.
 :::
 
-:::{.column-margin #fig-L05-slide-14}
-![replace with a caption.](images/L05-s14.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+### Lemma 4
+
+$$
+\mathcal{F}_0\subseteq\mathcal{M}.
+$$
+
+Every original field set satisfies the splitting condition.
+
+### Lemma 5
+
+For every $A\in\mathcal{F}_0$,
+
+$$
+P^*(A)=P(A).
+$$
+
+This completes the equality that Lesson 4 only proved in one direction.
+
+### Lemma 6
+
+$P^*$ is a probability measure on $\mathcal{M}$.
+
+That is:
+
+1. $P^*(\emptyset)=0$;
+2. $P^*$ is countably additive on $\mathcal{M}$;
+3. $P^*(\Omega)=1$.
+
+## How the lemmas prove the extension theorem
+
+Once the six lemmas are known, the extension theorem follows quickly.
+
+Since Lemma 3 says $\mathcal{M}$ is a $\sigma$-field, and Lemma 4 says $\mathcal{F}_0\subseteq\mathcal{M}$, the generated $\sigma$-field must satisfy
+
+$$
+\mathcal{F}
+=
+\sigma(\mathcal{F}_0)
+\subseteq
+\mathcal{M}.
+$$
+
+This is the same minimality argument used earlier: $\sigma(\mathcal{F}_0)$ is the smallest $\sigma$-field containing $\mathcal{F}_0$, so it must be contained in any $\sigma$-field that contains $\mathcal{F}_0$.
+
+:::{.column-margin #fig-l05-slide-12} 
+![The generated sigma-field is sandwiched between F naught and M.](images/l05-s12.png){fig-alt="The slide shows a diagram in which F naught is contained in the generated sigma-field F, and F is contained in M. The argument uses the fact that M is a sigma-field containing F naught."}
+
+The key containment is $\mathcal{F}_0\subseteq\mathcal{F}\subseteq\mathcal{M}$. This puts the target $\sigma$-field inside the class where $P^*$ is already known to be a probability measure.
 :::
 
+Since $P^*$ is a probability measure on $\mathcal{M}$, it is also a probability measure when restricted to the smaller $\sigma$-field $\mathcal{F}$.
 
-:::{.column-margin #fig-L05-slide-15} 
-![replace with a caption.](images/L05-s15.png){fig-alt="me with alternative without math."}
+And since Lemma 5 says $P^*=P$ on $\mathcal{F}_0$, this restriction is an extension of the original probability measure.
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+:::{.column-margin #fig-l05-slide-13} 
+![P star becomes a probability measure on the generated sigma-field.](images/l05-s13.png){fig-alt="The slide states that P star is a probability measure on F and agrees with P on F naught. It explains that this follows because F is contained in M and P star is a probability measure on M."}
+
+The conclusion is the desired extension: $P^*$ is a probability measure on $\mathcal{F}=\sigma(\mathcal{F}_0)$ and agrees with $P$ on the original field $\mathcal{F}_0$.
 :::
 
-:::{.column-margin #fig-L05-slide-16}
-![replace with a caption.](images/L05-s16.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+## Uniqueness of the extension
+
+The lesson also proves a uniqueness result.
+
+Suppose $Q$ is another probability measure on $\mathcal{F}$ and $Q$ agrees with $P$ on $\mathcal{F}_0$:
+
+$$
+Q(A)=P(A)
+\qquad
+\text{for all } A\in\mathcal{F}_0.
+$$
+
+Then
+
+$$
+Q(A)=P^*(A)
+\qquad
+\text{for all } A\in\mathcal{F}.
+$$
+
+:::{.column-margin #fig-l05-slide-14}
+![Uniqueness statement for the extension.](images/l05-s14.png){fig-alt="The slide states that if Q is another probability measure on F that agrees with P on F naught, then Q agrees with P star on all sets A in F."}
+
+The extension is unique among probability measures on $\mathcal{F}$ that agree with the original $P$ on $\mathcal{F}_0$.
 :::
 
+### First inequality
 
-:::{.column-margin #fig-L05-slide-17} 
-![replace with a caption.](images/L05-s17.png){fig-alt="me with alternative without math."}
+Take $A\in\mathcal{F}$. By definition,
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+$$
+P^*(A)
+=
+\inf
+\left\{
+\sum_{n=1}^{\infty}P(A_n)
+:
+A_n\in\mathcal{F}_0,\;
+A\subseteq\bigcup_n A_n
+\right\}.
+$$
+
+Since $Q=P$ on $\mathcal{F}_0$,
+
+$$
+P^*(A)
+=
+\inf
+\left\{
+\sum_{n=1}^{\infty}Q(A_n)
+:
+A_n\in\mathcal{F}_0,\;
+A\subseteq\bigcup_n A_n
+\right\}.
+$$
+
+By countable subadditivity of $Q$,
+
+$$
+Q\left(\bigcup_n A_n\right)
+\leq
+\sum_n Q(A_n).
+$$
+
+And since $A\subseteq\bigcup_n A_n$, monotonicity gives
+
+$$
+Q(A)
+\leq
+Q\left(\bigcup_n A_n\right).
+$$
+
+Therefore every admissible cover-sum is at least $Q(A)$, so
+
+$$
+P^*(A)\geq Q(A).
+$$
+
+:::{.column-margin #fig-l05-slide-15} 
+![First half of the uniqueness proof.](images/l05-s15.png){fig-alt="The slide proves one inequality in the uniqueness result. It rewrites P star of A using Q because Q agrees with P on F naught, then uses countable subadditivity and monotonicity to show P star of A is greater than or equal to Q of A."}
+
+The cover-sums defining $P^*(A)$ are all at least $Q(A)$, so their infimum is also at least $Q(A)$.
 :::
 
+### Reverse inequality
 
-:::{.column-margin #fig-L05-slide-18} 
-![replace with a caption.](images/L05-s18.png){fig-alt="me with alternative without math."}
+Since $A\in\mathcal{F}$, also $A^c\in\mathcal{F}$. Applying the previous inequality to $A^c$ gives
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+$$
+P^*(A^c)\geq Q(A^c).
+$$
+
+Both $P^*$ and $Q$ are probability measures on $\mathcal{F}$, so
+
+$$
+P^*(A^c)=1-P^*(A),
+\qquad
+Q(A^c)=1-Q(A).
+$$
+
+Thus,
+
+$$
+1-P^*(A)\geq 1-Q(A),
+$$
+
+which implies
+
+$$
+P^*(A)\leq Q(A).
+$$
+
+Combining both inequalities,
+
+$$
+P^*(A)=Q(A).
+$$
+
+:::{.column-margin #fig-l05-slide-16}
+![Second half of the uniqueness proof using complements.](images/l05-s16.png){fig-alt="The slide applies the first inequality to A complement, then rewrites both sides using the complement rule for probability measures to obtain P star of A less than or equal to Q of A."}
+
+The complement trick turns the first inequality around. Together, the two inequalities force $P^*(A)=Q(A)$.
 :::
 
-:::{.column-margin #fig-L05-slide-19}
-![replace with a caption.](images/L05-s19.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+## Stronger uniqueness theorem
+
+The lesson ends by noting a stronger result:
+
+If $P_1$ and $P_2$ are probability measures on $\mathcal{F}=\sigma(\mathcal{F}_0)$ and
+
+$$
+P_1(A)=P_2(A)
+\qquad
+\text{for all } A\in\mathcal{F}_0,
+$$
+
+then
+
+$$
+P_1(A)=P_2(A)
+\qquad
+\text{for all } A\in\mathcal{F}.
+$$
+
+This stronger theorem does not depend on the outer-measure definition of $P^*$.
+
+:::{.column-margin #fig-l05-slide-17} 
+![A stronger uniqueness theorem for probability measures.](images/l05-s17.png){fig-alt="The slide states that if P1 and P2 are probability measures on F and agree on F naught, then they agree on all of F."}
+
+Agreement on the generating field determines the probability measure on the generated $\sigma$-field.
 :::
 
+Jen notes that this stronger result is often proved using a weaker structure than a field, called a **$\pi$-system**, which will appear later.
 
-:::{.column-margin #fig-L05-slide-20} 
-![replace with a caption.](images/L05-s20.png){fig-alt="me with alternative without math."}
+:::{.column-margin #fig-l05-slide-18} 
+![Reference to stronger results using pi-systems.](images/l05-s18.png){fig-alt="The slide mentions that the stronger uniqueness result appears in Billingsley's Probability and Measure and is often stated for pi-systems, a weaker structure than a field."}
 
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
+A $\pi$-system is closed under finite intersections and is weaker than a field. It is enough for many uniqueness theorems for probability measures.
 :::
 
-:::{.column-margin #fig-L05-slide-21}
-![replace with a caption.](images/L05-s21.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
-:::
+## Takeaway
 
-:::{.column-margin #fig-L05-slide-22}
-![outer measure definition.](images/L05-s22.png){fig-alt="me with alternative without math."}
-And me with a longer caption that is more descriptive of the image, and can replace the image if it doesn't load.
-:::
+The outer measure $P^*$ is a “wannabe probability measure.” It is defined on all subsets of $\Omega$, but it becomes a genuine probability measure only on the right class of measurable sets.
+
+The proof strategy is:
+
+$$
+P
+\text{ on }
+\mathcal{F}_0
+\quad\longrightarrow\quad
+P^*
+\text{ on all subsets of }
+\Omega
+\quad\longrightarrow\quad
+\mathcal{M}
+\text{ where } P^* \text{ behaves additively}
+\quad\longrightarrow\quad
+P^*
+\text{ on }
+\sigma(\mathcal{F}_0).
+$$
+
+The six lemmas are the scaffolding that turns the outer-measure construction into a true extension theorem.
