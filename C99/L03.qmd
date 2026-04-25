@@ -1,125 +1,530 @@
 ---
 title: "L03 : Measurable Space and Measures"
 subtitle: "Measure Theoretic Probability - Jen Corcoran"
- ---
+---
 
-Last lesson we talked about measurable sets. 
+Measure Theoretic Probability, Lesson 3
 
-This lesson we will talk about constructing a $\sigma$-field of sets, called the Borel $\sigma$-field, and then we will talk about how to construct a measure on it, called the Lebesgue measure.
+::: {#vid-C99-L03 .column-margin}
+{{< video https://youtu.be/lsHr3Y9-PCA?list=PLLyj1Zd4UWrO6VtBSiQLsNlo9QBm30nxC >}}
 
-## Lesson 3: Measurable Space and Measures
-
-::: {#vid-C99-L03 .column-margin }
-{{< video https://youtu.be/lsHr3Y9-PCA?list=PLLyj1Zd4UWrO6VtBSiQLsNlo9QBm30nxC  >}}
+Lesson 3: measurable spaces, measures, probability measures, and Borel sets on $[0,1]$.
 :::
 
-### Measure theory is focused on sets!
+## Lesson map
 
-::: {#fig-l04-s00 .column-margin }
-![The Squiggly Set](/images/l01-s00.png)
+- 1:10 — The union of two $\sigma$-fields need not be a $\sigma$-field.
+- 2:40 — Intersections of $\sigma$-fields: finite, countable, and uncountable.
+- 7:13 — Measurable sets.
+- 7:45 — Measurable spaces.
+- 8:20 — Definition of a measure.
+- 11:12 — Countable additivity implies finite additivity.
+- 12:29 — Alternative axiom replacing $\mu(\emptyset)=0$.
+- 14:30 — Probability measures.
+- 18:52 — Monotonicity: if $A \subseteq B$, then $\mu(A)\leq \mu(B)$.
+- 21:52 — Countable subadditivity.
+- 29:30 — Borel $\sigma$-field on $[0,1]$.
+- 30:06 — Lebesgue measure on $[0,1]$ as a probability measure.
+- 36:45 — Restricting a generated $\sigma$-field to a subset.
 
-this is a set how can we measure it?
+## Recap: unions and intersections of $\sigma$-fields
+
+The previous lesson showed that intersections of $\sigma$-fields are again $\sigma$-fields. This lesson starts by warning that unions behave differently: the union of two $\sigma$-fields may fail to be closed under the operations required of a $\sigma$-field.
+
+::: {#fig-l03-slide-01 .column-margin}
+![The union of two sigma-fields need not be a sigma-field.](images/l03-s01.png){fig-alt="A chalkboard example states that the union of two or more sigma-fields is not necessarily a sigma-field. It defines two generated sigma-fields, F1 = {empty set, A, A complement, Omega} and F2 = {empty set, B, B complement, Omega}, and shows their union contains empty set, A, B, A complement, B complement, and Omega."}
+
+The example uses $\mathcal{F}_1=\sigma(\{A\})$ and $\mathcal{F}_2=\sigma(\{B\})$. Their union contains $A$ and $B$, but need not contain $A\cup B$, so it may fail closure under finite, and hence countable, unions.
 :::
 
-### Lebesgue Measure
+If $A\subseteq B$, then $A\cup B=B$, so this particular obstruction disappears. But for generic sets $A$ and $B$, the union $\mathcal{F}_1\cup\mathcal{F}_2$ is not guaranteed to be a $\sigma$-field.
 
-Let $\Omega$ be a non-empty set.
+::: {#fig-l03-slide-02 .column-margin}
+![Intersections of sigma-fields remain sigma-fields, even for arbitrary indexed intersections.](images/l03-s02.png){fig-alt="A chalkboard lists four facts: the intersection of two sigma-fields is a sigma-field; the intersection of a finite number of sigma-fields is a sigma-field; countable intersections of sigma-fields are sigma-fields; and uncountable intersections of sigma-fields are sigma-fields."}
 
-Think of $\Omega = \{1, 2, 3, 4, 5\}$ corresponding to a sample space of an experiment e.g. outcomes of tossing a coin. 
-
-::: {#def-sample-space}
-## Sample Space
-Is the set of all possible outcomes of an experiment
+The intersection result scales beyond two $\sigma$-fields. If every $\mathcal{F}_\alpha$ is a $\sigma$-field on the same underlying set $\Omega$, then $\bigcap_{\alpha\in I}\mathcal{F}_\alpha$ is also a $\sigma$-field, even when the index set $I$ is uncountable.
 :::
 
-Then we can define a measure $\mu$ on $\Omega$ by assigning a non-negative number to each outcome. 
+::: {#fig-l03-slide-03 .column-margin}
+![Proof that arbitrary intersections of sigma-fields are closed under countable unions.](images/l03-s03.png){fig-alt="A chalkboard proof assumes a collection of sigma-fields indexed by alpha in I. It takes A1, A2, A3 and so on in the intersection over alpha of F alpha, notes that all An belong to every F alpha, and concludes that the countable union of the An belongs to every F alpha and therefore to the intersection."}
 
-For example, we could define $\mu$ as follows:
-
-
-::: {#fig-l01-s01 .column-margin }
-![$\Omega$](/images/l01-s01.png)
-
-Starting with a set $\Omega$, an abstraction of a sample space.
+The hardest property is closure under countable unions. If $A_1,A_2,\ldots \in \bigcap_{\alpha\in I}\mathcal{F}_\alpha$, then each $A_n$ belongs to every $\mathcal{F}_\alpha$. Since each $\mathcal{F}_\alpha$ is a $\sigma$-field, $\bigcup_{n=1}^{\infty}A_n \in \mathcal{F}_\alpha$ for every $\alpha$, so the union lies in the intersection.
 :::
 
-The set $\Omega$ is any set, but we can think about it as an abstraction of our coin toss sample space. 
+The same proof also gives the familiar special cases: two intersections, finite intersections, and countable intersections. The only essential requirement is that all $\sigma$-fields are defined on the same underlying set $\Omega$.
 
-Jen point out that it is an abstract set and I take it to mean that we might not be able to come up with an experiment that has the its sample space, i.e. outcomes as the subsets in $\Omega$ but we can still define a measure on it.
+## Measurable sets and measurable spaces
 
-::: {#fig-l01-s02 .column-margin }
-![](/images/l01-s02.png)
+::: {#def-measurable-set}
+## Measurable set
+
+Let $\mathcal{F}$ be a $\sigma$-field on $\Omega$.  
+A set $A$ is called **measurable** if $A\in\mathcal{F}$.
 :::
 
-::: {#fig-l01-s03 .column-margin }
-![](/images/l01-s03.png)
+::: {#def-measurable-space}
+## Measurable space
+
+A **measurable space** is a pair
+
+$$
+(\Omega,\mathcal{F}),
+$$
+
+where $\Omega$ is a non-empty set and $\mathcal{F}$ is a $\sigma$-field on $\Omega$.
 :::
 
-::: {#fig-l01-s04 .column-margin }
-![](/images/l01-s04.png)
+::: {#fig-l03-slide-04 .column-margin}
+![Measurable sets and measurable spaces.](images/l03-s04.png){fig-alt="A chalkboard states that sets in sigma-fields are called measurable sets, and that Omega and F together are called a measurable space, written as the ordered pair (Omega, F)."}
+
+The notation $(\Omega,\mathcal{F})$ packages the sample space and the collection of measurable sets. From this point onward, saying “let $(\Omega,\mathcal{F})$ be a measurable space” means $\Omega$ is non-empty and $\mathcal{F}$ is a $\sigma$-field on $\Omega$.
 :::
 
-::: {#fig-l01-s05 .column-margin }
-![](/images/l01-s05.png)
+## Measures
+
+A measure is a function that assigns a non-negative extended real number to each measurable set.
+
+::: {#def-measure}
+## Measure
+
+Let $(\Omega,\mathcal{F})$ be a measurable space.  
+A **measure** on this space is a function
+
+$$
+\mu:\mathcal{F}\to [0,\infty]
+$$
+
+such that:
+
+1. $\mu(\emptyset)=0$.
+2. If $A_1,A_2,\ldots \in \mathcal{F}$ are pairwise disjoint, then
+
+$$
+\mu\left(\bigcup_{n=1}^{\infty} A_n\right)
+=
+\sum_{n=1}^{\infty}\mu(A_n).
+$$
 :::
 
+The second property is called **countable additivity**. The disjointness condition is essential: if the sets overlap, summing the individual measures double-counts the overlaps.
 
-::: {#fig-l01-s06 .column-margin }
-![](/images/l01-s06.png)
+::: {#fig-l03-slide-05 .column-margin}
+![Definition of a measure using empty-set measure and countable additivity.](images/l03-s05.png){fig-alt="A chalkboard defines a measure on a measurable space (Omega, F) as a function mu from F to [0, infinity] satisfying mu of the empty set equals zero and countable additivity for disjoint sets A1, A2, A3 and so on."}
+
+A measure $\mu$ is defined on the $\sigma$-field $\mathcal{F}$, not directly on all subsets of $\Omega$. It sends measurable sets to values in $[0,\infty]$ and is countably additive only over disjoint measurable sets.
 :::
 
-::: {#fig-l01-s07 .column-margin }
-![](/images/l01-s07.png)
+## Countable additivity implies finite additivity
+
+Finite additivity is a consequence of countable additivity.
+
+If $A_1,\ldots,A_n\in\mathcal{F}$ are disjoint, then
+
+$$
+\mu\left(\bigcup_{i=1}^{n}A_i\right)
+=
+\sum_{i=1}^{n}\mu(A_i).
+$$
+
+To see this as a special case of countable additivity, append infinitely many copies of $\emptyset$:
+
+$$
+A_1,\ldots,A_n,\emptyset,\emptyset,\ldots
+$$
+
+Since $\emptyset$ is disjoint from every set, including itself, countable additivity applies.
+
+::: {#fig-l03-slide-06 .column-margin}
+![Finite additivity follows from countable additivity.](images/l03-s06.png){fig-alt="A chalkboard states that if A1 through An in F are disjoint, then mu of the finite union from i equals 1 to n of Ai equals the finite sum of mu(Ai). It labels this finite additivity and notes that a finite set of things is countable."}
+
+A finite collection is countable. By padding the collection with empty sets, countable additivity gives finite additivity without adding it as a separate axiom.
 :::
 
-::: {#fig-l01-s08 .column-margin }
-![](/images/l01-s08.png)
+::: {#fig-l03-slide-07 .column-margin}
+![Definition of disjoint sets.](images/l03-s07.png){fig-alt="A chalkboard states that sets A and B are disjoint if A intersect B equals the empty set."}
+
+Two sets are disjoint when they share no elements: $A\cap B=\emptyset$. The empty set is disjoint from every set because $\emptyset\cap A=\emptyset$ for all $A$.
 :::
 
-::: {#fig-l01-s09 .column-margin }
-![](/images/l01-s09.png)
+## Alternative axiom for the empty set
+
+The usual measure axiom $\mu(\emptyset)=0$ can be replaced by a slightly different condition:
+
+> There exists at least one set $A\in\mathcal{F}$ such that $\mu(A)<\infty$.
+
+Together with countable additivity, this implies $\mu(\emptyset)=0$.
+
+::: {#fig-l03-slide-08 .column-margin}
+![Replacing the empty-set axiom with existence of one finite-measure set.](images/l03-s08.png){fig-alt="A chalkboard notes that the empty set is disjoint from all non-empty sets and says one can replace rule i with the condition that at least one set in F has finite measure. It then shows mu(A) equals mu(A union empty set), which by disjoint additivity equals mu(A) plus mu(empty set), implying mu(empty set) equals zero."}
+
+If $\mu(A)<\infty$, then $A=A\cup\emptyset$ with $A$ and $\emptyset$ disjoint. Finite additivity gives $\mu(A)=\mu(A)+\mu(\emptyset)$, so subtracting the finite number $\mu(A)$ gives $\mu(\emptyset)=0$.
 :::
 
-::: {#fig-l01-s10 .column-margin }
-![](/images/l01-s10.png)
+The finiteness assumption matters because expressions like $\infty=\infty+c$ do not let us conclude $c=0$ in ordinary extended-real arithmetic.
+
+## Probability measures
+
+::: {#def-probability-measure}
+## Probability measure
+
+Let $(\Omega,\mathcal{F})$ be a measurable space.  
+A **probability measure** is a measure
+
+$$
+P:\mathcal{F}\to [0,1]
+$$
+
+such that
+
+$$
+P(\Omega)=1.
+$$
 :::
 
-::: {#fig-l01-s11 .column-margin }
-![](/images/l01-s11.png)
+A probability measure is therefore a normalized measure: the whole space has total mass one.
+
+::: {#fig-l03-slide-09 .column-margin}
+![Definition of a probability measure.](images/l03-s09.png){fig-alt="A chalkboard defines a probability measure on a measurable space (Omega, F) as a function P from F to [0,1] that is a measure and has P(Omega) equals 1."}
+
+A probability measure is still a measure, so it inherits $\mu(\emptyset)=0$ and countable additivity. The extra probability-specific condition is normalization: $P(\Omega)=1$.
 :::
 
-::: {#fig-l01-s12 .column-margin }
-![](/images/l01-s12.png)
+::: {#fig-l03-slide-10 .column-margin}
+![Notation for generic, probability, and Lebesgue measures.](images/l03-s10.png){fig-alt="A chalkboard explains notation: mu of dot is a generic measure, P of dot is a probability measure, lambda of dot is Lebesgue measure. It gives the example Omega equals R and lambda of the interval (a,b) equals b minus a for a less than b."}
+
+The notation $\mu(\cdot)$ denotes a generic measure, $P(\cdot)$ denotes a probability measure, and $\lambda(\cdot)$ denotes Lebesgue measure. On $\mathbb{R}$, $\lambda((a,b))=b-a$ when $a<b$.
 :::
 
-::: {#fig-l01-s13 .column-margin }
-![](/images/l01-s13.png)
+## Consequences of the definition of measure
+
+The definition of measure is short, but it gives several important facts for free.
+
+::: {#prp-finite-additivity}
+## Finite additivity
+
+If $A_1,\ldots,A_n\in\mathcal{F}$ are disjoint, then
+
+$$
+\mu\left(\bigcup_{i=1}^{n}A_i\right)
+=
+\sum_{i=1}^{n}\mu(A_i).
+$$
 :::
 
-::: {#fig-l01-s14 .column-margin }
-![](/images/l01-s14.png)
+::: {#fig-l03-slide-11 .column-margin}
+![First consequence of the measure definition: finite additivity.](images/l03-s11.png){fig-alt="A chalkboard titled things we get from the definition of a measure lists item one: countable additivity implies finite additivity, and writes the finite-additivity formula for disjoint A1 through An."}
+
+Finite additivity is not an additional axiom. It follows by treating a finite collection as a countable collection padded by empty sets.
 :::
 
-::: {#fig-l01-s15 .column-margin }
-![](/images/l01-s15.png)
+::: {#prp-probability-complement}
+## Complement rule for probability
+
+If $P$ is a probability measure and $A\in\mathcal{F}$, then
+
+$$
+P(A^c)=1-P(A).
+$$
 :::
 
-::: {#fig-l01-s16 .column-margin }
-![](/images/l01-s16.png)
+Proof:
+
+$$
+1=P(\Omega)=P(A\cup A^c)=P(A)+P(A^c),
+$$
+
+because $A$ and $A^c$ are disjoint.
+
+::: {#fig-l03-slide-12 .column-margin}
+![Complement rule for probability measures.](images/l03-s12.png){fig-alt="A chalkboard derives the complement rule. It assumes P from F to [0,1] is a probability measure, takes any A in F, writes 1 equals P(Omega) equals P(A union A complement), notes the sets are disjoint, and concludes P(A complement) equals 1 minus P(A)."}
+
+The usual probability identity $P(A^c)=1-P(A)$ is not a separate rule. It follows from normalization, complements in the $\sigma$-field, and finite additivity.
 :::
 
-closed under finite unions
+::: {#prp-monotonicity}
+## Monotonicity of measure
 
-::: {#fig-l01-s17 .column-margin }
-![not a $\sigma$ field](/images/l01-s17.png)
+If $A,B\in\mathcal{F}$ and $A\subseteq B$, then
 
-a field that is not a $\sigma$-field
+$$
+\mu(A)\leq \mu(B).
+$$
 :::
 
+Proof:
 
-::: {#fig-l01-s18 .column-margin }
-![not a $\sigma$ field](/images/l01-s18.png)
+Since $A\subseteq B$,
 
+$$
+B = A \cup (B\cap A^c),
+$$
+
+and the two sets on the right are disjoint. Therefore,
+
+$$
+\mu(B)
+=
+\mu(A)+\mu(B\cap A^c)
+\geq
+\mu(A),
+$$
+
+because measures are non-negative.
+
+::: {#fig-l03-slide-13 .column-margin}
+![Monotonicity proof for measures.](images/l03-s13.png){fig-alt="A chalkboard proves that A subset B implies mu(A) less than or equal to mu(B). It decomposes B as (B intersect A) union (B intersect A complement), then uses A subset B to rewrite this as A union (B intersect A complement), and applies disjoint finite additivity and non-negativity."}
+
+Monotonicity says larger sets cannot have smaller measure. The inequality need not be strict: a proper subset may have the same measure as the larger set.
 :::
 
-## Lesson 2: Borrel Sets
+## Countable subadditivity
+
+::: {#prp-countable-subadditivity}
+## Countable subadditivity
+
+If $A_1,A_2,\ldots\in\mathcal{F}$, not necessarily disjoint, then
+
+$$
+\mu\left(\bigcup_{n=1}^{\infty}A_n\right)
+\leq
+\sum_{n=1}^{\infty}\mu(A_n).
+$$
+:::
+
+::: {#fig-l03-slide-14 .column-margin}
+![Countable subadditivity statement.](images/l03-s14.png){fig-alt="A chalkboard states that a measure is countably subadditive. For any A1, A2 and so on in F, not necessarily disjoint, mu of the countable union of An is less than or equal to the sum of mu(An)."}
+
+Countable additivity requires disjoint sets and gives equality. Countable subadditivity drops disjointness and gives an inequality, because overlapping regions may be counted more than once in the sum.
+:::
+
+::: {#fig-l03-slide-15 .column-margin}
+![Disjoint sets have additive measure.](images/l03-s15.png){fig-alt="A visual diagram shows three separated green disks on a chalkboard background, illustrating disjoint sets whose union has measure equal to the sum of their individual measures."}
+
+For disjoint sets, the measure of the union is exactly the sum of the measures. The picture matches the area intuition: no overlap means no double-counting.
+:::
+
+::: {#fig-l03-slide-16 .column-margin}
+![Overlapping sets motivate subadditivity.](images/l03-s16.png){fig-alt="A visual diagram shows three overlapping green disks on a chalkboard background, illustrating that summing individual areas double-counts overlapping regions."}
+
+For overlapping sets, the sum of the individual measures counts the overlaps more than once. Therefore the measure of the union is less than or equal to the sum of the measures.
+:::
+
+To prove countable subadditivity, split the possibly overlapping sets into disjoint pieces.
+
+::: {#fig-l03-slide-17 .column-margin}
+![Set difference and its measure bound.](images/l03-s17.png){fig-alt="A chalkboard introduces differences of sets. It shows two overlapping sets A and B, shades the part of A outside B, and writes A backslash B equals A intersect B complement. It notes that mu(A backslash B) is less than or equal to mu(A)."}
+
+The set difference $A\setminus B$ means the part of $A$ outside $B$, so $A\setminus B=A\cap B^c$. Since $A\setminus B\subseteq A$, monotonicity gives $\mu(A\setminus B)\leq\mu(A)$.
+:::
+
+::: {#fig-l03-slide-18 .column-margin}
+![Set difference with a union and De Morgan's law.](images/l03-s18.png){fig-alt="A chalkboard shows the identity A backslash (B1 union B2) equals A intersect (B1 union B2) complement, which equals A intersect B1 complement intersect B2 complement."}
+
+By De Morgan’s law, subtracting a union removes each component: $A\setminus(B_1\cup B_2)=A\cap B_1^c\cap B_2^c$. This is the template for removing earlier sets when constructing disjoint pieces.
+:::
+
+::: {#fig-l03-slide-19 .column-margin}
+![Proof of countable subadditivity by disjointization.](images/l03-s19.png){fig-alt="A chalkboard proof rewrites the union of A1, A2, A3 and so on as a disjoint union of A1, A2 minus A1, A3 minus (A1 union A2), and so on. It then applies countable additivity to the disjoint pieces and bounds each difference by the original set's measure."}
+
+Disjointize the sequence by keeping $A_1$, then only the new part of $A_2$, then only the new part of $A_3$, and so on. The union is unchanged, the pieces are disjoint, and each piece has measure at most the measure of the original $A_n$.
+:::
+
+## Measure spaces and probability spaces
+
+::: {#def-measure-space}
+## Measure space
+
+A **measure space** is a triple
+
+$$
+(\Omega,\mathcal{F},\mu),
+$$
+
+where $(\Omega,\mathcal{F})$ is a measurable space and $\mu$ is a measure on $\mathcal{F}$.
+:::
+
+::: {#def-probability-space}
+## Probability space
+
+A **probability space** is a triple
+
+$$
+(\Omega,\mathcal{F},P),
+$$
+
+where $(\Omega,\mathcal{F})$ is a measurable space and $P$ is a probability measure on $\mathcal{F}$.
+:::
+
+::: {#fig-l03-slide-20 .column-margin}
+![Measurable sets, measurable spaces, measure spaces, and probability spaces.](images/l03-s20.png){fig-alt="A chalkboard summarizes terminology: F equals measurable sets; (Omega, F) equals a measurable space; (Omega, F, mu) equals a measure space; and (Omega, F, P) equals a probability space."}
+
+The notation ladder is: $\mathcal{F}$ is the measurable sets, $(\Omega,\mathcal{F})$ is a measurable space, $(\Omega,\mathcal{F},\mu)$ is a measure space, and $(\Omega,\mathcal{F},P)$ is a probability space.
+:::
+
+## Example 1: coin flipping
+
+For three coin flips,
+
+$$
+\Omega=\{HHH,HHT,HTH,THH,HTT,THT,TTH,TTT\}.
+$$
+
+If $\mathcal{F}=\mathcal{P}(\Omega)$ is the power set, then every subset of outcomes is measurable. A probability measure $P$ can be defined by assigning probabilities to singleton outcomes and extending by additivity.
+
+For a fair coin,
+
+$$
+P(\{HHH\})=P(\{HHT\})=\cdots=P(\{TTT\})=\frac18.
+$$
+
+Thus,
+
+$$
+P(\{HHH,HHT\})
+=
+P(\{HHH\})+P(\{HHT\})
+=
+\frac18+\frac18
+=
+\frac14.
+$$
+
+::: {#fig-l03-slide-21 .column-margin}
+![Coin-flipping probability space.](images/l03-s21.png){fig-alt="A chalkboard example for coin flipping lists the eight outcomes for three flips, defines F as the power set of Omega, defines P from F to [0,1] as the usual probabilities, and shows P of the set containing HHH and HHT as the sum of the two singleton probabilities."}
+
+The coin-flipping example shows why $\sigma$-fields are useful: once probabilities are assigned to basic outcomes, finite additivity extends them to larger events made from those outcomes.
+:::
+
+## Example 2: Lebesgue measure on $[0,1]$
+
+Let
+
+$$
+\Omega=[0,1].
+$$
+
+Let $\mathcal{F}$ be the Borel $\sigma$-field on $[0,1]$, written
+
+$$
+\mathcal{B}([0,1]).
+$$
+
+Lebesgue measure $\lambda$ restricted to $[0,1]$ is a probability measure because
+
+$$
+\lambda([0,1])=1.
+$$
+
+For intervals inside $[0,1]$,
+
+$$
+\lambda((a,b))=b-a.
+$$
+
+::: {#fig-l03-slide-22 .column-margin}
+![Lebesgue measure on the Borel sets of the unit interval.](images/l03-s22.png){fig-alt="A chalkboard example sets Omega equal to the closed interval [0,1], defines F as the sigma-field generated by open intervals in [0,1], writes F equals B([0,1]), and defines P as lambda, Lebesgue measure, with P((a,b)) equals b minus a."}
+
+On $[0,1]$, Lebesgue measure has total mass one, so it is a probability measure. This is the continuous analogue of the finite coin-flipping probability space.
+:::
+
+## Borel sets on $[0,1]$
+
+Defining open sets inside a restricted space such as $[0,1]$ requires topology. Instead of relying on that directly, the lesson gives an equivalent construction by restriction.
+
+Start with a measurable space $(\Omega,\mathcal{F})$ and a subset $\Omega'\subseteq\Omega$. Define
+
+$$
+\mathcal{F}'
+=
+\{A\cap \Omega' : A\in\mathcal{F}\}.
+$$
+
+Then $\mathcal{F}'$ is a $\sigma$-field on $\Omega'$.
+
+::: {#fig-l03-slide-23 .column-margin}
+![Restricting a sigma-field to a subset.](images/l03-s23.png){fig-alt="A chalkboard titled towards an alternative definition of B([0,1]) defines Omega as a non-empty set, F as a sigma-field on Omega, Omega prime as a subset of Omega, and F prime as the collection of all A intersect Omega prime for A in F. A diagram shows a rectangular Omega prime cutting through several sets."}
+
+The restricted $\sigma$-field $\mathcal{F}'$ contains exactly the traces of sets in $\mathcal{F}$ on the smaller space $\Omega'$. This avoids separately defining openness inside the subspace.
+:::
+
+::: {#fig-l03-slide-24 .column-margin}
+![Proof that the restricted collection is a sigma-field: Omega prime and complements.](images/l03-s24.png){fig-alt="A chalkboard states that F prime is a sigma-field on Omega prime. It verifies that Omega prime equals Omega intersect Omega prime and that complements in Omega prime can be written using complements in Omega intersected with Omega prime."}
+
+The full smaller space belongs to $\mathcal{F}'$ because $\Omega'=\Omega\cap\Omega'$ and $\Omega\in\mathcal{F}$. Complements are taken relative to $\Omega'$: if $A'=A\cap\Omega'$, then $(A')^c$ inside $\Omega'$ is $A^c\cap\Omega'$.
+:::
+
+::: {#fig-l03-slide-25 .column-margin}
+![Proof that the restricted collection is closed under countable unions.](images/l03-s25.png){fig-alt="A chalkboard shows countable union closure for F prime. It writes Ai prime equals Ai intersect Omega prime and then shows the union over i of Ai prime equals the union over i of Ai, all intersected with Omega prime. A diagram shows sets clipped by Omega prime."}
+
+Countable unions commute with this restriction: $\bigcup_n(A_n\cap\Omega')=(\bigcup_n A_n)\cap\Omega'$. Since $\bigcup_nA_n\in\mathcal{F}$, the restricted union lies in $\mathcal{F}'$.
+:::
+
+Therefore,
+
+$$
+\mathcal{B}([0,1])
+=
+\{A\cap[0,1]: A\in\mathcal{B}(\mathbb{R})\}.
+$$
+
+::: {#fig-l03-slide-26 .column-margin}
+![Borel sets on [0,1] as restrictions of Borel sets on the real line.](images/l03-s26.png){fig-alt="A chalkboard states that B([0,1]) can be defined as the collection of all A intersect [0,1] such that A belongs to B, where B denotes the Borel sigma-field on the real line."}
+
+The Borel $\sigma$-field on $[0,1]$ can be obtained by clipping real-line Borel sets to the interval: $\mathcal{B}([0,1])=\{A\cap[0,1]:A\in\mathcal{B}(\mathbb{R})\}$.
+:::
+
+## Restricting before or after generating
+
+The final result connects restriction and generated $\sigma$-fields.
+
+Let $\mathcal{A}$ be a collection of subsets of $\Omega$, and let
+
+$$
+\mathcal{F}=\sigma(\mathcal{A}).
+$$
+
+For $\Omega'\subseteq\Omega$, define
+
+$$
+\mathcal{A}'
+=
+\{A\cap\Omega' : A\in\mathcal{A}\}
+$$
+
+and
+
+$$
+\mathcal{F}'
+=
+\{A\cap\Omega' : A\in\mathcal{F}\}.
+$$
+
+Then
+
+$$
+\mathcal{F}'=\sigma(\mathcal{A}').
+$$
+
+In words: restricting a generated $\sigma$-field to a subset gives the same result as first restricting the generators and then generating the $\sigma$-field.
+
+::: {#fig-l03-slide-27 .column-margin}
+![Restriction commutes with sigma-field generation.](images/l03-s27.png){fig-alt="A chalkboard states that Omega is a space, A is a collection of subsets of Omega, F equals sigma of A, and Omega prime is a subset of Omega. It defines A prime as all A intersect Omega prime for A in script A, and F prime as all A intersect Omega prime for A in script F, then states that F prime is the same as sigma of A prime."}
+
+The important identity is $\{A\cap\Omega':A\in\sigma(\mathcal{A})\}=\sigma(\{A\cap\Omega':A\in\mathcal{A}\})$. This explains why the two definitions of $\mathcal{B}([0,1])$ agree.
+:::
+
+## Takeaway
+
+A measurable space $(\Omega,\mathcal{F})$ specifies which sets are measurable.  
+A measure space $(\Omega,\mathcal{F},\mu)$ adds a consistent notion of size.  
+A probability space $(\Omega,\mathcal{F},P)$ is the normalized case where the whole space has measure one.
+
+The key bridge to probability is:
+
+$$
+\text{sets in a } \sigma\text{-field}
+\quad\longrightarrow\quad
+\text{measurable sets}
+\quad\longrightarrow\quad
+\text{measures on those sets}.
+$$
