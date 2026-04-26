@@ -156,3 +156,21 @@ computers is filling up. This drive contains the computer’s
 |:spiral_notepad:| 📖 | - Section covering a reading handout etc|
 |:snake:| 🐍 | - Section covering Python code|
 |$\mathcal{R}$| ℛ | - Section covering R code|
+
+
+
+----
+
+## Adding reticulate to the renv environment
+
+the project failed to build as in some files quarto wanted to run python via reticulate however as it is not used explicitly in the code, it was not included in the renv.lock file. The solution is to add reticulate to the renv environment as follows and then snapshot the environment to update the lock file.
+
+```r
+install.packages("reticulate")
+renv::use("reticulate")
+renv::snapshot()
+```
+
+the key point is that the `renv::use("reticulate")` command adds reticulate to the list of packages used in the project and then `renv::snapshot()` updates the lock file to include reticulate. After this, the project should build successfully without errors related to reticulate.
+
+----
