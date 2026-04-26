@@ -173,4 +173,6 @@ renv::snapshot()
 
 the key point is that the `renv::use("reticulate")` command adds reticulate to the list of packages used in the project and then `renv::snapshot()` updates the lock file to include reticulate. After this, the project should build successfully without errors related to reticulate.
 
+anyhow this did not work the first few times... and renv::snapshot() required a long time to run.
+
 ----

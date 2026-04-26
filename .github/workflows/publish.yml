@@ -12,55 +12,9 @@ jobs:
       contents: write
       
     steps:
+
       - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-      - name: Install Python and Dependencies
-        id: py
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12.3'
-          cache: 'pip'
-
-      #- name: Install pybind11 numpy, wheel, and jupyter for build
-      #  run: pip install "pybind11<2.13" "numpy<3" jupyter wheel
-
-      - name: Install Python dependencies
-        #run: pip install -r requirements.txt
-        run: |
-          "${{ steps.py.outputs.python-path }}" -m pip install -U pip
-          if [ -f requirements.txt ]; then
-            "${{ steps.py.outputs.python-path }}" -m pip install -r requirements.txt
-          fi
-
-      #   # Export expanded include paths for the next step
-      # - name: Set include flags
-      #   run: |
-      #     PYBIND11_INCLUDE=$(python -c 'import pybind11; print(pybind11.get_include())')
-      #     NUMPY_INCLUDE=$(python -c 'import numpy; print(numpy.get_include())')
-      #     echo "CFLAGS=-I${PYBIND11_INCLUDE} -I${NUMPY_INCLUDE}" >> $GITHUB_ENV
-      #     echo "CXXFLAGS=-I${PYBIND11_INCLUDE} -I${NUMPY_INCLUDE}" >> $GITHUB_ENV
-      #     # (optional) also force the include search path for C++
-      #     echo "CPLUS_INCLUDE_PATH=${PYBIND11_INCLUDE}:${NUMPY_INCLUDE}" >> $GITHUB_ENV
-
-      # # Now build pyjags without isolation, using the pre-set flags
-      # - name: Build pyjags (no isolation)
-      #   run: pip install --no-build-isolation pyjags
-
-
-      - name: Install R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.5.3'
-          use-public-rspm: true   # enables Posit binaries
-        # with:
-        #   tinytex: true
+        uses: actions/checkout@v6
 
       # Install system deps needed by R packages (curl in particular)
       - name: Install system libraries
@@ -97,6 +51,53 @@ jobs:
 
           fc-cache -f
           fc-list | grep -Ei 'garamond|open sans|roboto mono|emoji' || true
+
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Install Python and Dependencies
+        id: py
+        uses: actions/checkout@v6
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12.3'
+          cache: 'pip'
+
+      #- name: Install pybind11 numpy, wheel, and jupyter for build
+      #  run: pip install "pybind11<2.13" "numpy<3" jupyter wheel
+
+      - name: Install Python dependencies
+        #run: pip install -r requirements.txt
+        run: |
+          "${{ steps.py.outputs.python-path }}" -m pip install -U pip
+          if [ -f requirements.txt ]; then
+            "${{ steps.py.outputs.python-path }}" -m pip install -r requirements.txt
+          fi
+
+      #   # Export expanded include paths for the next step
+      # - name: Set include flags
+      #   run: |
+      #     PYBIND11_INCLUDE=$(python -c 'import pybind11; print(pybind11.get_include())')
+      #     NUMPY_INCLUDE=$(python -c 'import numpy; print(numpy.get_include())')
+      #     echo "CFLAGS=-I${PYBIND11_INCLUDE} -I${NUMPY_INCLUDE}" >> $GITHUB_ENV
+      #     echo "CXXFLAGS=-I${PYBIND11_INCLUDE} -I${NUMPY_INCLUDE}" >> $GITHUB_ENV
+      #     # (optional) also force the include search path for C++
+      #     echo "CPLUS_INCLUDE_PATH=${PYBIND11_INCLUDE}:${NUMPY_INCLUDE}" >> $GITHUB_ENV
+
+      # # Now build pyjags without isolation, using the pre-set flags
+      # - name: Build pyjags (no isolation)
+      #   run: pip install --no-build-isolation pyjags
+
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.3'
+          use-public-rspm: true   # enables Posit binaries
+        # with:
+        #   tinytex: true
 
       - name: Cache R packages
         uses: actions/cache@v3
