@@ -45,13 +45,13 @@ jobs:
             librsvg2-bin \
             fonts-ebgaramond fonts-open-sans \
             fonts-roboto fonts-noto-color-emoji \
-            texlive-fonts-extra \
             fonts-dejavu-core fonts-noto-mono fonts-firacode \
             fontconfig
 
           fc-cache -f
           fc-list | grep -Ei 'garamond|open sans|roboto mono|emoji' || true
 
+          # texlive-fonts-extra \
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -89,31 +89,13 @@ jobs:
           Rscript -e 'renv::diagnostics()'
 
 
-      - name: Cache R packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/R/renv
-          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
-          restore-keys: ${{ runner.os }}-renv-
+      # - name: Cache R packages
+      #   uses: actions/cache@v5
+      #   with:
+      #     path: ~/.cache/R/renv
+      #     key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+      #     restore-keys: ${{ runner.os }}-renv-
 
-      - name: Install R Dependencies
-        uses: r-lib/actions/setup-renv@v2
-        with:
-          cache-version: 1
-          bypass-cache: never
-
-          env:
-            RENV_CONFIG_REPOS_OVERRIDE: https://cloud.r-project.org
-            RENV_CONFIG_PAK_ENABLED: true
-            RENV_DOWNLOAD_METHOD: libcurl
-        # env:
-        #   RENV_CONFIG_RSPM: https://packagemanager.posit.co/cran/__linux__/noble/latest
-        #   # Disable GLPK when building igraph from source
-        #   RENV_CONFIG_BUILD_BINARY: "TRUE"
-          
-    # From https://github.com/julia-actions/setup-julia
-      # - name: Setup Julia
-      #   uses: julia-actions/setup-julia@v1
 
       # Relax warnings only if fallback source builds occur
       - name: Relax C++ warnings
@@ -124,6 +106,25 @@ jobs:
             echo 'CXX14FLAGS=-g -O2 -Wno-error=format-security'
             echo 'CXX11FLAGS=-g -O2 -Wno-error=format-security'
           } > ~/.R/Makevars
+
+      - name: Install R Dependencies
+        uses: r-lib/actions/setup-renv@v2
+        with:
+          cache-version: 2
+          bypass-cache: never
+        env:
+          RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.posit.co/cran/__linux__/noble/latest
+          RENV_CONFIG_PAK_ENABLED: true
+          RENV_DOWNLOAD_METHOD: libcurl
+        # env:
+        #   RENV_CONFIG_RSPM: https://packagemanager.posit.co/cran/__linux__/noble/latest
+        #   # Disable GLPK when building igraph from source
+        #   RENV_CONFIG_BUILD_BINARY: "TRUE"
+          
+    # From https://github.com/julia-actions/setup-julia
+      # - name: Setup Julia
+      #   uses: julia-actions/setup-julia@v1
+
 
       # Install TinyTeX (pdflatex + latexmk) with caching a few LaTeX pkgs often needed by TikZ
       - uses: r-lib/actions/setup-tinytex@v2
